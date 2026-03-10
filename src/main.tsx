@@ -1,0 +1,46 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { MantineProvider } from "@mantine/core";
+import { BrowserRouter } from "react-router-dom";
+import "@mantine/core/styles.css";
+import "@mantine/charts/styles.css";
+import "./index.css";
+import App from "./App.tsx";
+
+const fontPresets = {
+  sora: "Sora, Montserrat, Avenir Next, Segoe UI, sans-serif",
+  manrope: "Manrope, Montserrat, Avenir Next, Segoe UI, sans-serif",
+  archivo: "Archivo, Montserrat, Avenir Next, Segoe UI, sans-serif",
+  outfit: "Outfit, Montserrat, Avenir Next, Segoe UI, sans-serif",
+  spaceGrotesk: "Space Grotesk, Montserrat, Avenir Next, Segoe UI, sans-serif",
+} as const;
+
+type FontPresetKey = keyof typeof fontPresets;
+
+const ACTIVE_FONT: FontPresetKey = "sora";
+const selectedFontFamily = fontPresets[ACTIVE_FONT];
+
+if (typeof document !== "undefined") {
+  document.documentElement.style.setProperty(
+    "--app-font-family",
+    selectedFontFamily,
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <MantineProvider
+      defaultColorScheme="light"
+      theme={{
+        fontFamily: selectedFontFamily,
+        headings: {
+          fontFamily: selectedFontFamily,
+        },
+      }}
+    >
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </MantineProvider>
+  </StrictMode>,
+);
