@@ -1,0 +1,38 @@
+.placeholderRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.67rem;
+  color: rgba(203, 246, 251, 0.84);
+}
+
+.title {
+  margin: 0;
+  color: rgba(239, 252, 255, 0.96);
+  font-size: clamp(1rem, 1.15vw, 1.2rem);
+  line-height: 1.25;
+}
+
+.body {
+  margin: 0;
+  color: rgba(211, 242, 248, 0.9);
+  font-size: clamp(0.84rem, 0.96vw, 0.94rem);
+  line-height: 1.58;
+}
+
+.noteBox {
+  margin-top: 2px;
+  border-radius: 14px;
+  border: 1px dashed rgba(162, 236, 242, 0.46);
+  background: rgba(8, 52, 68, 0.34);
+  padding: 10px 12px;
+  color: rgba(223, 248, 255, 0.9);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}

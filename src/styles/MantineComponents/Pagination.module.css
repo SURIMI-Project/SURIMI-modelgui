@@ -1,0 +1,12 @@
+.root [data-active="true"] {
+  background-color: var(--color-accent);
+}
+
+.control {
+  border: none;
+  border-radius: var(--radius-xs);
+  width: 27px;
+  height: 27px;
+  margin: 0 var(--spacing-xs);
+  font-size: 14px;
+}

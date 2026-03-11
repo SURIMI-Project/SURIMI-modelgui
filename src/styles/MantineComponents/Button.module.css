@@ -1,0 +1,81 @@
+.root {
+  border-radius: var(--radius-2xs);
+  color: var(--color-textInverse);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 120ms ease;
+}
+
+.root[data-variant="primary"] {
+  background-color: var(--color-primary);
+}
+
+.root[data-variant="primary"]:hover {
+  background-color: var(--color-primaryHover);
+}
+
+.root[data-variant="primary"]:active {
+  transform: translateY(1px);
+}
+
+.root[data-variant="primaryOutlined"] {
+  background-color: var(--color-transparent);
+  border: 1px solid var(--color-brandSignature);
+  color: var(--color-textInverse);
+}
+
+.root[data-variant="primaryOutlined"]:hover {
+  background-color: rgba(232, 77, 72, 0.2);
+  border-color: var(--color-brandSignatureHover);
+}
+
+.root[data-variant="primaryOutlined"]:active {
+  transform: translateY(1px);
+}
+
+.root[data-variant="primaryFilled"] {
+  background-color: var(--color-brandSignature);
+}
+
+.root[data-variant="primaryFilled"]:hover {
+  background-color: var(--color-brandSignatureHover);
+}
+
+.root[data-variant="primaryFilled"]:active {
+  transform: translateY(1px);
+}
+
+.root[data-variant="dangerFilled"] {
+  background-color: var(--color-danger);
+}
+
+.root[data-variant="dangerFilled"]:hover {
+  background-color: var(--color-dangerHover);
+}
+
+.root[data-variant="dangerFilled"]:active {
+  transform: translateY(1px);
+}
+
+.root[data-loading="true"] {
+  opacity: 0.9;
+}
+
+.label {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.52);
+}
+
+.root:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.root:disabled:hover,
+.root:disabled:active {
+  opacity: 0.45;
+  transform: none;
+}

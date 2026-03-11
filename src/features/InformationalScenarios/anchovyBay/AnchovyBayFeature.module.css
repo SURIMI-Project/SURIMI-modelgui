@@ -1,0 +1,42 @@
+.anchovyCard {
+  width: min(100%, 760px);
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.statusRow div {
+  flex: 1;
+  border-radius: 14px;
+  border: 1px solid rgba(152, 208, 255, 0.24);
+  background: rgba(16, 40, 72, 0.42);
+  padding: 10px 12px;
+}
+
+.statusRow span {
+  display: block;
+  color: rgba(205, 231, 255, 0.84);
+  font-size: 0.66rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.statusRow strong {
+  color: rgba(236, 246, 255, 0.96);
+  font-size: 0.83rem;
+  font-weight: 680;
+}
+
+@media (max-width: 56rem) {
+  .anchovyCard {
+    width: 100%;
+  }
+
+  .statusRow {
+    flex-direction: column;
+  }
+}

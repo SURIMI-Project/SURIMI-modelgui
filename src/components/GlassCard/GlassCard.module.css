@@ -1,0 +1,66 @@
+.root {
+  width: min(100%, 560px);
+  padding: var(--glass-card-padding, clamp(14px, 2.2vw, 22px));
+  border-radius: var(--glass-card-radius, 8px);
+  border: 1px solid var(--glass-card-border, rgba(138, 198, 250, 0.32));
+  background: var(--glass-card-background, rgba(10, 26, 52, 0.45));
+  box-shadow: var(--glass-card-shadow, 0 30px 46px -34px rgba(0, 8, 30, 0.88));
+  backdrop-filter: blur(10px);
+}
+
+.variantWestern {
+  --glass-card-padding: clamp(14px, 2.4vw, 22px);
+  --glass-card-radius: 8px;
+  --glass-card-border: rgba(137, 211, 255, 0.3);
+  --glass-card-background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(89, 214, 255, 0.25),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 88% 84%,
+      rgba(141, 250, 255, 0.12),
+      transparent 46%
+    ),
+    rgba(5, 30, 53, 0.44);
+  --glass-card-shadow: 0 28px 44px -34px rgba(0, 6, 21, 0.84);
+}
+
+.variantAegean {
+  --glass-card-padding: clamp(14px, 2.2vw, 22px);
+  --glass-card-radius: 8px;
+  --glass-card-border: rgba(138, 228, 247, 0.36);
+  --glass-card-background:
+    radial-gradient(
+      circle at 22% 8%,
+      rgba(106, 232, 239, 0.25),
+      transparent 48%
+    ),
+    radial-gradient(
+      circle at 84% 82%,
+      rgba(141, 248, 234, 0.12),
+      transparent 46%
+    ),
+    rgba(3, 36, 53, 0.46);
+  --glass-card-shadow: 0 26px 42px -34px rgba(0, 12, 24, 0.85);
+}
+
+.variantAnchovy {
+  --glass-card-padding: clamp(14px, 2.2vw, 22px);
+  --glass-card-radius: 8px;
+  --glass-card-border: rgba(138, 198, 250, 0.32);
+  --glass-card-background:
+    radial-gradient(
+      circle at 18% 12%,
+      rgba(107, 164, 255, 0.22),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 82% 80%,
+      rgba(129, 223, 255, 0.14),
+      transparent 46%
+    ),
+    rgba(10, 26, 52, 0.45);
+  --glass-card-shadow: 0 30px 46px -34px rgba(0, 8, 30, 0.88);
+}

@@ -4,8 +4,10 @@ import { MantineProvider } from "@mantine/core";
 import { BrowserRouter } from "react-router-dom";
 import "@mantine/core/styles.css";
 import "@mantine/charts/styles.css";
+import "./styles/globals.css";
 import "./index.css";
 import App from "./App.tsx";
+import { resolver, theme } from "./styles/theming";
 
 const fontPresets = {
   sora: "Sora, Montserrat, Avenir Next, Segoe UI, sans-serif",
@@ -18,6 +20,7 @@ const fontPresets = {
 type FontPresetKey = keyof typeof fontPresets;
 
 const ACTIVE_FONT: FontPresetKey = "sora";
+
 const selectedFontFamily = fontPresets[ACTIVE_FONT];
 
 if (typeof document !== "undefined") {
@@ -31,12 +34,8 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MantineProvider
       defaultColorScheme="light"
-      theme={{
-        fontFamily: selectedFontFamily,
-        headings: {
-          fontFamily: selectedFontFamily,
-        },
-      }}
+      theme={theme}
+      cssVariablesResolver={resolver}
     >
       <BrowserRouter>
         <App />

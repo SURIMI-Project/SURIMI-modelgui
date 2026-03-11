@@ -1,0 +1,29 @@
+/* Variant Outline */
+
+.root[data-variant='outline'] .radio {
+  cursor: pointer;
+  background-color: var(--color-transparent);
+}
+
+.root[data-variant='outline'] .radio:checked {
+  border-color: var(--color-accent);
+}
+
+.root[data-variant='outline'] .radio:disabled {
+  border-color: var(--color-borderDefault);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.root[data-variant='outline'] .icon {
+  color: var(--color-accent);
+  scale: 1.2;
+}
+
+.root[data-variant='outline'] .label {
+  pointer-events: none;
+}
+
+.root .radio {
+  border-color: var(--color-borderStrong);
+}

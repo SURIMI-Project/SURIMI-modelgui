@@ -1,0 +1,173 @@
+.modalHost {
+  position: fixed;
+  inset: 0;
+  z-index: 6000;
+  pointer-events: none;
+}
+
+.modalHost :global(.mantine-Modal-root) {
+  pointer-events: auto;
+}
+
+.flowRoot {
+  color: #eef8ff;
+  min-height: 0;
+}
+
+.flowHeading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.headingRow {
+  align-items: flex-start;
+}
+
+.flowTitle {
+  margin: 0;
+  font-size: clamp(0.98rem, 1.45vw, 1.5rem);
+  color: #f6fbff;
+  text-shadow: 0 12px 28px rgba(2, 9, 20, 0.74);
+}
+
+.flowSubtitle {
+  color: rgba(226, 242, 255, 0.9);
+  max-width: 75ch;
+  font-size: clamp(0.8rem, 0.94vw, 0.94rem);
+  line-height: 1.35;
+}
+
+.stepBadge {
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+}
+
+.stepShell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-smd);
+}
+
+.speciesSelect {
+  min-width: 180px;
+  max-width: 240px;
+}
+
+.chartPanel {
+  border: 1px solid rgba(186, 225, 250, 0.32);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(122, 214, 255, 0.18), transparent 42%),
+    radial-gradient(circle at 92% 88%, rgba(232, 77, 72, 0.1), transparent 45%),
+    linear-gradient(160deg, rgba(6, 31, 57, 0.68), rgba(6, 22, 43, 0.62));
+  box-shadow:
+    0 26px 42px -30px rgba(1, 9, 27, 0.9),
+    0 0 0 1px rgba(233, 246, 255, 0.06) inset;
+  backdrop-filter: blur(9px);
+}
+
+.chartSurface {
+  height: min(38vh, 280px);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+  background: linear-gradient(
+    170deg,
+    rgba(5, 21, 41, 0.48) 0%,
+    rgba(4, 16, 32, 0.34) 100%
+  );
+}
+
+.tablePanel {
+  border: 1px solid rgba(186, 225, 250, 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(120, 208, 255, 0.15), transparent 44%),
+    linear-gradient(162deg, rgba(6, 30, 55, 0.74), rgba(5, 21, 42, 0.66));
+  box-shadow:
+    0 24px 40px -30px rgba(1, 8, 25, 0.9),
+    0 0 0 1px rgba(230, 244, 255, 0.05) inset;
+  backdrop-filter: blur(9px);
+  max-height: min(30vh, 240px);
+  overflow: auto;
+}
+
+.tablePanel table {
+  color: #e9f6ff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tablePanel th {
+  background: rgba(120, 208, 255, 0.12);
+  color: #f5fbff;
+}
+
+.tablePanel :global(tbody tr:hover td) {
+  background: rgba(232, 77, 72, 0.12) !important;
+  color: #ffffff;
+}
+
+.activeRow td {
+  background: rgba(232, 77, 72, 0.18);
+  color: #ffffff;
+}
+
+.activeRow:hover td {
+  background: rgba(232, 77, 72, 0.22) !important;
+}
+
+.reviewPanel,
+.finalPanel {
+  border: 1px solid rgba(186, 225, 250, 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 10% 12%, rgba(122, 214, 255, 0.16), transparent 44%),
+    linear-gradient(162deg, rgba(6, 30, 55, 0.74), rgba(5, 21, 42, 0.66));
+  box-shadow:
+    0 24px 40px -30px rgba(1, 8, 25, 0.9),
+    0 0 0 1px rgba(230, 244, 255, 0.05) inset;
+  backdrop-filter: blur(9px);
+  padding: var(--spacing-md);
+}
+
+.reviewTitle {
+  color: #f6fbff;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+}
+
+.selectionCards {
+  margin-top: 12px;
+}
+
+.finalText {
+  color: rgba(222, 241, 255, 0.92);
+  line-height: 1.5;
+}
+
+.footerActions {
+  padding-top: var(--spacing-smd);
+}
+
+.selectionHint {
+  align-self: center;
+  color: rgba(212, 236, 255, 0.88);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 56rem) {
+  .chartSurface {
+    height: 280px;
+    padding: var(--spacing-smd);
+  }
+
+  .speciesSelect {
+    width: 100%;
+    max-width: none;
+  }
+
+  .stepShell {
+    gap: var(--spacing-smd);
+  }
+}
