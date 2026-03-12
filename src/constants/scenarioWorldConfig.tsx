@@ -31,7 +31,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     description: [
       "The Western Mediterranean hosts dense shipping corridors where vessel clusters generate localized pressure on marine air and water quality.",
       "Traffic intensity shifts rapidly between seasonal routes, creating dynamic hotspots that influence ecological exposure and coastal operations.",
-      "This simulation lets you test how changes in route density and operational constraints alter regional stress patterns.",
+      "This scenario lets you test how changes in route density and operational constraints alter regional stress patterns.",
     ],
     simulationContext:
       "Run comparative experiments between baseline traffic and constrained-corridor policies to inspect emissions and ecosystem stress propagation.",
@@ -48,7 +48,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     description: [
       "The Aegean Sea combines fragmented island geography with high coastal activity, forming a sensitive network of ports, routes, and habitats.",
       "Flow between hubs can amplify local disturbances as traffic and environmental conditions interact across narrow corridors.",
-      "This simulation helps evaluate how connectivity changes reshape both maritime performance and environmental pressure.",
+      "This scenario helps evaluate how connectivity changes reshape both maritime performance and environmental pressure.",
     ],
     simulationContext:
       "Explore route-level what-if scenarios for port connectivity, corridor utilization, and downstream ecological exposure.",

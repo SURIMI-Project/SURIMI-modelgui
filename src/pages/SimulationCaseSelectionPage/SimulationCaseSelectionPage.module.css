@@ -47,6 +47,10 @@
   overflow: hidden;
 }
 
+.caseGridLocked {
+  pointer-events: none;
+}
+
 .casePanel {
   position: relative;
   flex: 1 1 0;
@@ -246,12 +250,12 @@
 
 .casePanel:not(.casePanelActive):not(.casePanelCompressed):hover .minimalCopy h2,
 .casePanel:not(.casePanelActive):not(.casePanelCompressed):focus-visible .minimalCopy h2 {
-  transform: translateY(-8px) scale(1.4);
+  transform: translateY(-8px) scale(1.2);
 }
 
 .casePanel:not(.casePanelActive):not(.casePanelCompressed):hover .minimalCopy p,
 .casePanel:not(.casePanelActive):not(.casePanelCompressed):focus-visible .minimalCopy p {
-  transform: translateY(-6px) scale(1.4);
+  transform: translateY(-6px) scale(1.2);
 }
 
 .casePanelActive .minimalCopy {
@@ -331,17 +335,19 @@
 
 .centerActions {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   top: 58%;
-  width: min(90%, 760px);
+  width: auto;
   z-index: 6;
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
+  padding-inline: clamp(14px, 2.8vw, 28px);
   overflow: visible;
   gap: var(--spacing-smd);
-  transform: translate(-50%, 18px);
+  transform: translateY(18px);
   opacity: 0;
   pointer-events: none;
   will-change: transform, opacity;
@@ -370,14 +376,14 @@
 }
 
 .casePanelActive .centerActions {
-  transform: translate(-50%, 0);
+  transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
 }
 
 .casePanelCompressed .centerActions {
   opacity: 0;
-  transform: translate(-50%, 22px);
+  transform: translateY(22px);
 }
 
 @media (max-width: 1360px) {
@@ -458,7 +464,7 @@
 
   .centerActions {
     top: 55%;
-    width: min(92%, 620px);
+    padding-inline: 14px;
   }
 
   .brandLockup {

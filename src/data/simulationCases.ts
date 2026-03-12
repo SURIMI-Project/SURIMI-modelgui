@@ -18,7 +18,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
     id: "western-mediterranean",
     seaName: "Western Mediterranean Sea",
     subtitle: "Large-scale maritime traffic and emissions modelling",
-    simulationTitle: "Western Mediterranean Simulation",
+    simulationTitle: "Western Mediterranean Scenario",
     description:
       "This case study models high-density vessel corridors and regional emissions across a broad western Mediterranean operating envelope.",
     videoSrc: "/1.mp4",
@@ -27,8 +27,8 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   {
     id: "aegean-sea",
     seaName: "Aegean Sea",
-    subtitle: "Port connectivity and coastal impact simulation",
-    simulationTitle: "Aegean Sea Simulation",
+    subtitle: "Port connectivity and coastal impact scenario",
+    simulationTitle: "Aegean Sea Scenario",
     description:
       "This case study explores maritime traffic patterns and environmental emissions across the Aegean Sea using port and vessel activity data.",
     videoSrc: "/2.mp4",
@@ -38,7 +38,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
     id: "anchovy-bay",
     seaName: "Anchovy Bay",
     subtitle: "Stock-pressure and ecosystem stress scenarios",
-    simulationTitle: "Anchovy Bay Simulation",
+    simulationTitle: "Anchovy Bay Scenario",
     description:
       "This case study focuses on fisheries pressure, biomass sensitivity, and ecosystem indicators under changing operational conditions.",
     videoSrc: "/3.mp4",

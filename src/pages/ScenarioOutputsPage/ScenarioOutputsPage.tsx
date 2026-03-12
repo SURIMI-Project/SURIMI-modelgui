@@ -18,7 +18,7 @@ const ScenarioOutputsPage = () => {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <p className={styles.kicker}>Simulation Outputs</p>
+        <p className={styles.kicker}>Scenario Outputs</p>
         <h1 className={styles.title}>{caseStudy.seaName}</h1>
         <p className={styles.description}>
           Outputs page placeholder. Anchovy Bay pipeline navigation is working.

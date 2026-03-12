@@ -35,6 +35,7 @@ const ScenarioWorldFeatureSection = ({
       >
         {worldConfig.featureTitle}
       </motion.p>
+
       {worldConfig.featureSubtitle ? (
         <motion.p
           className={styles.featureSubtitle}

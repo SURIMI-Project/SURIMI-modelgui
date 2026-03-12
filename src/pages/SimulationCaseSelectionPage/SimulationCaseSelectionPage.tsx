@@ -7,9 +7,13 @@ import {
   simulationCaseStudies,
   type SimulationCaseId,
 } from "../../data/simulationCases";
+import OceanDiveIntro from "./components/OceanDiveIntro/OceanDiveIntro";
 import styles from "./SimulationCaseSelectionPage.module.css";
 
 const ENTER_WORLD_DURATION_MS = 700;
+const INTRO_DURATION_MS = 3300;
+const INTRO_REVEAL_LEAD_MS = 950;
+const INTRO_SEEN_SESSION_KEY = "surimi:ocean-intro-seen";
 const PANEL_EASE = [0.22, 1, 0.36, 1] as const;
 
 const resolveCaseToneClass = (caseId: SimulationCaseId) => {
@@ -30,6 +34,56 @@ type SimulationCaseSelectionRouteState = {
   fromWorld?: boolean;
 };
 
+const getNavigationType = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const navigationEntries = window.performance.getEntriesByType("navigation");
+  if (navigationEntries.length > 0) {
+    const navigationTiming = navigationEntries[0] as PerformanceNavigationTiming;
+    return navigationTiming.type;
+  }
+
+  const legacyNavigation = window.performance.navigation;
+  if (!legacyNavigation) {
+    return null;
+  }
+
+  if (legacyNavigation.type === 1) {
+    return "reload";
+  }
+  if (legacyNavigation.type === 2) {
+    return "back_forward";
+  }
+  return "navigate";
+};
+
+const shouldPlayOceanIntro = (isReturningFromWorld: boolean) => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return false;
+  }
+
+  const navigationType = getNavigationType();
+  if (navigationType === "reload") {
+    return true;
+  }
+
+  if (window.sessionStorage.getItem(INTRO_SEEN_SESSION_KEY) === "1") {
+    return false;
+  }
+
+  if (isReturningFromWorld || navigationType === "back_forward") {
+    return false;
+  }
+
+  return true;
+};
+
 const SimulationCaseSelectionPage = ({
   initialActiveCaseId = null,
 }: SimulationCaseSelectionPageProps) => {
@@ -48,6 +102,12 @@ const SimulationCaseSelectionPage = ({
   const isReturningFromWorld = Boolean(
     (location.state as SimulationCaseSelectionRouteState | null)?.fromWorld,
   );
+  const [shouldPlayIntro] = useState(() => {
+    return shouldPlayOceanIntro(isReturningFromWorld);
+  });
+  const [isIntroRunning, setIsIntroRunning] = useState(shouldPlayIntro);
+  const [isLandingRevealing, setIsLandingRevealing] =
+    useState(!shouldPlayIntro);
 
   const focusedCaseIndex = useMemo(() => {
     if (!focusedCaseId) {
@@ -75,8 +135,37 @@ const SimulationCaseSelectionPage = ({
     };
   }, [enteringCaseId, navigate]);
 
+  useEffect(() => {
+    if (!shouldPlayIntro) {
+      return;
+    }
+
+    window.sessionStorage.setItem(INTRO_SEEN_SESSION_KEY, "1");
+
+    const revealTimeoutId = window.setTimeout(
+      () => {
+        setIsLandingRevealing(true);
+      },
+      Math.max(INTRO_DURATION_MS - INTRO_REVEAL_LEAD_MS, 0),
+    );
+
+    const finishTimeoutId = window.setTimeout(() => {
+      setIsIntroRunning(false);
+    }, INTRO_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(revealTimeoutId);
+      window.clearTimeout(finishTimeoutId);
+    };
+  }, [shouldPlayIntro]);
+
+  const isLandingVisible = !isIntroRunning || isLandingRevealing;
+  const isLandingAmbientVisible =
+    shouldPlayIntro && isIntroRunning && !isLandingRevealing;
+  const isInteractionLocked = isTransitioning || isIntroRunning;
+
   const toggleActivePanel = (caseId: SimulationCaseId) => {
-    if (isTransitioning) {
+    if (isInteractionLocked) {
       return;
     }
 
@@ -84,7 +173,7 @@ const SimulationCaseSelectionPage = ({
   };
 
   const beginWorldEntry = (caseId: SimulationCaseId) => {
-    if (isTransitioning) {
+    if (isInteractionLocked) {
       return;
     }
 
@@ -94,35 +183,59 @@ const SimulationCaseSelectionPage = ({
 
   return (
     <main className={styles.page}>
+      {isIntroRunning && <OceanDiveIntro durationMs={INTRO_DURATION_MS} />}
+
       <motion.div
         className={styles.topbar}
-        initial={isReturningFromWorld ? { opacity: 0, y: -22 } : false}
+        initial={
+          isReturningFromWorld
+            ? { opacity: 0, y: -22 }
+            : shouldPlayIntro
+              ? { opacity: 0, y: 24, filter: "blur(14px)" }
+              : false
+        }
         animate={{
-          opacity: isTransitioning ? 0 : 1,
-          y: isTransitioning ? -18 : 0,
+          opacity: isTransitioning ? 0 : isLandingVisible ? 1 : 0,
+          y: isTransitioning ? -18 : isLandingVisible ? 0 : 20,
+          filter: isLandingVisible ? "blur(0px)" : "blur(14px)",
         }}
         transition={{
-          duration: isReturningFromWorld ? 0.58 : 0.34,
+          duration: isReturningFromWorld ? 0.58 : shouldPlayIntro ? 1.06 : 0.34,
           ease: PANEL_EASE,
         }}
       >
         <div className={styles.brandLockup}>
           <Logo className={styles.brandLogo} />
-          <p className={styles.kicker}>Ocean Simulation Case Selection</p>
+          <p className={styles.kicker}>Ocean Scenario Case Selection</p>
         </div>
       </motion.div>
 
       <motion.section
-        className={styles.caseGrid}
-        aria-label="Simulation case studies"
+        className={[
+          styles.caseGrid,
+          isInteractionLocked ? styles.caseGridLocked : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-label="Scenario case studies"
         initial={
           isReturningFromWorld
             ? { opacity: 0, scale: 1.05, filter: "blur(8px)" }
-            : false
+            : shouldPlayIntro
+              ? { opacity: 0.26, scale: 1.04, filter: "blur(8px)" }
+              : false
         }
-        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        animate={{
+          opacity: isLandingVisible ? 1 : isLandingAmbientVisible ? 0.26 : 0,
+          scale: isLandingVisible ? 1 : isLandingAmbientVisible ? 1.04 : 1.08,
+          filter: isLandingVisible
+            ? "blur(0px)"
+            : isLandingAmbientVisible
+              ? "blur(8px)"
+              : "blur(18px)",
+        }}
         transition={{
-          duration: isReturningFromWorld ? 0.66 : 0.12,
+          duration: isReturningFromWorld ? 0.66 : shouldPlayIntro ? 1.08 : 0.12,
           ease: PANEL_EASE,
         }}
       >
@@ -176,7 +289,7 @@ const SimulationCaseSelectionPage = ({
               }}
               role="button"
               aria-label={caseStudy.seaName}
-              tabIndex={isTransitioning ? -1 : 0}
+              tabIndex={isInteractionLocked ? -1 : 0}
               initial={false}
               animate={{
                 flexGrow: panelFlexGrow,
@@ -242,7 +355,7 @@ const SimulationCaseSelectionPage = ({
                     event.stopPropagation();
                     beginWorldEntry(caseStudy.id);
                   }}
-                  disabled={isTransitioning}
+                  disabled={isInteractionLocked}
                 >
                   Explore Scenario
                 </Button>
@@ -253,9 +366,9 @@ const SimulationCaseSelectionPage = ({
                   onClick={(event) => {
                     event.stopPropagation();
                   }}
-                  disabled={isTransitioning}
+                  disabled={isInteractionLocked}
                 >
-                  View Existing Simulations
+                  View Existing Scenarios
                 </Button>
               </div>
             </motion.article>

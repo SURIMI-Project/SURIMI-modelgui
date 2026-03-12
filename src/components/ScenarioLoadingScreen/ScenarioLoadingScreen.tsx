@@ -8,7 +8,7 @@ type ScenarioLoadingScreenProps = {
 
 const ScenarioLoadingScreen = ({
   title = "Initializing scenario",
-  subtitle = "Preparing ecosystem model and simulation pipeline...",
+  subtitle = "Preparing ecosystem model and scenario pipeline...",
 }: ScenarioLoadingScreenProps) => {
   return (
     <motion.section

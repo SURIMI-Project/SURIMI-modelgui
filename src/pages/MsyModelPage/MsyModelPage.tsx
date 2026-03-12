@@ -18,7 +18,7 @@ import KobeChart from "./components/KobeChart/KobeChart";
 import StockSizeChart from "./components/StockSizeChart/StockSizeChart";
 import { europeanHakeWestMediterraneanNorthSpain } from "../../data/mockData";
 import Logo from "../../components/Logo/Logo";
-import styles from "./Home.module.css";
+import styles from "./MsyModelPage.module.css";
 
 const MotionDiv = motion.div;
 
@@ -38,7 +38,7 @@ const normalizeExploitationValue = (raw: number) => {
   return value;
 };
 
-const Home = () => {
+const MsyModelPage = () => {
   const stock = europeanHakeWestMediterraneanNorthSpain;
   const introRef = useRef<HTMLElement | null>(null);
   const [introProgress, setIntroProgress] = useState(0);
@@ -174,7 +174,11 @@ const Home = () => {
 
   return (
     <>
-      <section ref={introRef} className={styles["intro-scroll-section"]} id="top">
+      <section
+        ref={introRef}
+        className={styles["intro-scroll-section"]}
+        id="top"
+      >
         <div className={styles["intro-sticky-panel"]}>
           <Intro3DScene progress={introProgress} />
 
@@ -196,7 +200,9 @@ const Home = () => {
                     <span className={styles["intro-concept-kicker"]}>
                       Core concept {activeConceptIndex + 1}
                     </span>
-                    <span className={styles["intro-concept-text"]}>{activeConcept}</span>
+                    <span className={styles["intro-concept-text"]}>
+                      {activeConcept}
+                    </span>
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -262,7 +268,10 @@ const Home = () => {
                   </Stack>
 
                   <Box className={styles["hero-right-column"]}>
-                    <Group justify="flex-end" className={styles["hero-state-row"]}>
+                    <Group
+                      justify="flex-end"
+                      className={styles["hero-state-row"]}
+                    >
                       <Paper
                         className={styles["hero-highlight"]}
                         radius="lg"
@@ -298,8 +307,15 @@ const Home = () => {
             </MotionDiv>
 
             <MotionDiv {...riseInOnView(0.14)}>
-              <Paper className={styles["terms-explainer"]} withBorder radius="lg" p="md">
-                <Text className={styles["terms-title"]}>What these terms mean</Text>
+              <Paper
+                className={styles["terms-explainer"]}
+                withBorder
+                radius="lg"
+                p="md"
+              >
+                <Text className={styles["terms-title"]}>
+                  What these terms mean
+                </Text>
                 <Box component="ul" className={styles["terms-list"]}>
                   <li>
                     <strong>MSY</strong> is the estimated sustainable catch
@@ -323,8 +339,15 @@ const Home = () => {
                 spacing="md"
                 id="indicator-metrics"
               >
-                <Paper className={styles["metric-card"]} withBorder radius="lg" p="md">
-                  <Text className={styles["metric-label"]}>MSY (sustainable catch)</Text>
+                <Paper
+                  className={styles["metric-card"]}
+                  withBorder
+                  radius="lg"
+                  p="md"
+                >
+                  <Text className={styles["metric-label"]}>
+                    MSY (sustainable catch)
+                  </Text>
                   <Text className={styles["metric-value"]}>
                     {stock.msyBsm.toFixed(2)}
                   </Text>
@@ -332,7 +355,12 @@ const Home = () => {
                     1000 tonnes/year
                   </Text>
                 </Paper>
-                <Paper className={styles["metric-card"]} withBorder radius="lg" p="md">
+                <Paper
+                  className={styles["metric-card"]}
+                  withBorder
+                  radius="lg"
+                  p="md"
+                >
                   <Text className={styles["metric-label"]}>MSY range</Text>
                   <Text className={styles["metric-value"]}>
                     {stock.lclMsyBsm.toFixed(2)} - {stock.uclMsyBsm.toFixed(2)}
@@ -341,7 +369,12 @@ const Home = () => {
                     Bayesian credible bounds
                   </Text>
                 </Paper>
-                <Paper className={styles["metric-card"]} withBorder radius="lg" p="md">
+                <Paper
+                  className={styles["metric-card"]}
+                  withBorder
+                  radius="lg"
+                  p="md"
+                >
                   <Text className={styles["metric-label"]}>Catch coverage</Text>
                   <Text className={styles["metric-value"]}>
                     {firstObserved?.year}-{lastObserved?.year}
@@ -350,9 +383,16 @@ const Home = () => {
                     {observed.length} observed points
                   </Text>
                 </Paper>
-                <Paper className={styles["metric-card"]} withBorder radius="lg" p="md">
+                <Paper
+                  className={styles["metric-card"]}
+                  withBorder
+                  radius="lg"
+                  p="md"
+                >
                   <Text className={styles["metric-label"]}>Catch/MSY</Text>
-                  <Text className={styles["metric-value"]}>{catchToMsy.toFixed(2)}</Text>
+                  <Text className={styles["metric-value"]}>
+                    {catchToMsy.toFixed(2)}
+                  </Text>
                   <Text size="sm" c="dimmed">
                     {missingCount} missing future points
                   </Text>
@@ -412,4 +452,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default MsyModelPage;

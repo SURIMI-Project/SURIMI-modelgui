@@ -148,7 +148,7 @@ const ScenarioWorldPage = () => {
       {isScenarioLoading ? (
         <ScenarioLoadingScreen
           title={`Initializing ${worldConfig.worldTitle}`}
-          subtitle="Compiling selected inputs and launching simulation output..."
+          subtitle="Compiling selected inputs and launching scenario output..."
         />
       ) : null}
     </main>

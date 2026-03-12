@@ -4,8 +4,16 @@
   place-items: center;
   padding: clamp(20px, 4vw, 42px);
   background:
-    radial-gradient(circle at 18% 16%, rgba(114, 203, 255, 0.26), transparent 42%),
-    radial-gradient(circle at 82% 84%, rgba(129, 157, 255, 0.22), transparent 44%),
+    radial-gradient(
+      circle at 18% 16%,
+      rgba(114, 203, 255, 0.26),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 82% 84%,
+      rgba(129, 157, 255, 0.22),
+      transparent 44%
+    ),
     linear-gradient(180deg, #041a34 0%, #02101f 100%);
 }
 

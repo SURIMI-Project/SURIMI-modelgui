@@ -33,7 +33,7 @@ const ScenarioWorldStorySection = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.42, delay: 0.2 }}
       >
-        Simulation World Initialization
+        Scenario World Initialization
       </motion.p>
 
       <motion.h1
@@ -76,7 +76,7 @@ const ScenarioWorldStorySection = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.52, delay: 0.84 }}
       >
-        <span>Simulation Context</span>
+        <span>Scenario Context</span>
         <p>{simulationContext}</p>
       </motion.div>
     </motion.div>
