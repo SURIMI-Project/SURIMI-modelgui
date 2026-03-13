@@ -1,0 +1,4 @@
+.chartWrap {
+  height: clamp(190px, 26vw, 260px);
+  width: 100%;
+}

@@ -41,7 +41,7 @@ const ScenarioWorldPage = () => {
     }
 
     const timeoutId = window.setTimeout(() => {
-      navigate(`/outputs/${caseStudy.id}`);
+      navigate(`/scenario-outputs/${caseStudy.id}`);
     }, SCENARIO_LOADING_DURATION_MS);
 
     return () => {

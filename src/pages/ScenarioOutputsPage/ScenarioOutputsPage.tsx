@@ -1,31 +1,29 @@
-import { useMemo } from "react";
 import { Navigate, useParams } from "react-router-dom";
-import { simulationCaseStudies } from "../../data/simulationCases";
-import styles from "./ScenarioOutputsPage.module.css";
+import AnchovyBayOutputs from "../../features/ScenarioOutputs/AnchovyBay/AnchovyBayOutputs";
+import AegeanSeaOutputs from "../../features/ScenarioOutputs/AegeanSea/AegeanSeaOutputs";
+import WesternMediterraneanOutputs from "../../features/ScenarioOutputs/WesternMediterranean/WesternMediterraneanOutputs";
+
+const scenarioComponentById = {
+  "anchovy-bay": AnchovyBayOutputs,
+  "aegean-sea": AegeanSeaOutputs,
+  "western-mediterranean": WesternMediterraneanOutputs,
+} as const;
 
 const ScenarioOutputsPage = () => {
-  const { caseId } = useParams<{ caseId: string }>();
+  const { scenario, caseId } = useParams<{
+    scenario?: string;
+    caseId?: string;
+  }>();
 
-  const caseStudy = useMemo(
-    () => simulationCaseStudies.find((item) => item.id === caseId),
-    [caseId],
-  );
+  const scenarioId = (scenario ?? caseId ?? "").toLowerCase();
+  const OutputsComponent =
+    scenarioComponentById[scenarioId as keyof typeof scenarioComponentById];
 
-  if (!caseStudy) {
+  if (!OutputsComponent) {
     return <Navigate to="/" replace />;
   }
 
-  return (
-    <main className={styles.page}>
-      <section className={styles.card}>
-        <p className={styles.kicker}>Scenario Outputs</p>
-        <h1 className={styles.title}>{caseStudy.seaName}</h1>
-        <p className={styles.description}>
-          Outputs page placeholder. Anchovy Bay pipeline navigation is working.
-        </p>
-      </section>
-    </main>
-  );
+  return <OutputsComponent />;
 };
 
 export default ScenarioOutputsPage;

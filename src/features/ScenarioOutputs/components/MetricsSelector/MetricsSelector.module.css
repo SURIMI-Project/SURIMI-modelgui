@@ -1,0 +1,33 @@
+.container {
+  display: grid;
+  gap: 6px;
+  min-width: 210px;
+}
+
+.label {
+  color: rgba(204, 234, 252, 0.86);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 650;
+}
+
+.segmented {
+  border: 1px solid rgba(126, 207, 255, 0.34);
+  border-radius: 10px;
+  background: rgba(6, 29, 53, 0.64);
+  padding: 4px;
+}
+
+.segmented :global(.mantine-SegmentedControl-label) {
+  color: #ffffff;
+  font-weight: 620;
+}
+
+.segmented :global(.mantine-SegmentedControl-indicator) {
+  background: linear-gradient(140deg, rgba(100, 220, 255, 0.92), rgba(84, 178, 255, 0.96));
+}
+
+.segmented :global(.mantine-SegmentedControl-controlActive .mantine-SegmentedControl-label) {
+  color: #032040;
+}

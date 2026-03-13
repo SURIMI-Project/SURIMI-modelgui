@@ -9,6 +9,7 @@ const App = () => {
     <Routes>
       <Route path="/" element={<SimulationCaseSelectionPage />} />
       <Route path="/scenario/:caseId" element={<ScenarioWorldPage />} />
+      <Route path="/scenario-outputs/:scenario" element={<ScenarioOutputsPage />} />
       <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
       <Route path="/test" element={<MsyModelPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,0 +1,31 @@
+.legend {
+  border: 1px solid rgba(120, 200, 255, 0.22);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(2, 16, 29, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.headerRow,
+.valueRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.72rem;
+  color: rgba(209, 236, 253, 0.9);
+}
+
+.gradientBar {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #3b88ff 0%,
+    #30d2f2 28%,
+    #7df275 52%,
+    #f9e64f 75%,
+    #ff6f4d 100%
+  );
+}
