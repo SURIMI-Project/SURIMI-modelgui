@@ -2,6 +2,7 @@ import {
   Button,
   Group,
   Paper,
+  ScrollArea,
   Select,
   Stack,
   Table,
@@ -490,41 +491,65 @@ const AnchovyInputsFlow = ({
                   transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                   className={styles.stepShell}
                 >
-                  <Paper className={styles.chartPanel} withBorder>
-                    <div className={styles.chartSurface}>
-                      <Line options={chartOptions} data={chartData} />
-                    </div>
-                  </Paper>
+                  <ScrollArea
+                    className={styles.stepScrollArea}
+                    type="auto"
+                    offsetScrollbars
+                    scrollbarSize={8}
+                    classNames={{ thumb: "thumb" }}
+                  >
+                    <div className={styles.stepContent}>
+                      <Paper className={styles.chartPanel} withBorder>
+                        <div className={styles.chartSurface}>
+                          <Line options={chartOptions} data={chartData} />
+                        </div>
+                      </Paper>
 
-                  <Paper className={styles.tablePanel} withBorder>
-                    <Table highlightOnHover withTableBorder withColumnBorders>
-                      <Table.Thead>
-                        <Table.Tr>
-                          <Table.Th>Group name</Table.Th>
-                          <Table.Th>Biomass limit</Table.Th>
-                          <Table.Th>Biomass base</Table.Th>
-                          <Table.Th>F max</Table.Th>
-                        </Table.Tr>
-                      </Table.Thead>
-                      <Table.Tbody>
-                        {rows.map((row) => (
-                          <Table.Tr
-                            key={row.id}
-                            className={
-                              row.id === activeSpeciesId
-                                ? styles.activeRow
-                                : undefined
-                            }
+                      <Paper className={styles.tablePanel} withBorder>
+                        <ScrollArea
+                          className={styles.tableScrollArea}
+                          type="auto"
+                          offsetScrollbars
+                          scrollbarSize={8}
+                          classNames={{ thumb: "thumb" }}
+                        >
+                          <Table
+                            highlightOnHover
+                            withTableBorder
+                            withColumnBorders
                           >
-                            <Table.Td>{row.label}</Table.Td>
-                            <Table.Td>{row.biomassLimit.toFixed(3)}</Table.Td>
-                            <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
-                            <Table.Td>{row.fMax.toFixed(4)}</Table.Td>
-                          </Table.Tr>
-                        ))}
-                      </Table.Tbody>
-                    </Table>
-                  </Paper>
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Table.Th>Group name</Table.Th>
+                                <Table.Th>Biomass limit</Table.Th>
+                                <Table.Th>Biomass base</Table.Th>
+                                <Table.Th>F max</Table.Th>
+                              </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                              {rows.map((row) => (
+                                <Table.Tr
+                                  key={row.id}
+                                  className={
+                                    row.id === activeSpeciesId
+                                      ? styles.activeRow
+                                      : undefined
+                                  }
+                                >
+                                  <Table.Td>{row.label}</Table.Td>
+                                  <Table.Td>
+                                    {row.biomassLimit.toFixed(3)}
+                                  </Table.Td>
+                                  <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
+                                  <Table.Td>{row.fMax.toFixed(4)}</Table.Td>
+                                </Table.Tr>
+                              ))}
+                            </Table.Tbody>
+                          </Table>
+                        </ScrollArea>
+                      </Paper>
+                    </div>
+                  </ScrollArea>
                 </MotionDiv>
               ) : null}
 
@@ -546,20 +571,30 @@ const AnchovyInputsFlow = ({
                   transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                   className={styles.stepShell}
                 >
-                  <Paper className={styles.reviewPanel} withBorder>
-                    <Text className={styles.reviewTitle}>Run duration</Text>
-                    <Text className={styles.finalText}>
-                      Select one duration to continue.
-                    </Text>
-                    <div className={styles.selectionCards}>
-                      <SelectableCards
-                        options={YEAR_OPTIONS}
-                        selectedValue={selectedYears?.toString() ?? null}
-                        onSelect={handleYearSelect}
-                        columns={2}
-                      />
+                  <ScrollArea
+                    className={styles.stepScrollArea}
+                    type="auto"
+                    offsetScrollbars
+                    scrollbarSize={8}
+                    classNames={{ thumb: "thumb" }}
+                  >
+                    <div className={styles.stepContent}>
+                      <Paper className={styles.reviewPanel} withBorder>
+                        <Text className={styles.reviewTitle}>Run duration</Text>
+                        <Text className={styles.finalText}>
+                          Select one duration to continue.
+                        </Text>
+                        <div className={styles.selectionCards}>
+                          <SelectableCards
+                            options={YEAR_OPTIONS}
+                            selectedValue={selectedYears?.toString() ?? null}
+                            onSelect={handleYearSelect}
+                            columns={2}
+                          />
+                        </div>
+                      </Paper>
                     </div>
-                  </Paper>
+                  </ScrollArea>
                 </MotionDiv>
               ) : null}
 
@@ -581,20 +616,30 @@ const AnchovyInputsFlow = ({
                   transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                   className={styles.stepShell}
                 >
-                  <Paper className={styles.finalPanel} withBorder>
-                    <Text className={styles.reviewTitle}>IPCC scenarios</Text>
-                    <Text className={styles.finalText}>
-                      Selected duration: {selectedYears} years.
-                    </Text>
-                    <div className={styles.selectionCards}>
-                      <SelectableCards
-                        options={IPCC_OPTIONS}
-                        selectedValue={selectedIpccScenario}
-                        onSelect={handleIpccSelect}
-                        columns={1}
-                      />
+                  <ScrollArea
+                    className={styles.stepScrollArea}
+                    type="auto"
+                    offsetScrollbars
+                    scrollbarSize={8}
+                    classNames={{ thumb: "thumb" }}
+                  >
+                    <div className={styles.stepContent}>
+                      <Paper className={styles.finalPanel} withBorder>
+                        <Text className={styles.reviewTitle}>IPCC scenarios</Text>
+                        <Text className={styles.finalText}>
+                          Selected duration: {selectedYears} years.
+                        </Text>
+                        <div className={styles.selectionCards}>
+                          <SelectableCards
+                            options={IPCC_OPTIONS}
+                            selectedValue={selectedIpccScenario}
+                            onSelect={handleIpccSelect}
+                            columns={1}
+                          />
+                        </div>
+                      </Paper>
                     </div>
-                  </Paper>
+                  </ScrollArea>
                 </MotionDiv>
               ) : null}
             </AnimatePresence>

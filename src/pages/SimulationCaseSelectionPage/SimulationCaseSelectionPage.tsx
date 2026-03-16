@@ -181,6 +181,14 @@ const SimulationCaseSelectionPage = ({
     setEnteringCaseId(caseId);
   };
 
+  const viewExistingScenarios = (caseId: SimulationCaseId) => {
+    if (isInteractionLocked || caseId !== "anchovy-bay") {
+      return;
+    }
+
+    navigate(`/scenario-outputs/${caseId}`);
+  };
+
   return (
     <main className={styles.page}>
       {isIntroRunning && <OceanDiveIntro durationMs={INTRO_DURATION_MS} />}
@@ -206,7 +214,7 @@ const SimulationCaseSelectionPage = ({
       >
         <div className={styles.brandLockup}>
           <Logo className={styles.brandLogo} />
-          <p className={styles.kicker}>Ocean Scenario Case Selection</p>
+          <p className={styles.kicker}>MODEL USER INTERFACE</p>
         </div>
       </motion.div>
 
@@ -365,6 +373,7 @@ const SimulationCaseSelectionPage = ({
                   className={styles.actionButton}
                   onClick={(event) => {
                     event.stopPropagation();
+                    viewExistingScenarios(caseStudy.id);
                   }}
                   disabled={isInteractionLocked}
                 >

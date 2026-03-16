@@ -1,5 +1,6 @@
 .panel {
   min-height: 0;
+  min-width: 0;
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -9,6 +10,7 @@
     linear-gradient(160deg, rgba(7, 31, 53, 0.78), rgba(4, 20, 37, 0.72)),
     rgba(5, 18, 30, 0.62);
   backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
 .panelCompact {
@@ -61,6 +63,8 @@
 
 .chartWrap {
   min-height: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .selectionCopy {

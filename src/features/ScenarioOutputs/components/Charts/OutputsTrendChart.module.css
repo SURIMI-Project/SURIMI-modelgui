@@ -1,9 +1,17 @@
 .chartWrap {
+  position: relative;
   height: 100%;
   min-height: clamp(190px, 26vw, 260px);
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .chartWrapCompact {
   min-height: 150px;
+}
+
+.chartWrap :global(canvas) {
+  display: block;
+  max-width: 100%;
 }
