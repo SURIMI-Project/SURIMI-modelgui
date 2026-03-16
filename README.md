@@ -1,73 +1,59 @@
-# React + TypeScript + Vite
+# SURIMI Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Minimal Docker setup for sharing the project with non-developers.
 
-Currently, two official plugins are available:
+## What the project manager needs
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Docker Desktop installed and running
+- Optional: Node.js and npm, only if they want to use the npm shortcut commands
 
-## React Compiler
+## Fastest way to run
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+From the project root:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+docker compose up --build -d
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```text
+http://localhost:18080
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+To stop it:
+
+```bash
+docker compose down
+```
+
+## npm shortcuts
+
+If npm is available, the same flow can be run with:
+
+```bash
+npm run docker:up
+```
+
+To stop:
+
+```bash
+npm run docker:down
+```
+
+To view logs:
+
+```bash
+npm run docker:logs
+```
+
+## Notes
+
+- The app is built once into static files and served by Nginx.
+- Client-side routes are supported, so refreshing pages like `/scenario/...` still works.
+- The default host port is `18080`.
+- You can change it temporarily without editing files:
+
+```bash
+SURIMI_PORT=19090 docker compose up --build -d
 ```
