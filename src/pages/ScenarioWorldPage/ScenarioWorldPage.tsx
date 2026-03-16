@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import FullBackgroundVideoPlayer from "../../components/FullBackgroundVideoPlayer/FullBackgroundVideoPlayer";
 import ScenarioLoadingScreen from "../../components/ScenarioLoadingScreen/ScenarioLoadingScreen";
 import ScenarioWorldFeatureSection from "./components/ScenarioWorldFeatureSection";
 import ScenarioWorldFooter from "./components/ScenarioWorldFooter";
@@ -65,16 +64,28 @@ const ScenarioWorldPage = () => {
     "--world-accent": worldConfig.accentColor,
     "--world-secondary": worldConfig.secondaryColor,
     "--world-glow": worldConfig.glowColor,
+    "--world-bg-top": worldConfig.backgroundTopColor,
+    "--world-bg-bottom": worldConfig.backgroundBottomColor,
+    "--world-bg-highlight": worldConfig.backgroundHighlightColor,
   } as CSSProperties;
   const InputsFlowComponent = worldConfig.InputsFlowComponent;
 
   return (
     <main className={styles.page} style={worldVariables}>
-      <FullBackgroundVideoPlayer
-        variant={caseStudy.id}
-        fromLanding={fromLanding}
-        isReturningToHome={isReturningToHome}
+      <motion.div
+        className={styles.backgroundCanvas}
+        initial={{ scale: fromLanding ? 1.08 : 1.02, opacity: 0.84 }}
+        animate={{
+          scale: isReturningToHome ? 1.06 : 1,
+          opacity: isReturningToHome ? 0.72 : 1,
+        }}
+        transition={{
+          duration: isReturningToHome ? 0.56 : fromLanding ? 0.78 : 0.58,
+          ease: [0.22, 1, 0.36, 1],
+        }}
       />
+      <div className={styles.backgroundContours} aria-hidden="true" />
+      <div className={styles.backgroundGrid} aria-hidden="true" />
 
       <motion.div
         className={styles.lightField}

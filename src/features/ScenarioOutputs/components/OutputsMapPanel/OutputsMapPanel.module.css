@@ -1,0 +1,54 @@
+.panel {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+}
+
+.panelCompact {
+  gap: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.headerCopy {
+  max-width: 30ch;
+}
+
+.kicker {
+  margin: 0;
+  color: rgba(173, 225, 255, 0.84);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.title {
+  margin: 6px 0 0;
+  color: #f3fbff;
+  font-size: clamp(1.05rem, 1.5vw, 1.4rem);
+  line-height: 1.12;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: rgba(212, 236, 251, 0.84);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  max-width: 30ch;
+}
+
+.panelCompact :global(.mapWrap) {
+  min-height: 100%;
+}
+
+@media (max-width: 780px) {
+  .header {
+    display: grid;
+  }
+}

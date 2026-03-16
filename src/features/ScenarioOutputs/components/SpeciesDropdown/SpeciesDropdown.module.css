@@ -1,7 +1,8 @@
 .container {
   display: grid;
   gap: 6px;
-  min-width: 220px;
+  flex: 0.9 1 190px;
+  min-width: 0;
 }
 
 .label {

@@ -1,5 +1,6 @@
-import { Modal, type ModalProps } from "@mantine/core";
-import type { ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { FiX } from "react-icons/fi";
+import { createPortal } from "react-dom";
 import styles from "./PrimaryModal.module.css";
 
 type PrimaryModalProps = {
@@ -7,8 +8,8 @@ type PrimaryModalProps = {
   onClose: () => void;
   title?: ReactNode;
   children: ReactNode;
-  size?: ModalProps["size"];
-  zIndex?: ModalProps["zIndex"];
+  size?: string | number;
+  zIndex?: number;
   withinPortal?: boolean;
   withOverlay?: boolean;
   overlayOpacity?: number;
@@ -16,6 +17,7 @@ type PrimaryModalProps = {
   closeOnClickOutside?: boolean;
   closeOnEscape?: boolean;
   withCloseButton?: boolean;
+  fullScreen?: boolean;
 };
 
 const PrimaryModal = ({
@@ -32,42 +34,131 @@ const PrimaryModal = ({
   closeOnClickOutside = false,
   closeOnEscape = true,
   withCloseButton = true,
+  fullScreen = false,
 }: PrimaryModalProps) => {
-  return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={title}
-      centered
-      size={size}
-      withCloseButton={withCloseButton}
-      withinPortal={withinPortal}
-      zIndex={zIndex}
-      withOverlay={withOverlay}
-      closeButtonProps={{
-        "aria-label": "Close modal",
-      }}
-      closeOnClickOutside={closeOnClickOutside}
-      closeOnEscape={closeOnEscape}
-      lockScroll
-      classNames={styles}
-      transitionProps={{
-        transition: "pop",
-        duration: 320,
-        timingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-      }}
-      overlayProps={
-        withOverlay
-          ? {
-              opacity: overlayOpacity,
-              blur: overlayBlur,
-            }
-          : undefined
+  useEffect(() => {
+    if (!opened || typeof document === "undefined") {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [opened]);
+
+  useEffect(() => {
+    if (!opened || !closeOnEscape || typeof window === "undefined") {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
       }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeOnEscape, onClose, opened]);
+
+  if (!opened) {
+    return null;
+  }
+
+  const contentStyle: CSSProperties = fullScreen
+    ? {}
+    : {
+        width: typeof size === "number" ? `${size}px` : size,
+      };
+
+  const overlayStyle: CSSProperties = {
+    opacity: overlayOpacity,
+    backdropFilter: `blur(${overlayBlur}px)`,
+    WebkitBackdropFilter: `blur(${overlayBlur}px)`,
+  };
+
+  const modalNode = (
+    <div
+      className={styles.root}
+      style={{ zIndex }}
+      onMouseDown={() => {
+        if (closeOnClickOutside) {
+          onClose();
+        }
+      }}
     >
-      {children}
-    </Modal>
+      {withOverlay ? (
+        <div className={styles.overlay} style={overlayStyle} aria-hidden="true" />
+      ) : null}
+
+      <div className={styles.inner}>
+        <section
+          className={[
+            styles.content,
+            fullScreen ? styles.contentFullScreen : "",
+            !title ? styles.contentNoHeader : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          style={contentStyle}
+          role="dialog"
+          aria-modal="true"
+          onMouseDown={(event) => {
+            event.stopPropagation();
+          }}
+        >
+          {title ? (
+            <header className={styles.header}>
+              <div className={styles.title}>{title}</div>
+              {withCloseButton ? (
+                <button
+                  type="button"
+                  className={styles.close}
+                  onClick={onClose}
+                  aria-label="Close modal"
+                >
+                  <FiX size={18} />
+                </button>
+              ) : null}
+            </header>
+          ) : null}
+
+          {!title && withCloseButton ? (
+            <button
+              type="button"
+              className={[styles.close, styles.closeFloating].join(" ")}
+              onClick={onClose}
+              aria-label="Close modal"
+            >
+              <FiX size={18} />
+            </button>
+          ) : null}
+
+          <div
+            className={[
+              styles.body,
+              fullScreen ? styles.bodyFullScreen : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {children}
+          </div>
+        </section>
+      </div>
+    </div>
   );
+
+  if (withinPortal && typeof document !== "undefined") {
+    return createPortal(modalNode, document.body);
+  }
+
+  return modalNode;
 };
 
 export default PrimaryModal;

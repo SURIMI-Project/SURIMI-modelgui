@@ -30,6 +30,7 @@ type OutputsTrendChartProps = {
   lineColor: string;
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
+  compact?: boolean;
 };
 
 const OutputsTrendChart = ({
@@ -39,6 +40,7 @@ const OutputsTrendChart = ({
   lineColor,
   selectedIndex,
   onSelectIndex,
+  compact = false,
 }: OutputsTrendChartProps) => {
   const data = {
     labels,
@@ -81,7 +83,14 @@ const OutputsTrendChart = ({
   };
 
   return (
-    <div className={styles.chartWrap}>
+    <div
+      className={[
+        styles.chartWrap,
+        compact ? styles.chartWrapCompact : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <Line
         data={data}
         options={{
@@ -118,6 +127,9 @@ const OutputsTrendChart = ({
               ticks: {
                 color: "rgba(205, 233, 251, 0.7)",
                 maxRotation: 0,
+                font: {
+                  size: compact ? 10 : 12,
+                },
               },
               grid: {
                 color: "rgba(144, 202, 238, 0.14)",
@@ -126,6 +138,9 @@ const OutputsTrendChart = ({
             y: {
               ticks: {
                 color: "rgba(205, 233, 251, 0.7)",
+                font: {
+                  size: compact ? 10 : 12,
+                },
               },
               grid: {
                 color: "rgba(144, 202, 238, 0.12)",

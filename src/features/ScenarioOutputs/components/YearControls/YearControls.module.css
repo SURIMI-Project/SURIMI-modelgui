@@ -1,22 +1,31 @@
 .wrapper {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 8px;
+  padding: 10px;
+  margin: -10px;
 }
 
 .wheel {
   position: relative;
   width: min(76vw, 320px);
-  aspect-ratio: 1;
+  height: min(76vw, 320px);
   border-radius: 50%;
   touch-action: none;
   user-select: none;
+  overflow: visible;
+  cursor: grab;
+}
+
+.wheel:active {
+  cursor: grabbing;
 }
 
 .wheelSvg {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
 }
 
 .outerHalo {
@@ -53,15 +62,13 @@
 }
 
 .yearLabel {
-  fill: rgba(189, 227, 249, 0.7);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.yearLabelActive {
-  fill: #ffffff;
-  font-size: 10px;
+  fill: #f4fbff;
+  stroke: rgba(1, 12, 24, 0.98);
+  stroke-width: 2.4px;
+  paint-order: stroke;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .yearNeedle {
@@ -89,7 +96,7 @@
   color: #ffffff;
   display: grid;
   place-items: center;
-  gap: 2px;
+  gap: 0;
   cursor: pointer;
   box-shadow:
     0 16px 28px -22px rgba(0, 0, 0, 0.88),
@@ -102,10 +109,15 @@
 }
 
 .hubYear {
-  font-size: 0.82rem;
-  font-weight: 700;
+  position: relative;
+  top: -2px;
+  font-size: 1rem;
+  font-weight: 800;
   letter-spacing: 0.09em;
-  color: #ebfaff;
+  color: #ffffff;
+  text-shadow:
+    0 1px 0 rgba(2, 14, 26, 0.92),
+    0 0 12px rgba(105, 212, 255, 0.18);
 }
 
 .hint {

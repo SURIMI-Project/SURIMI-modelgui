@@ -1,4 +1,9 @@
 .chartWrap {
-  height: clamp(190px, 26vw, 260px);
+  height: 100%;
+  min-height: clamp(190px, 26vw, 260px);
   width: 100%;
+}
+
+.chartWrapCompact {
+  min-height: 150px;
 }

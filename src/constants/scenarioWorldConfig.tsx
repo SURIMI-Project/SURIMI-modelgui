@@ -20,6 +20,9 @@ export type ScenarioWorldConfig = {
   accentColor: string;
   secondaryColor: string;
   glowColor: string;
+  backgroundTopColor: string;
+  backgroundBottomColor: string;
+  backgroundHighlightColor: string;
   FeatureComponent: ComponentType;
   InputsFlowComponent?: ComponentType<ScenarioInputsFlowProps>;
 };
@@ -40,6 +43,9 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     accentColor: "#72f2e8",
     secondaryColor: "#8de8ff",
     glowColor: "rgba(92, 237, 214, 0.4)",
+    backgroundTopColor: "#072342",
+    backgroundBottomColor: "#020b18",
+    backgroundHighlightColor: "rgba(100, 244, 224, 0.24)",
     FeatureComponent: WesternMediterraneanFeature,
   },
   "aegean-sea": {
@@ -57,6 +63,9 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     accentColor: "#7ad6ff",
     secondaryColor: "#9af2ff",
     glowColor: "rgba(90, 211, 255, 0.42)",
+    backgroundTopColor: "#08274f",
+    backgroundBottomColor: "#031120",
+    backgroundHighlightColor: "rgba(104, 210, 255, 0.24)",
     FeatureComponent: AegeanSeaFeature,
   },
   "anchovy-bay": {
@@ -75,6 +84,9 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     accentColor: "#88b4ff",
     secondaryColor: "#ffc69d",
     glowColor: "rgba(124, 171, 255, 0.44)",
+    backgroundTopColor: "#13284f",
+    backgroundBottomColor: "#060c1b",
+    backgroundHighlightColor: "rgba(255, 193, 142, 0.24)",
     FeatureComponent: AnchovyBayFeature,
     InputsFlowComponent: AnchovyInputsFlow,
   },

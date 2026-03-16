@@ -1,114 +1,146 @@
-.controlsCluster {
-  width: min(100%, 560px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
 .layout {
   display: grid;
+  gap: 24px;
+  position: relative;
+}
+
+.headerCopy {
+  max-width: 58ch;
+}
+
+.pageTitle {
+  font-size: clamp(1.3rem, 2vw, 1.9rem);
+}
+
+.pageSubtitle {
+  max-width: 56ch;
+}
+
+.headerAside {
+  width: min(100%, 470px);
+  display: grid;
+  gap: 0;
+}
+
+.controlsCluster {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 206, 255, 0.22);
+  background:
+    linear-gradient(160deg, rgba(9, 38, 66, 0.82), rgba(5, 22, 40, 0.74)),
+    rgba(5, 18, 30, 0.66);
+  backdrop-filter: blur(12px);
+}
+
+.ringOverlay {
+  position: fixed;
+  top: 28px;
+  right: 32px;
+  z-index: 20;
+  display: grid;
+  justify-items: end;
+}
+
+.pageMapPanel,
+.primaryChartPanel {
+  height: 100%;
+  padding: 18px;
+  border: 1px solid rgba(125, 208, 255, 0.22);
+  border-radius: 24px;
+  background:
+    linear-gradient(160deg, rgba(10, 38, 64, 0.82), rgba(4, 18, 33, 0.72)),
+    rgba(4, 15, 29, 0.7);
+  backdrop-filter: blur(14px);
+}
+
+.pageMapSurface {
+  min-height: clamp(380px, 58vh, 640px);
+}
+
+.primaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.secondarySection {
+  display: grid;
+  gap: 16px;
+  margin-top: clamp(54px, 8vw, 104px);
+}
+
+.sectionCopy {
+  display: grid;
+  gap: 8px;
+  max-width: 60ch;
+}
+
+.sectionKicker {
+  margin: 0;
+  color: rgba(180, 226, 249, 0.78);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 680;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #f0fbff;
+  font-size: clamp(1.08rem, 1.4vw, 1.4rem);
+  line-height: 1.18;
+}
+
+.sectionDescription {
+  margin: 0;
+  color: rgba(216, 239, 252, 0.82);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
-.timelineSection,
-.mapSection,
-.chartSection {
-  border: 1px solid rgba(126, 206, 255, 0.23);
-  border-radius: 16px;
-  background:
-    linear-gradient(155deg, rgba(8, 33, 58, 0.7), rgba(4, 20, 37, 0.6)),
-    rgba(5, 18, 30, 0.62);
-  backdrop-filter: blur(9px);
-}
-
-.timelineSection {
-  padding: 12px;
-}
-
-.mapSection {
-  padding: 12px;
-  display: grid;
-  gap: 10px;
-}
-
-.mapLegendRow {
-  align-items: center;
-}
-
-.yearMetricHint {
-  color: rgba(207, 236, 253, 0.88);
-  font-size: 0.82rem;
-  line-height: 1.4;
-}
-
-.chartSection {
-  padding: 14px;
-  display: grid;
-  gap: 12px;
-}
-
-.chartKicker {
-  color: rgba(180, 225, 251, 0.9);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-weight: 620;
-}
-
-.chartTitle {
-  margin-top: 7px;
-  color: #f1fbff;
-  letter-spacing: -0.01em;
-}
-
-.statsRow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.statCard {
-  border-radius: 12px;
-  border: 1px solid rgba(133, 209, 255, 0.24);
-  background: rgba(6, 25, 42, 0.68);
-  color: #eefaff;
-  box-shadow: inset 2px 0 0 rgba(128, 218, 255, 0.55);
-}
-
-.statLabel {
-  color: rgba(190, 229, 253, 0.88);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-weight: 650;
-}
-
-.statValue {
-  margin-top: 7px;
-  color: #ffffff;
-  line-height: 1;
-}
-
-.statUnit {
-  margin-top: 4px;
-  color: rgba(194, 231, 252, 0.84);
-  font-size: 0.72rem;
-}
-
-.chartCard {
-  border-radius: 12px;
-  border: 1px solid rgba(133, 209, 255, 0.24);
-  background: rgba(5, 21, 35, 0.72);
+@media (max-width: 1240px) {
+  .ringOverlay {
+    top: clamp(224px, 26vh, 286px);
+  }
 }
 
 @media (max-width: 980px) {
-  .controlsCluster {
+  .headerAside {
     width: 100%;
-    justify-content: stretch;
   }
 
-  .statsRow {
+  .controlsCluster {
+    flex-wrap: wrap;
+  }
+
+  .ringOverlay {
+    position: static;
+    justify-items: start;
+  }
+
+  .primaryGrid,
+  .secondaryGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .pageMapPanel,
+  .primaryChartPanel {
+    padding: 14px;
+  }
+
+  .pageMapSurface {
+    min-height: 320px;
   }
 }

@@ -1,0 +1,93 @@
+.panel {
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(126, 206, 255, 0.22);
+  border-radius: 18px;
+  background:
+    linear-gradient(160deg, rgba(7, 31, 53, 0.78), rgba(4, 20, 37, 0.72)),
+    rgba(5, 18, 30, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.panelCompact {
+  gap: 8px;
+  padding: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.kicker {
+  margin: 0;
+  color: rgba(182, 226, 251, 0.8);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 680;
+}
+
+.title {
+  margin: 7px 0 0;
+  color: #f2fbff;
+  font-size: clamp(0.96rem, 1.2vw, 1.16rem);
+  line-height: 1.28;
+}
+
+.valueBlock {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.valueBlock span {
+  color: rgba(189, 226, 248, 0.7);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.valueBlock strong {
+  color: #ffffff;
+  font-size: 1.02rem;
+  line-height: 1;
+}
+
+.chartWrap {
+  min-height: 0;
+}
+
+.selectionCopy {
+  margin: 0;
+  color: rgba(198, 231, 249, 0.75);
+  font-size: 0.78rem;
+}
+
+.panelCompact .kicker {
+  font-size: 0.66rem;
+}
+
+.panelCompact .title {
+  margin-top: 4px;
+  font-size: 0.92rem;
+}
+
+.panelCompact .valueBlock strong {
+  font-size: 0.92rem;
+}
+
+@media (max-width: 780px) {
+  .header {
+    display: grid;
+  }
+
+  .valueBlock {
+    justify-items: start;
+  }
+}

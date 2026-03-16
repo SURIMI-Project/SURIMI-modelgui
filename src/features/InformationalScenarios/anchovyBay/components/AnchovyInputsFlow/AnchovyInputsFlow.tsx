@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   Group,
   Paper,
@@ -10,7 +9,9 @@ import {
   Title,
 } from "@mantine/core";
 import {
+  type ActiveElement,
   Chart as ChartJS,
+  type ChartEvent,
   Legend,
   LineElement,
   LinearScale,
@@ -171,6 +172,7 @@ const AnchovyInputsFlow = ({
   const [selectedIpccScenario, setSelectedIpccScenario] = useState<
     string | null
   >(null);
+  const [isDraggingControlPoint, setIsDraggingControlPoint] = useState(false);
 
   const steps = [
     {
@@ -246,6 +248,25 @@ const AnchovyInputsFlow = ({
     animation: {
       duration: 240,
     },
+    interaction: {
+      mode: "nearest",
+      intersect: true,
+    },
+    onHover: (
+      _event: ChartEvent,
+      activeElements: ActiveElement[],
+      chart,
+    ) => {
+      const isControlPointHovered = activeElements.some(
+        (element) => element.index === 1,
+      );
+
+      chart.canvas.style.cursor = isDraggingControlPoint
+        ? "grabbing"
+        : isControlPointHovered
+          ? "grab"
+          : "default";
+    },
     scales: {
       x: {
         type: "linear",
@@ -312,7 +333,10 @@ const AnchovyInputsFlow = ({
       _datasetIndex: number,
       pointIndex: number,
     ) => {
-      return pointIndex === 1;
+      const isDraggablePoint = pointIndex === 1;
+
+      setIsDraggingControlPoint(isDraggablePoint);
+      return isDraggablePoint;
     },
     onDrag: (
       _event: unknown,
@@ -327,6 +351,9 @@ const AnchovyInputsFlow = ({
       const point = value as { x: number; y: number };
       updateActiveRowFromPoint(point.x, point.y);
       return true;
+    },
+    onDragEnd: () => {
+      setIsDraggingControlPoint(false);
     },
   };
 
@@ -393,9 +420,6 @@ const AnchovyInputsFlow = ({
     handleClose();
   };
 
-  const currentStepLabel = stepIndex + 1;
-  const currentStepTotal = stepIndex === 2 ? 3 : 2;
-
   return (
     <div className={styles.modalHost}>
       <PrimaryModal
@@ -406,8 +430,8 @@ const AnchovyInputsFlow = ({
         zIndex={6000}
         withinPortal={false}
         withOverlay
-        overlayOpacity={0.4}
-        overlayBlur={0}
+        overlayOpacity={0.72}
+        overlayBlur={8}
         closeOnClickOutside={false}
       >
         <Stack gap="md" className={styles.flowRoot}>
@@ -422,18 +446,12 @@ const AnchovyInputsFlow = ({
                 {steps[stepIndex].title}
               </Title>
               <Group gap="xs">
-                <Badge
-                  variant="light"
-                  color="cyan"
-                  className={styles.stepBadge}
-                >
-                  Step {currentStepLabel} / {currentStepTotal}
-                </Badge>
                 {stepIndex === 0 ? (
                   <Select
                     className={styles.speciesSelect}
                     data={selectData}
                     value={activeSpeciesId}
+                    comboboxProps={{ withinPortal: true, zIndex: 6200 }}
                     searchable
                     nothingFoundMessage="No species found"
                     onChange={(value) => {
@@ -452,133 +470,135 @@ const AnchovyInputsFlow = ({
             </Text>
           </div>
 
-          <AnimatePresence mode="wait" custom={direction}>
-            {stepIndex === 0 ? (
-              <MotionDiv
-                key="anchovy-input-step-1"
-                custom={direction}
-                initial={{
-                  opacity: 0,
-                  x: direction > 0 ? 52 : -52,
-                  filter: "blur(3px)",
-                }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                exit={{
-                  opacity: 0,
-                  x: direction > 0 ? -52 : 52,
-                  filter: "blur(3px)",
-                }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className={styles.stepShell}
-              >
-                <Paper className={styles.chartPanel} withBorder>
-                  <div className={styles.chartSurface}>
-                    <Line options={chartOptions} data={chartData} />
-                  </div>
-                </Paper>
+          <div className={styles.stepViewport}>
+            <AnimatePresence mode="wait" custom={direction}>
+              {stepIndex === 0 ? (
+                <MotionDiv
+                  key="anchovy-input-step-1"
+                  custom={direction}
+                  initial={{
+                    opacity: 0,
+                    x: direction > 0 ? 52 : -52,
+                    filter: "blur(3px)",
+                  }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  exit={{
+                    opacity: 0,
+                    x: direction > 0 ? -52 : 52,
+                    filter: "blur(3px)",
+                  }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  className={styles.stepShell}
+                >
+                  <Paper className={styles.chartPanel} withBorder>
+                    <div className={styles.chartSurface}>
+                      <Line options={chartOptions} data={chartData} />
+                    </div>
+                  </Paper>
 
-                <Paper className={styles.tablePanel} withBorder>
-                  <Table highlightOnHover withTableBorder withColumnBorders>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Group name</Table.Th>
-                        <Table.Th>Biomass limit</Table.Th>
-                        <Table.Th>Biomass base</Table.Th>
-                        <Table.Th>F max</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {rows.map((row) => (
-                        <Table.Tr
-                          key={row.id}
-                          className={
-                            row.id === activeSpeciesId
-                              ? styles.activeRow
-                              : undefined
-                          }
-                        >
-                          <Table.Td>{row.label}</Table.Td>
-                          <Table.Td>{row.biomassLimit.toFixed(3)}</Table.Td>
-                          <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
-                          <Table.Td>{row.fMax.toFixed(4)}</Table.Td>
+                  <Paper className={styles.tablePanel} withBorder>
+                    <Table highlightOnHover withTableBorder withColumnBorders>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th>Group name</Table.Th>
+                          <Table.Th>Biomass limit</Table.Th>
+                          <Table.Th>Biomass base</Table.Th>
+                          <Table.Th>F max</Table.Th>
                         </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                </Paper>
-              </MotionDiv>
-            ) : null}
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {rows.map((row) => (
+                          <Table.Tr
+                            key={row.id}
+                            className={
+                              row.id === activeSpeciesId
+                                ? styles.activeRow
+                                : undefined
+                            }
+                          >
+                            <Table.Td>{row.label}</Table.Td>
+                            <Table.Td>{row.biomassLimit.toFixed(3)}</Table.Td>
+                            <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
+                            <Table.Td>{row.fMax.toFixed(4)}</Table.Td>
+                          </Table.Tr>
+                        ))}
+                      </Table.Tbody>
+                    </Table>
+                  </Paper>
+                </MotionDiv>
+              ) : null}
 
-            {stepIndex === 1 ? (
-              <MotionDiv
-                key="anchovy-input-step-2"
-                custom={direction}
-                initial={{
-                  opacity: 0,
-                  x: direction > 0 ? 52 : -52,
-                  filter: "blur(3px)",
-                }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                exit={{
-                  opacity: 0,
-                  x: direction > 0 ? -52 : 52,
-                  filter: "blur(3px)",
-                }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className={styles.stepShell}
-              >
-                <Paper className={styles.reviewPanel} withBorder>
-                  <Text className={styles.reviewTitle}>Run duration</Text>
-                  <Text className={styles.finalText}>
-                    Select one duration to continue.
-                  </Text>
-                  <div className={styles.selectionCards}>
-                    <SelectableCards
-                      options={YEAR_OPTIONS}
-                      selectedValue={selectedYears?.toString() ?? null}
-                      onSelect={handleYearSelect}
-                      columns={2}
-                    />
-                  </div>
-                </Paper>
-              </MotionDiv>
-            ) : null}
+              {stepIndex === 1 ? (
+                <MotionDiv
+                  key="anchovy-input-step-2"
+                  custom={direction}
+                  initial={{
+                    opacity: 0,
+                    x: direction > 0 ? 52 : -52,
+                    filter: "blur(3px)",
+                  }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  exit={{
+                    opacity: 0,
+                    x: direction > 0 ? -52 : 52,
+                    filter: "blur(3px)",
+                  }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  className={styles.stepShell}
+                >
+                  <Paper className={styles.reviewPanel} withBorder>
+                    <Text className={styles.reviewTitle}>Run duration</Text>
+                    <Text className={styles.finalText}>
+                      Select one duration to continue.
+                    </Text>
+                    <div className={styles.selectionCards}>
+                      <SelectableCards
+                        options={YEAR_OPTIONS}
+                        selectedValue={selectedYears?.toString() ?? null}
+                        onSelect={handleYearSelect}
+                        columns={2}
+                      />
+                    </div>
+                  </Paper>
+                </MotionDiv>
+              ) : null}
 
-            {stepIndex === 2 ? (
-              <MotionDiv
-                key="anchovy-input-step-3"
-                custom={direction}
-                initial={{
-                  opacity: 0,
-                  x: direction > 0 ? 52 : -52,
-                  filter: "blur(3px)",
-                }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                exit={{
-                  opacity: 0,
-                  x: direction > 0 ? -52 : 52,
-                  filter: "blur(3px)",
-                }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className={styles.stepShell}
-              >
-                <Paper className={styles.finalPanel} withBorder>
-                  <Text className={styles.reviewTitle}>IPCC scenarios</Text>
-                  <Text className={styles.finalText}>
-                    Selected duration: {selectedYears} years.
-                  </Text>
-                  <div className={styles.selectionCards}>
-                    <SelectableCards
-                      options={IPCC_OPTIONS}
-                      selectedValue={selectedIpccScenario}
-                      onSelect={handleIpccSelect}
-                      columns={1}
-                    />
-                  </div>
-                </Paper>
-              </MotionDiv>
-            ) : null}
-          </AnimatePresence>
+              {stepIndex === 2 ? (
+                <MotionDiv
+                  key="anchovy-input-step-3"
+                  custom={direction}
+                  initial={{
+                    opacity: 0,
+                    x: direction > 0 ? 52 : -52,
+                    filter: "blur(3px)",
+                  }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  exit={{
+                    opacity: 0,
+                    x: direction > 0 ? -52 : 52,
+                    filter: "blur(3px)",
+                  }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  className={styles.stepShell}
+                >
+                  <Paper className={styles.finalPanel} withBorder>
+                    <Text className={styles.reviewTitle}>IPCC scenarios</Text>
+                    <Text className={styles.finalText}>
+                      Selected duration: {selectedYears} years.
+                    </Text>
+                    <div className={styles.selectionCards}>
+                      <SelectableCards
+                        options={IPCC_OPTIONS}
+                        selectedValue={selectedIpccScenario}
+                        onSelect={handleIpccSelect}
+                        columns={1}
+                      />
+                    </div>
+                  </Paper>
+                </MotionDiv>
+              ) : null}
+            </AnimatePresence>
+          </div>
 
           <Group justify="space-between" className={styles.footerActions}>
             <Button type="button" variant="primaryOutlined" onClick={goBack}>

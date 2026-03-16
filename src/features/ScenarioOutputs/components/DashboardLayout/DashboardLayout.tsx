@@ -1,4 +1,4 @@
-import { Badge, Group, Text, Title } from "@mantine/core";
+import { Badge, Text, Title } from "@mantine/core";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import styles from "./DashboardLayout.module.css";
@@ -6,21 +6,23 @@ import styles from "./DashboardLayout.module.css";
 type DashboardLayoutProps = {
   title: string;
   subtitle: string;
-  runId: string;
-  coordinateSystem: string;
-  boundsLabel: string;
-  controls: ReactNode;
   children: ReactNode;
+  headerAside?: ReactNode;
+  headerCopyClassName?: string;
+  titleClassName?: string;
+  subtitleClassName?: string;
+  showKicker?: boolean;
 };
 
 const DashboardLayout = ({
   title,
   subtitle,
-  runId,
-  coordinateSystem,
-  boundsLabel,
-  controls,
   children,
+  headerAside,
+  headerCopyClassName,
+  titleClassName,
+  subtitleClassName,
+  showKicker = true,
 }: DashboardLayoutProps) => {
   return (
     <main className={styles.page}>
@@ -32,20 +34,37 @@ const DashboardLayout = ({
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className={styles.headerCopy}>
-          <Badge className={styles.kicker} variant="light">
-            Scenario Outputs Dashboard
-          </Badge>
-          <Title className={styles.title}>{title}</Title>
-          <Text className={styles.subtitle}>{subtitle}</Text>
-          <Group gap="xs" className={styles.metaGroup}>
-            <span>Run: {runId}</span>
-            <span>CRS: {coordinateSystem}</span>
-            <span>{boundsLabel}</span>
-          </Group>
-        </div>
+        <div className={styles.headerInner}>
+          <div
+            className={[styles.headerCopy, headerCopyClassName]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {showKicker ? (
+              <Badge className={styles.kicker} variant="light">
+                Scenario Outputs Dashboard
+              </Badge>
+            ) : null}
+            <Title
+              className={[styles.title, titleClassName]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {title}
+            </Title>
+            <Text
+              className={[styles.subtitle, subtitleClassName]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {subtitle}
+            </Text>
+          </div>
 
-        <div className={styles.controlsWrap}>{controls}</div>
+          {headerAside ? (
+            <div className={styles.headerAside}>{headerAside}</div>
+          ) : null}
+        </div>
       </motion.header>
 
       <motion.section

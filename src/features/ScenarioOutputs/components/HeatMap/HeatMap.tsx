@@ -12,6 +12,7 @@ type HeatMapProps = {
   points: HeatPoint[];
   metricLabel: string;
   bounds: [number, number, number, number];
+  className?: string;
   valueDomain?: {
     min: number;
     max: number;
@@ -83,7 +84,13 @@ const toFeatureCollection = (
   };
 };
 
-const HeatMap = ({ points, metricLabel, bounds, valueDomain }: HeatMapProps) => {
+const HeatMap = ({
+  points,
+  metricLabel,
+  bounds,
+  className,
+  valueDomain,
+}: HeatMapProps) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const initialBoundsRef = useRef(bounds);
@@ -283,7 +290,7 @@ const HeatMap = ({ points, metricLabel, bounds, valueDomain }: HeatMapProps) => 
   }, [sourceData]);
 
   return (
-    <div className={styles.mapWrap}>
+    <div className={[styles.mapWrap, className].filter(Boolean).join(" ")}>
       <div ref={mapContainerRef} className={styles.mapCanvas} />
 
       {points.length === 0 ? (

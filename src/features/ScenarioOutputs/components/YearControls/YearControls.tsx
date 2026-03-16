@@ -8,15 +8,20 @@ type YearControlsProps = {
   isPlaying: boolean;
   onTogglePlay: () => void;
   onSelectYear: (year: number) => void;
+  size?: number;
+  showHint?: boolean;
 };
 
-const WHEEL_SIZE = 308;
-const CENTER = WHEEL_SIZE / 2;
-const TICK_INNER_RADIUS = 120;
-const TICK_OUTER_RADIUS = 138;
-const LABEL_RADIUS = 154;
-const RING_HIT_INNER = 106;
-const RING_HIT_OUTER = 150;
+const BASE_WHEEL_SIZE = 308;
+const TICK_INNER_RATIO = 120 / BASE_WHEEL_SIZE;
+const TICK_OUTER_RATIO = 138 / BASE_WHEEL_SIZE;
+const LABEL_RATIO = 154 / BASE_WHEEL_SIZE;
+const RING_HIT_INNER_RATIO = 106 / BASE_WHEEL_SIZE;
+const RING_HIT_OUTER_RATIO = 150 / BASE_WHEEL_SIZE;
+const OUTER_HALO_RATIO = 146 / BASE_WHEEL_SIZE;
+const OUTER_RING_RATIO = 139 / BASE_WHEEL_SIZE;
+const INNER_RING_RATIO = 106 / BASE_WHEEL_SIZE;
+const MARKER_RATIO = 131 / BASE_WHEEL_SIZE;
 
 const toRadians = (angle: number) => (angle * Math.PI) / 180;
 
@@ -28,11 +33,11 @@ const getAngleForIndex = (index: number, total: number) => {
   return -90 + (index / total) * 360;
 };
 
-const pointAt = (angle: number, radius: number) => {
+const pointAt = (angle: number, radius: number, center: number) => {
   const radians = toRadians(angle);
   return {
-    x: CENTER + Math.cos(radians) * radius,
-    y: CENTER + Math.sin(radians) * radius,
+    x: center + Math.cos(radians) * radius,
+    y: center + Math.sin(radians) * radius,
   };
 };
 
@@ -42,9 +47,21 @@ const YearControls = ({
   isPlaying,
   onTogglePlay,
   onSelectYear,
+  size = BASE_WHEEL_SIZE,
+  showHint = true,
 }: YearControlsProps) => {
   const wheelRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const center = size / 2;
+  const tickInnerRadius = size * TICK_INNER_RATIO;
+  const tickOuterRadius = size * TICK_OUTER_RATIO;
+  const labelRadius = size * LABEL_RATIO;
+  const ringHitInner = size * RING_HIT_INNER_RATIO;
+  const ringHitOuter = size * RING_HIT_OUTER_RATIO;
+  const outerHaloRadius = size * OUTER_HALO_RATIO;
+  const outerRingRadius = size * OUTER_RING_RATIO;
+  const innerRingRadius = size * INNER_RING_RATIO;
+  const markerRadius = size * MARKER_RATIO;
 
   const yearAngles = useMemo(() => {
     return years.map((year, index) => ({
@@ -55,15 +72,34 @@ const YearControls = ({
   }, [years]);
 
   const majorYears = useMemo(() => {
-    const firstYear = years[0] ?? 0;
-    const lastYear = years[years.length - 1] ?? 0;
+    if (years.length === 0) {
+      return [];
+    }
 
-    return yearAngles.filter(({ year }) => {
-      return (
-        year === firstYear || year === lastYear || (year - firstYear) % 10 === 0
-      );
-    });
-  }, [yearAngles, years]);
+    const indices = Array.from(
+      new Set([
+        0,
+        Math.round((years.length - 1) * 0.25),
+        Math.round((years.length - 1) * 0.5),
+        Math.round((years.length - 1) * 0.75),
+      ]),
+    );
+
+    return indices
+      .map((index) => {
+        const year = years[index];
+        if (year === undefined) {
+          return null;
+        }
+
+        return {
+          year,
+          index,
+          angle: getAngleForIndex(index, years.length),
+        };
+      })
+      .filter((value): value is NonNullable<typeof value> => value !== null);
+  }, [years]);
 
   const selectedYearIndex = useMemo(() => {
     return years.findIndex((year) => year === currentYear);
@@ -88,7 +124,7 @@ const YearControls = ({
     const dy = clientY - centerY;
     const distance = Math.hypot(dx, dy);
 
-    if (distance < RING_HIT_INNER || distance > RING_HIT_OUTER) {
+    if (distance < ringHitInner || distance > ringHitOuter) {
       return;
     }
 
@@ -122,13 +158,14 @@ const YearControls = ({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [isDragging]);
+  }, [isDragging, onSelectYear, ringHitInner, ringHitOuter, years]);
 
   return (
     <div className={styles.wrapper}>
       <div
         ref={wheelRef}
         className={styles.wheel}
+        style={{ width: size, height: size }}
         onPointerDown={(event) => {
           pickYearFromPointer(event.clientX, event.clientY);
           setIsDragging(true);
@@ -136,32 +173,17 @@ const YearControls = ({
       >
         <svg
           className={styles.wheelSvg}
-          viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
+          viewBox={`0 0 ${size} ${size}`}
           aria-label="Year wheel"
           role="img"
         >
-          <circle
-            className={styles.outerHalo}
-            cx={CENTER}
-            cy={CENTER}
-            r={146}
-          />
-          <circle
-            className={styles.outerRing}
-            cx={CENTER}
-            cy={CENTER}
-            r={139}
-          />
-          <circle
-            className={styles.innerRing}
-            cx={CENTER}
-            cy={CENTER}
-            r={106}
-          />
+          <circle className={styles.outerHalo} cx={center} cy={center} r={outerHaloRadius} />
+          <circle className={styles.outerRing} cx={center} cy={center} r={outerRingRadius} />
+          <circle className={styles.innerRing} cx={center} cy={center} r={innerRingRadius} />
 
           {yearAngles.map(({ year, angle }) => {
-            const start = pointAt(angle, TICK_INNER_RADIUS);
-            const end = pointAt(angle, TICK_OUTER_RADIUS);
+            const start = pointAt(angle, tickInnerRadius, center);
+            const end = pointAt(angle, tickOuterRadius, center);
             const isActive = year === currentYear;
             const isMajor = majorYears.some((item) => item.year === year);
 
@@ -184,15 +206,14 @@ const YearControls = ({
           })}
 
           {majorYears.map(({ year, angle }) => {
-            const position = pointAt(angle, LABEL_RADIUS);
-            const isActive = year === currentYear;
+            const position = pointAt(angle, labelRadius, center);
 
             return (
               <text
                 key={`label-${year}`}
                 x={position.x}
                 y={position.y}
-                className={`${styles.yearLabel} ${isActive ? styles.yearLabelActive : ""}`}
+                className={styles.yearLabel}
                 textAnchor="middle"
                 dominantBaseline="middle"
               >
@@ -202,12 +223,12 @@ const YearControls = ({
           })}
 
           {(() => {
-            const marker = pointAt(selectedAngle, 131);
+            const marker = pointAt(selectedAngle, markerRadius, center);
             return (
               <>
                 <line
-                  x1={CENTER}
-                  y1={CENTER}
+                  x1={center}
+                  y1={center}
                   x2={marker.x}
                   y2={marker.y}
                   className={styles.yearNeedle}
@@ -242,7 +263,9 @@ const YearControls = ({
         </button>
       </div>
 
-      <p className={styles.hint}>Drag the outer ring or tap a year mark.</p>
+      {showHint ? (
+        <p className={styles.hint}>Drag the outer ring or tap a year mark.</p>
+      ) : null}
     </div>
   );
 };
