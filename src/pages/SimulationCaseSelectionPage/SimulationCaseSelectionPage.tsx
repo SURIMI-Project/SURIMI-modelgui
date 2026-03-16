@@ -38,6 +38,7 @@ type SimulationCaseSelectionRouteState = {
 type CasePanelVideoProps = {
   src: string;
   playbackRate: number;
+  isPlaybackEnabled: boolean;
   scale: number;
   transitionDuration: number;
 };
@@ -95,12 +96,13 @@ const shouldPlayOceanIntro = (isReturningFromWorld: boolean) => {
 const CasePanelVideo = ({
   src,
   playbackRate,
+  isPlaybackEnabled,
   scale,
   transitionDuration,
 }: CasePanelVideoProps) => {
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
 
-  useAutoplayVideo(videoElement, { playbackRate });
+  useAutoplayVideo(videoElement, { playbackRate, enabled: isPlaybackEnabled });
 
   return (
     <motion.video
@@ -200,8 +202,6 @@ const SimulationCaseSelectionPage = ({
   }, [shouldPlayIntro]);
 
   const isLandingVisible = !isIntroRunning || isLandingRevealing;
-  const isLandingAmbientVisible =
-    shouldPlayIntro && isIntroRunning && !isLandingRevealing;
   const isInteractionLocked = isTransitioning || isIntroRunning;
 
   const toggleActivePanel = (caseId: SimulationCaseId) => {
@@ -274,13 +274,9 @@ const SimulationCaseSelectionPage = ({
               : false
         }
         animate={{
-          opacity: isLandingVisible ? 1 : isLandingAmbientVisible ? 0.26 : 0,
-          scale: isLandingVisible ? 1 : isLandingAmbientVisible ? 1.04 : 1.08,
-          filter: isLandingVisible
-            ? "blur(0px)"
-            : isLandingAmbientVisible
-              ? "blur(8px)"
-              : "blur(18px)",
+          opacity: isLandingVisible ? 1 : 0,
+          scale: isLandingVisible ? 1 : 1.06,
+          filter: isLandingVisible ? "blur(0px)" : "blur(18px)",
         }}
         transition={{
           duration: isReturningFromWorld ? 0.66 : shouldPlayIntro ? 1.08 : 0.12,
@@ -360,6 +356,7 @@ const SimulationCaseSelectionPage = ({
               <CasePanelVideo
                 src={caseStudy.videoSrc}
                 playbackRate={caseStudy.playbackRate}
+                isPlaybackEnabled={isLandingVisible}
                 scale={
                   isEnteringPanel
                     ? 1.22

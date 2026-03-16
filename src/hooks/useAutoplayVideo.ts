@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 type UseAutoplayVideoOptions = {
   playbackRate?: number;
+  enabled?: boolean;
 };
 
 const playVideo = (video: HTMLVideoElement) => {
@@ -16,10 +17,15 @@ const playVideo = (video: HTMLVideoElement) => {
 
 export const useAutoplayVideo = (
   video: HTMLVideoElement | null,
-  { playbackRate = 1 }: UseAutoplayVideoOptions = {},
+  { playbackRate = 1, enabled = true }: UseAutoplayVideoOptions = {},
 ) => {
   useEffect(() => {
     if (!video) {
+      return;
+    }
+
+    if (!enabled) {
+      video.pause();
       return;
     }
 
@@ -50,5 +56,5 @@ export const useAutoplayVideo = (
       video.removeEventListener("canplay", syncVideoState);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [playbackRate, video]);
+  }, [enabled, playbackRate, video]);
 };
