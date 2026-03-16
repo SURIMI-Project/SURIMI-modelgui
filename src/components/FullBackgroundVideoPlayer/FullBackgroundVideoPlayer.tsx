@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 import type { SimulationCaseId } from "../../data/simulationCases";
+import { useAutoplayVideo } from "../../hooks/useAutoplayVideo";
 import styles from "./FullBackgroundVideoPlayer.module.css";
 
 type FullBackgroundVideoPlayerProps = {
@@ -30,30 +31,23 @@ const FullBackgroundVideoPlayer = ({
   isReturningToHome = false,
   className,
 }: FullBackgroundVideoPlayerProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const videoClassName = [styles.video, className].filter(Boolean).join(" ");
   const playbackRate = playbackRateByVariant[variant];
 
-  useEffect(() => {
-    if (!videoRef.current) {
-      return;
-    }
-
-    videoRef.current.playbackRate = playbackRate;
-  }, [playbackRate, variant]);
+  useAutoplayVideo(videoElement, { playbackRate });
 
   return (
     <motion.video
-      ref={videoRef}
+      ref={setVideoElement}
       className={videoClassName}
-      src={sourceByVariant[variant]}
+      preload="auto"
       muted
       loop
       autoPlay
       playsInline
-      onLoadedMetadata={(event) => {
-        event.currentTarget.playbackRate = playbackRate;
-      }}
+      disablePictureInPicture
+      key={variant}
       initial={{ scale: fromLanding ? 1.22 : 1.14 }}
       animate={{
         scale: isReturningToHome ? 1.2 : 1.08,
@@ -63,7 +57,9 @@ const FullBackgroundVideoPlayer = ({
         duration: isReturningToHome ? 0.56 : fromLanding ? 0.78 : 0.58,
         ease: transitionEase,
       }}
-    />
+    >
+      <source src={sourceByVariant[variant]} type="video/mp4" />
+    </motion.video>
   );
 };
 

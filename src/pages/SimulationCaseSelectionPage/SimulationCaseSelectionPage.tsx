@@ -7,6 +7,7 @@ import {
   simulationCaseStudies,
   type SimulationCaseId,
 } from "../../data/simulationCases";
+import { useAutoplayVideo } from "../../hooks/useAutoplayVideo";
 import OceanDiveIntro from "./components/OceanDiveIntro/OceanDiveIntro";
 import styles from "./SimulationCaseSelectionPage.module.css";
 
@@ -32,6 +33,13 @@ type SimulationCaseSelectionPageProps = {
 
 type SimulationCaseSelectionRouteState = {
   fromWorld?: boolean;
+};
+
+type CasePanelVideoProps = {
+  src: string;
+  playbackRate: number;
+  scale: number;
+  transitionDuration: number;
 };
 
 const getNavigationType = () => {
@@ -82,6 +90,38 @@ const shouldPlayOceanIntro = (isReturningFromWorld: boolean) => {
   }
 
   return true;
+};
+
+const CasePanelVideo = ({
+  src,
+  playbackRate,
+  scale,
+  transitionDuration,
+}: CasePanelVideoProps) => {
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+
+  useAutoplayVideo(videoElement, { playbackRate });
+
+  return (
+    <motion.video
+      ref={setVideoElement}
+      className={styles.caseVideo}
+      preload="auto"
+      muted
+      loop
+      autoPlay
+      playsInline
+      disablePictureInPicture
+      initial={false}
+      animate={{ scale }}
+      transition={{
+        duration: transitionDuration,
+        ease: PANEL_EASE,
+      }}
+    >
+      <source src={src} type="video/mp4" />
+    </motion.video>
+  );
 };
 
 const SimulationCaseSelectionPage = ({
@@ -317,30 +357,19 @@ const SimulationCaseSelectionPage = ({
                 opacity: { duration: 0.42, ease: PANEL_EASE },
               }}
             >
-              <motion.video
-                className={styles.caseVideo}
+              <CasePanelVideo
                 src={caseStudy.videoSrc}
-                muted
-                loop
-                autoPlay
-                playsInline
-                onLoadedMetadata={(event) => {
-                  event.currentTarget.playbackRate = caseStudy.playbackRate;
-                }}
-                initial={false}
-                animate={{
-                  scale: isEnteringPanel
+                playbackRate={caseStudy.playbackRate}
+                scale={
+                  isEnteringPanel
                     ? 1.22
                     : isFocused
                       ? 1.11
                       : hasFocusedCase
                         ? 1
-                        : 1.02,
-                }}
-                transition={{
-                  duration: isTransitioning ? 0.72 : 1.06,
-                  ease: PANEL_EASE,
-                }}
+                        : 1.02
+                }
+                transitionDuration={isTransitioning ? 0.72 : 1.06}
               />
               <div className={styles.caseOverlay} />
 
