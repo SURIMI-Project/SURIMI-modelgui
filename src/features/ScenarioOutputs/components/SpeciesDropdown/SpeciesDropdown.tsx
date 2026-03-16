@@ -32,7 +32,7 @@ const SpeciesDropdown = ({
         limit={200}
         size="md"
         className={styles.select}
-        comboboxProps={{ withinPortal: false }}
+        comboboxProps={{ withinPortal: true, zIndex: 500 }}
       />
     </div>
   );

@@ -297,11 +297,7 @@ const AnchovyBayOutputs = () => {
   };
 
   return (
-    <div
-      style={{
-        position: "relative",
-      }}
-    >
+    <div>
       <DashboardLayout
         title="Anchovy Bay Scenario Outputs"
         subtitle="A centered spatial view with synchronized yearly trends for biomass, catches, discards, sales volume, and market prices across 1973-2023."

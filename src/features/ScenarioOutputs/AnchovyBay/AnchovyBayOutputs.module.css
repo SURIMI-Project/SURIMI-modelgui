@@ -9,7 +9,7 @@
 }
 
 .pageTitle {
-  font-size: clamp(1.3rem, 2vw, 1.9rem);
+  font-size: clamp(1.18rem, 1.52vw, 1.52rem);
 }
 
 .pageSubtitle {
@@ -17,7 +17,7 @@
 }
 
 .headerAside {
-  width: min(100%, 470px);
+  width: min(100%, 520px);
   display: grid;
   gap: 0;
 }
@@ -47,6 +47,7 @@
 .pageMapPanel,
 .primaryChartPanel {
   height: 100%;
+  min-height: clamp(620px, calc(58vh + 60px), 760px);
   padding: 18px;
   border: 1px solid rgba(125, 208, 255, 0.22);
   border-radius: 24px;
@@ -57,7 +58,7 @@
 }
 
 .pageMapSurface {
-  min-height: clamp(380px, 58vh, 640px);
+  min-height: clamp(440px, calc(58vh + 60px), 700px);
 }
 
 .primaryGrid {
@@ -70,7 +71,7 @@
 .secondarySection {
   display: grid;
   gap: 16px;
-  margin-top: clamp(54px, 8vw, 104px);
+  margin-top: clamp(54px, 8vw, 32px);
 }
 
 .sectionCopy {
@@ -100,6 +101,7 @@
   color: rgba(216, 239, 252, 0.82);
   font-size: 0.92rem;
   line-height: 1.5;
+  margin-bottom: clamp(54px, 8vw, 32px);
 }
 
 .secondaryGrid {
@@ -138,9 +140,10 @@
   .pageMapPanel,
   .primaryChartPanel {
     padding: 14px;
+    min-height: auto;
   }
 
   .pageMapSurface {
-    min-height: 320px;
+    min-height: 380px;
   }
 }
