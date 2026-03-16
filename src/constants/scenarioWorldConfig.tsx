@@ -30,7 +30,7 @@ export type ScenarioWorldConfig = {
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   "western-mediterranean": {
     worldTitle: "Western Mediterranean Emissions Field",
-    aboutTitle: "About The Western Mediterranean Ecosystem",
+    aboutTitle: "About The Western Mediterranean",
     description: [
       "The Western Mediterranean hosts dense shipping corridors where vessel clusters generate localized pressure on marine air and water quality.",
       "Traffic intensity shifts rapidly between seasonal routes, creating dynamic hotspots that influence ecological exposure and coastal operations.",
@@ -50,7 +50,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   },
   "aegean-sea": {
     worldTitle: "Aegean Connectivity Mesh",
-    aboutTitle: "About The Aegean Sea Ecosystem",
+    aboutTitle: "About The Aegean Sea",
     description: [
       "The Aegean Sea combines fragmented island geography with high coastal activity, forming a sensitive network of ports, routes, and habitats.",
       "Flow between hubs can amplify local disturbances as traffic and environmental conditions interact across narrow corridors.",
@@ -69,8 +69,8 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     FeatureComponent: AegeanSeaFeature,
   },
   "anchovy-bay": {
-    worldTitle: "Anchovy Bay Ecosystem",
-    aboutTitle: "About The Anchovy Bay Ecosystem",
+    worldTitle: "Anchovy Bay",
+    aboutTitle: "About Anchovy Bay",
     description: [
       "Anchovy Bay is a popular coastal ecosystem with historic fishing ports, where fisheries have long been the main economic activity.",
       "Catches have declined for decades and shifted from groundfish toward shrimp and pelagic species, reshaping trophic balance.",

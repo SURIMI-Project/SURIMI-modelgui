@@ -158,7 +158,11 @@ const ScenarioWorldPage = () => {
       ) : null}
       {isScenarioLoading ? (
         <ScenarioLoadingScreen
-          title={`Initializing ${worldConfig.worldTitle}`}
+          title={
+            caseStudy.id === "anchovy-bay"
+              ? "Executing Model Anchovy Bay Scenario"
+              : `Initializing ${worldConfig.worldTitle}`
+          }
           subtitle="Compiling selected inputs and launching scenario output..."
         />
       ) : null}
