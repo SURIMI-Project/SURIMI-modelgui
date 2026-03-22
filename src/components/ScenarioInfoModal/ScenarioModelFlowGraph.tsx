@@ -48,71 +48,73 @@ const ScenarioModelFlowGraph = () => {
         </marker>
       </defs>
 
-      {scenarioFlowEdges.map((edge) => (
-        <path
-          key={edge.id}
-          d={edge.path}
-          className={styles.edge}
-          markerEnd="url(#scenario-flow-arrow)"
-        />
-      ))}
+      <g transform="translate(40 0)">
+        {scenarioFlowEdges.map((edge) => (
+          <path
+            key={edge.id}
+            d={edge.path}
+            className={styles.edge}
+            markerEnd="url(#scenario-flow-arrow)"
+          />
+        ))}
 
-      {scenarioFlowNodes.map((node) => {
-        const centerX = node.x + node.width / 2;
-        const centerY = node.y + node.height / 2;
-        const titleY = node.subtitle ? centerY - 8 : centerY + 5;
+        {scenarioFlowNodes.map((node) => {
+          const centerX = node.x + node.width / 2;
+          const centerY = node.y + node.height / 2;
+          const titleY = node.subtitle ? centerY - 8 : centerY + 5;
 
-        return (
-          <g key={node.id}>
-            <rect
-              x={node.x}
-              y={node.y}
-              width={node.width}
-              height={node.height}
-              rx="6"
-              className={styles.nodeShadow}
-            />
-            <rect
-              x={node.x}
-              y={node.y}
-              width={node.width}
-              height={node.height}
-              rx="6"
-              fill={node.fill}
-              className={styles.nodeRect}
-            />
-            {renderNodeTitle(node.title, centerX, titleY)}
-            {node.subtitle ? (
-              <text
-                x={centerX}
-                y={centerY + 18}
-                className={styles.nodeSubtitle}
-              >
-                {node.subtitle}
-              </text>
-            ) : null}
-          </g>
-        );
-      })}
+          return (
+            <g key={node.id}>
+              <rect
+                x={node.x}
+                y={node.y}
+                width={node.width}
+                height={node.height}
+                rx="6"
+                className={styles.nodeShadow}
+              />
+              <rect
+                x={node.x}
+                y={node.y}
+                width={node.width}
+                height={node.height}
+                rx="6"
+                fill={node.fill}
+                className={styles.nodeRect}
+              />
+              {renderNodeTitle(node.title, centerX, titleY)}
+              {node.subtitle ? (
+                <text
+                  x={centerX}
+                  y={centerY + 18}
+                  className={styles.nodeSubtitle}
+                >
+                  {node.subtitle}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
 
-      {scenarioFlowEdges.map((edge) =>
-        edge.labels?.map((label) => (
-          <text
-            key={`${edge.id}-${label.text}`}
-            x={label.x}
-            y={label.y}
-            className={
-              label.tone === "muted" ? styles.edgeLabelMuted : styles.edgeLabel
-            }
-          >
-            {label.text.split("\n").map((line, index) => (
-              <tspan key={line} x={label.x} dy={index === 0 ? 0 : 14}>
-                {line}
-              </tspan>
-            ))}
-          </text>
-        )),
-      )}
+        {scenarioFlowEdges.map((edge) =>
+          edge.labels?.map((label) => (
+            <text
+              key={`${edge.id}-${label.text}`}
+              x={label.x}
+              y={label.y}
+              className={
+                label.tone === "muted" ? styles.edgeLabelMuted : styles.edgeLabel
+              }
+            >
+              {label.text.split("\n").map((line, index) => (
+                <tspan key={line} x={label.x} dy={index === 0 ? 0 : 14}>
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          )),
+        )}
+      </g>
     </svg>
   );
 };

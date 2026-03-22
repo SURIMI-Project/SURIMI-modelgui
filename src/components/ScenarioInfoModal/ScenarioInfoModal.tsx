@@ -13,8 +13,10 @@ const ScenarioInfoModal = ({
   opened,
   onClose,
   title,
-  description: _description,
+  description,
 }: ScenarioInfoModalProps) => {
+  const [lead, ...rest] = description;
+
   return (
     <PrimaryModal
       opened={opened}
@@ -33,7 +35,7 @@ const ScenarioInfoModal = ({
           <ScenarioModelFlowGraph />
         </section>
 
-        {/* <section className={styles.contentPanel}>
+        <section className={styles.contentPanel}>
           <p className={styles.contentKicker}>Scenario System Overview</p>
           <h2 className={styles.contentTitle}>{title}</h2>
           {lead ? <p className={styles.contentLead}>{lead}</p> : null}
@@ -50,7 +52,7 @@ const ScenarioInfoModal = ({
               change per case study.
             </p>
           </div>
-        </section> */}
+        </section>
       </div>
     </PrimaryModal>
   );

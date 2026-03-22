@@ -1,6 +1,7 @@
 .shell {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+  gap: clamp(18px, 2.4vw, 30px);
   min-height: min(78vh, 760px);
 }
 
@@ -15,7 +16,9 @@
 }
 
 .graphPanel {
-  width: min(100%, 1120px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
   padding: clamp(12px, 1.8vw, 18px);
   background:
     radial-gradient(circle at 16% 12%, rgba(122, 214, 255, 0.16), transparent 40%),
@@ -32,9 +35,10 @@
 }
 
 .graphSvg {
-  width: 100%;
+  width: min(100%, 860px);
   height: auto;
   display: block;
+  margin: 0 auto;
 }
 
 .edge {
@@ -149,7 +153,16 @@
 
 @media (max-width: 70rem) {
   .shell {
+    grid-template-columns: 1fr;
     min-height: auto;
+  }
+
+  .graphPanel {
+    order: 1;
+  }
+
+  .contentPanel {
+    order: 2;
   }
 }
 
