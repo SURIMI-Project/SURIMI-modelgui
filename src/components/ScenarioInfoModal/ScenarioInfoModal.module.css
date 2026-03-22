@@ -1,0 +1,161 @@
+.shell {
+  display: flex;
+  justify-content: center;
+  min-height: min(78vh, 760px);
+}
+
+.graphPanel,
+.contentPanel {
+  border-radius: 10px;
+  border: 1px solid rgba(184, 221, 248, 0.24);
+  box-shadow:
+    0 26px 44px -34px rgba(0, 6, 18, 0.88),
+    0 0 0 1px rgba(238, 247, 255, 0.04) inset;
+  backdrop-filter: blur(10px);
+}
+
+.graphPanel {
+  width: min(100%, 1120px);
+  padding: clamp(12px, 1.8vw, 18px);
+  background:
+    radial-gradient(circle at 16% 12%, rgba(122, 214, 255, 0.16), transparent 40%),
+    radial-gradient(circle at 82% 84%, rgba(255, 198, 157, 0.14), transparent 42%),
+    linear-gradient(160deg, rgba(6, 28, 51, 0.86), rgba(8, 20, 40, 0.82));
+}
+
+.contentPanel {
+  padding: clamp(18px, 2vw, 26px);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(134, 193, 255, 0.14), transparent 42%),
+    linear-gradient(162deg, rgba(8, 28, 50, 0.88), rgba(5, 17, 34, 0.84));
+  overflow: auto;
+}
+
+.graphSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.edge {
+  fill: none;
+  stroke: rgba(236, 242, 248, 0.82);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.arrowHead {
+  fill: rgba(236, 242, 248, 0.82);
+}
+
+.edgeLabel,
+.edgeLabelMuted {
+  fill: rgba(240, 246, 251, 0.92);
+  font-size: 12.5px;
+  font-weight: 680;
+  text-anchor: middle;
+  filter:
+    drop-shadow(0 1px 1px rgba(3, 10, 22, 0.9))
+    drop-shadow(0 0 6px rgba(5, 16, 30, 0.58));
+}
+
+.edgeLabelMuted {
+  fill: rgba(214, 226, 236, 0.72);
+  font-weight: 600;
+}
+
+.nodeRect {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.2;
+}
+
+.nodeShadow {
+  fill: rgba(0, 0, 0, 0.22);
+  transform: translateY(5px);
+}
+
+.nodeTitle {
+  fill: #f8fbff;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  text-anchor: middle;
+  filter:
+    drop-shadow(0 1px 1px rgba(3, 10, 20, 0.82))
+    drop-shadow(0 0 8px rgba(5, 18, 33, 0.42));
+}
+
+.nodeSubtitle {
+  fill: rgba(245, 249, 255, 0.86);
+  font-size: 12px;
+  font-weight: 590;
+  text-anchor: middle;
+  filter:
+    drop-shadow(0 1px 1px rgba(3, 10, 20, 0.76))
+    drop-shadow(0 0 6px rgba(5, 18, 33, 0.34));
+}
+
+.contentKicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: rgba(159, 216, 255, 0.82);
+}
+
+.contentTitle {
+  margin: 10px 0 0;
+  font-size: clamp(1.28rem, 2.2vw, 1.8rem);
+  line-height: 1.08;
+  color: #f4fbff;
+}
+
+.contentLead {
+  margin: 12px 0 0;
+  color: rgba(223, 239, 252, 0.9);
+  font-size: 0.98rem;
+  line-height: 1.66;
+}
+
+.contentParagraph {
+  margin: 14px 0 0;
+  color: rgba(210, 232, 248, 0.86);
+  font-size: 0.93rem;
+  line-height: 1.7;
+}
+
+.metaCard {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(165, 212, 245, 0.2);
+  background: linear-gradient(145deg, rgba(12, 37, 63, 0.68), rgba(8, 25, 44, 0.42));
+}
+
+.metaCardTitle {
+  margin: 0;
+  color: #f3f9ff;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.metaCardText {
+  margin: 8px 0 0;
+  color: rgba(210, 232, 248, 0.82);
+  font-size: 0.88rem;
+  line-height: 1.62;
+}
+
+@media (max-width: 70rem) {
+  .shell {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 40rem) {
+  .graphPanel,
+  .contentPanel {
+    padding: 14px;
+  }
+}

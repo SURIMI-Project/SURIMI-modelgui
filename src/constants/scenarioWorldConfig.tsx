@@ -14,6 +14,8 @@ export type ScenarioWorldConfig = {
   aboutTitle: string;
   description: string[];
   simulationContext: string;
+  infoModalTitle: string;
+  infoModalDescription: string[];
   featureTitle: string;
   featureSubtitle: string;
   featureColumnMaxWidth?: number;
@@ -38,6 +40,12 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     ],
     simulationContext:
       "Run comparative experiments between baseline traffic and constrained-corridor policies to inspect emissions and ecosystem stress propagation.",
+    infoModalTitle: "Western Mediterranean · System Interaction Map",
+    infoModalDescription: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer iaculis nisl at mauris facilisis, vitae finibus justo gravida. Aliquam erat volutpat.",
+      "Suspendisse potenti. Curabitur luctus, libero sed maximus vulputate, justo lacus semper purus, sit amet tristique nulla neque eu nibh.",
+      "Mauris suscipit, nisl nec volutpat gravida, massa velit laoreet odio, sed fermentum erat turpis ac neque. Phasellus feugiat sem sed risus accumsan pretium.",
+    ],
     featureTitle: "Corridor Dynamics",
     featureSubtitle: "Shipping lanes and emission hubs update in real time.",
     accentColor: "#72f2e8",
@@ -58,6 +66,12 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     ],
     simulationContext:
       "Explore route-level what-if scenarios for port connectivity, corridor utilization, and downstream ecological exposure.",
+    infoModalTitle: "Aegean Sea · System Interaction Map",
+    infoModalDescription: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed risus purus. Vivamus nec posuere sapien, vitae feugiat ligula.",
+      "Sed convallis, dui nec posuere euismod, lacus lacus ultrices risus, non vulputate sem magna sed orci. Nullam posuere, augue vel tincidunt tempor, justo erat luctus tortor, eu efficitur lectus mauris sed elit.",
+      "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Integer volutpat mi et arcu tincidunt, at commodo ipsum posuere.",
+    ],
     featureTitle: "Networked Port Ecology",
     featureSubtitle: "Transport links and drift patterns reveal pressure transfer paths.",
     accentColor: "#7ad6ff",
@@ -78,6 +92,12 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     ],
     simulationContext:
       "Test harvest-control adjustments and observe trophic balance responses under evolving predator and forage dynamics.",
+    infoModalTitle: "Anchovy Bay · System Interaction Map",
+    infoModalDescription: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent blandit consequat commodo. Morbi feugiat nisl nisi, et faucibus lectus gravida ut.",
+      "Quisque vulputate magna quis felis semper, nec dictum libero ullamcorper. Aenean posuere imperdiet efficitur. Donec in pulvinar justo.",
+      "Nam sed orci a sapien rutrum tincidunt. Pellentesque ac urna sed justo pellentesque posuere a vitae sapien. Pellentesque habitant morbi tristique senectus et netus.",
+    ],
     featureTitle: "Trophic Flow Network",
     featureSubtitle: "",
     featureColumnMaxWidth: 760,

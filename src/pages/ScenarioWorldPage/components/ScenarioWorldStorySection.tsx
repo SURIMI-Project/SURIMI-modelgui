@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { FiInfo } from "react-icons/fi";
 import styles from "../ScenarioWorldPage.module.css";
 
 type ScenarioWorldStorySectionProps = {
@@ -7,6 +8,7 @@ type ScenarioWorldStorySectionProps = {
   description: string[];
   simulationContext: string;
   fromLanding: boolean;
+  onOpenInfoModal: () => void;
 };
 
 const ScenarioWorldStorySection = ({
@@ -15,6 +17,7 @@ const ScenarioWorldStorySection = ({
   description,
   simulationContext,
   fromLanding,
+  onOpenInfoModal,
 }: ScenarioWorldStorySectionProps) => {
   return (
     <motion.div
@@ -36,8 +39,8 @@ const ScenarioWorldStorySection = ({
         Scenario World Initialization
       </motion.p>
 
-      <motion.h1
-        className={styles.worldTitle}
+      <motion.div
+        className={styles.worldTitleRow}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
@@ -46,8 +49,16 @@ const ScenarioWorldStorySection = ({
           ease: [0.22, 1, 0.36, 1],
         }}
       >
-        {worldTitle}
-      </motion.h1>
+        <h1 className={styles.worldTitle}>{worldTitle}</h1>
+        <button
+          type="button"
+          className={styles.worldInfoButton}
+          onClick={onOpenInfoModal}
+          aria-label={`Open more information about ${worldTitle}`}
+        >
+          <FiInfo size={18} />
+        </button>
+      </motion.div>
 
       <motion.h2
         className={styles.aboutTitle}

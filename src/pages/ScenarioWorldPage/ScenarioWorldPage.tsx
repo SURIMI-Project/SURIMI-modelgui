@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import ScenarioInfoModal from "../../components/ScenarioInfoModal/ScenarioInfoModal";
 import ScenarioLoadingScreen from "../../components/ScenarioLoadingScreen/ScenarioLoadingScreen";
 import ScenarioWorldFeatureSection from "./components/ScenarioWorldFeatureSection";
 import ScenarioWorldFooter from "./components/ScenarioWorldFooter";
@@ -17,6 +18,7 @@ const ScenarioWorldPage = () => {
   const [isReturningToHome, setIsReturningToHome] = useState(false);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
   const [isScenarioLoading, setIsScenarioLoading] = useState(false);
+  const [isScenarioInfoOpen, setIsScenarioInfoOpen] = useState(false);
 
   useEffect(() => {
     if (!isReturningToHome) {
@@ -119,6 +121,13 @@ const ScenarioWorldPage = () => {
           description={worldConfig.description}
           simulationContext={worldConfig.simulationContext}
           fromLanding={fromLanding}
+          onOpenInfoModal={() => {
+            if (isReturningToHome || isScenarioLoading) {
+              return;
+            }
+
+            setIsScenarioInfoOpen(true);
+          }}
         />
 
         <ScenarioWorldFeatureSection
@@ -156,6 +165,14 @@ const ScenarioWorldPage = () => {
           }}
         />
       ) : null}
+      <ScenarioInfoModal
+        opened={isScenarioInfoOpen}
+        onClose={() => {
+          setIsScenarioInfoOpen(false);
+        }}
+        title={worldConfig.infoModalTitle}
+        description={worldConfig.infoModalDescription}
+      />
       {isScenarioLoading ? (
         <ScenarioLoadingScreen
           title={

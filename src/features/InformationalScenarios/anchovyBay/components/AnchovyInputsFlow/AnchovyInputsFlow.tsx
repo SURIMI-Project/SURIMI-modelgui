@@ -43,9 +43,9 @@ type SpeciesInputRow = {
   id: string;
   label: string;
   biomassLimit: number;
+  fStart: number;
   biomassBase: number;
   fMax: number;
-  limitRatio: number;
 };
 
 export type AnchovyInputsFlowProps = {
@@ -120,41 +120,41 @@ const defaultRows: SpeciesInputRow[] = [
     id: "cod",
     label: "Cod",
     biomassLimit: 0.5,
+    fStart: 0.01,
     biomassBase: 4.024,
     fMax: 0.196,
-    limitRatio: 0.5 / 4.024,
   },
   {
     id: "whiting",
     label: "Whiting",
     biomassLimit: 1.103,
+    fStart: 0.01,
     biomassBase: 2.207,
     fMax: 0.0765,
-    limitRatio: 1.103 / 2.207,
   },
   {
     id: "mackerel",
     label: "Mackerel",
     biomassLimit: 0.758,
+    fStart: 0.01,
     biomassBase: 1.516,
     fMax: 0.205,
-    limitRatio: 0.758 / 1.516,
   },
   {
     id: "anchovy",
     label: "Anchovy",
     biomassLimit: 4.129,
+    fStart: 0.01,
     biomassBase: 8.258,
     fMax: 0.141,
-    limitRatio: 4.129 / 8.258,
   },
   {
     id: "shrimp",
     label: "Shrimp",
     biomassLimit: 0.442,
+    fStart: 0.01,
     biomassBase: 0.884,
     fMax: 0.0914,
-    limitRatio: 0.442 / 0.884,
   },
 ];
 
@@ -173,14 +173,14 @@ const AnchovyInputsFlow = ({
   const [selectedIpccScenario, setSelectedIpccScenario] = useState<
     string | null
   >(null);
-  const [isDraggingControlPoint, setIsDraggingControlPoint] = useState(false);
+  const [isDraggingHandle, setIsDraggingHandle] = useState(false);
 
   const steps = [
     {
       key: "inputs",
       title: "Anchovy Bay · Harvest control inputs",
       subtitle:
-        "Pick a species, drag the highlighted point in the graph, and the biomass/fmax values update instantly.",
+        "Pick a species, drag the start and end points in the graph, and the biomass/fmax values update instantly.",
     },
     {
       key: "years",
@@ -217,27 +217,51 @@ const AnchovyInputsFlow = ({
   const graphPoints = useMemo(
     () => [
       { x: 0, y: 0 },
+      { x: activeRow.biomassLimit, y: activeRow.fStart },
       { x: activeRow.biomassBase, y: activeRow.fMax },
-      { x: xMax * 0.95, y: activeRow.fMax },
     ],
-    [activeRow.biomassBase, activeRow.fMax, xMax],
+    [
+      activeRow.biomassBase,
+      activeRow.biomassLimit,
+      activeRow.fMax,
+      activeRow.fStart,
+      xMax,
+    ],
   );
 
-  const updateActiveRowFromPoint = (xValue: number, yValue: number) => {
-    const nextX = clamp(xValue, 0.2, xMax * 0.95);
-    const nextY = clamp(yValue, 0, 0.25);
-
+  const updateActiveRowStartPoint = (xValue: number, yValue: number) => {
     setRows((current) =>
       current.map((row) => {
         if (row.id !== activeSpeciesId) {
           return row;
         }
 
+        const nextX = clamp(xValue, 0.2, row.biomassBase - 0.1);
+        const nextY = clamp(yValue, 0.005, Math.max(0.005, row.fMax - 0.005));
+
+        return {
+          ...row,
+          biomassLimit: toFixedValue(nextX),
+          fStart: toFixedValue(nextY, 4),
+        };
+      }),
+    );
+  };
+
+  const updateActiveRowEndPoint = (xValue: number, yValue: number) => {
+    setRows((current) =>
+      current.map((row) => {
+        if (row.id !== activeSpeciesId) {
+          return row;
+        }
+
+        const nextX = clamp(xValue, row.biomassLimit + 0.1, xMax * 0.95);
+        const nextY = clamp(yValue, row.fStart + 0.005, 0.25);
+
         return {
           ...row,
           biomassBase: toFixedValue(nextX),
           fMax: toFixedValue(nextY, 4),
-          biomassLimit: toFixedValue(nextX * row.limitRatio),
         };
       }),
     );
@@ -258,13 +282,13 @@ const AnchovyInputsFlow = ({
       activeElements: ActiveElement[],
       chart,
     ) => {
-      const isControlPointHovered = activeElements.some(
-        (element) => element.index === 1,
+      const isHandleHovered = activeElements.some(
+        (element) => element.index === 1 || element.index === 2,
       );
 
-      chart.canvas.style.cursor = isDraggingControlPoint
+      chart.canvas.style.cursor = isDraggingHandle
         ? "grabbing"
-        : isControlPointHovered
+        : isHandleHovered
           ? "grab"
           : "default";
     },
@@ -327,6 +351,7 @@ const AnchovyInputsFlow = ({
     }
   ).dragData = {
     dragX: true,
+    dragY: true,
     showTooltip: true,
     round: 4,
     onDragStart: (
@@ -334,9 +359,9 @@ const AnchovyInputsFlow = ({
       _datasetIndex: number,
       pointIndex: number,
     ) => {
-      const isDraggablePoint = pointIndex === 1;
+      const isDraggablePoint = pointIndex === 1 || pointIndex === 2;
 
-      setIsDraggingControlPoint(isDraggablePoint);
+      setIsDraggingHandle(isDraggablePoint);
       return isDraggablePoint;
     },
     onDrag: (
@@ -345,16 +370,22 @@ const AnchovyInputsFlow = ({
       pointIndex: number,
       value: unknown,
     ) => {
-      if (pointIndex !== 1) {
+      if (pointIndex !== 1 && pointIndex !== 2) {
         return false;
       }
 
       const point = value as { x: number; y: number };
-      updateActiveRowFromPoint(point.x, point.y);
+
+      if (pointIndex === 1) {
+        updateActiveRowStartPoint(point.x, point.y);
+        return true;
+      }
+
+      updateActiveRowEndPoint(point.x, point.y);
       return true;
     },
     onDragEnd: () => {
-      setIsDraggingControlPoint(false);
+      setIsDraggingHandle(false);
     },
   };
 
@@ -367,11 +398,13 @@ const AnchovyInputsFlow = ({
         borderColor: "#E84D48",
         backgroundColor: "#E84D48",
         borderWidth: 3,
-        pointRadius: [5, 8, 4],
-        pointHoverRadius: [6, 9, 5],
-        pointBackgroundColor: ["#7ad6ff", "#f6fbff", "#7ad6ff"],
+        clip: false as const,
+        pointRadius: [0, 8, 8],
+        pointHoverRadius: [0, 9, 9],
+        pointHitRadius: [0, 20, 20],
+        pointBackgroundColor: ["transparent", "#7ad6ff", "#f6fbff"],
         pointBorderColor: "#E84D48",
-        pointBorderWidth: [2, 3, 2],
+        pointBorderWidth: [0, 3, 3],
         tension: 0,
       },
     ],
