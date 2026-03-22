@@ -37,14 +37,14 @@ const ScenarioModelFlowGraph = () => {
       <defs>
         <marker
           id="scenario-flow-arrow"
-          markerWidth="10"
-          markerHeight="10"
-          refX="7"
-          refY="3.5"
+          markerWidth="5"
+          markerHeight="5"
+          refX="3.5"
+          refY="1.75"
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0 0 L7 3.5 L0 7 Z" className={styles.arrowHead} />
+          <path d="M0 0 L3.5 1.75 L0 3.5 Z" className={styles.arrowHead} />
         </marker>
       </defs>
 
@@ -94,6 +94,25 @@ const ScenarioModelFlowGraph = () => {
           </g>
         );
       })}
+
+      {scenarioFlowEdges.map((edge) =>
+        edge.labels?.map((label) => (
+          <text
+            key={`${edge.id}-${label.text}`}
+            x={label.x}
+            y={label.y}
+            className={
+              label.tone === "muted" ? styles.edgeLabelMuted : styles.edgeLabel
+            }
+          >
+            {label.text.split("\n").map((line, index) => (
+              <tspan key={line} x={label.x} dy={index === 0 ? 0 : 14}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+        )),
+      )}
     </svg>
   );
 };

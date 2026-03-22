@@ -94,7 +94,90 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
 
 export const scenarioFlowEdges: ScenarioFlowEdge[] = [
   {
+    id: "poseidon-to-cmsy",
+    path: "M185 82 H80 V182",
+    labels: [{ text: "Catches", x: 118, y: 76 }],
+  },
+  {
+    id: "ecopath-to-poseidon",
+    path: "M575 314 V118",
+    labels: [{ text: "Biomass", x: 610, y: 300 }],
+  },
+  {
+    id: "poseidon-to-ecopath",
+    path: "M200 118 V314",
+    labels: [{ text: "Catches", x: 168, y: 142, tone: "muted" }],
+  },
+  {
+    id: "poseidon-to-market",
+    path: "M276 118 V182",
+    labels: [{ text: "Sales", x: 258, y: 142, tone: "muted" }],
+  },
+  {
+    id: "market-to-poseidon",
+    path: "M324 182 V118",
+    labels: [{ text: "Prices", x: 348, y: 176, tone: "muted" }],
+  },
+  {
+    id: "poseidon-to-authority",
+    path: "M452 118 V182",
+    labels: [{ text: "Catches and\nFishing activity", x: 396, y: 134 }],
+  },
+  {
+    id: "authority-to-poseidon",
+    path: "M500 182 V118",
+    labels: [{ text: "Limits", x: 524, y: 166, tone: "muted" }],
+  },
+  {
+    id: "poseidon-to-value-chain",
+    path: "M585 82 H700 V182",
+    labels: [{ text: "Sales", x: 646, y: 76 }],
+  },
+  {
+    id: "ecopath-to-cmsy",
+    path: "M185 368 H80 V254",
+    labels: [{ text: "Biomass\nand catches", x: 58, y: 404 }],
+  },
+  {
+    id: "ecopath-to-market",
+    path: "M276 314 V254",
+    labels: [{ text: "Sales", x: 246, y: 302 }],
+  },
+  {
+    id: "market-to-ecopath",
+    path: "M324 254 V314",
+    labels: [{ text: "Prices", x: 348, y: 310, tone: "muted" }],
+  },
+  {
+    id: "ecopath-to-authority",
+    path: "M452 314 V254",
+    labels: [
+      { text: "Biomass, catches,\nand Fishing activity", x: 390, y: 268 },
+    ],
+  },
+  {
+    id: "authority-to-ecopath",
+    path: "M500 254 V314",
+    labels: [{ text: "Limits", x: 524, y: 294, tone: "muted" }],
+  },
+  {
+    id: "ecopath-to-value-chain",
+    path: "M585 354 H700 V254",
+    labels: [
+      { text: "Sales", x: 646, y: 368 },
+      // { text: "Biomass", x: 668, y: 302, tone: "muted" },
+    ],
+  },
+  {
     id: "environment-to-ecopath",
-    path: "M385 498 V428",
+    path: "M385 422 V392",
+    labels: [
+      {
+        text: "Oceanographic conditions",
+        x: 470,
+        y: 414,
+        tone: "muted",
+      },
+    ],
   },
 ];
