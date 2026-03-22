@@ -28,15 +28,10 @@ const metricMeta: Record<
     unit: "t/km²",
     lineColor: "#74dbff",
   },
-  catches: {
-    label: "Catches",
+  catchesDiscards: {
+    label: "Catches + Discards",
     unit: "kg",
-    lineColor: "#ffd078",
-  },
-  discards: {
-    label: "Discards",
-    unit: "kg",
-    lineColor: "#ff9f7d",
+    lineColor: "#ffb36b",
   },
 };
 
@@ -120,6 +115,9 @@ const AnchovyBayOutputs = () => {
       biomass: average(yearGrid.cells.map((cell) => cell.biomass)),
       catches: average(yearGrid.cells.map((cell) => cell.catches)),
       discards: average(yearGrid.cells.map((cell) => cell.discards)),
+      catchesDiscards: average(
+        yearGrid.cells.map((cell) => cell.catches + cell.discards),
+      ),
     }));
   }, [speciesOutput]);
 
@@ -192,6 +190,10 @@ const AnchovyBayOutputs = () => {
     }
 
     const allValues = speciesOutput.annual_grids.flatMap((yearGrid) => {
+      if (metric === "catchesDiscards") {
+        return yearGrid.cells.map((cell) => cell.catches + cell.discards);
+      }
+
       return yearGrid.cells.map((cell) => cell[metric]);
     });
 
@@ -229,7 +231,10 @@ const AnchovyBayOutputs = () => {
     return activeYearGrid.cells.map((cell) => ({
       longitude: cell.longitude,
       latitude: cell.latitude,
-      value: cell[metric],
+      value:
+        metric === "catchesDiscards"
+          ? cell.catches + cell.discards
+          : cell[metric],
       speciesCode,
     }));
   }, [activeYearGrid, metric, speciesCode]);
@@ -302,7 +307,7 @@ const AnchovyBayOutputs = () => {
     <div>
       <DashboardLayout
         title="Anchovy Bay Scenario Outputs"
-        subtitle="A centered spatial view with synchronized yearly trends for biomass, catches, discards, sales volume, and market prices across 1973-2023."
+        subtitle="A centered spatial view with synchronized yearly trends for biomass, catches + discards, sales volume, and market prices across 1973-2023."
         showKicker={false}
         headerCopyClassName={styles.headerCopy}
         titleClassName={styles.pageTitle}
@@ -335,7 +340,7 @@ const AnchovyBayOutputs = () => {
 
             <OutputsTrendPanel
               className={styles.primaryChartPanel}
-              title="Biomass / Catches / Discards"
+              title="Biomass / Catches + Discards"
               subtitle="Selected metric over time"
               metricLabel={metricMeta[metric].label}
               currentValue={currentMetricValue}
