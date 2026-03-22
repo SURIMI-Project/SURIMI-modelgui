@@ -191,41 +191,75 @@
 
 .worldTitleRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
 }
 
 .worldInfoButton {
+  position: relative;
   margin-top: 14px;
+  margin-left: 4px;
   width: 40px;
   height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--world-accent) 56%, #eef8ff);
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.18), transparent 40%),
-    linear-gradient(145deg, rgba(7, 34, 61, 0.88), rgba(5, 19, 37, 0.9));
-  color: #eff8ff;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.96);
   box-shadow:
-    0 18px 34px -28px rgba(0, 0, 0, 0.86),
-    0 0 0 1px rgba(239, 248, 255, 0.04) inset;
+    0 14px 26px -22px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 18px rgba(232, 77, 72, 0.22);
   cursor: pointer;
   transition:
     transform 160ms ease,
     border-color 160ms ease,
-    background 160ms ease;
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.worldInfoButton::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  border: 2px solid rgba(232, 77, 72, 0.92);
+  box-shadow: 0 0 18px rgba(232, 77, 72, 0.38);
+  opacity: 0.9;
+  pointer-events: none;
+  animation: infoPulse 1.8s ease-out infinite;
 }
 
 .worldInfoButton:hover {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--world-secondary) 70%, #ffffff);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #ffffff;
+  color: #ffffff;
 }
 
 .worldInfoButton:focus-visible {
-  outline: 2px solid rgba(154, 226, 255, 0.72);
+  outline: 2px solid rgba(255, 255, 255, 0.86);
   outline-offset: 3px;
+}
+
+@keyframes infoPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.95;
+  }
+
+  75% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
 }
 
 .aboutTitle {
@@ -396,6 +430,7 @@
 
   .worldInfoButton {
     margin-top: 10px;
+    margin-left: 2px;
     width: 38px;
     height: 38px;
   }
