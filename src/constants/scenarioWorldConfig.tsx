@@ -40,7 +40,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     ],
     simulationContext:
       "Run comparative experiments between baseline traffic and constrained-corridor policies to inspect emissions and ecosystem stress propagation.",
-    infoModalTitle: "Western Mediterranean · System Interaction Map",
+    infoModalTitle: "Western Mediterranean · About the models behind",
     infoModalDescription: [
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer iaculis nisl at mauris facilisis, vitae finibus justo gravida. Aliquam erat volutpat.",
       "Suspendisse potenti. Curabitur luctus, libero sed maximus vulputate, justo lacus semper purus, sit amet tristique nulla neque eu nibh.",
@@ -66,7 +66,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     ],
     simulationContext:
       "Explore route-level what-if scenarios for port connectivity, corridor utilization, and downstream ecological exposure.",
-    infoModalTitle: "Aegean Sea · System Interaction Map",
+    infoModalTitle: "Aegean Sea · About the models behind",
     infoModalDescription: [
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed risus purus. Vivamus nec posuere sapien, vitae feugiat ligula.",
       "Sed convallis, dui nec posuere euismod, lacus lacus ultrices risus, non vulputate sem magna sed orci. Nullam posuere, augue vel tincidunt tempor, justo erat luctus tortor, eu efficitur lectus mauris sed elit.",
@@ -92,7 +92,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     ],
     simulationContext:
       "Test harvest-control adjustments and observe trophic balance responses under evolving predator and forage dynamics.",
-    infoModalTitle: "Anchovy Bay · System Interaction Map",
+    infoModalTitle: "Anchovy Bay · About the models behind",
     infoModalDescription: [
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent blandit consequat commodo. Morbi feugiat nisl nisi, et faucibus lectus gravida ut.",
       "Quisque vulputate magna quis felis semper, nec dictum libero ullamcorper. Aenean posuere imperdiet efficitur. Donec in pulvinar justo.",

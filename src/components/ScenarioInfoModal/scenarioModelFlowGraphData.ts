@@ -7,6 +7,10 @@ export type ScenarioFlowNode = {
   fill: string;
   title: string;
   subtitle?: string;
+  hoverTitle: string;
+  hoverDescription: string;
+  cardX: number;
+  cardY: number;
 };
 
 export type ScenarioFlowEdgeLabel = {
@@ -32,6 +36,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     fill: "#f08a33",
     title: "POSEIDON",
     subtitle: "Spanish purse seiners and bottom trawlers",
+    hoverTitle: "POSEIDON",
+    hoverDescription:
+      "POSEIDON is an agent-based model, simulating how fishers respond to different policies, market changes and environmental conditions. For example, fishers may start to fish more extensively when the season is shortened or fish along the borders of a Marine Protected Area (MPA) if those are introduced.",
+    cardX: 0.78,
+    cardY: 0.18,
   },
   {
     id: "cmsy",
@@ -42,6 +51,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     fill: "#7887d3",
     title: "CMSY++",
     subtitle: "Stock assessments",
+    hoverTitle: "CMSY++",
+    hoverDescription:
+      "CMSY++ is a stock assessment model, focusing on how fish stocks grow or shorten over time.",
+    cardX: 0.2,
+    cardY: 0.58,
   },
   {
     id: "market",
@@ -52,6 +66,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     fill: "#8d8f96",
     title: "Market",
     subtitle: "System Dynamics Model",
+    hoverTitle: "Market Model",
+    hoverDescription:
+      "This model fills the data gaps in the socio-economic layer, reduces uncertainties and improves the robustness of predictions of the other SURIMI models.",
+    cardX: 0.5,
+    cardY: 0.58,
   },
   {
     id: "authority",
@@ -61,6 +80,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     height: 72,
     fill: "#7ea7df",
     title: "Fisheries\nAuthority",
+    hoverTitle: "Fisheries Authority",
+    hoverDescription:
+      "This policy layer represents the management authority that applies limits, governance rules and regulatory constraints which shape fleet behaviour across the scenario system.",
+    cardX: 0.72,
+    cardY: 0.58,
   },
   {
     id: "value-chain",
@@ -70,6 +94,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     height: 72,
     fill: "#df766f",
     title: "Value Chain",
+    hoverTitle: "Value Chain",
+    hoverDescription:
+      "This is an extension of the Ecopath model that tracks the flow of fish products from the sea all the way to the end customer.",
+    cardX: 0.84,
+    cardY: 0.54,
   },
   {
     id: "ecopath",
@@ -80,6 +109,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     fill: "#b8e35f",
     title: "Ecopath with Ecosim",
     subtitle: "Ecology. All other fleets",
+    hoverTitle: "Ecopath with Ecosim",
+    hoverDescription:
+      "Ecopath with Ecosim is a model that represents the entire marine ecosystem in detail, focusing on how fishing impacts all aspects of it.",
+    cardX: 0.76,
+    cardY: 0.74,
   },
   {
     id: "environment",
@@ -89,6 +123,11 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     height: 76,
     fill: "#68b8b4",
     title: "Environment",
+    hoverTitle: "Environment",
+    hoverDescription:
+      "This layer represents the environmental and oceanographic conditions that drive ecosystem productivity, species interactions and the wider context for the other SURIMI models.",
+    cardX: 0.76,
+    cardY: 0.88,
   },
 ];
 

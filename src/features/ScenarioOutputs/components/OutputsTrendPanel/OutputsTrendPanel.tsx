@@ -1,4 +1,6 @@
-import OutputsTrendChart from "../Charts/OutputsTrendChart";
+import OutputsTrendChart, {
+  type OutputsTrendChartSeries,
+} from "../Charts/OutputsTrendChart";
 import styles from "./OutputsTrendPanel.module.css";
 
 type OutputsTrendPanelProps = {
@@ -7,8 +9,15 @@ type OutputsTrendPanelProps = {
   metricLabel: string;
   currentValue: number;
   currentValueLabel: string;
-  labels: string[];
-  values: number[];
+  selectionCopy?: string;
+  labels?: string[];
+  values?: number[];
+  historicalLabels?: string[];
+  historicalValues?: number[];
+  actualHistoricalValues?: number[];
+  futureLabels?: string[];
+  futureValues?: number[];
+  series?: OutputsTrendChartSeries[];
   selectedIndex: number;
   lineColor: string;
   onSelectIndex: (index: number) => void;
@@ -22,8 +31,15 @@ const OutputsTrendPanel = ({
   metricLabel,
   currentValue,
   currentValueLabel,
+  selectionCopy,
   labels,
   values,
+  historicalLabels,
+  historicalValues,
+  actualHistoricalValues,
+  futureLabels,
+  futureValues,
+  series,
   selectedIndex,
   lineColor,
   onSelectIndex,
@@ -32,11 +48,7 @@ const OutputsTrendPanel = ({
 }: OutputsTrendPanelProps) => {
   return (
     <section
-      className={[
-        styles.panel,
-        compact ? styles.panelCompact : "",
-        className,
-      ]
+      className={[styles.panel, compact ? styles.panelCompact : "", className]
         .filter(Boolean)
         .join(" ")}
     >
@@ -55,6 +67,12 @@ const OutputsTrendPanel = ({
         <OutputsTrendChart
           labels={labels}
           values={values}
+          historicalLabels={historicalLabels}
+          historicalValues={historicalValues}
+          actualHistoricalValues={actualHistoricalValues}
+          futureLabels={futureLabels}
+          futureValues={futureValues}
+          series={series}
           metricLabel={metricLabel}
           lineColor={lineColor}
           selectedIndex={selectedIndex}
@@ -65,7 +83,7 @@ const OutputsTrendPanel = ({
 
       {!compact ? (
         <p className={styles.selectionCopy}>
-          Selected year value: {currentValue.toFixed(2)}
+          {selectionCopy ?? `Selected year value: ${currentValue.toFixed(2)}`}
         </p>
       ) : null}
     </section>

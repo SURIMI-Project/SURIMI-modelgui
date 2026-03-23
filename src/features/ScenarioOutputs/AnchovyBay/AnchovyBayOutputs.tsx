@@ -1,6 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { anchovyBayAnnualOutputsData } from "../MockData/anchovyBayAnnualOutputsData";
+import {
+  ANCHOVY_BAY_FORECAST_START_YEAR,
+  anchovyBayAnnualOutputsData,
+} from "../MockData/anchovyBayAnnualOutputsData";
 import { pricesData } from "../MockData/pricesData";
 import { salesData } from "../MockData/salesData";
 import { anchovyBaySimulationMetadata } from "../MockData/simulationMetadata";
@@ -47,7 +50,7 @@ const speciesOptions: SpeciesOption[] =
     }));
 
 const defaultSpecies = speciesOptions[0]?.value ?? "MTS";
-const initialYear = years[0] ?? 1973;
+const initialYear = years[0] ?? 2006;
 
 const salesQuantityBySpecies = salesData.sales_summaries.reduce<
   Record<string, number>
@@ -92,6 +95,27 @@ const normalizeSeries = (values: number[]) => {
   return values.map((value) => (value - min) / span);
 };
 
+const buildActualHistoricalSeries = (values: number[], seriesSeed: number) => {
+  if (values.length === 0) {
+    return [];
+  }
+
+  const valueMin = Math.min(...values);
+  const valueMax = Math.max(...values);
+  const valueRange = Math.max(valueMax - valueMin, 0.0001);
+
+  return values.map((value, index) => {
+    const drift =
+      Math.sin((index + 1) * (0.78 + seriesSeed * 0.08)) * 0.72 +
+      Math.cos((index + 1) * (1.18 + seriesSeed * 0.06)) * 0.46;
+    const sign = drift >= 0 ? 1 : -1;
+    const amplitude =
+      0.2 + Math.abs(Math.sin((index + 1) * (0.49 + seriesSeed * 0.05))) * 0.16;
+    const offset = sign * valueRange * amplitude;
+    return Number((value + offset).toFixed(3));
+  });
+};
+
 const AnchovyBayOutputs = () => {
   const [speciesCode, setSpeciesCode] = useState(defaultSpecies);
   const [metric, setMetric] = useState<ScenarioOutputMetric>("biomass");
@@ -126,6 +150,66 @@ const AnchovyBayOutputs = () => {
       Number(entry[metric].toFixed(3)),
     );
   }, [annualMetricAverages, metric]);
+
+  const catchesSeries = useMemo(() => {
+    return annualMetricAverages.map((entry) =>
+      Number(entry.catches.toFixed(3)),
+    );
+  }, [annualMetricAverages]);
+
+  const discardsSeries = useMemo(() => {
+    return annualMetricAverages.map((entry) =>
+      Number(entry.discards.toFixed(3)),
+    );
+  }, [annualMetricAverages]);
+
+  const historicalLabels = useMemo(() => {
+    return years
+      .filter((year) => year < ANCHOVY_BAY_FORECAST_START_YEAR)
+      .map(String);
+  }, []);
+
+  const futureLabels = useMemo(() => {
+    return years
+      .filter((year) => year >= ANCHOVY_BAY_FORECAST_START_YEAR)
+      .map(String);
+  }, []);
+
+  const historicalAnnualSeries = useMemo(() => {
+    return annualSeries.slice(0, historicalLabels.length);
+  }, [annualSeries, historicalLabels.length]);
+
+  const futureAnnualSeries = useMemo(() => {
+    return annualSeries.slice(historicalLabels.length);
+  }, [annualSeries, historicalLabels.length]);
+
+  const historicalCatchesSeries = useMemo(() => {
+    return catchesSeries.slice(0, historicalLabels.length);
+  }, [catchesSeries, historicalLabels.length]);
+
+  const futureCatchesSeries = useMemo(() => {
+    return catchesSeries.slice(historicalLabels.length);
+  }, [catchesSeries, historicalLabels.length]);
+
+  const historicalDiscardsSeries = useMemo(() => {
+    return discardsSeries.slice(0, historicalLabels.length);
+  }, [discardsSeries, historicalLabels.length]);
+
+  const futureDiscardsSeries = useMemo(() => {
+    return discardsSeries.slice(historicalLabels.length);
+  }, [discardsSeries, historicalLabels.length]);
+
+  const actualHistoricalBiomassSeries = useMemo(() => {
+    return buildActualHistoricalSeries(historicalAnnualSeries, 1);
+  }, [historicalAnnualSeries]);
+
+  const actualHistoricalCatchesSeries = useMemo(() => {
+    return buildActualHistoricalSeries(historicalCatchesSeries, 2);
+  }, [historicalCatchesSeries]);
+
+  const actualHistoricalDiscardsSeries = useMemo(() => {
+    return buildActualHistoricalSeries(historicalDiscardsSeries, 3);
+  }, [historicalDiscardsSeries]);
 
   const salesSeries = useMemo(() => {
     const biomassTrend = normalizeSeries(
@@ -240,6 +324,8 @@ const AnchovyBayOutputs = () => {
   }, [activeYearGrid, metric, speciesCode]);
 
   const currentMetricValue = annualSeries[selectedYearIndex] ?? 0;
+  const currentCatchesValue = catchesSeries[selectedYearIndex] ?? 0;
+  const currentDiscardsValue = discardsSeries[selectedYearIndex] ?? 0;
   const currentSalesValue = salesSeries[selectedYearIndex] ?? 0;
   const currentPriceValue = priceSeries[selectedYearIndex] ?? 0;
 
@@ -307,7 +393,7 @@ const AnchovyBayOutputs = () => {
     <div>
       <DashboardLayout
         title="Anchovy Bay Scenario Outputs"
-        subtitle="A centered spatial view with synchronized yearly trends for biomass, catches + discards, sales volume, and market prices across 1973-2023."
+        subtitle="A centered spatial view with synchronized yearly trends for biomass, catches + discards, sales volume, and market prices across 2006-2046."
         showKicker={false}
         headerCopyClassName={styles.headerCopy}
         titleClassName={styles.pageTitle}
@@ -342,13 +428,55 @@ const AnchovyBayOutputs = () => {
               className={styles.primaryChartPanel}
               title="Biomass / Catches + Discards"
               subtitle="Selected metric over time"
-              metricLabel={metricMeta[metric].label}
+              metricLabel={
+                metric === "catchesDiscards"
+                  ? "Catches / Discards"
+                  : metricMeta[metric].label
+              }
               currentValue={currentMetricValue}
-              currentValueLabel={`${currentMetricValue.toFixed(2)} ${metricMeta[metric].unit}`}
-              labels={years.map((year) => String(year))}
-              values={annualSeries}
-              selectedIndex={Math.max(selectedYearIndex, 0)}
+              currentValueLabel={
+                metric === "catchesDiscards"
+                  ? `${currentCatchesValue.toFixed(2)} / ${currentDiscardsValue.toFixed(2)} ${metricMeta[metric].unit}`
+                  : `${currentMetricValue.toFixed(2)} ${metricMeta[metric].unit}`
+              }
+              selectionCopy={
+                metric === "catchesDiscards"
+                  ? `Selected year values: catches ${currentCatchesValue.toFixed(2)} ${metricMeta[metric].unit}, discards ${currentDiscardsValue.toFixed(2)} ${metricMeta[metric].unit}`
+                  : undefined
+              }
+              historicalLabels={historicalLabels}
+              historicalValues={historicalAnnualSeries}
+              actualHistoricalValues={
+                metric === "biomass" ? actualHistoricalBiomassSeries : undefined
+              }
+              futureLabels={futureLabels}
+              futureValues={futureAnnualSeries}
+              series={
+                metric === "catchesDiscards"
+                  ? [
+                      {
+                        label: "Catches",
+                        color: "#ffb36b",
+                        boundColor: "#ffb36b",
+                        boundOpacity: 0.46,
+                        historicalValues: historicalCatchesSeries,
+                        actualHistoricalValues: actualHistoricalCatchesSeries,
+                        futureValues: futureCatchesSeries,
+                      },
+                      {
+                        label: "Discards",
+                        color: "#ff7f9b",
+                        boundColor: "#ff7f9b",
+                        boundOpacity: 0.46,
+                        historicalValues: historicalDiscardsSeries,
+                        actualHistoricalValues: actualHistoricalDiscardsSeries,
+                        futureValues: futureDiscardsSeries,
+                      },
+                    ]
+                  : undefined
+              }
               lineColor={metricMeta[metric].lineColor}
+              selectedIndex={Math.max(selectedYearIndex, 0)}
               onSelectIndex={selectYearByIndex}
             />
           </section>
@@ -428,7 +556,9 @@ const AnchovyBayOutputs = () => {
             setIsRingOpen((current) => !current);
           }}
           aria-expanded={isRingOpen}
-          aria-label={isRingOpen ? "Minimize year selector" : "Open year selector"}
+          aria-label={
+            isRingOpen ? "Minimize year selector" : "Open year selector"
+          }
         >
           <span className={styles.ringLauncherYear}>{selectedYear}</span>
         </button>

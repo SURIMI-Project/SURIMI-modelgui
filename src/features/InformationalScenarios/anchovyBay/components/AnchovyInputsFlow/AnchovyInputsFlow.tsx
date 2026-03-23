@@ -22,7 +22,7 @@ import {
 } from "chart.js";
 import dragDataPlugin from "chartjs-plugin-dragdata";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 import PrimaryModal from "../../../../../components/PrimaryModal/PrimaryModal";
 import SelectableCards, {
@@ -44,6 +44,7 @@ type SpeciesInputRow = {
   label: string;
   biomassLimit: number;
   fStart: number;
+  fLimit: number;
   biomassBase: number;
   fMax: number;
 };
@@ -115,47 +116,80 @@ const clamp = (value: number, min: number, max: number) =>
 const toFixedValue = (value: number, digits = 3) =>
   Number(value.toFixed(digits));
 
+const clampStartPoint = (row: SpeciesInputRow, yValue: number) => {
+  return {
+    ...row,
+    fStart: clamp(yValue, 0.005, Math.max(0.005, row.fLimit - 0.005)),
+  };
+};
+
+const clampMiddlePoint = (
+  row: SpeciesInputRow,
+  xValue: number,
+  yValue: number,
+) => {
+  return {
+    ...row,
+    biomassLimit: clamp(xValue, 0.1, Math.max(0.1, row.biomassBase - 0.1)),
+    fLimit: clamp(
+      yValue,
+      row.fStart + 0.005,
+      Math.max(row.fStart + 0.005, row.fMax - 0.005),
+    ),
+  };
+};
+
+const clampEndPoint = (
+  row: SpeciesInputRow,
+  xValue: number,
+  yValue: number,
+  xMax: number,
+) => {
+  return {
+    ...row,
+    biomassBase: clamp(xValue, row.biomassLimit + 0.1, xMax * 0.95),
+    fMax: clamp(yValue, row.fLimit + 0.005, 0.25),
+  };
+};
+
+const persistRowPrecision = (row: SpeciesInputRow): SpeciesInputRow => {
+  return {
+    ...row,
+    biomassLimit: toFixedValue(row.biomassLimit),
+    fStart: toFixedValue(row.fStart, 4),
+    fLimit: toFixedValue(row.fLimit, 4),
+    biomassBase: toFixedValue(row.biomassBase),
+    fMax: toFixedValue(row.fMax, 4),
+  };
+};
+
+const createDefaultRow = (
+  id: string,
+  label: string,
+  biomassBase: number,
+  fMax: number,
+): SpeciesInputRow => {
+  const fStart = 0.01;
+  const biomassLimit = toFixedValue(Math.max(0.1, biomassBase * 0.45));
+  const fLimit = toFixedValue(fStart + (fMax - fStart) * 0.55, 4);
+
+  return {
+    id,
+    label,
+    biomassLimit,
+    fStart,
+    fLimit,
+    biomassBase,
+    fMax,
+  };
+};
+
 const defaultRows: SpeciesInputRow[] = [
-  {
-    id: "cod",
-    label: "Cod",
-    biomassLimit: 0.5,
-    fStart: 0.01,
-    biomassBase: 4.024,
-    fMax: 0.196,
-  },
-  {
-    id: "whiting",
-    label: "Whiting",
-    biomassLimit: 1.103,
-    fStart: 0.01,
-    biomassBase: 2.207,
-    fMax: 0.0765,
-  },
-  {
-    id: "mackerel",
-    label: "Mackerel",
-    biomassLimit: 0.758,
-    fStart: 0.01,
-    biomassBase: 1.516,
-    fMax: 0.205,
-  },
-  {
-    id: "anchovy",
-    label: "Anchovy",
-    biomassLimit: 4.129,
-    fStart: 0.01,
-    biomassBase: 8.258,
-    fMax: 0.141,
-  },
-  {
-    id: "shrimp",
-    label: "Shrimp",
-    biomassLimit: 0.442,
-    fStart: 0.01,
-    biomassBase: 0.884,
-    fMax: 0.0914,
-  },
+  createDefaultRow("cod", "Cod", 4.024, 0.196),
+  createDefaultRow("whiting", "Whiting", 2.207, 0.0765),
+  createDefaultRow("mackerel", "Mackerel", 1.516, 0.205),
+  createDefaultRow("anchovy", "Anchovy", 8.258, 0.141),
+  createDefaultRow("shrimp", "Shrimp", 0.884, 0.0914),
 ];
 
 const MotionDiv = motion.div;
@@ -174,13 +208,14 @@ const AnchovyInputsFlow = ({
     string | null
   >(null);
   const [isDraggingHandle, setIsDraggingHandle] = useState(false);
+  const dragDraftRef = useRef<SpeciesInputRow | null>(null);
 
   const steps = [
     {
       key: "inputs",
       title: "Anchovy Bay · Harvest control inputs",
       subtitle:
-        "Pick a species, drag the start and end points in the graph, and the biomass/fmax values update instantly.",
+        "Pick a species, drag the three control points in the graph, and the biomass and fishing-mortality values update instantly.",
     },
     {
       key: "years",
@@ -217,33 +252,39 @@ const AnchovyInputsFlow = ({
   const graphPoints = useMemo(
     () => [
       { x: 0, y: 0 },
-      { x: activeRow.biomassLimit, y: activeRow.fStart },
+      { x: 0, y: activeRow.fStart },
+      { x: activeRow.biomassLimit, y: activeRow.fLimit },
       { x: activeRow.biomassBase, y: activeRow.fMax },
     ],
     [
       activeRow.biomassBase,
       activeRow.biomassLimit,
+      activeRow.fLimit,
       activeRow.fMax,
       activeRow.fStart,
-      xMax,
     ],
   );
 
-  const updateActiveRowStartPoint = (xValue: number, yValue: number) => {
+  const updateActiveRowStartPoint = (yValue: number) => {
     setRows((current) =>
       current.map((row) => {
         if (row.id !== activeSpeciesId) {
           return row;
         }
 
-        const nextX = clamp(xValue, 0.2, row.biomassBase - 0.1);
-        const nextY = clamp(yValue, 0.005, Math.max(0.005, row.fMax - 0.005));
+        return persistRowPrecision(clampStartPoint(row, yValue));
+      }),
+    );
+  };
 
-        return {
-          ...row,
-          biomassLimit: toFixedValue(nextX),
-          fStart: toFixedValue(nextY, 4),
-        };
+  const updateActiveRowMiddlePoint = (xValue: number, yValue: number) => {
+    setRows((current) =>
+      current.map((row) => {
+        if (row.id !== activeSpeciesId) {
+          return row;
+        }
+
+        return persistRowPrecision(clampMiddlePoint(row, xValue, yValue));
       }),
     );
   };
@@ -255,14 +296,7 @@ const AnchovyInputsFlow = ({
           return row;
         }
 
-        const nextX = clamp(xValue, row.biomassLimit + 0.1, xMax * 0.95);
-        const nextY = clamp(yValue, row.fStart + 0.005, 0.25);
-
-        return {
-          ...row,
-          biomassBase: toFixedValue(nextX),
-          fMax: toFixedValue(nextY, 4),
-        };
+        return persistRowPrecision(clampEndPoint(row, xValue, yValue, xMax));
       }),
     );
   };
@@ -283,7 +317,8 @@ const AnchovyInputsFlow = ({
       chart,
     ) => {
       const isHandleHovered = activeElements.some(
-        (element) => element.index === 1 || element.index === 2,
+        (element) =>
+          element.index === 1 || element.index === 2 || element.index === 3,
       );
 
       chart.canvas.style.cursor = isDraggingHandle
@@ -337,7 +372,15 @@ const AnchovyInputsFlow = ({
         callbacks: {
           label: (context) => {
             const point = context.raw as { x: number; y: number };
-            return `x=${point.x.toFixed(3)}, y=${point.y.toFixed(4)}`;
+            const pointLabels = [
+              "Origin",
+              "Start control",
+              "Middle control",
+              "End control",
+            ];
+            const pointLabel = pointLabels[context.dataIndex] ?? "Control";
+
+            return `${pointLabel}: x=${point.x.toFixed(3)}, y=${point.y.toFixed(4)}`;
           },
         },
       },
@@ -353,14 +396,16 @@ const AnchovyInputsFlow = ({
     dragX: true,
     dragY: true,
     showTooltip: true,
-    round: 4,
+    round: 6,
     onDragStart: (
       _event: unknown,
       _datasetIndex: number,
       pointIndex: number,
     ) => {
-      const isDraggablePoint = pointIndex === 1 || pointIndex === 2;
+      const isDraggablePoint =
+        pointIndex === 1 || pointIndex === 2 || pointIndex === 3;
 
+      dragDraftRef.current = isDraggablePoint ? { ...activeRow } : null;
       setIsDraggingHandle(isDraggablePoint);
       return isDraggablePoint;
     },
@@ -370,22 +415,52 @@ const AnchovyInputsFlow = ({
       pointIndex: number,
       value: unknown,
     ) => {
-      if (pointIndex !== 1 && pointIndex !== 2) {
+      if (pointIndex !== 1 && pointIndex !== 2 && pointIndex !== 3) {
         return false;
       }
 
       const point = value as { x: number; y: number };
+      const draftRow = dragDraftRef.current ?? { ...activeRow };
 
       if (pointIndex === 1) {
-        updateActiveRowStartPoint(point.x, point.y);
+        point.x = 0;
+        const nextRow = clampStartPoint(draftRow, point.y);
+        point.y = nextRow.fStart;
+        dragDraftRef.current = nextRow;
         return true;
       }
 
-      updateActiveRowEndPoint(point.x, point.y);
+      if (pointIndex === 2) {
+        const nextRow = clampMiddlePoint(draftRow, point.x, point.y);
+        point.x = nextRow.biomassLimit;
+        point.y = nextRow.fLimit;
+        dragDraftRef.current = nextRow;
+        return true;
+      }
+
+      const nextRow = clampEndPoint(draftRow, point.x, point.y, xMax);
+      point.x = nextRow.biomassBase;
+      point.y = nextRow.fMax;
+      dragDraftRef.current = nextRow;
       return true;
     },
-    onDragEnd: () => {
+    onDragEnd: (_event: unknown, _datasetIndex: number, pointIndex: number) => {
       setIsDraggingHandle(false);
+      const draftRow = dragDraftRef.current;
+
+      if (!draftRow) {
+        return;
+      }
+
+      if (pointIndex === 1) {
+        updateActiveRowStartPoint(draftRow.fStart);
+      } else if (pointIndex === 2) {
+        updateActiveRowMiddlePoint(draftRow.biomassLimit, draftRow.fLimit);
+      } else if (pointIndex === 3) {
+        updateActiveRowEndPoint(draftRow.biomassBase, draftRow.fMax);
+      }
+
+      dragDraftRef.current = null;
     },
   };
 
@@ -399,12 +474,12 @@ const AnchovyInputsFlow = ({
         backgroundColor: "#E84D48",
         borderWidth: 3,
         clip: false as const,
-        pointRadius: [0, 8, 8],
-        pointHoverRadius: [0, 9, 9],
-        pointHitRadius: [0, 20, 20],
-        pointBackgroundColor: ["transparent", "#7ad6ff", "#f6fbff"],
+        pointRadius: [0, 8, 8, 8],
+        pointHoverRadius: [0, 9, 9, 9],
+        pointHitRadius: [0, 20, 20, 20],
+        pointBackgroundColor: ["transparent", "#7ad6ff", "#ffc66a", "#f6fbff"],
         pointBorderColor: "#E84D48",
-        pointBorderWidth: [0, 3, 3],
+        pointBorderWidth: [0, 3, 3, 3],
         tension: 0,
       },
     ],
@@ -554,7 +629,9 @@ const AnchovyInputsFlow = ({
                             <Table.Thead>
                               <Table.Tr>
                                 <Table.Th>Group name</Table.Th>
+                                <Table.Th>F start</Table.Th>
                                 <Table.Th>Biomass limit</Table.Th>
+                                <Table.Th>F limit</Table.Th>
                                 <Table.Th>Biomass base</Table.Th>
                                 <Table.Th>F max</Table.Th>
                               </Table.Tr>
@@ -570,9 +647,11 @@ const AnchovyInputsFlow = ({
                                   }
                                 >
                                   <Table.Td>{row.label}</Table.Td>
+                                  <Table.Td>{row.fStart.toFixed(4)}</Table.Td>
                                   <Table.Td>
                                     {row.biomassLimit.toFixed(3)}
                                   </Table.Td>
+                                  <Table.Td>{row.fLimit.toFixed(4)}</Table.Td>
                                   <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
                                   <Table.Td>{row.fMax.toFixed(4)}</Table.Td>
                                 </Table.Tr>
