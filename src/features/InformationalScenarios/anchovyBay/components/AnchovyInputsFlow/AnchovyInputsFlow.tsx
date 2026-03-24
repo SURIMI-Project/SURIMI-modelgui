@@ -17,6 +17,7 @@ import {
   LineElement,
   LinearScale,
   PointElement,
+  type ScriptableLineSegmentContext,
   Tooltip,
   type ChartOptions,
 } from "chart.js";
@@ -116,10 +117,13 @@ const clamp = (value: number, min: number, max: number) =>
 const toFixedValue = (value: number, digits = 3) =>
   Number(value.toFixed(digits));
 
+const formatDisplayValue = (value: number) => value.toFixed(2);
+const MIN_F_GAP = 0.01;
+
 const clampStartPoint = (row: SpeciesInputRow, yValue: number) => {
   return {
     ...row,
-    fStart: clamp(yValue, 0.005, Math.max(0.005, row.fLimit - 0.005)),
+    fStart: clamp(yValue, 0, Math.max(0, row.fLimit - MIN_F_GAP)),
   };
 };
 
@@ -133,8 +137,8 @@ const clampMiddlePoint = (
     biomassLimit: clamp(xValue, 0.1, Math.max(0.1, row.biomassBase - 0.1)),
     fLimit: clamp(
       yValue,
-      row.fStart + 0.005,
-      Math.max(row.fStart + 0.005, row.fMax - 0.005),
+      row.fStart + MIN_F_GAP,
+      Math.max(row.fStart + MIN_F_GAP, row.fMax - MIN_F_GAP),
     ),
   };
 };
@@ -147,8 +151,8 @@ const clampEndPoint = (
 ) => {
   return {
     ...row,
-    biomassBase: clamp(xValue, row.biomassLimit + 0.1, xMax * 0.95),
-    fMax: clamp(yValue, row.fLimit + 0.005, 0.25),
+    biomassBase: clamp(xValue, row.biomassLimit + 0.1, xMax),
+    fMax: clamp(yValue, row.fLimit + MIN_F_GAP, 1),
   };
 };
 
@@ -156,10 +160,10 @@ const persistRowPrecision = (row: SpeciesInputRow): SpeciesInputRow => {
   return {
     ...row,
     biomassLimit: toFixedValue(row.biomassLimit),
-    fStart: toFixedValue(row.fStart, 4),
-    fLimit: toFixedValue(row.fLimit, 4),
+    fStart: toFixedValue(row.fStart, 2),
+    fLimit: toFixedValue(row.fLimit, 2),
     biomassBase: toFixedValue(row.biomassBase),
-    fMax: toFixedValue(row.fMax, 4),
+    fMax: toFixedValue(row.fMax, 2),
   };
 };
 
@@ -169,9 +173,9 @@ const createDefaultRow = (
   biomassBase: number,
   fMax: number,
 ): SpeciesInputRow => {
-  const fStart = 0.01;
+  const fStart = 0;
   const biomassLimit = toFixedValue(Math.max(0.1, biomassBase * 0.45));
-  const fLimit = toFixedValue(fStart + (fMax - fStart) * 0.55, 4);
+  const fLimit = toFixedValue(fStart + (fMax - fStart) * 0.55, 2);
 
   return {
     id,
@@ -208,6 +212,7 @@ const AnchovyInputsFlow = ({
     string | null
   >(null);
   const [isDraggingHandle, setIsDraggingHandle] = useState(false);
+  const [expandedXMax, setExpandedXMax] = useState<number | null>(null);
   const dragDraftRef = useRef<SpeciesInputRow | null>(null);
 
   const steps = [
@@ -245,9 +250,7 @@ const AnchovyInputsFlow = ({
 
   const activeRow = rows.find((row) => row.id === activeSpeciesId) ?? rows[0];
 
-  const xMax = useMemo(() => {
-    return Math.max(10, ...rows.map((row) => row.biomassBase * 2.2));
-  }, [rows]);
+  const xMax = expandedXMax ?? activeRow.biomassBase;
 
   const graphPoints = useMemo(
     () => [
@@ -334,6 +337,7 @@ const AnchovyInputsFlow = ({
         max: xMax,
         ticks: {
           color: "rgba(233, 244, 255, 0.88)",
+          callback: (value) => formatDisplayValue(Number(value)),
         },
         grid: {
           color: "rgba(218, 234, 250, 0.12)",
@@ -347,9 +351,10 @@ const AnchovyInputsFlow = ({
       },
       y: {
         min: 0,
-        max: 0.25,
+        max: 1,
         ticks: {
           color: "rgba(233, 244, 255, 0.88)",
+          callback: (value) => formatDisplayValue(Number(value)),
         },
         grid: {
           color: "rgba(218, 234, 250, 0.12)",
@@ -380,7 +385,7 @@ const AnchovyInputsFlow = ({
             ];
             const pointLabel = pointLabels[context.dataIndex] ?? "Control";
 
-            return `${pointLabel}: x=${point.x.toFixed(3)}, y=${point.y.toFixed(4)}`;
+            return `${pointLabel}: x=${formatDisplayValue(point.x)}, y=${formatDisplayValue(point.y)}`;
           },
         },
       },
@@ -396,7 +401,7 @@ const AnchovyInputsFlow = ({
     dragX: true,
     dragY: true,
     showTooltip: true,
-    round: 6,
+    round: 2,
     onDragStart: (
       _event: unknown,
       _datasetIndex: number,
@@ -404,6 +409,12 @@ const AnchovyInputsFlow = ({
     ) => {
       const isDraggablePoint =
         pointIndex === 1 || pointIndex === 2 || pointIndex === 3;
+
+      if (pointIndex === 3) {
+        setExpandedXMax(Math.max(activeRow.biomassBase + 1, activeRow.biomassBase * 1.25));
+      } else {
+        setExpandedXMax(null);
+      }
 
       dragDraftRef.current = isDraggablePoint ? { ...activeRow } : null;
       setIsDraggingHandle(isDraggablePoint);
@@ -439,6 +450,11 @@ const AnchovyInputsFlow = ({
       }
 
       const nextRow = clampEndPoint(draftRow, point.x, point.y, xMax);
+
+      if (point.x >= xMax * 0.98) {
+        setExpandedXMax(Math.max(xMax + 1, xMax * 1.25));
+      }
+
       point.x = nextRow.biomassBase;
       point.y = nextRow.fMax;
       dragDraftRef.current = nextRow;
@@ -446,6 +462,7 @@ const AnchovyInputsFlow = ({
     },
     onDragEnd: (_event: unknown, _datasetIndex: number, pointIndex: number) => {
       setIsDraggingHandle(false);
+      setExpandedXMax(null);
       const draftRow = dragDraftRef.current;
 
       if (!draftRow) {
@@ -481,6 +498,12 @@ const AnchovyInputsFlow = ({
         pointBorderColor: "#E84D48",
         pointBorderWidth: [0, 3, 3, 3],
         tension: 0,
+        segment: {
+          borderColor: (context: ScriptableLineSegmentContext) =>
+            context.p0DataIndex === 0 && context.p1DataIndex === 1
+              ? "transparent"
+              : "#E84D48",
+        },
       },
     ],
   };
@@ -565,6 +588,7 @@ const AnchovyInputsFlow = ({
                     nothingFoundMessage="No species found"
                     onChange={(value) => {
                       if (value) {
+                        setExpandedXMax(null);
                         setActiveSpeciesId(value);
                       }
                     }}
@@ -647,13 +671,13 @@ const AnchovyInputsFlow = ({
                                   }
                                 >
                                   <Table.Td>{row.label}</Table.Td>
-                                  <Table.Td>{row.fStart.toFixed(4)}</Table.Td>
+                                  <Table.Td>{formatDisplayValue(row.fStart)}</Table.Td>
                                   <Table.Td>
                                     {row.biomassLimit.toFixed(3)}
                                   </Table.Td>
-                                  <Table.Td>{row.fLimit.toFixed(4)}</Table.Td>
+                                  <Table.Td>{formatDisplayValue(row.fLimit)}</Table.Td>
                                   <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
-                                  <Table.Td>{row.fMax.toFixed(4)}</Table.Td>
+                                  <Table.Td>{formatDisplayValue(row.fMax)}</Table.Td>
                                 </Table.Tr>
                               ))}
                             </Table.Tbody>
