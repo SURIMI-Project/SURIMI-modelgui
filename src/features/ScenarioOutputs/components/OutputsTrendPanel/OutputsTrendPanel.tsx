@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import OutputsTrendChart, {
   type OutputsTrendChartSeries,
 } from "../Charts/OutputsTrendChart";
@@ -21,6 +22,7 @@ type OutputsTrendPanelProps = {
   selectedIndex: number;
   lineColor: string;
   onSelectIndex: (index: number) => void;
+  headerAside?: ReactNode;
   className?: string;
   compact?: boolean;
 };
@@ -43,6 +45,7 @@ const OutputsTrendPanel = ({
   selectedIndex,
   lineColor,
   onSelectIndex,
+  headerAside,
   className,
   compact = false,
 }: OutputsTrendPanelProps) => {
@@ -57,10 +60,14 @@ const OutputsTrendPanel = ({
           <p className={styles.kicker}>{title}</p>
           <h3 className={styles.title}>{subtitle}</h3>
         </div>
-        <div className={styles.valueBlock}>
-          <span>{metricLabel}</span>
-          <strong>{currentValueLabel}</strong>
-        </div>
+        {headerAside ? (
+          <div className={styles.headerAside}>{headerAside}</div>
+        ) : (
+          <div className={styles.valueBlock}>
+            <span>{metricLabel}</span>
+            <strong>{currentValueLabel}</strong>
+          </div>
+        )}
       </div>
 
       <div className={styles.chartWrap}>

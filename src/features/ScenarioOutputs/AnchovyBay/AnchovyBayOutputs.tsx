@@ -8,6 +8,11 @@ import { pricesData } from "../MockData/pricesData";
 import { salesData } from "../MockData/salesData";
 import { anchovyBaySimulationMetadata } from "../MockData/simulationMetadata";
 import DashboardLayout from "../components/DashboardLayout/DashboardLayout";
+import InformationLegendsPopover from "../components/InformationLegends/InformationLegendsPopover";
+import {
+  type InformationLegendItem,
+} from "../components/InformationLegends/InformationLegends";
+import LandingsStackedBarChart from "../components/LandingsStackedBarChart/LandingsStackedBarChart";
 import MetricsSelector from "../components/MetricsSelector/MetricsSelector";
 import OutputsMapPanel from "../components/OutputsMapPanel/OutputsMapPanel";
 import SpeciesDropdown from "../components/SpeciesDropdown/SpeciesDropdown";
@@ -34,8 +39,8 @@ const metricMeta: Record<
     unit: "t/km²",
     lineColor: "#74dbff",
   },
-  catchesDiscards: {
-    label: "Catches + Discards",
+  landings: {
+    label: "Landings",
     unit: "kg",
     lineColor: "#ffb36b",
   },
@@ -140,19 +145,17 @@ const AnchovyBayOutputs = () => {
     return speciesOutput.annual_grids.map((yearGrid) => ({
       year: yearGrid.year,
       biomass: average(yearGrid.cells.map((cell) => cell.biomass)),
+      landings: average(yearGrid.cells.map((cell) => cell.landings)),
       catches: average(yearGrid.cells.map((cell) => cell.catches)),
       discards: average(yearGrid.cells.map((cell) => cell.discards)),
-      catchesDiscards: average(
-        yearGrid.cells.map((cell) => cell.catches + cell.discards),
-      ),
     }));
   }, [speciesOutput]);
 
-  const annualSeries = useMemo(() => {
+  const biomassSeries = useMemo(() => {
     return annualMetricAverages.map((entry) =>
-      Number(entry[metric].toFixed(3)),
+      Number(entry.biomass.toFixed(3)),
     );
-  }, [annualMetricAverages, metric]);
+  }, [annualMetricAverages]);
 
   const catchesSeries = useMemo(() => {
     return annualMetricAverages.map((entry) =>
@@ -178,48 +181,59 @@ const AnchovyBayOutputs = () => {
       .map(String);
   }, []);
 
-  const historicalAnnualSeries = useMemo(() => {
-    return annualSeries.slice(0, historicalLabels.length);
-  }, [annualSeries, historicalLabels.length]);
+  const historicalBiomassSeries = useMemo(() => {
+    return biomassSeries.slice(0, historicalLabels.length);
+  }, [biomassSeries, historicalLabels.length]);
 
-  const futureAnnualSeries = useMemo(() => {
-    return annualSeries.slice(historicalLabels.length);
-  }, [annualSeries, historicalLabels.length]);
-
-  const historicalCatchesSeries = useMemo(() => {
-    return catchesSeries.slice(0, historicalLabels.length);
-  }, [catchesSeries, historicalLabels.length]);
-
-  const futureCatchesSeries = useMemo(() => {
-    return catchesSeries.slice(historicalLabels.length);
-  }, [catchesSeries, historicalLabels.length]);
-
-  const historicalDiscardsSeries = useMemo(() => {
-    return discardsSeries.slice(0, historicalLabels.length);
-  }, [discardsSeries, historicalLabels.length]);
-
-  const futureDiscardsSeries = useMemo(() => {
-    return discardsSeries.slice(historicalLabels.length);
-  }, [discardsSeries, historicalLabels.length]);
+  const futureBiomassSeries = useMemo(() => {
+    return biomassSeries.slice(historicalLabels.length);
+  }, [biomassSeries, historicalLabels.length]);
 
   const actualHistoricalBiomassSeries = useMemo(() => {
-    return buildActualHistoricalSeries(historicalAnnualSeries, 1);
-  }, [historicalAnnualSeries]);
+    return buildActualHistoricalSeries(historicalBiomassSeries, 1);
+  }, [historicalBiomassSeries]);
 
-  const actualHistoricalCatchesSeries = useMemo(() => {
-    return buildActualHistoricalSeries(historicalCatchesSeries, 2);
-  }, [historicalCatchesSeries]);
-
-  const actualHistoricalDiscardsSeries = useMemo(() => {
-    return buildActualHistoricalSeries(historicalDiscardsSeries, 3);
-  }, [historicalDiscardsSeries]);
+  const biomassLegendItems = useMemo<InformationLegendItem[]>(() => {
+    return [
+      {
+        label: "Modelled biomass line",
+        description: "Blue line showing the smoothed biomass trajectory across the full time series.",
+        marker: "line",
+        color: metricMeta.biomass.lineColor,
+      },
+      {
+        label: "Upper / lower bounds",
+        description: "Shaded envelope around the biomass line indicating the uncertainty range.",
+        marker: "band",
+        color: metricMeta.biomass.lineColor,
+      },
+      {
+        label: "Real life actual values",
+        description: "Red points showing actual historical biomass values before the forecast period.",
+        marker: "dot",
+        color: "#8f1f1c",
+      },
+      {
+        label: "Selected year",
+        description: "White highlighted marker showing the year currently selected across the dashboard.",
+        marker: "ring",
+        color: metricMeta.biomass.lineColor,
+      },
+      {
+        label: "Forecast divider",
+        description: "Vertical divider separating historical observations from projected years.",
+        marker: "divider",
+        color: "rgba(214, 224, 235, 0.48)",
+      },
+    ];
+  }, []);
 
   const salesSeries = useMemo(() => {
     const biomassTrend = normalizeSeries(
       annualMetricAverages.map((entry) => entry.biomass),
     );
-    const catchesTrend = normalizeSeries(
-      annualMetricAverages.map((entry) => entry.catches),
+    const landingsTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.landings),
     );
     const discardsTrend = normalizeSeries(
       annualMetricAverages.map((entry) => entry.discards),
@@ -230,7 +244,7 @@ const AnchovyBayOutputs = () => {
       const cycle = Math.sin(index * 0.42 + baselineQuantity * 0.01) * 0.05;
       const multiplier = clamp(
         0.74 +
-          catchesTrend[index] * 0.82 +
+          landingsTrend[index] * 0.82 +
           biomassTrend[index] * 0.24 -
           discardsTrend[index] * 0.12 +
           cycle,
@@ -246,8 +260,8 @@ const AnchovyBayOutputs = () => {
     const biomassTrend = normalizeSeries(
       annualMetricAverages.map((entry) => entry.biomass),
     );
-    const catchesTrend = normalizeSeries(
-      annualMetricAverages.map((entry) => entry.catches),
+    const landingsTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.landings),
     );
     const discardsTrend = normalizeSeries(
       annualMetricAverages.map((entry) => entry.discards),
@@ -255,7 +269,7 @@ const AnchovyBayOutputs = () => {
     const baselinePrice = pricePerTonneBySpecies[speciesCode] ?? 2200;
 
     return annualMetricAverages.map((_, index) => {
-      const scarcity = 1 - (catchesTrend[index] ?? 0);
+      const scarcity = 1 - (landingsTrend[index] ?? 0);
       const cycle = Math.cos(index * 0.31 + baselinePrice * 0.0006) * 0.04;
       const multiplier = clamp(
         0.82 +
@@ -276,13 +290,9 @@ const AnchovyBayOutputs = () => {
       return { min: 0, max: 1 };
     }
 
-    const allValues = speciesOutput.annual_grids.flatMap((yearGrid) => {
-      if (metric === "catchesDiscards") {
-        return yearGrid.cells.map((cell) => cell.catches + cell.discards);
-      }
-
-      return yearGrid.cells.map((cell) => cell[metric]);
-    });
+    const allValues = speciesOutput.annual_grids.flatMap((yearGrid) =>
+      yearGrid.cells.map((cell) => cell[metric]),
+    );
 
     if (allValues.length === 0) {
       return { min: 0, max: 1 };
@@ -320,18 +330,12 @@ const AnchovyBayOutputs = () => {
     return activeYearGrid.cells.map((cell) => ({
       longitude: cell.longitude,
       latitude: cell.latitude,
-      value:
-        metric === "catchesDiscards"
-          ? cell.catches + cell.discards
-          : cell[metric],
+      value: cell[metric],
       speciesCode,
     }));
   }, [activeYearGrid, metric, speciesCode]);
 
-  const currentMetricValue = annualSeries[selectedYearIndex] ?? 0;
-  const currentCatchesValue = catchesSeries[selectedYearIndex] ?? 0;
-  const currentDiscardsValue = discardsSeries[selectedYearIndex] ?? 0;
-  const currentSalesValue = salesSeries[selectedYearIndex] ?? 0;
+  const currentBiomassValue = biomassSeries[selectedYearIndex] ?? 0;
   const currentPriceValue = priceSeries[selectedYearIndex] ?? 0;
 
   const spiderDiagramData = useMemo<SpiderDiagramDatum[]>(() => {
@@ -342,8 +346,8 @@ const AnchovyBayOutputs = () => {
     const biomassTrend = normalizeSeries(
       annualMetricAverages.map((entry) => entry.biomass),
     );
-    const catchesTrend = normalizeSeries(
-      annualMetricAverages.map((entry) => entry.catches),
+    const landingsTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.landings),
     );
     const discardsTrend = normalizeSeries(
       annualMetricAverages.map((entry) => entry.discards),
@@ -352,7 +356,7 @@ const AnchovyBayOutputs = () => {
     const priceTrend = normalizeSeries(priceSeries);
 
     const biomassScore = biomassTrend[safeSelectedYearIndex] ?? 0;
-    const catchesScore = catchesTrend[safeSelectedYearIndex] ?? 0;
+    const landingsScore = landingsTrend[safeSelectedYearIndex] ?? 0;
     const discardsScore = discardsTrend[safeSelectedYearIndex] ?? 0;
     const salesScore = salesTrend[safeSelectedYearIndex] ?? 0;
     const priceScore = priceTrend[safeSelectedYearIndex] ?? 0;
@@ -362,7 +366,7 @@ const AnchovyBayOutputs = () => {
     const combinedCatch = Math.max(catchesValue + discardsValue, 0.0001);
     const efficiencyScore = clamp(catchesValue / combinedCatch, 0, 1);
     const harvestBalanceScore = clamp(
-      1 - Math.abs(catchesScore - biomassScore),
+      1 - Math.abs(landingsScore - biomassScore),
       0,
       1,
     );
@@ -491,7 +495,7 @@ const AnchovyBayOutputs = () => {
     <div>
       <DashboardLayout
         title="Anchovy Bay Scenario Outputs"
-        subtitle="A centered spatial view with synchronized yearly trends for biomass, catches + discards, sales volume, and market prices across 2006-2046."
+        subtitle="Anchovy Bay outputs with synchronized biomass, landings, and ecosystem status views across 2006-2046."
         showKicker={false}
         headerCopyClassName={styles.headerCopy}
         titleClassName={styles.pageTitle}
@@ -519,63 +523,48 @@ const AnchovyBayOutputs = () => {
         }
       >
         <div className={styles.layout}>
-          {renderMapPanel(styles.pageMapPanel, styles.pageMapSurface)}
+          <section className={styles.topGrid}>
+            {renderMapPanel(styles.pageMapPanel, styles.pageMapSurface)}
 
-          <section className={styles.primaryGrid}>
             <OutputsTrendPanel
               className={styles.primaryChartPanel}
-              title="Biomass / Catches + Discards"
-              subtitle="Selected metric over time"
-              metricLabel={
-                metric === "catchesDiscards"
-                  ? "Catches / Discards"
-                  : metricMeta[metric].label
+              title="Biomass"
+              subtitle="Stock biomass over time"
+              metricLabel={metricMeta.biomass.label}
+              currentValue={currentBiomassValue}
+              currentValueLabel={`${currentBiomassValue.toFixed(2)} ${metricMeta.biomass.unit}`}
+              headerAside={
+                <InformationLegendsPopover
+                  items={biomassLegendItems}
+                  buttonLabel="Legends"
+                  legendsTitle="Information Legends"
+                />
               }
-              currentValue={currentMetricValue}
-              currentValueLabel={
-                metric === "catchesDiscards"
-                  ? `${currentCatchesValue.toFixed(2)} / ${currentDiscardsValue.toFixed(2)} ${metricMeta[metric].unit}`
-                  : `${currentMetricValue.toFixed(2)} ${metricMeta[metric].unit}`
-              }
-              selectionCopy={
-                metric === "catchesDiscards"
-                  ? `Selected year values: catches ${currentCatchesValue.toFixed(2)} ${metricMeta[metric].unit}, discards ${currentDiscardsValue.toFixed(2)} ${metricMeta[metric].unit}`
-                  : undefined
-              }
+              selectionCopy={`Selected year biomass: ${currentBiomassValue.toFixed(2)} ${metricMeta.biomass.unit}`}
               historicalLabels={historicalLabels}
-              historicalValues={historicalAnnualSeries}
-              actualHistoricalValues={
-                metric === "biomass" ? actualHistoricalBiomassSeries : undefined
-              }
+              historicalValues={historicalBiomassSeries}
+              actualHistoricalValues={actualHistoricalBiomassSeries}
               futureLabels={futureLabels}
-              futureValues={futureAnnualSeries}
-              series={
-                metric === "catchesDiscards"
-                  ? [
-                      {
-                        label: "Catches",
-                        color: "#ffb36b",
-                        boundColor: "#ffb36b",
-                        boundOpacity: 0.46,
-                        historicalValues: historicalCatchesSeries,
-                        actualHistoricalValues: actualHistoricalCatchesSeries,
-                        futureValues: futureCatchesSeries,
-                      },
-                      {
-                        label: "Discards",
-                        color: "#ff7f9b",
-                        boundColor: "#ff7f9b",
-                        boundOpacity: 0.46,
-                        historicalValues: historicalDiscardsSeries,
-                        actualHistoricalValues: actualHistoricalDiscardsSeries,
-                        futureValues: futureDiscardsSeries,
-                      },
-                    ]
-                  : undefined
-              }
-              lineColor={metricMeta[metric].lineColor}
+              futureValues={futureBiomassSeries}
+              lineColor={metricMeta.biomass.lineColor}
               selectedIndex={safeSelectedYearIndex}
               onSelectIndex={selectYearByIndex}
+            />
+          </section>
+
+          <section className={styles.bottomGrid}>
+            <LandingsStackedBarChart
+              className={styles.landingsPanel}
+              title="Landings"
+              subtitle="Landings and discards over time"
+              labels={years.map((year) => String(year))}
+              landingsValues={catchesSeries}
+              discardsValues={discardsSeries}
+              selectedIndex={safeSelectedYearIndex}
+              onSelectIndex={selectYearByIndex}
+              currentLabel={`${speciesCode} · ${selectedYear}`}
+              valueSuffix={` ${metricMeta.landings.unit}`}
+              yAxisLabel={metricMeta.landings.unit}
             />
 
             <SpiderDiagram
@@ -586,49 +575,6 @@ const AnchovyBayOutputs = () => {
               data={spiderDiagramData}
               valueSuffix="%"
             />
-          </section>
-
-          <section className={styles.secondarySection}>
-            <div className={styles.sectionCopy}>
-              <p className={styles.sectionKicker}>Market indicators</p>
-
-              <h2 className={styles.sectionTitle}>
-                Sales volume and market price trends
-              </h2>
-              <p className={styles.sectionDescription}>
-                The commercial outputs below stay synchronized with the same
-                species and year selected in the map and main ecological trend
-                chart.
-              </p>
-            </div>
-
-            <div className={styles.secondaryGrid}>
-              <OutputsTrendPanel
-                title="Sales Volume"
-                subtitle="Fish sales per time period"
-                metricLabel="Tonnes"
-                currentValue={currentSalesValue}
-                currentValueLabel={`${currentSalesValue.toFixed(1)} t`}
-                labels={years.map((year) => String(year))}
-                values={salesSeries}
-                selectedIndex={safeSelectedYearIndex}
-                lineColor="#83f2c8"
-                onSelectIndex={selectYearByIndex}
-              />
-
-              <OutputsTrendPanel
-                title="Market Prices"
-                subtitle="Price per tonne over time"
-                metricLabel="EUR / tonne"
-                currentValue={currentPriceValue}
-                currentValueLabel={`EUR ${currentPriceValue.toFixed(0)}/t`}
-                labels={years.map((year) => String(year))}
-                values={priceSeries}
-                selectedIndex={safeSelectedYearIndex}
-                lineColor="#c2a0ff"
-                onSelectIndex={selectYearByIndex}
-              />
-            </div>
           </section>
         </div>
       </DashboardLayout>

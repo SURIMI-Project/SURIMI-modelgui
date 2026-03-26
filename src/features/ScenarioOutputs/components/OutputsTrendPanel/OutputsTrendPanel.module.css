@@ -41,6 +41,11 @@
   line-height: 1.28;
 }
 
+.headerAside {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
 .valueBlock {
   flex: 0 0 auto;
   display: grid;

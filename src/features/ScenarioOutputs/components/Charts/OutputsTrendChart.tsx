@@ -252,7 +252,7 @@ const OutputsTrendChart = ({
 
   const futureStartIndex = hasSplitSeries ? historicalLabels.length : -1;
 
-  const observationSeries = hasSplitSeries
+  const actualValueSeries = hasSplitSeries
     ? enrichedSeries.map((entry) => ({
         label: `Actual ${entry.label}`,
         values: [
@@ -446,7 +446,7 @@ const OutputsTrendChart = ({
           lineDataset,
         ];
       }),
-      ...observationSeries.map((entry) => ({
+      ...actualValueSeries.map((entry) => ({
         label: entry.label,
         data: entry.values,
         borderColor: "transparent",

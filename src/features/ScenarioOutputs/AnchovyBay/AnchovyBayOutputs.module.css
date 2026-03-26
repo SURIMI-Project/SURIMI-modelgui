@@ -112,60 +112,20 @@
 }
 
 .pageMapSurface {
-  min-height: clamp(520px, calc(64vh + 32px), 780px);
+  min-height: clamp(440px, calc(56vh + 32px), 660px);
 }
 
-.primaryGrid {
+.topGrid,
+.bottomGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.92fr);
   gap: 16px;
   align-items: stretch;
 }
 
+.landingsPanel,
 .spiderPanel {
-  min-height: clamp(620px, calc(58vh + 60px), 760px);
-}
-
-.secondarySection {
-  display: grid;
-  gap: 16px;
-  margin-top: clamp(54px, 8vw, 32px);
-}
-
-.sectionCopy {
-  display: grid;
-  gap: 8px;
-  max-width: 60ch;
-}
-
-.sectionKicker {
-  margin: 0;
-  color: rgba(180, 226, 249, 0.78);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 680;
-}
-
-.sectionTitle {
-  margin: 0;
-  color: #f0fbff;
-  font-size: clamp(1.08rem, 1.4vw, 1.4rem);
-  line-height: 1.18;
-}
-
-.sectionDescription {
-  margin: 0;
-  color: rgba(216, 239, 252, 0.82);
-  font-size: 0.92rem;
-  line-height: 1.5;
-  margin-bottom: clamp(54px, 8vw, 32px);
-}
-
-.secondaryGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  min-height: clamp(520px, calc(46vh + 60px), 660px);
 }
 
 @media (max-width: 1240px) {
@@ -184,8 +144,8 @@
     flex-wrap: wrap;
   }
 
-  .primaryGrid,
-  .secondaryGrid {
+  .topGrid,
+  .bottomGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -208,6 +168,11 @@
   .pageMapPanel,
   .primaryChartPanel {
     padding: 14px;
+    min-height: auto;
+  }
+
+  .landingsPanel,
+  .spiderPanel {
     min-height: auto;
   }
 

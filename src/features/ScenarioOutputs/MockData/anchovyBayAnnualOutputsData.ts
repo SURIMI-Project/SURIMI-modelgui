@@ -134,6 +134,7 @@ const buildCellsForYear = (
       0.42,
     );
     const discards = clamp(catches * discardsRate, 4, 2800);
+    const landings = catches + discards;
 
     const longitudeShift =
       Math.sin(yearIndex * 0.12 + baseCoord.pointIndex * 0.08 + speciesIndex * 0.2) *
@@ -146,6 +147,7 @@ const buildCellsForYear = (
       longitude: clamp(baseCoord.longitude + longitudeShift, xmin, xmax),
       latitude: clamp(baseCoord.latitude + latitudeShift, ymin, ymax),
       biomass: Number(biomass.toFixed(3)),
+      landings: Number(landings.toFixed(2)),
       catches: Number(catches.toFixed(2)),
       discards: Number(discards.toFixed(2)),
     };

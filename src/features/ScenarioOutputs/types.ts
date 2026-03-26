@@ -1,4 +1,4 @@
-export type ScenarioOutputMetric = "biomass" | "catchesDiscards";
+export type ScenarioOutputMetric = "biomass" | "landings";
 
 export type SpeciesRef = {
   species_code: string;
@@ -104,6 +104,7 @@ export type AnnualMetricCell = {
   longitude: number;
   latitude: number;
   biomass: number;
+  landings: number;
   catches: number;
   discards: number;
 };
