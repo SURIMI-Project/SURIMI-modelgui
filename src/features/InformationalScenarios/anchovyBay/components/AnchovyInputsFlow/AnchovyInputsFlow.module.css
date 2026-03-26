@@ -13,7 +13,8 @@
   display: flex;
   flex-direction: column;
   color: #eef8ff;
-  min-height: 0;
+  height: clamp(560px, 72vh, 760px);
+  min-height: clamp(560px, 72vh, 760px);
 }
 
 .flowHeading {
@@ -46,27 +47,41 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: auto;
+  min-height: 100%;
   width: 100%;
+  background: transparent;
 }
 
 .stepScrollArea {
-  height: auto;
+  height: 100%;
+}
+
+.stepScrollArea :global(.mantine-ScrollArea-root) {
+  height: 100%;
+}
+
+.stepScrollArea :global(.mantine-ScrollArea-viewport),
+.stepScrollArea :global(.mantine-ScrollArea-content) {
+  height: 100%;
+  min-height: 100%;
+  background: transparent;
 }
 
 .stepContent {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: auto;
+  height: 100%;
+  min-height: 100%;
   padding-right: 6px;
+  background: transparent;
 }
 
 .stepViewport {
   position: relative;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
   isolation: isolate;
   border-radius: 10px;
   background: linear-gradient(
@@ -146,6 +161,10 @@
   color: #ffffff;
 }
 
+.tablePanel :global(tbody tr) {
+  cursor: pointer;
+}
+
 .activeRow td {
   background: rgba(232, 77, 72, 0.18);
   color: #ffffff;
@@ -173,14 +192,43 @@
   padding: var(--spacing-md);
 }
 
+.finalPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .reviewTitle {
   color: #f6fbff;
   font-weight: 700;
   margin-bottom: var(--spacing-sm);
 }
 
-.selectionCards {
-  margin-top: 12px;
+.yearCards {
+  display: grid !important;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.ipccCardsWrap {
+  flex: 1 1 auto;
+  max-height: 460px;
+  border: px solid red;
+  display: flex;
+}
+
+.ipccCards {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .finalText {
@@ -199,6 +247,11 @@
 }
 
 @media (max-width: 56rem) {
+  .flowRoot {
+    height: clamp(520px, 76vh, 700px);
+    min-height: clamp(520px, 76vh, 700px);
+  }
+
   .chartSurface {
     height: 280px;
     padding: var(--spacing-smd);
@@ -209,11 +262,11 @@
     max-width: none;
   }
 
-  .stepShell {
-    min-height: auto;
-  }
-
   .stepContent {
     gap: 10px;
+  }
+
+  .yearCards {
+    grid-template-columns: 1fr !important;
   }
 }

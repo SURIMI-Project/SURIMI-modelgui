@@ -25,7 +25,13 @@ const SelectableCards = ({
   const rootClassName = [styles.grid, className].filter(Boolean).join(" ");
 
   return (
-    <div className={rootClassName} data-columns={columns}>
+    <div
+      className={rootClassName}
+      data-columns={columns}
+      style={{
+        paddingTop: "24px",
+      }}
+    >
       {options.map((option) => {
         const isActive = selectedValue === option.value;
 
@@ -39,8 +45,11 @@ const SelectableCards = ({
               onSelect(option.value);
             }}
           >
-            {option.meta ? <span className={styles.meta}>{option.meta}</span> : null}
+            {option.meta ? (
+              <span className={styles.meta}>{option.meta}</span>
+            ) : null}
             <strong className={styles.title}>{option.title}</strong>
+
             {option.description ? (
               <p className={styles.description}>{option.description}</p>
             ) : null}

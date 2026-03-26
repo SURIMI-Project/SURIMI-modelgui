@@ -16,7 +16,11 @@
   border: 1px solid rgba(186, 225, 250, 0.34);
   border-radius: 8px;
   background:
-    radial-gradient(circle at 10% 12%, rgba(122, 214, 255, 0.2), transparent 46%),
+    radial-gradient(
+      circle at 10% 12%,
+      rgba(122, 214, 255, 0.2),
+      transparent 46%
+    ),
     linear-gradient(160deg, rgba(7, 31, 57, 0.72), rgba(6, 23, 43, 0.68));
   padding: 12px;
   text-align: left;
@@ -40,7 +44,11 @@
 .card[data-active="true"] {
   border-color: rgba(232, 77, 72, 0.88);
   background:
-    radial-gradient(circle at 10% 12%, rgba(232, 77, 72, 0.22), transparent 46%),
+    radial-gradient(
+      circle at 10% 12%,
+      rgba(232, 77, 72, 0.22),
+      transparent 46%
+    ),
     linear-gradient(160deg, rgba(22, 43, 67, 0.78), rgba(13, 29, 50, 0.72));
   box-shadow:
     0 20px 30px -24px rgba(0, 8, 22, 0.94),
