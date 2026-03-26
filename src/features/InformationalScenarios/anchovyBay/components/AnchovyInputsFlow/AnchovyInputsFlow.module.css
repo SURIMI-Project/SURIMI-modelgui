@@ -13,8 +13,7 @@
   display: flex;
   flex-direction: column;
   color: #eef8ff;
-  height: clamp(560px, 72vh, 760px);
-  min-height: clamp(560px, 72vh, 760px);
+  min-height: 520px;
 }
 
 .flowHeading {
@@ -138,14 +137,23 @@
     0 24px 40px -30px rgba(1, 8, 25, 0.9),
     0 0 0 1px rgba(230, 244, 255, 0.05) inset;
   backdrop-filter: blur(9px);
-  overflow: visible;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .tableScrollArea {
   max-height: none;
+  width: 100%;
 }
 
+.tableScrollArea :global(.mantine-ScrollArea-viewport),
+.tableScrollArea :global(.mantine-ScrollArea-content) {
+  width: 100%;
+}
+
+.inputsTable,
 .tablePanel table {
+  width: 100%;
   color: #feffff;
   border-radius: 8px;
   overflow: hidden;
@@ -154,24 +162,36 @@
 .tablePanel th {
   background: rgba(120, 208, 255, 0.12);
   color: #f5fbff;
+  text-align: left;
 }
 
-.tablePanel :global(tbody tr:hover td) {
-  background: rgb(47, 47, 47);
+.tablePanel td {
+  padding: 0;
+}
+
+.tableCellContent {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  text-align: left;
+  border: 0;
+  background: transparent;
   color: #ffffff;
-}
-
-.tablePanel :global(tbody tr) {
   cursor: pointer;
 }
 
-.activeRow td {
+.tableCellContent:hover {
+  background: rgb(47, 47, 47);
+}
+
+.activeCellContent {
   background: rgba(232, 77, 72, 0.18);
   color: #ffffff;
 }
 
-.activeRow:hover td {
-  background: rgba(232, 77, 72, 0.22) !important;
+.activeCellContent:hover {
+  background: rgba(232, 77, 72, 0.22);
 }
 
 .reviewPanel,
@@ -216,7 +236,6 @@
 .ipccCardsWrap {
   flex: 1 1 auto;
   max-height: 460px;
-  border: px solid red;
   display: flex;
 }
 
@@ -248,8 +267,8 @@
 
 @media (max-width: 56rem) {
   .flowRoot {
-    height: clamp(520px, 76vh, 700px);
-    min-height: clamp(520px, 76vh, 700px);
+    height: clamp(620px, 84vh, 780px);
+    min-height: clamp(620px, 84vh, 780px);
   }
 
   .chartSurface {

@@ -1,4 +1,4 @@
-import { ScrollArea, Table } from "@mantine/core";
+import { ScrollArea, Table, type TableData } from "@mantine/core";
 import styles from "./AnchovyInputsFlow.module.css";
 import type { SpeciesInputRow } from "./types";
 
@@ -16,6 +16,39 @@ const AnchovyInputsTable = ({
   activeSpeciesId,
   onSelectRow,
 }: AnchovyInputsTableProps) => {
+  const data: TableData = {
+    head: ["Group name", "F min", "Biomass limit", "Biomass base", "F max"],
+    body: tableData.map((row) => {
+      const cellClassName = [
+        styles.tableCellContent,
+        row.id === activeSpeciesId ? styles.activeCellContent : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      const createCell = (content: string, suffix: string) => (
+        <button
+          key={`${row.id}-${suffix}`}
+          type="button"
+          className={cellClassName}
+          onClick={() => {
+            onSelectRow(row.id);
+          }}
+        >
+          {content}
+        </button>
+      );
+
+      return [
+        createCell(row.label, "label"),
+        createCell(formatFishingMortalityValue(row.fMin), "f-min"),
+        createCell(row.biomassLimit.toFixed(3), "biomass-limit"),
+        createCell(row.biomassBase.toFixed(3), "biomass-base"),
+        createCell(formatFishingMortalityValue(row.fMax), "f-max"),
+      ];
+    }),
+  };
+
   return (
     <ScrollArea
       className={styles.tableScrollArea}
@@ -24,36 +57,13 @@ const AnchovyInputsTable = ({
       scrollbarSize={8}
       classNames={{ thumb: "thumb" }}
     >
-      <Table highlightOnHover withTableBorder withColumnBorders>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Group name</Table.Th>
-            <Table.Th>F min</Table.Th>
-            <Table.Th>Biomass limit</Table.Th>
-            <Table.Th>Biomass base</Table.Th>
-            <Table.Th>F max</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {tableData.map((row) => (
-            <Table.Tr
-              key={row.id}
-              className={
-                row.id === activeSpeciesId ? styles.activeRow : undefined
-              }
-              onClick={() => {
-                onSelectRow(row.id);
-              }}
-            >
-              <Table.Td>{row.label}</Table.Td>
-              <Table.Td>{formatFishingMortalityValue(row.fMin)}</Table.Td>
-              <Table.Td>{row.biomassLimit.toFixed(3)}</Table.Td>
-              <Table.Td>{row.biomassBase.toFixed(3)}</Table.Td>
-              <Table.Td>{formatFishingMortalityValue(row.fMax)}</Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+      <Table
+        data={data}
+        withTableBorder
+        withColumnBorders
+        layout="fixed"
+        className={styles.inputsTable}
+      />
     </ScrollArea>
   );
 };
