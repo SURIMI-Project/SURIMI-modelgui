@@ -136,43 +136,46 @@
   min-height: clamp(520px, calc(46vh + 60px), 660px);
 }
 
-.bottomSectionHeader {
+.secondarySection {
   display: grid;
-  gap: 8px;
-  max-width: 72ch;
+  gap: 16px;
+  margin-top: 54px;
 }
 
-.bottomSectionKicker {
+.sectionCopy {
+  display: grid;
+  gap: 8px;
+  max-width: 60ch;
+}
+
+.sectionKicker {
   margin: 0;
-  color: rgba(182, 226, 251, 0.8);
+  color: rgba(180, 226, 249, 0.78);
   font-size: 0.72rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 680;
 }
 
-.bottomSectionTitle {
+.sectionTitle {
   margin: 0;
-  color: #f2fbff;
-  font-size: clamp(1.1rem, 1.35vw, 1.28rem);
-  line-height: 1.2;
+  color: #f0fbff;
+  font-size: clamp(1.08rem, 1.4vw, 1.4rem);
+  line-height: 1.18;
 }
 
-.bottomSectionDescription {
+.sectionDescription {
   margin: 0;
-  color: rgba(198, 231, 249, 0.75);
+  color: rgba(216, 239, 252, 0.82);
   font-size: 0.92rem;
-  line-height: 1.55;
+  line-height: 1.5;
+  margin-bottom: 54px;
 }
 
-.economicsGrid {
+.secondaryGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.economicPanel {
-  min-height: clamp(320px, calc(28vh + 120px), 420px);
+  gap: 14px;
 }
 
 @media (max-width: 1240px) {
@@ -192,11 +195,8 @@
   }
 
   .topGrid,
-  .bottomGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .economicsGrid {
+  .bottomGrid,
+  .secondaryGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -223,10 +223,6 @@
   }
 
   .spiderPanel {
-    min-height: auto;
-  }
-
-  .economicPanel {
     min-height: auto;
   }
 

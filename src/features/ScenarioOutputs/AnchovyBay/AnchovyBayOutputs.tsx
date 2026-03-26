@@ -496,47 +496,44 @@ const AnchovyBayOutputs = () => {
             </AnimatePresence>
           </section>
 
-          <section className={styles.bottomGrid}>
-            <div className={styles.bottomSectionHeader}>
-              <p className={styles.bottomSectionKicker}>Economics</p>
-              <h3 className={styles.bottomSectionTitle}>Economic diagrams</h3>
-              <p className={styles.bottomSectionDescription}>
-                Sales volume and price-per-tonne trends for the selected species
-                across the full Anchovy Bay time horizon.
+          <section className={styles.secondarySection}>
+            <div className={styles.sectionCopy}>
+              <p className={styles.sectionKicker}>Market indicators</p>
+              <h2 className={styles.sectionTitle}>
+                Sales volume and market price trends
+              </h2>
+              <p className={styles.sectionDescription}>
+                The commercial outputs below stay synchronized with the same
+                species and year selected in the map and main ecological trend
+                chart.
               </p>
             </div>
 
-            <div className={styles.economicsGrid}>
+            <div className={styles.secondaryGrid}>
               <OutputsTrendPanel
-                className={styles.economicPanel}
-                title="Economics"
-                subtitle="Sales volume"
-                metricLabel="Sales volume"
+                title="Sales Volume"
+                subtitle="Fish sales per time period"
+                metricLabel="Tonnes"
                 currentValue={currentSalesValue}
                 currentValueLabel={`${currentSalesValue.toFixed(1)} t`}
-                selectionCopy={`Selected year sales volume: ${currentSalesValue.toFixed(1)} t`}
                 labels={years.map((year) => String(year))}
                 values={salesSeries}
                 selectedIndex={safeSelectedYearIndex}
-                lineColor="#7dd8a4"
+                lineColor="#83f2c8"
                 onSelectIndex={selectYearByIndex}
-                compact
               />
 
               <OutputsTrendPanel
-                className={styles.economicPanel}
-                title="Economics"
-                subtitle="Price per tonne"
-                metricLabel="Price per tonne"
+                title="Market Prices"
+                subtitle="Price per tonne over time"
+                metricLabel="EUR / tonne"
                 currentValue={currentPriceValue}
-                currentValueLabel={`${currentPriceValue.toFixed(0)} EUR/t`}
-                selectionCopy={`Selected year price: ${currentPriceValue.toFixed(0)} EUR/t`}
+                currentValueLabel={`EUR ${currentPriceValue.toFixed(0)}/t`}
                 labels={years.map((year) => String(year))}
                 values={priceSeries}
                 selectedIndex={safeSelectedYearIndex}
-                lineColor="#f6bb6b"
+                lineColor="#c2a0ff"
                 onSelectIndex={selectYearByIndex}
-                compact
               />
             </div>
           </section>
