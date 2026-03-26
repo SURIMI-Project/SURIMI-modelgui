@@ -37,7 +37,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   {
     id: "anchovy-bay",
     seaName: "Anchovy Bay",
-    subtitle: "Stock-pressure and ecosystem stress scenarios",
+    subtitle: "Demo model used for educational purposes",
     simulationTitle: "Anchovy Bay Scenario",
     description:
       "This case study focuses on fisheries pressure, biomass sensitivity, and ecosystem indicators under changing operational conditions.",

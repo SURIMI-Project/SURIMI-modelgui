@@ -73,7 +73,8 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
       "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Integer volutpat mi et arcu tincidunt, at commodo ipsum posuere.",
     ],
     featureTitle: "Networked Port Ecology",
-    featureSubtitle: "Transport links and drift patterns reveal pressure transfer paths.",
+    featureSubtitle:
+      "Transport links and drift patterns reveal pressure transfer paths.",
     accentColor: "#7ad6ff",
     secondaryColor: "#9af2ff",
     glowColor: "rgba(90, 211, 255, 0.42)",
@@ -86,6 +87,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     worldTitle: "Anchovy Bay",
     aboutTitle: "About Anchovy Bay",
     description: [
+      "Α fictional/demo model acting like a “flight simulator” that shows how the SURIMI models work with each other.",
       "Anchovy Bay is a popular coastal ecosystem with historic fishing ports, where fisheries have long been the main economic activity.",
       "Catches have declined for decades and shifted from groundfish toward shrimp and pelagic species, reshaping trophic balance.",
       "Marine mammal populations have recovered after years of whaling and culling, increasing eco-tourism pressure and predator interactions.",

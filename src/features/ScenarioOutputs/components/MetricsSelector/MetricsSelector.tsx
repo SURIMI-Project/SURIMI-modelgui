@@ -21,7 +21,7 @@ const MetricsSelector = ({ value, onChange }: MetricsSelectorProps) => {
         }}
         data={[
           { label: "Biomass", value: "biomass" },
-          { label: "Landings", value: "landings" },
+          { label: "Landings & Discards", value: "landings" },
         ]}
         className={styles.segmented}
       />
