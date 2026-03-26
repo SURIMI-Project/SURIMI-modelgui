@@ -11,6 +11,9 @@ import DashboardLayout from "../components/DashboardLayout/DashboardLayout";
 import MetricsSelector from "../components/MetricsSelector/MetricsSelector";
 import OutputsMapPanel from "../components/OutputsMapPanel/OutputsMapPanel";
 import SpeciesDropdown from "../components/SpeciesDropdown/SpeciesDropdown";
+import SpiderDiagram, {
+  type SpiderDiagramDatum,
+} from "../components/SpiderDiagram/SpiderDiagram";
 import OutputsTrendPanel from "../components/OutputsTrendPanel/OutputsTrendPanel";
 import YearControls from "../components/YearControls/YearControls";
 import type { HeatPoint, ScenarioOutputMetric, SpeciesOption } from "../types";
@@ -295,6 +298,8 @@ const AnchovyBayOutputs = () => {
     return years.findIndex((year) => year === selectedYear);
   }, [selectedYear]);
 
+  const safeSelectedYearIndex = Math.max(selectedYearIndex, 0);
+
   const activeYearGrid = useMemo(() => {
     if (!speciesOutput) {
       return null;
@@ -328,6 +333,99 @@ const AnchovyBayOutputs = () => {
   const currentDiscardsValue = discardsSeries[selectedYearIndex] ?? 0;
   const currentSalesValue = salesSeries[selectedYearIndex] ?? 0;
   const currentPriceValue = priceSeries[selectedYearIndex] ?? 0;
+
+  const spiderDiagramData = useMemo<SpiderDiagramDatum[]>(() => {
+    if (annualMetricAverages.length === 0) {
+      return [];
+    }
+
+    const biomassTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.biomass),
+    );
+    const catchesTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.catches),
+    );
+    const discardsTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.discards),
+    );
+    const salesTrend = normalizeSeries(salesSeries);
+    const priceTrend = normalizeSeries(priceSeries);
+
+    const biomassScore = biomassTrend[safeSelectedYearIndex] ?? 0;
+    const catchesScore = catchesTrend[safeSelectedYearIndex] ?? 0;
+    const discardsScore = discardsTrend[safeSelectedYearIndex] ?? 0;
+    const salesScore = salesTrend[safeSelectedYearIndex] ?? 0;
+    const priceScore = priceTrend[safeSelectedYearIndex] ?? 0;
+
+    const catchesValue = catchesSeries[safeSelectedYearIndex] ?? 0;
+    const discardsValue = discardsSeries[safeSelectedYearIndex] ?? 0;
+    const combinedCatch = Math.max(catchesValue + discardsValue, 0.0001);
+    const efficiencyScore = clamp(catchesValue / combinedCatch, 0, 1);
+    const harvestBalanceScore = clamp(
+      1 - Math.abs(catchesScore - biomassScore),
+      0,
+      1,
+    );
+    const averagePrice = average(priceSeries);
+    const priceStabilityScore = clamp(
+      1 - Math.abs(currentPriceValue - averagePrice) / Math.max(averagePrice, 1),
+      0,
+      1,
+    );
+
+    return [
+      {
+        label: "Ecology",
+        value: Math.round(
+          clamp(biomassScore * 0.72 + (1 - discardsScore) * 0.28, 0, 1) * 100,
+        ),
+      },
+      {
+        label: "Socioeconomics",
+        value: Math.round(
+          clamp(salesScore * 0.62 + priceScore * 0.38, 0, 1) * 100,
+        ),
+      },
+      {
+        label: "Stock Status",
+        value: Math.round(
+          clamp(biomassScore * 0.78 + harvestBalanceScore * 0.22, 0, 1) * 100,
+        ),
+      },
+      {
+        label: "Harvest Balance",
+        value: Math.round(
+          clamp(harvestBalanceScore * 0.65 + efficiencyScore * 0.35, 0, 1) *
+            100,
+        ),
+      },
+      {
+        label: "Resource Efficiency",
+        value: Math.round(
+          clamp(efficiencyScore * 0.78 + (1 - discardsScore) * 0.22, 0, 1) *
+            100,
+        ),
+      },
+      {
+        label: "Market Resilience",
+        value: Math.round(
+          clamp(
+            salesScore * 0.4 + priceStabilityScore * 0.35 + biomassScore * 0.25,
+            0,
+            1,
+          ) * 100,
+        ),
+      },
+    ];
+  }, [
+    annualMetricAverages,
+    catchesSeries,
+    currentPriceValue,
+    discardsSeries,
+    priceSeries,
+    safeSelectedYearIndex,
+    salesSeries,
+  ]);
 
   useEffect(() => {
     if (!isPlaying || years.length === 0) {
@@ -421,9 +519,9 @@ const AnchovyBayOutputs = () => {
         }
       >
         <div className={styles.layout}>
-          <section className={styles.primaryGrid}>
-            {renderMapPanel(styles.pageMapPanel, styles.pageMapSurface)}
+          {renderMapPanel(styles.pageMapPanel, styles.pageMapSurface)}
 
+          <section className={styles.primaryGrid}>
             <OutputsTrendPanel
               className={styles.primaryChartPanel}
               title="Biomass / Catches + Discards"
@@ -476,8 +574,17 @@ const AnchovyBayOutputs = () => {
                   : undefined
               }
               lineColor={metricMeta[metric].lineColor}
-              selectedIndex={Math.max(selectedYearIndex, 0)}
+              selectedIndex={safeSelectedYearIndex}
               onSelectIndex={selectYearByIndex}
+            />
+
+            <SpiderDiagram
+              className={styles.spiderPanel}
+              title="Spider Diagram"
+              subtitle="Selected-year multi-criteria snapshot"
+              currentLabel={`${speciesCode} · ${selectedYear}`}
+              data={spiderDiagramData}
+              valueSuffix="%"
             />
           </section>
 
@@ -504,7 +611,7 @@ const AnchovyBayOutputs = () => {
                 currentValueLabel={`${currentSalesValue.toFixed(1)} t`}
                 labels={years.map((year) => String(year))}
                 values={salesSeries}
-                selectedIndex={Math.max(selectedYearIndex, 0)}
+                selectedIndex={safeSelectedYearIndex}
                 lineColor="#83f2c8"
                 onSelectIndex={selectYearByIndex}
               />
@@ -517,7 +624,7 @@ const AnchovyBayOutputs = () => {
                 currentValueLabel={`EUR ${currentPriceValue.toFixed(0)}/t`}
                 labels={years.map((year) => String(year))}
                 values={priceSeries}
-                selectedIndex={Math.max(selectedYearIndex, 0)}
+                selectedIndex={safeSelectedYearIndex}
                 lineColor="#c2a0ff"
                 onSelectIndex={selectYearByIndex}
               />

@@ -112,14 +112,18 @@
 }
 
 .pageMapSurface {
-  min-height: clamp(440px, calc(58vh + 60px), 700px);
+  min-height: clamp(520px, calc(64vh + 32px), 780px);
 }
 
 .primaryGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
   gap: 16px;
   align-items: stretch;
+}
+
+.spiderPanel {
+  min-height: clamp(620px, calc(58vh + 60px), 760px);
 }
 
 .secondarySection {
