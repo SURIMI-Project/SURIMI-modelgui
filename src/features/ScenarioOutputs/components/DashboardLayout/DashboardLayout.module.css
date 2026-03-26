@@ -46,6 +46,12 @@
   gap: 24px;
 }
 
+.headerInnerCentered {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+}
+
 .headerCopy {
   max-width: 72ch;
   flex: 1 1 auto;
@@ -54,6 +60,20 @@
 
 .headerAside {
   flex: 0 0 auto;
+}
+
+.headerAsideLeft,
+.headerAsideSpacer {
+  min-width: 0;
+  width: 100%;
+}
+
+.headerAsideLeft {
+  justify-self: start;
+}
+
+.headerAsideSpacer {
+  justify-self: stretch;
 }
 
 .kicker {
@@ -92,7 +112,20 @@
     display: grid;
   }
 
+  .headerInnerCentered {
+    grid-template-columns: 1fr;
+  }
+
   .headerAside {
     width: 100%;
+  }
+
+  .headerAsideLeft,
+  .headerAsideSpacer {
+    width: 100%;
+  }
+
+  .headerAsideSpacer {
+    display: none;
   }
 }

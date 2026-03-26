@@ -5,7 +5,9 @@
 }
 
 .headerCopy {
-  max-width: 58ch;
+  max-width: 68ch;
+  justify-self: center;
+  text-align: center;
 }
 
 .pageTitle {
@@ -13,13 +15,15 @@
 }
 
 .pageSubtitle {
-  max-width: 56ch;
+  max-width: 60ch;
+  margin-inline: auto;
 }
 
 .headerAside {
   width: min(100%, 520px);
   display: grid;
   gap: 0;
+  justify-self: start;
 }
 
 .controlsCluster {
@@ -188,6 +192,7 @@
 @media (max-width: 980px) {
   .headerAside {
     width: 100%;
+    justify-self: stretch;
   }
 
   .controlsCluster {

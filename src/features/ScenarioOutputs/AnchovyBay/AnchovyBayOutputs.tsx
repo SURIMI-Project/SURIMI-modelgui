@@ -10,6 +10,7 @@ import { anchovyBaySimulationMetadata } from "../MockData/simulationMetadata";
 import DashboardLayout from "../components/DashboardLayout/DashboardLayout";
 import InformationLegendsPopover from "../components/InformationLegends/InformationLegendsPopover";
 import { type InformationLegendItem } from "../components/InformationLegends/InformationLegends";
+import FloatingSpiderDock from "./components/FloatingSpiderDock/FloatingSpiderDock";
 import LandingsStackedBarChart from "../components/LandingsStackedBarChart/LandingsStackedBarChart";
 import MetricsSelector from "../components/MetricsSelector/MetricsSelector";
 import OutputsMapPanel from "../components/OutputsMapPanel/OutputsMapPanel";
@@ -339,6 +340,82 @@ const AnchovyBayOutputs = () => {
   const currentSalesValue = salesSeries[selectedYearIndex] ?? 0;
   const currentPriceValue = priceSeries[selectedYearIndex] ?? 0;
 
+  const spiderDockData = useMemo(() => {
+    if (annualMetricAverages.length === 0) {
+      return [];
+    }
+
+    const biomassTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.biomass),
+    );
+    const landingsTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.landings),
+    );
+    const discardsTrend = normalizeSeries(
+      annualMetricAverages.map((entry) => entry.discards),
+    );
+    const salesTrend = normalizeSeries(salesSeries);
+    const priceTrend = normalizeSeries(priceSeries);
+
+    const biomassScore = biomassTrend[safeSelectedYearIndex] ?? 0;
+    const landingsScore = landingsTrend[safeSelectedYearIndex] ?? 0;
+    const discardsScore = discardsTrend[safeSelectedYearIndex] ?? 0;
+    const salesScore = salesTrend[safeSelectedYearIndex] ?? 0;
+    const priceScore = priceTrend[safeSelectedYearIndex] ?? 0;
+
+    const catchesValue = catchesSeries[safeSelectedYearIndex] ?? 0;
+    const discardsValue = discardsSeries[safeSelectedYearIndex] ?? 0;
+    const combinedCatch = Math.max(catchesValue + discardsValue, 0.0001);
+    const efficiencyScore = clamp(catchesValue / combinedCatch, 0, 1);
+    const harvestBalanceScore = clamp(
+      1 - Math.abs(landingsScore - biomassScore),
+      0,
+      1,
+    );
+
+    return [
+      {
+        label: "Ecology",
+        value: Math.round(
+          clamp(biomassScore * 0.72 + (1 - discardsScore) * 0.28, 0, 1) * 100,
+        ),
+      },
+      {
+        label: "Socioeconomics",
+        value: Math.round(
+          clamp(salesScore * 0.62 + priceScore * 0.38, 0, 1) * 100,
+        ),
+      },
+      {
+        label: "Stock Status",
+        value: Math.round(
+          clamp(biomassScore * 0.78 + harvestBalanceScore * 0.22, 0, 1) * 100,
+        ),
+      },
+      {
+        label: "Harvest Balance",
+        value: Math.round(
+          clamp(harvestBalanceScore * 0.65 + efficiencyScore * 0.35, 0, 1) *
+            100,
+        ),
+      },
+      {
+        label: "Resource Efficiency",
+        value: Math.round(
+          clamp(efficiencyScore * 0.78 + (1 - discardsScore) * 0.22, 0, 1) *
+            100,
+        ),
+      },
+    ];
+  }, [
+    annualMetricAverages,
+    catchesSeries,
+    discardsSeries,
+    priceSeries,
+    safeSelectedYearIndex,
+    salesSeries,
+  ]);
+
   useEffect(() => {
     if (!isPlaying || years.length === 0) {
       return;
@@ -404,6 +481,7 @@ const AnchovyBayOutputs = () => {
       <DashboardLayout
         title="Anchovy Bay Scenario Outputs"
         subtitle="Anchovy Bay outputs with synchronized biomass, landings, and ecosystem status views across 2006-2046."
+        headerLayout="centered"
         showKicker={false}
         headerCopyClassName={styles.headerCopy}
         titleClassName={styles.pageTitle}
@@ -539,6 +617,8 @@ const AnchovyBayOutputs = () => {
           </section>
         </div>
       </DashboardLayout>
+
+      <FloatingSpiderDock data={spiderDockData} />
 
       <div className={styles.ringDock}>
         <AnimatePresence>

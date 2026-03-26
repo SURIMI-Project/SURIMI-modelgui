@@ -12,6 +12,7 @@ type DashboardLayoutProps = {
   titleClassName?: string;
   subtitleClassName?: string;
   showKicker?: boolean;
+  headerLayout?: "default" | "centered";
 };
 
 const DashboardLayout = ({
@@ -23,6 +24,7 @@ const DashboardLayout = ({
   titleClassName,
   subtitleClassName,
   showKicker = true,
+  headerLayout = "default",
 }: DashboardLayoutProps) => {
   return (
     <main className={styles.page}>
@@ -34,7 +36,18 @@ const DashboardLayout = ({
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className={styles.headerInner}>
+        <div
+          className={[
+            styles.headerInner,
+            headerLayout === "centered" ? styles.headerInnerCentered : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {headerAside && headerLayout === "centered" ? (
+            <div className={styles.headerAsideLeft}>{headerAside}</div>
+          ) : null}
+
           <div
             className={[styles.headerCopy, headerCopyClassName]
               .filter(Boolean)
@@ -61,8 +74,12 @@ const DashboardLayout = ({
             </Text>
           </div>
 
-          {headerAside ? (
+          {headerAside && headerLayout !== "centered" ? (
             <div className={styles.headerAside}>{headerAside}</div>
+          ) : null}
+
+          {headerAside && headerLayout === "centered" ? (
+            <div className={styles.headerAsideSpacer} aria-hidden="true" />
           ) : null}
         </div>
       </motion.header>
