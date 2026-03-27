@@ -74,6 +74,13 @@ const FloatingSpiderDock = ({
             exit={{ opacity: 0, y: -18, scale: 0.94, filter: "blur(8px)" }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
           >
+            <div className={styles.header}>
+              <h3 className={styles.title}>Spider diagram</h3>
+              <p className={styles.subtitle}>
+                Shows how well the scenario applies to each indicator
+              </p>
+            </div>
+
             <div className={styles.graphWrap}>
               {hoveredDatum ? (
                 <div className={styles.hoverBadge}>
