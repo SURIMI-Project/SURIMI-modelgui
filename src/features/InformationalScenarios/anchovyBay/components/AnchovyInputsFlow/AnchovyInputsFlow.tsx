@@ -105,7 +105,7 @@ const AnchovyInputsFlow = ({
       <PrimaryModal
         opened={isOpen}
         onClose={handleClose}
-        title="Anchovy Bay · Inputs Flow"
+        title="Anchovy Bay · Scenario definition"
         size="min(1280px, 96vw)"
         zIndex={6000}
         withinPortal={false}

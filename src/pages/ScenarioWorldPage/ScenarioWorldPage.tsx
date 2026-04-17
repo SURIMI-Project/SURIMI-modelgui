@@ -180,7 +180,7 @@ const ScenarioWorldPage = () => {
               ? "Executing Model Anchovy Bay Scenario"
               : `Initializing ${worldConfig.worldTitle}`
           }
-          subtitle="Compiling selected inputs and launching scenario output..."
+          subtitle="Compiling selected input and launching scenario output..."
         />
       ) : null}
     </main>

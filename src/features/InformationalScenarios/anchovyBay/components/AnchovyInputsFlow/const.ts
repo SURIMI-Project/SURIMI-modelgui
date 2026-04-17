@@ -96,21 +96,20 @@ export const DEFAULT_SPECIES_INPUTS = [
 export const INPUT_FLOW_STEPS = [
   {
     key: "inputs",
-    title: "Anchovy Bay · Harvest control inputs",
+    title: "Anchovy Bay · Harvest control input",
     subtitle:
-      "Pick a species, drag the two control points in the graph, and the biomass and fishing-mortality values update instantly.",
+      "Pick a species, then set allowable fishing pressure relative to the species’ biomass by dragging the two control points in the graph",
   },
   {
     key: "years",
-    title: "Select Duration Of Model Run",
+    title: "How long would you like to run your simulation for?",
     subtitle:
-      "Choose a run duration. For 10 years or less, the modal closes immediately.",
+      "If you choose 5 or 10 years, the simulation will automatically choose the XXX IPCC scenario of XXX (“Business-as-usual”).",
   },
   {
     key: "ipcc",
     title: "Select IPCC Scenario",
-    subtitle:
-      "Choose one climate scenario for long-horizon runs (> 10 years).",
+    subtitle: "Choose one climate scenario for long-horizon runs (> 10 years).",
   },
 ] as const;
 

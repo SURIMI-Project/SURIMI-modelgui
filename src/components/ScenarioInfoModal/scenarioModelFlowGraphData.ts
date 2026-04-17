@@ -38,7 +38,7 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     subtitle: "Spanish purse seiners and bottom trawlers",
     hoverTitle: "POSEIDON",
     hoverDescription:
-      "POSEIDON is an agent-based model, simulating how fishers respond to different policies, market changes and environmental conditions. For example, fishers may start to fish more extensively when the season is shortened or fish along the borders of a Marine Protected Area (MPA) if those are introduced.",
+      "POSEIDON is an advanced simulation tool designed to help manage fisheries by modelling the behaviour of fishing fleets and their interactions with the environment. Using an approach based on adaptive agents —which are individual units in the model that learn, adapt, and make decisions based on their environment and experiences— it simulates how fishers respond to changing conditions, such as shifts in fish stock abundance, market prices, or regulatory policies, helping policymakers evaluate different strategies for managing fisheries in a sustainable way. In SURIMI we employ this model to help with management strategy evaluation and, in turn, help create policies that balance marine conservation with the needs of fishing communities.",
     cardX: 0.78,
     cardY: 0.18,
   },

@@ -17,7 +17,7 @@ const AnchovyInputsTable = ({
   onSelectRow,
 }: AnchovyInputsTableProps) => {
   const data: TableData = {
-    head: ["Group name", "F min", "Biomass limit", "Biomass base", "F max"],
+    head: ["Group name", "Biomass limit", "F min", "Biomass base", "F max"],
     body: tableData.map((row) => {
       const cellClassName = [
         styles.tableCellContent,
@@ -41,8 +41,8 @@ const AnchovyInputsTable = ({
 
       return [
         createCell(row.label, "label"),
-        createCell(formatFishingMortalityValue(row.fMin), "f-min"),
         createCell(row.biomassLimit.toFixed(3), "biomass-limit"),
+        createCell(formatFishingMortalityValue(row.fMin), "f-min"),
         createCell(row.biomassBase.toFixed(3), "biomass-base"),
         createCell(formatFishingMortalityValue(row.fMax), "f-max"),
       ];
