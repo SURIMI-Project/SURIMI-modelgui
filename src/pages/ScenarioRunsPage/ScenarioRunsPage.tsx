@@ -1,6 +1,5 @@
 import { Button, Pagination, ScrollArea } from "@mantine/core";
-import { AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   FiAnchor,
@@ -18,20 +17,16 @@ import {
   type SimulationCaseId,
 } from "../../data/simulationCases";
 import {
-  createScenarioRunFromDraft,
   getScenarioRunById,
   getScenarioRunsByCaseId,
 } from "../../features/ScenarioRuns/mockScenarioRuns";
-import type {
-  ScenarioRun,
-  ScenarioRunInputDraft,
-} from "../../features/ScenarioRuns/types";
+import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
+import type { ScenarioRun } from "../../features/ScenarioRuns/types";
+import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
 import smallSurimiLogo from "../../assets/smallSurimiLogo.png";
-import ScenarioLoadingScreen from "../../components/ScenarioLoadingScreen/ScenarioLoadingScreen";
 import styles from "./ScenarioRunsPage.module.css";
 
 const PAGE_SIZE = 6;
-const SETUP_LOADING_DURATION_MS = 4800;
 const scenarioNavIcons = {
   "anchovy-bay": FiAnchor,
   "aegean-sea": FiCompass,
@@ -76,31 +71,30 @@ const getCaseLabel = (caseId: SimulationCaseId) => {
 const ScenarioRunsPage = () => {
   const navigate = useNavigate();
   const { caseId, runId } = useParams<{ caseId?: string; runId?: string }>();
+  const selectedCaseId = isSimulationCaseId(caseId) ? caseId : "anchovy-bay";
   const [activePage, setActivePage] = useState(1);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
-  const [isSetupLoading, setIsSetupLoading] = useState(false);
-  const loadingTimeoutRef = useRef<number | null>(null);
+  const { completeScenarioSetup, isScenarioSetupLoading } =
+    useScenarioSetupCompletion({
+      caseId: selectedCaseId,
+      onSetupStarted: () => {
+        setIsScenarioInputsOpen(false);
+        setActivePage(1);
+      },
+    });
 
   useEffect(() => {
     setActivePage(1);
   }, [caseId]);
 
-  useEffect(() => {
-    return () => {
-      if (loadingTimeoutRef.current !== null) {
-        window.clearTimeout(loadingTimeoutRef.current);
-      }
-    };
-  }, []);
-
   if (!isSimulationCaseId(caseId)) {
     return <Navigate to="/scenario-runs/anchovy-bay" replace />;
   }
 
-  const caseStudy = getSimulationCaseById(caseId);
-  const worldConfig = getScenarioWorldConfig(caseId);
-  const activeRun = getScenarioRunById(caseId, runId);
-  const runs = getScenarioRunsByCaseId(caseId, runId);
+  const caseStudy = getSimulationCaseById(selectedCaseId);
+  const worldConfig = getScenarioWorldConfig(selectedCaseId);
+  const activeRun = getScenarioRunById(selectedCaseId, runId);
+  const runs = getScenarioRunsByCaseId(selectedCaseId, runId);
   const InputsFlowComponent = worldConfig.InputsFlowComponent;
 
   if (!caseStudy || runs.length === 0) {
@@ -113,24 +107,7 @@ const ScenarioRunsPage = () => {
   const visibleRuns = runs.slice(startIndex, startIndex + PAGE_SIZE);
 
   const openDashboard = (id: string) => {
-    navigate(`/scenario-outputs/${caseId}?run=${encodeURIComponent(id)}`);
-  };
-
-  const handleScenarioInputsComplete = (draft: ScenarioRunInputDraft) => {
-    createScenarioRunFromDraft(caseId, draft);
-    setIsScenarioInputsOpen(false);
-    setIsSetupLoading(true);
-    setActivePage(1);
-
-    if (loadingTimeoutRef.current !== null) {
-      window.clearTimeout(loadingTimeoutRef.current);
-    }
-
-    loadingTimeoutRef.current = window.setTimeout(() => {
-      navigate(`/scenario-runs/${caseId}`);
-      setIsSetupLoading(false);
-      loadingTimeoutRef.current = null;
-    }, SETUP_LOADING_DURATION_MS);
+    navigate(`/scenario-outputs/${selectedCaseId}?run=${encodeURIComponent(id)}`);
   };
 
   const speciesCount = new Set(runs.map((run) => run.inputs.speciesId)).size;
@@ -345,18 +322,11 @@ const ScenarioRunsPage = () => {
           onClose={() => {
             setIsScenarioInputsOpen(false);
           }}
-          onComplete={handleScenarioInputsComplete}
+          onComplete={completeScenarioSetup}
         />
       ) : null}
 
-      <AnimatePresence>
-        {isSetupLoading ? (
-          <ScenarioLoadingScreen
-            title="Running scenario setup"
-            subtitle="Preparing the simulation package and adding it to the scenario runs library..."
-          />
-        ) : null}
-      </AnimatePresence>
+      <ScenarioSetupLoadingOverlay isVisible={isScenarioSetupLoading} />
     </main>
   );
 };

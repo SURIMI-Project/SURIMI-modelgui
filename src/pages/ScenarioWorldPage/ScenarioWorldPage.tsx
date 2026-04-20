@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import ScenarioInfoModal from "../../components/ScenarioInfoModal/ScenarioInfoModal";
-import { createScenarioRunFromDraft } from "../../features/ScenarioRuns/mockScenarioRuns";
-import type { ScenarioRunInputDraft } from "../../features/ScenarioRuns/types";
+import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
+import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
 import ScenarioWorldFeatureSection from "./components/ScenarioWorldFeatureSection";
 import ScenarioWorldFooter from "./components/ScenarioWorldFooter";
 import ScenarioWorldStorySection from "./components/ScenarioWorldStorySection";
@@ -18,6 +18,14 @@ const ScenarioWorldPage = () => {
   const [isReturningToHome, setIsReturningToHome] = useState(false);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
   const [isScenarioInfoOpen, setIsScenarioInfoOpen] = useState(false);
+  const setupCaseId = caseStudy?.id ?? "anchovy-bay";
+  const { completeScenarioSetup, isScenarioSetupLoading } =
+    useScenarioSetupCompletion({
+      caseId: setupCaseId,
+      onSetupStarted: () => {
+        setIsScenarioInputsOpen(false);
+      },
+    });
 
   useEffect(() => {
     if (!isReturningToHome) {
@@ -45,11 +53,6 @@ const ScenarioWorldPage = () => {
     }
 
     setIsReturningToHome(true);
-  };
-
-  const handleScenarioInputsComplete = (draft: ScenarioRunInputDraft) => {
-    const run = createScenarioRunFromDraft(caseStudy.id, draft);
-    navigate(`/scenario-runs/${caseStudy.id}/${run.id}`);
   };
 
   const worldVariables = {
@@ -148,10 +151,7 @@ const ScenarioWorldPage = () => {
           onClose={() => {
             setIsScenarioInputsOpen(false);
           }}
-          onComplete={(draft) => {
-            setIsScenarioInputsOpen(false);
-            handleScenarioInputsComplete(draft);
-          }}
+          onComplete={completeScenarioSetup}
         />
       ) : null}
       <ScenarioInfoModal
@@ -162,6 +162,7 @@ const ScenarioWorldPage = () => {
         title={worldConfig.infoModalTitle}
         description={worldConfig.infoModalDescription}
       />
+      <ScenarioSetupLoadingOverlay isVisible={isScenarioSetupLoading} />
     </main>
   );
 };

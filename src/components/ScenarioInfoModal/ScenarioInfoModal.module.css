@@ -1,8 +1,39 @@
+.modalBody {
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modalScrollArea {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.modalScrollViewport {
+  border-radius: 8px;
+}
+
+.modalScrollScrollbar {
+  border-radius: 8px;
+  background: rgba(238, 249, 255, 0.04);
+}
+
+.modalScrollThumb {
+  border-radius: 8px;
+  background: color-mix(in srgb, #7ad6ff 44%, rgba(238, 249, 255, 0.36));
+}
+
+.modalScrollThumb:hover {
+  background: color-mix(in srgb, #7ad6ff 58%, rgba(238, 249, 255, 0.42));
+}
+
 .shell {
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(18px, 2.4vw, 30px);
   min-height: min(78vh, 760px);
+  padding-right: 8px;
 }
 
 .graphPanel,
@@ -40,7 +71,7 @@
   background:
     radial-gradient(circle at 12% 12%, rgba(134, 193, 255, 0.14), transparent 42%),
     linear-gradient(162deg, rgba(8, 28, 50, 0.88), rgba(5, 17, 34, 0.84));
-  overflow: auto;
+  overflow: visible;
 }
 
 .graphSvg {
@@ -404,6 +435,10 @@
 }
 
 @media (max-width: 40rem) {
+  .shell {
+    padding-right: 4px;
+  }
+
   .graphPanel,
   .contentPanel {
     padding: 14px;

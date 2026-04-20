@@ -18,6 +18,7 @@ type PrimaryModalProps = {
   closeOnEscape?: boolean;
   withCloseButton?: boolean;
   fullScreen?: boolean;
+  bodyClassName?: string;
 };
 
 const PrimaryModal = ({
@@ -35,6 +36,7 @@ const PrimaryModal = ({
   closeOnEscape = true,
   withCloseButton = true,
   fullScreen = false,
+  bodyClassName,
 }: PrimaryModalProps) => {
   useEffect(() => {
     if (!opened || typeof document === "undefined") {
@@ -143,6 +145,7 @@ const PrimaryModal = ({
             className={[
               styles.body,
               fullScreen ? styles.bodyFullScreen : "",
+              bodyClassName ?? "",
             ]
               .filter(Boolean)
               .join(" ")}
