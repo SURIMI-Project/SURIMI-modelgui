@@ -31,7 +31,8 @@
 .graphFrame {
   position: relative;
   width: min(100%, 1120px);
-  overflow: visible;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 .contentPanel {
@@ -107,12 +108,13 @@
 
 .hoverCard {
   position: absolute;
-  left: var(--hover-x);
-  top: var(--hover-y);
-  transform: translate(-50%, -50%);
-  width: min(320px, calc(100% - 28px));
+  top: 14px;
+  right: 14px;
+  width: min(420px, calc(100% - 28px));
+  max-height: min(500px, calc(100% - 28px));
+  overflow: auto;
   padding: 16px 18px 18px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--hover-accent) 52%, white 28%);
   background:
     linear-gradient(155deg, rgba(7, 25, 45, 0.96), rgba(5, 16, 31, 0.94)),
@@ -122,7 +124,7 @@
     0 0 0 1px rgba(244, 250, 255, 0.05) inset,
     0 0 2.2rem color-mix(in srgb, var(--hover-accent) 18%, transparent);
   backdrop-filter: blur(12px);
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 2;
 }
 
@@ -139,7 +141,9 @@
 
 .hoverCardKicker,
 .hoverCardTitle,
-.hoverCardText {
+.hoverCardText,
+.hoverCardHeader,
+.hoverCardReferences {
   position: relative;
   z-index: 1;
 }
@@ -153,6 +157,14 @@
   font-weight: 720;
 }
 
+.hoverCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
 .hoverCardTitle {
   margin: 10px 0 0;
   color: #f5fbff;
@@ -160,11 +172,112 @@
   line-height: 1.2;
 }
 
+.hoverCardHeader .hoverCardTitle {
+  margin-top: 0;
+}
+
+.hoverCardVideoLink {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ff6b62;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.hoverCardVideoLink:hover,
+.hoverCardVideoLink:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ff3b30;
+}
+
+.hoverCardVideoLink:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 3px;
+}
+
+.hoverCardVideoLink svg {
+  width: 1.18rem;
+  height: 1.18rem;
+}
+
 .hoverCardText {
   margin: 10px 0 0;
   color: rgba(216, 233, 246, 0.92);
-  font-size: 0.86rem;
-  line-height: 1.58;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.hoverCardReferences {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(216, 236, 250, 0.14);
+}
+
+.hoverCardReferenceTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(245, 251, 255, 0.92);
+  font-size: 0.78rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.hoverCardReferenceTitle::marker,
+.hoverCardReferenceTitle::-webkit-details-marker {
+  color: rgba(245, 251, 255, 0.8);
+}
+
+.hoverCardReferenceTitle:focus-visible {
+  outline: 2px solid rgba(143, 224, 255, 0.66);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.hoverCardReferences ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.hoverCardReferences li {
+  margin-top: 8px;
+  color: rgba(216, 233, 246, 0.86);
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
+.hoverCardReferenceLink {
+  color: rgba(216, 233, 246, 0.9);
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.hoverCardReferenceLink:hover,
+.hoverCardReferenceLink:focus-visible {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--hover-accent) 68%, white 12%);
+  text-underline-offset: 3px;
+}
+
+.hoverCardReferenceLink:focus-visible {
+  outline: 2px solid rgba(143, 224, 255, 0.66);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .nodeTitle {
@@ -252,10 +365,10 @@
   }
 
   .hoverCard {
-    left: 50%;
+    right: 10px;
     top: auto;
     bottom: 12px;
-    transform: translateX(-50%);
     width: calc(100% - 20px);
+    max-height: min(58vh, 420px);
   }
 }

@@ -1,10 +1,11 @@
 import type { SelectableCardOption } from "../../../../../components/SelectableCards/SelectableCards";
 
 export const YEAR_OPTIONS: SelectableCardOption[] = [
+  { value: "5", title: "5 years", description: "Short calibration window." },
   {
-    value: "50",
-    title: "50 years",
-    description: "Long-horizon ecosystem run.",
+    value: "10",
+    title: "10 years",
+    description: "Default model-run duration.",
   },
   {
     value: "25",
@@ -12,11 +13,10 @@ export const YEAR_OPTIONS: SelectableCardOption[] = [
     description: "Extended scenario exploration.",
   },
   {
-    value: "10",
-    title: "10 years",
-    description: "Default model-run duration.",
+    value: "50",
+    title: "50 years",
+    description: "Long-horizon ecosystem run.",
   },
-  { value: "5", title: "5 years", description: "Short calibration window." },
 ];
 
 export const IPCC_OPTIONS: SelectableCardOption[] = [
@@ -112,6 +112,12 @@ export const INPUT_FLOW_STEPS = [
     subtitle: "Choose one climate scenario for long-horizon runs (> 10 years).",
   },
 ] as const;
+
+export const HARVEST_CONTROL_INPUT_INFO =
+  "Harvest control rules (HCR) provide the foundation for modern fisheries management. The rules say, “with this biomass (X-axis), you are allowed to catch this proportion of the biomass (Y-axis)”. From this one can set the actual fishing regulation, be it as a quota or duration of the fishing season. SURIMI uses management strategy evaluation and a large number of simulations to find HCR that are robust to uncertainty in both the ecosystem and management.";
+
+export const IPCC_SCENARIO_DESCRIPTION =
+  "An IPCC scenario (Intergovernmental Panel on Climate Change scenario) is a plausible description of how the future might unfold, used to study climate change, its impacts, and possible responses. In SURIMI we use IPCC scenarios to run models under different futures and support decision-making under uncertainty.";
 
 export const CHART_POINT_LABELS = [
   "Origin",

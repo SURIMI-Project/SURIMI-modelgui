@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { FiInfo } from "react-icons/fi";
 import styles from "../ScenarioWorldPage.module.css";
 
 type ScenarioWorldStorySectionProps = {
@@ -56,7 +55,7 @@ const ScenarioWorldStorySection = ({
           onClick={onOpenInfoModal}
           aria-label={`Open more information about ${worldTitle}`}
         >
-          <FiInfo size={18} />
+          About the scenario
         </button>
       </motion.div>
 

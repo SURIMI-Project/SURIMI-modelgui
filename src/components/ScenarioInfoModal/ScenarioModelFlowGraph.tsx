@@ -34,7 +34,12 @@ const ScenarioModelFlowGraph = () => {
     scenarioFlowNodes.find((node) => node.id === activeNodeId) ?? null;
 
   return (
-    <div className={styles.graphFrame}>
+    <div
+      className={styles.graphFrame}
+      onMouseLeave={() => {
+        setActiveNodeId(null);
+      }}
+    >
       <svg
         className={styles.graphSvg}
         viewBox="0 0 860 530"
@@ -80,11 +85,6 @@ const ScenarioModelFlowGraph = () => {
                 aria-label={`${node.hoverTitle}: ${node.hoverDescription}`}
                 onMouseEnter={() => {
                   setActiveNodeId(node.id);
-                }}
-                onMouseLeave={() => {
-                  setActiveNodeId((current) =>
-                    current === node.id ? null : current,
-                  );
                 }}
                 onFocus={() => {
                   setActiveNodeId(node.id);

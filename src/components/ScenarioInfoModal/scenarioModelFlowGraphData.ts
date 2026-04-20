@@ -1,3 +1,10 @@
+export type ScenarioFlowReference =
+  | string
+  | {
+      label: string;
+      url: string;
+    };
+
 export type ScenarioFlowNode = {
   id: string;
   x: number;
@@ -9,6 +16,8 @@ export type ScenarioFlowNode = {
   subtitle?: string;
   hoverTitle: string;
   hoverDescription: string;
+  videoUrl?: string;
+  references?: ScenarioFlowReference[];
   cardX: number;
   cardY: number;
 };
@@ -39,6 +48,14 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     hoverTitle: "POSEIDON",
     hoverDescription:
       "POSEIDON is an advanced simulation tool designed to help manage fisheries by modelling the behaviour of fishing fleets and their interactions with the environment. Using an approach based on adaptive agents —which are individual units in the model that learn, adapt, and make decisions based on their environment and experiences— it simulates how fishers respond to changing conditions, such as shifts in fish stock abundance, market prices, or regulatory policies, helping policymakers evaluate different strategies for managing fisheries in a sustainable way. In SURIMI we employ this model to help with management strategy evaluation and, in turn, help create policies that balance marine conservation with the needs of fishing communities.",
+    videoUrl:
+      "https://www.youtube.com/watch?v=W_A52O_A84g&list=PLXKTm_QGiR-hSkLXN1wKySu-wT32br00T&index=3",
+    references: [
+      "Madsen, J.K. et al. (2024). Modelling adaptive and anticipatory human decision-making in complex human-environment system. Journal of Artificial Societies and Social Simulation 27 (1) 1.",
+      "Payette, N. et al. (2023). Attracted to Fish: A Gravity-Based Model of Purse-Seine Vessel Behaviour. In: Squazzoni, F. (eds) Advances in Social Simulation. ESSA 2022. Springer Proceedings in Complexity. Springer, Cham.",
+      "Carrella, E., et al. (2020). Simple adaptive rules describe fishing behaviour better than perfect rationality in the US West Coast Groundfish fishery. Ecological Economics, 169, 106449.",
+      "Bailey, R. M. et al. (2019). A computational approach to managing coupled human-environmental systems: the POSEIDON model of ocean fisheries. Sustainability Science, 14, 259-275.",
+    ],
     cardX: 0.78,
     cardY: 0.18,
   },
@@ -111,7 +128,36 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     subtitle: "Ecology. All other fleets",
     hoverTitle: "Ecopath with Ecosim",
     hoverDescription:
-      "Ecopath with Ecosim is a model that represents the entire marine ecosystem in detail, focusing on how fishing impacts all aspects of it.",
+      "Ecopath with Ecosim (EwE) model is the world's most widely used approach for ecosystem based management, and includes a modelling framework with three core modules: Ecopath, Ecosim and Ecospace. The foundational Ecopath model describes a possible representation of a marine food web, accounting for relations between living and abiotic components and fishing. The Ecopath model is mass-balanced, accounting for the energy flows into, through and out of an ecosystem for a given period. The construction of an Ecopath model helps to understand the structure and working of an ecosystem, and provides initial parameterization for the dynamic modules. For research questions that involve a time component, the Ecosim model takes the Ecopath parameter set and expands it with behaviour, environmental sensitivity, environmental change, and changes in fishing pressure and other human impacts, such as noise. The Ecosim model is tested to see if it can successfully reproduce past trends observed in the ecosystem. If so, the model may be used to explore plausible futures related to climate and management. For research questions related to both time and space, the Ecospace model executes the Ecosim model across a grid of homogenous cells, where creatures and fisheries move depending on the layout of space and changing environmental conditions.",
+    videoUrl:
+      "https://www.youtube.com/watch?v=lZaPsg5qVbU&list=PLXKTm_QGiR-hSkLXN1wKySu-wT32br00T&index=5",
+    references: [
+      {
+        label:
+          "Bentley JW, Chagaris D, Coll M, Heymans JJ, Serpetti N, Walters CJ, Christensen V. 2024. Calibrating ecosystem models to support ecosystem based management of marine systems. ICES Journal of Marine Science. 81(2): 260-275.",
+        url: "https://doi.org/10.1093/icesjms/fsad213",
+      },
+      {
+        label:
+          "Christensen, V. & Walters, C.J. 2004. Ecopath with Ecosim: methods, capabilities and limitations. Ecological Modelling 172, 109-139.",
+        url: "https://doi.org/10.1016/j.ecolmodel.2003.09.003",
+      },
+      {
+        label:
+          "Christensen, V. and Walters, C.J. 2024. Ecosystem Modelling with EwE. Vancouver, BC: The University of British Columbia.",
+        url: "https://doi.org/10.14288/24d7-ab68",
+      },
+      {
+        label:
+          "Heymans, J.J., Coll, M., Link, J.S., Mackinson, S., Steenbeek, J., Walters, C.J., Christensen, V., 2016. Best practice in developing, balancing, fitting and using Ecopath with Ecosim food-web models for ecosystem-based management, obtaining ecosystem baselines and testing theoretical ecological hypotheses. Ecological Modelling, 331: 173-184.",
+        url: "https://www.sciencedirect.com/science/article/pii/S030438001500575X?via%3Dihub",
+      },
+      {
+        label:
+          "Steenbeek, J., M Coll, L Gurney, F Melin, N Hoepffner, J Buszowski, V Christensen. 2013. Bridging the gap between ecosystem modelling tools using geographic information systems: driving a food-web model with spatial-temporal primary production data. Ecological Modelling, 263:139-151.",
+        url: "https://www.sciencedirect.com/science/article/abs/pii/S0304380013002597?via%3Dihub",
+      },
+    ],
     cardX: 0.76,
     cardY: 0.74,
   },

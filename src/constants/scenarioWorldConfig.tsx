@@ -87,10 +87,13 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     worldTitle: "Anchovy Bay",
     aboutTitle: "About Anchovy Bay",
     description: [
-      "Α fictional/demo model acting like a “flight simulator” that shows how the SURIMI models work with each other.",
+      // was the old first paragraph
+      // "Α fictional/demo model acting like a “flight simulator” that shows how the SURIMI models work with each other.",
+      "A Model of Intermediate Complexity for Ecosystem assessments (MICE) developed for educational purposes and adopted to demonstrate the capabilities of the SURIMI model complex for a rather simple ecosystem representation.",
       "Anchovy Bay is a popular coastal ecosystem with historic fishing ports, where fisheries have long been the main economic activity.",
       "Catches have declined for decades and shifted from groundfish toward shrimp and pelagic species, reshaping trophic balance.",
-      "Marine mammal populations have recovered after years of whaling and culling, increasing eco-tourism pressure and predator interactions.",
+      // "Marine mammal populations have recovered after years of whaling and culling, increasing eco-tourism pressure and predator interactions.",
+      "Marine mammal populations have recovered after years of whaling and culling promoting eco-tourism but also leading to ecosystem changes and competition with fisheries.",
     ],
     simulationContext:
       "Test harvest-control adjustments and observe trophic balance responses under evolving predator and forage dynamics.",

@@ -2,19 +2,24 @@ import {
   Button,
   Group,
   Paper,
+  Popover,
   ScrollArea,
   Select,
   Stack,
   Text,
   Title,
+  UnstyledButton,
 } from "@mantine/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
+import { FiInfo } from "react-icons/fi";
 import PrimaryModal from "../../../../../components/PrimaryModal/PrimaryModal";
 import SelectableCards from "../../../../../components/SelectableCards/SelectableCards";
 import {
   DEFAULT_SPECIES_INPUTS,
+  HARVEST_CONTROL_INPUT_INFO,
   INPUT_FLOW_STEPS,
+  IPCC_SCENARIO_DESCRIPTION,
   IPCC_OPTIONS,
   YEAR_OPTIONS,
 } from "./const";
@@ -38,7 +43,6 @@ const AnchovyInputsFlow = ({
   );
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const [selectedYears, setSelectedYears] = useState<number | null>(null);
   const [selectedIpccScenario, setSelectedIpccScenario] = useState<
     string | null
   >(null);
@@ -46,7 +50,6 @@ const AnchovyInputsFlow = ({
   const resetFlowState = () => {
     setStepIndex(0);
     setDirection(1);
-    setSelectedYears(null);
     setSelectedIpccScenario(null);
   };
 
@@ -82,7 +85,6 @@ const AnchovyInputsFlow = ({
 
   const handleYearSelect = (yearValue: string) => {
     const years = Number(yearValue);
-    setSelectedYears(years);
 
     if (years > 10) {
       setDirection(1);
@@ -122,9 +124,43 @@ const AnchovyInputsFlow = ({
               gap="sm"
               className={styles.headingRow}
             >
-              <Title order={2} className={styles.flowTitle}>
-                {INPUT_FLOW_STEPS[stepIndex].title}
-              </Title>
+              <Group gap="xs" align="center" className={styles.titleCluster}>
+                <Title order={2} className={styles.flowTitle}>
+                  {INPUT_FLOW_STEPS[stepIndex].title}
+                </Title>
+
+                {stepIndex === 0 ? (
+                  <Popover
+                    width={380}
+                    position="bottom-start"
+                    offset={12}
+                    shadow="lg"
+                    withinPortal={false}
+                    classNames={{ dropdown: styles.infoDropdown }}
+                  >
+                    <Popover.Target>
+                      <UnstyledButton
+                        type="button"
+                        className={styles.infoTrigger}
+                        aria-label="Open harvest control input information"
+                      >
+                        <FiInfo aria-hidden="true" />
+                      </UnstyledButton>
+                    </Popover.Target>
+
+                    <Popover.Dropdown>
+                      <div className={styles.infoPanel}>
+                        <Text className={styles.infoEyebrow}>
+                          Harvest control rules
+                        </Text>
+                        <Text className={styles.infoText}>
+                          {HARVEST_CONTROL_INPUT_INFO}
+                        </Text>
+                      </div>
+                    </Popover.Dropdown>
+                  </Popover>
+                ) : null}
+              </Group>
 
               <Group gap="xs">
                 {stepIndex === 0 ? (
@@ -203,7 +239,7 @@ const AnchovyInputsFlow = ({
                         >
                           <SelectableCards
                             options={YEAR_OPTIONS}
-                            selectedValue={selectedYears?.toString() ?? null}
+                            selectedValue={null}
                             onSelect={handleYearSelect}
                             columns={2}
                             className={styles.yearCards}
@@ -241,7 +277,7 @@ const AnchovyInputsFlow = ({
                         </Text>
 
                         <Text className={styles.finalText}>
-                          Selected duration: {selectedYears} years.
+                          {IPCC_SCENARIO_DESCRIPTION}
                         </Text>
 
                         <ScrollArea
@@ -254,7 +290,7 @@ const AnchovyInputsFlow = ({
                             options={IPCC_OPTIONS}
                             selectedValue={selectedIpccScenario}
                             onSelect={handleIpccSelect}
-                            columns={1}
+                            columns={2}
                             className={styles.ipccCards}
                           />
                         </ScrollArea>

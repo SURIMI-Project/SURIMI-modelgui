@@ -16,9 +16,9 @@ export type SimulationCaseStudy = {
 export const simulationCaseStudies: SimulationCaseStudy[] = [
   {
     id: "western-mediterranean",
-    seaName: "Western Mediterranean Sea",
+    seaName: "NORTHWESTERN MEDITERRANEAN SEA",
     subtitle: "Model covering areas GSA06 and GSA07",
-    simulationTitle: "Western Mediterranean Case Study",
+    simulationTitle: "Northwestern Mediterranean Case Study",
     description:
       "Fisheries-related socioecological simulation modelling combination including representations of the marine ecology (EwE), maximum sustainable yield (CMSY++), fishing activities (POSEIDON and EwE), prices of caught species (Market model and Value chain).",
     videoSrc: "/1.mp4",
@@ -26,7 +26,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   },
   {
     id: "aegean-sea",
-    seaName: "Aegean Sea",
+    seaName: "AEGEAN SEA",
     subtitle: "Model covering areas GSA22 and GSA23.",
     simulationTitle: "Aegean Sea Case Study",
     description:
@@ -36,7 +36,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   },
   {
     id: "anchovy-bay",
-    seaName: "Anchovy Bay",
+    seaName: "ANCHOVY BAY",
     subtitle: "Educational Case Study",
     simulationTitle: "Anchovy Bay Case Study",
     description:
