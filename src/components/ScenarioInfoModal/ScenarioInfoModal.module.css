@@ -92,6 +92,14 @@
   outline: none;
 }
 
+.nodeGroup:hover .nodeRect {
+  stroke: rgba(246, 251, 255, 0.58);
+  stroke-width: 1.8;
+  filter:
+    drop-shadow(0 0 0.55rem rgba(255, 255, 255, 0.12))
+    drop-shadow(0 0 1.2rem rgba(122, 214, 255, 0.16));
+}
+
 .nodeGroup:focus-visible .nodeRect,
 .nodeRectActive {
   stroke: rgba(246, 251, 255, 0.86);
@@ -108,10 +116,12 @@
 
 .hoverCard {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: min(420px, calc(100% - 28px));
-  max-height: min(500px, calc(100% - 28px));
+  left: clamp(12px, 1.8vw, 20px);
+  right: clamp(12px, 1.8vw, 20px);
+  bottom: clamp(12px, 1.8vw, 20px);
+  width: auto;
+  height: auto;
+  max-height: calc(100% - clamp(24px, 3.6vw, 40px));
   overflow: auto;
   padding: 16px 18px 18px;
   border-radius: 8px;
@@ -126,6 +136,7 @@
   backdrop-filter: blur(12px);
   pointer-events: auto;
   z-index: 2;
+  animation: modelDetailSlideUp 240ms ease-out;
 }
 
 .hoverCard::before {
@@ -142,10 +153,18 @@
 .hoverCardKicker,
 .hoverCardTitle,
 .hoverCardText,
+.hoverCardTopBar,
 .hoverCardHeader,
 .hoverCardReferences {
   position: relative;
   z-index: 1;
+}
+
+.hoverCardTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .hoverCardKicker {
@@ -155,6 +174,43 @@
   letter-spacing: 0.12em;
   font-size: 0.68rem;
   font-weight: 720;
+}
+
+.hoverCardClose {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(238, 248, 255, 0.9);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.hoverCardClose:hover,
+.hoverCardClose:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.hoverCardClose:focus-visible {
+  outline: 2px solid rgba(143, 224, 255, 0.66);
+  outline-offset: 3px;
+}
+
+.hoverCardClose svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .hoverCardHeader {
@@ -229,21 +285,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  margin: 0;
   color: rgba(245, 251, 255, 0.92);
   font-size: 0.78rem;
   font-weight: 760;
-  cursor: pointer;
-}
-
-.hoverCardReferenceTitle::marker,
-.hoverCardReferenceTitle::-webkit-details-marker {
-  color: rgba(245, 251, 255, 0.8);
-}
-
-.hoverCardReferenceTitle:focus-visible {
-  outline: 2px solid rgba(143, 224, 255, 0.66);
-  outline-offset: 3px;
-  border-radius: 6px;
 }
 
 .hoverCardReferences ul {
@@ -365,10 +410,21 @@
   }
 
   .hoverCard {
+    left: 10px;
     right: 10px;
-    top: auto;
-    bottom: 12px;
-    width: calc(100% - 20px);
-    max-height: min(58vh, 420px);
+    bottom: 10px;
+    max-height: calc(100% - 20px);
+  }
+}
+
+@keyframes modelDetailSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

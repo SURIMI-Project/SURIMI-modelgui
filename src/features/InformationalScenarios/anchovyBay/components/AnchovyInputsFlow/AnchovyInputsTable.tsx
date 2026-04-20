@@ -1,5 +1,5 @@
 import { ScrollArea, Table, type TableData } from "@mantine/core";
-import styles from "./AnchovyInputsFlow.module.css";
+import styles from "../../../shared/ScenarioInputsFlow/ScenarioInputsFlow.module.css";
 import type { SpeciesInputRow } from "./types";
 
 type AnchovyInputsTableProps = {

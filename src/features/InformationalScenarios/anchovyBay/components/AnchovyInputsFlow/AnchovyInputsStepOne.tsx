@@ -3,14 +3,14 @@ import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 import AnchovyInputGraph from "./AnchovyInputGraph";
 import AnchovyInputsTable from "./AnchovyInputsTable";
-import { DEFAULT_SPECIES_INPUTS } from "./const";
-import styles from "./AnchovyInputsFlow.module.css";
-import type { GraphPoint, SpeciesInputRow } from "./types";
+import styles from "../../../shared/ScenarioInputsFlow/ScenarioInputsFlow.module.css";
+import type { GraphPoint, SpeciesInputPreset, SpeciesInputRow } from "./types";
 
 type AnchovyInputsStepOneProps = {
   direction: 1 | -1;
   activeSpeciesId: string;
   onChangeActiveSpecies: (id: string) => void;
+  speciesInputs: readonly SpeciesInputPreset[];
 };
 
 const MIN_F_GAP = 0.01;
@@ -72,7 +72,7 @@ const createPresetRow = ({
   BIOMASS_LIMIT,
   BIOMASS_BASE,
   F_MAX,
-}: (typeof DEFAULT_SPECIES_INPUTS)[number]): SpeciesInputRow => {
+}: SpeciesInputPreset): SpeciesInputRow => {
   return {
     id: ID,
     label: LABEL,
@@ -84,14 +84,15 @@ const createPresetRow = ({
   };
 };
 
-const defaultRows: SpeciesInputRow[] = DEFAULT_SPECIES_INPUTS.map(createPresetRow);
-
 const AnchovyInputsStepOne = ({
   direction,
   activeSpeciesId,
   onChangeActiveSpecies,
+  speciesInputs,
 }: AnchovyInputsStepOneProps) => {
-  const [rows, setRows] = useState(defaultRows);
+  const [rows, setRows] = useState<SpeciesInputRow[]>(() =>
+    speciesInputs.map(createPresetRow),
+  );
   const [isDraggingHandle, setIsDraggingHandle] = useState(false);
   const dragDraftRef = useRef<SpeciesInputRow | null>(null);
 

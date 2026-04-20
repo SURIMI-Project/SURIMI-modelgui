@@ -1,13 +1,12 @@
 import type { ComponentType } from "react";
 import type { SimulationCaseId } from "../data/simulationCases";
 import AegeanSeaFeature from "../features/InformationalScenarios/aegeanSea/AegeanSeaFeature";
+import AegeanSeaInputsFlow from "../features/InformationalScenarios/aegeanSea/components/AegeanSeaInputsFlow/AegeanSeaInputsFlow";
 import AnchovyBayFeature from "../features/InformationalScenarios/anchovyBay/AnchovyBayFeature";
-import AnchovyInputsFlow, {
-  type AnchovyInputsFlowProps,
-} from "../features/InformationalScenarios/anchovyBay/components/AnchovyInputsFlow/AnchovyInputsFlow";
+import AnchovyInputsFlow from "../features/InformationalScenarios/anchovyBay/components/AnchovyInputsFlow/AnchovyInputsFlow";
+import type { ScenarioInputsFlowProps } from "../features/InformationalScenarios/shared/ScenarioInputsFlow/types";
 import WesternMediterraneanFeature from "../features/InformationalScenarios/westernMediterranean/WesternMediterraneanFeature";
-
-export type ScenarioInputsFlowProps = AnchovyInputsFlowProps;
+import WesternMediterraneanInputsFlow from "../features/InformationalScenarios/westernMediterranean/components/WesternMediterraneanInputsFlow/WesternMediterraneanInputsFlow";
 
 export type ScenarioWorldConfig = {
   worldTitle: string;
@@ -55,6 +54,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     backgroundBottomColor: "#020b18",
     backgroundHighlightColor: "rgba(100, 244, 224, 0.24)",
     FeatureComponent: WesternMediterraneanFeature,
+    InputsFlowComponent: WesternMediterraneanInputsFlow,
   },
   "aegean-sea": {
     worldTitle: "Aegean Connectivity Mesh",
@@ -82,6 +82,7 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     backgroundBottomColor: "#031120",
     backgroundHighlightColor: "rgba(104, 210, 255, 0.24)",
     FeatureComponent: AegeanSeaFeature,
+    InputsFlowComponent: AegeanSeaInputsFlow,
   },
   "anchovy-bay": {
     worldTitle: "Anchovy Bay",

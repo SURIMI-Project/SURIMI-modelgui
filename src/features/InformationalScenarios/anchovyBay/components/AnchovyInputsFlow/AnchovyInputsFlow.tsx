@@ -1,326 +1,37 @@
-import {
-  Button,
-  Group,
-  Paper,
-  Popover,
-  ScrollArea,
-  Select,
-  Stack,
-  Text,
-  Title,
-  UnstyledButton,
-} from "@mantine/core";
-import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
-import { FiInfo } from "react-icons/fi";
-import PrimaryModal from "../../../../../components/PrimaryModal/PrimaryModal";
-import SelectableCards from "../../../../../components/SelectableCards/SelectableCards";
+import ScenarioInputsFlow from "../../../shared/ScenarioInputsFlow/ScenarioInputsFlow";
+import type {
+  ScenarioInputsFlowConfig,
+  ScenarioInputsFlowProps,
+} from "../../../shared/ScenarioInputsFlow/types";
+import AnchovyInputsStepOne from "./AnchovyInputsStepOne";
 import {
   DEFAULT_SPECIES_INPUTS,
   HARVEST_CONTROL_INPUT_INFO,
   INPUT_FLOW_STEPS,
-  IPCC_SCENARIO_DESCRIPTION,
   IPCC_OPTIONS,
+  IPCC_SCENARIO_DESCRIPTION,
   YEAR_OPTIONS,
 } from "./const";
-import AnchovyInputsStepOne from "./AnchovyInputsStepOne";
-import styles from "./AnchovyInputsFlow.module.css";
 
-export type AnchovyInputsFlowProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onComplete?: () => void;
+const anchovyInputsFlowConfig: ScenarioInputsFlowConfig = {
+  modalTitle: "Anchovy Bay · Scenario definition",
+  steps: INPUT_FLOW_STEPS,
+  speciesInputs: DEFAULT_SPECIES_INPUTS,
+  stepOneInfo: {
+    eyebrow: "Harvest control rules",
+    text: HARVEST_CONTROL_INPUT_INFO,
+    ariaLabel: "Open harvest control input information",
+  },
+  yearOptions: YEAR_OPTIONS,
+  ipccOptions: IPCC_OPTIONS,
+  ipccDescription: IPCC_SCENARIO_DESCRIPTION,
+  StepOneComponent: AnchovyInputsStepOne,
 };
-const MotionDiv = motion.div;
 
-const AnchovyInputsFlow = ({
-  isOpen,
-  onClose,
-  onComplete,
-}: AnchovyInputsFlowProps) => {
-  const [activeSpeciesId, setActiveSpeciesId] = useState<string>(
-    DEFAULT_SPECIES_INPUTS[0]?.ID ?? "",
-  );
-  const [stepIndex, setStepIndex] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
-  const [selectedIpccScenario, setSelectedIpccScenario] = useState<
-    string | null
-  >(null);
-
-  const resetFlowState = () => {
-    setStepIndex(0);
-    setDirection(1);
-    setSelectedIpccScenario(null);
-  };
-
-  const handleClose = () => {
-    resetFlowState();
-    onClose();
-  };
-  const selectData = useMemo(() => {
-    return DEFAULT_SPECIES_INPUTS.map((row) => ({
-      value: row.ID,
-      label: row.LABEL,
-    }));
-  }, []);
-
-  const goNext = () => {
-    if (stepIndex !== 0) {
-      return;
-    }
-
-    setDirection(1);
-    setStepIndex(1);
-  };
-
-  const goBack = () => {
-    if (stepIndex === 0) {
-      handleClose();
-      return;
-    }
-
-    setDirection(-1);
-    setStepIndex((current) => current - 1);
-  };
-
-  const handleYearSelect = (yearValue: string) => {
-    const years = Number(yearValue);
-
-    if (years > 10) {
-      setDirection(1);
-      setStepIndex(2);
-      return;
-    }
-
-    onComplete?.();
-    handleClose();
-  };
-
-  const handleIpccSelect = (scenarioValue: string) => {
-    setSelectedIpccScenario(scenarioValue);
-    onComplete?.();
-    handleClose();
-  };
-
-  return (
-    <div className={styles.modalHost}>
-      <PrimaryModal
-        opened={isOpen}
-        onClose={handleClose}
-        title="Anchovy Bay · Scenario definition"
-        size="min(1280px, 96vw)"
-        zIndex={6000}
-        withinPortal={false}
-        withOverlay
-        overlayOpacity={0.72}
-        overlayBlur={8}
-        closeOnClickOutside={false}
-      >
-        <Stack gap="sm" className={styles.flowRoot}>
-          <div className={styles.flowHeading}>
-            <Group
-              justify="space-between"
-              align="center"
-              gap="sm"
-              className={styles.headingRow}
-            >
-              <Group gap="xs" align="center" className={styles.titleCluster}>
-                <Title order={2} className={styles.flowTitle}>
-                  {INPUT_FLOW_STEPS[stepIndex].title}
-                </Title>
-
-                {stepIndex === 0 ? (
-                  <Popover
-                    width={380}
-                    position="bottom-start"
-                    offset={12}
-                    shadow="lg"
-                    withinPortal={false}
-                    classNames={{ dropdown: styles.infoDropdown }}
-                  >
-                    <Popover.Target>
-                      <UnstyledButton
-                        type="button"
-                        className={styles.infoTrigger}
-                        aria-label="Open harvest control input information"
-                      >
-                        <FiInfo aria-hidden="true" />
-                      </UnstyledButton>
-                    </Popover.Target>
-
-                    <Popover.Dropdown>
-                      <div className={styles.infoPanel}>
-                        <Text className={styles.infoEyebrow}>
-                          Harvest control rules
-                        </Text>
-                        <Text className={styles.infoText}>
-                          {HARVEST_CONTROL_INPUT_INFO}
-                        </Text>
-                      </div>
-                    </Popover.Dropdown>
-                  </Popover>
-                ) : null}
-              </Group>
-
-              <Group gap="xs">
-                {stepIndex === 0 ? (
-                  <Select
-                    className={styles.speciesSelect}
-                    data={selectData}
-                    value={activeSpeciesId}
-                    comboboxProps={{ withinPortal: true, zIndex: 6200 }}
-                    searchable
-                    nothingFoundMessage="No species found"
-                    onChange={(value) => {
-                      if (value) {
-                        setActiveSpeciesId(value);
-                      }
-                    }}
-                    aria-label="Select species"
-                    allowDeselect={false}
-                  />
-                ) : null}
-              </Group>
-            </Group>
-
-            <Text className={styles.flowSubtitle}>
-              {INPUT_FLOW_STEPS[stepIndex].subtitle}
-            </Text>
-          </div>
-
-          <div className={styles.stepViewport}>
-            <AnimatePresence mode="wait" custom={direction}>
-              {stepIndex === 0 ? (
-                <AnchovyInputsStepOne
-                  direction={direction}
-                  activeSpeciesId={activeSpeciesId}
-                  onChangeActiveSpecies={setActiveSpeciesId}
-                />
-              ) : null}
-
-              {stepIndex === 1 ? (
-                <MotionDiv
-                  key="anchovy-input-step-2"
-                  custom={direction}
-                  initial={{
-                    opacity: 0,
-                    x: direction > 0 ? 52 : -52,
-                    filter: "blur(3px)",
-                  }}
-                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                  exit={{
-                    opacity: 0,
-                    x: direction > 0 ? -52 : 52,
-                    filter: "blur(3px)",
-                  }}
-                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                  className={styles.stepShell}
-                >
-                  <ScrollArea
-                    className={styles.stepScrollArea}
-                    type="auto"
-                    offsetScrollbars
-                    scrollbarSize={8}
-                    classNames={{ thumb: "thumb" }}
-                  >
-                    <div className={styles.stepContent}>
-                      <Paper className={styles.reviewPanel} withBorder>
-                        <Text className={styles.reviewTitle}>Run duration</Text>
-
-                        <Text className={styles.finalText}>
-                          Select one duration to continue.
-                        </Text>
-
-                        <ScrollArea
-                          type="auto"
-                          h={420}
-                          offsetScrollbars
-                          scrollbarSize={8}
-                        >
-                          <SelectableCards
-                            options={YEAR_OPTIONS}
-                            selectedValue={null}
-                            onSelect={handleYearSelect}
-                            columns={2}
-                            className={styles.yearCards}
-                          />
-                        </ScrollArea>
-                      </Paper>
-                    </div>
-                  </ScrollArea>
-                </MotionDiv>
-              ) : null}
-
-              {stepIndex === 2 ? (
-                <MotionDiv
-                  key="anchovy-input-step-3"
-                  custom={direction}
-                  initial={{
-                    opacity: 0,
-                    x: direction > 0 ? 52 : -52,
-                    filter: "blur(3px)",
-                  }}
-                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                  exit={{
-                    opacity: 0,
-                    x: direction > 0 ? -52 : 52,
-                    filter: "blur(3px)",
-                  }}
-                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                  className={styles.stepShell}
-                >
-                  <div>
-                    <div className={styles.stepContent}>
-                      <Paper className={styles.finalPanel} withBorder>
-                        <Text className={styles.reviewTitle}>
-                          IPCC scenarios
-                        </Text>
-
-                        <Text className={styles.finalText}>
-                          {IPCC_SCENARIO_DESCRIPTION}
-                        </Text>
-
-                        <ScrollArea
-                          type="auto"
-                          h={420}
-                          offsetScrollbars
-                          scrollbarSize={8}
-                        >
-                          <SelectableCards
-                            options={IPCC_OPTIONS}
-                            selectedValue={selectedIpccScenario}
-                            onSelect={handleIpccSelect}
-                            columns={2}
-                            className={styles.ipccCards}
-                          />
-                        </ScrollArea>
-                      </Paper>
-                    </div>
-                  </div>
-                </MotionDiv>
-              ) : null}
-            </AnimatePresence>
-          </div>
-
-          <Group justify="space-between" className={styles.footerActions}>
-            <Button type="button" variant="primaryOutlined" onClick={goBack}>
-              {stepIndex === 0 ? "Cancel" : "Previous"}
-            </Button>
-
-            {stepIndex === 0 ? (
-              <Button type="button" variant="primaryFilled" onClick={goNext}>
-                Next
-              </Button>
-            ) : (
-              <Text className={styles.selectionHint}>
-                Select one option to continue.
-              </Text>
-            )}
-          </Group>
-        </Stack>
-      </PrimaryModal>
-    </div>
-  );
+const AnchovyInputsFlow = (props: ScenarioInputsFlowProps) => {
+  return <ScenarioInputsFlow {...props} config={anchovyInputsFlowConfig} />;
 };
+
+export type { ScenarioInputsFlowProps as AnchovyInputsFlowProps };
 
 export default AnchovyInputsFlow;

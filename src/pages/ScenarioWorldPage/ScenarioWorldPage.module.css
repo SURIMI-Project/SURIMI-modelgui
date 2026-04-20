@@ -172,6 +172,14 @@
   max-width: min(66ch, 100%);
 }
 
+.worldKickerRow {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
 .worldKicker {
   margin: 0;
   text-transform: uppercase;
@@ -198,8 +206,6 @@
 
 .worldInfoButton {
   position: relative;
-  margin-top: 14px;
-  margin-left: 4px;
   min-height: 34px;
   padding: 8px 12px;
   display: inline-flex;
@@ -434,8 +440,6 @@
   }
 
   .worldInfoButton {
-    margin-top: 10px;
-    margin-left: 2px;
     min-height: 32px;
     padding: 7px 10px;
   }

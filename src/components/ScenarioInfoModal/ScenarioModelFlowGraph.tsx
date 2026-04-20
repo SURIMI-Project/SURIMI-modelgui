@@ -34,17 +34,12 @@ const ScenarioModelFlowGraph = () => {
     scenarioFlowNodes.find((node) => node.id === activeNodeId) ?? null;
 
   return (
-    <div
-      className={styles.graphFrame}
-      onMouseLeave={() => {
-        setActiveNodeId(null);
-      }}
-    >
+    <div className={styles.graphFrame}>
       <svg
         className={styles.graphSvg}
         viewBox="0 0 860 530"
         role="img"
-        aria-label="Scenario model flow graph linking Poseidon, CMSY++, Market, Fisheries Authority, Value Chain, Ecopath with Ecosim, and Environment"
+        aria-label="Scenario model flow graph linking Poseidon, CMSY++, Market, MICE Model, Value Chain, Ecopath with Ecosim, and Environment"
       >
         <defs>
           <marker
@@ -82,17 +77,20 @@ const ScenarioModelFlowGraph = () => {
                 className={styles.nodeGroup}
                 tabIndex={0}
                 role="button"
+                aria-pressed={isActive}
                 aria-label={`${node.hoverTitle}: ${node.hoverDescription}`}
-                onMouseEnter={() => {
-                  setActiveNodeId(node.id);
-                }}
-                onFocus={() => {
-                  setActiveNodeId(node.id);
-                }}
-                onBlur={() => {
+                onClick={() => {
                   setActiveNodeId((current) =>
-                    current === node.id ? null : current,
+                    current === node.id ? null : node.id,
                   );
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setActiveNodeId((current) =>
+                      current === node.id ? null : node.id,
+                    );
+                  }
                 }}
               >
                 <rect
@@ -149,7 +147,14 @@ const ScenarioModelFlowGraph = () => {
         </g>
       </svg>
 
-      {activeNode ? <ScenarioFlowHoverCard node={activeNode} /> : null}
+      {activeNode ? (
+        <ScenarioFlowHoverCard
+          node={activeNode}
+          onClose={() => {
+            setActiveNodeId(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 };

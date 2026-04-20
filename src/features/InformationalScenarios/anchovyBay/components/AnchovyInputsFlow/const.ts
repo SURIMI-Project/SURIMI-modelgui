@@ -1,4 +1,5 @@
 import type { SelectableCardOption } from "../../../../../components/SelectableCards/SelectableCards";
+import type { SpeciesInputPreset } from "./types";
 
 export const YEAR_OPTIONS: SelectableCardOption[] = [
   { value: "5", title: "5 years", description: "Short calibration window." },
@@ -91,7 +92,7 @@ export const DEFAULT_SPECIES_INPUTS = [
     BIOMASS_BASE: 0.884,
     F_MAX: 0.0914,
   },
-] as const;
+] as const satisfies readonly SpeciesInputPreset[];
 
 export const INPUT_FLOW_STEPS = [
   {

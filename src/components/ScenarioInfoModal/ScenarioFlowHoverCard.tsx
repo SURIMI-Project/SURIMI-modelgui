@@ -1,12 +1,14 @@
 import type { ScenarioFlowNode } from "./scenarioModelFlowGraphData";
+import { FiX } from "react-icons/fi";
 import { FaYoutube } from "react-icons/fa";
 import styles from "./ScenarioInfoModal.module.css";
 
 type ScenarioFlowHoverCardProps = {
   node: ScenarioFlowNode;
+  onClose: () => void;
 };
 
-const ScenarioFlowHoverCard = ({ node }: ScenarioFlowHoverCardProps) => {
+const ScenarioFlowHoverCard = ({ node, onClose }: ScenarioFlowHoverCardProps) => {
   return (
     <aside
       className={styles.hoverCard}
@@ -18,7 +20,17 @@ const ScenarioFlowHoverCard = ({ node }: ScenarioFlowHoverCardProps) => {
         } as React.CSSProperties
       }
     >
-      <p className={styles.hoverCardKicker}>Model Detail</p>
+      <div className={styles.hoverCardTopBar}>
+        <p className={styles.hoverCardKicker}>Model Detail</p>
+        <button
+          type="button"
+          className={styles.hoverCardClose}
+          onClick={onClose}
+          aria-label={`Close ${node.hoverTitle} detail`}
+        >
+          <FiX aria-hidden="true" />
+        </button>
+      </div>
       <div className={styles.hoverCardHeader}>
         <h3 className={styles.hoverCardTitle}>{node.hoverTitle}</h3>
         {node.videoUrl ? (
@@ -35,10 +47,10 @@ const ScenarioFlowHoverCard = ({ node }: ScenarioFlowHoverCardProps) => {
       </div>
       <p className={styles.hoverCardText}>{node.hoverDescription}</p>
       {node.references?.length ? (
-        <details className={styles.hoverCardReferences}>
-          <summary className={styles.hoverCardReferenceTitle}>
+        <div className={styles.hoverCardReferences}>
+          <p className={styles.hoverCardReferenceTitle}>
             References ({node.references.length})
-          </summary>
+          </p>
           <ul>
             {node.references.map((reference) => (
               <li
@@ -59,7 +71,7 @@ const ScenarioFlowHoverCard = ({ node }: ScenarioFlowHoverCardProps) => {
               </li>
             ))}
           </ul>
-        </details>
+        </div>
       ) : null}
     </aside>
   );

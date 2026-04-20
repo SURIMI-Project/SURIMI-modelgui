@@ -40,7 +40,7 @@ const ScenarioWorldFooter = ({
         loading={isReturningToHome}
         disabled={isReturningToHome}
       >
-        Back To Scenarios
+        Back To Case Studies
       </Button>
       <Button
         variant="primaryFilled"
@@ -48,7 +48,7 @@ const ScenarioWorldFooter = ({
         onClick={onStartScenario}
         disabled={isReturningToHome}
       >
-        Start Scenario
+        Set Up Scenario
       </Button>
       {showStockStatusButton ? (
         <Button

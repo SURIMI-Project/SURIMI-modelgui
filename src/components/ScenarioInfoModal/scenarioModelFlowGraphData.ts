@@ -70,7 +70,14 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     subtitle: "Stock assessments",
     hoverTitle: "CMSY++",
     hoverDescription:
-      "CMSY++ is a stock assessment model, focusing on how fish stocks grow or shorten over time.",
+      "The CMSY++ Assessment Model, used within SURIMI, assesses the health and future status of fish stocks, especially in situations where fisheries data are limited. It is based on the concept of Maximum Sustainable Yield (MSY), defined as the highest average catch that can be continuously taken from an exploited population under average environmental conditions. MSY represents the highest catch that still allows a population to sustain itself through growth, reproduction, and recruitment. CMSY++ applies a Bayesian surplus production (Schaefer-type) modelling approach to analyse catch time series and, when available, abundance data. These are combined with prior knowledge of species biology and productivity, including population growth rate and stock depletion, from which carrying capacity is estimated. The model explores different population trajectories consistent with the observed data, allowing reconstruction of biomass over time even when information is incomplete. Based on the available data, CMSY++ estimates key quantities used in fisheries management, including stock biomass, fishing mortality, and reference points related to MSY, such as biomass compared to the level under sustainable fishing and fishing pressure compared to the level under sustainable fishing. CMSY++ allows users to evaluate whether a fish stock is sustainably exploited, overfished, or recovering, translating catch and survey information into clear management indicators that support evidence-based decision-making and inform actions such as adjusting fishing effort, setting catch limits, or prioritising stocks for recovery.",
+    videoUrl:
+      "https://www.youtube.com/watch?v=E1GU7_n1giM&list=PLXKTm_QGiR-hSkLXN1wKySu-wT32br00T&index=4",
+    references: [
+      "Froese, R. et al. (2023). New developments in the analysis of catch time series as the basis for fish stock assessments: The CMSY++ method. Acta Ichthyologica et Piscatoria, 53: 173-189.",
+      "Tsikliras, A.C., Froese, R. (2019) Maximum Sustainable Yield. p. 108-115. In: Fath B (Ed) Encyclopedia of Ecology, Second Edition, Volume 1. Elsevier, Oxford.",
+      "Graham, M. (1943). The Fish Gate. London: Faber and Faber.",
+    ],
     cardX: 0.2,
     cardY: 0.58,
   },
@@ -85,7 +92,14 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     subtitle: "System Dynamics Model",
     hoverTitle: "Market Model",
     hoverDescription:
-      "This model fills the data gaps in the socio-economic layer, reduces uncertainties and improves the robustness of predictions of the other SURIMI models.",
+      "SURIMI combines different models to capture the dynamic interactions among ecological, social, and economic factors in a fishery system. When data are insufficient, specific components of advanced models sometimes cannot be sufficiently informed. In such a case, system dynamics models are designed to fill the model gaps with tailored puzzle pieces. This allows SURIMI to replace data-heavy model components of advanced models with simpler alternatives, reducing reliance on large datasets while still capturing the essential dynamics of the fishery system. System dynamics modelling is a mathematical technique that maps how things in a system are related and change over time. Key parts of a system dynamics model include causal loops, and stocks and flows. Applied to fisheries, a causal loop can for example illustrate how various factors interact to either increase or decrease the fish population.",
+    videoUrl:
+      "https://www.youtube.com/watch?v=cK8JoxFI6bU&list=PLXKTm_QGiR-hSkLXN1wKySu-wT32br00T&index=7",
+    references: [
+      "Charles, A. (2023). Sustainable fishery systems. John Wiley & Sons.",
+      "Bala, B. K., Arshad, F. M., & Noh, K. M. (2017). System dynamics. Modelling and Simulation, 274.",
+      "Schluter, M., Hinkel, J., Bots, P. W., & Arlinghaus, R. (2014). Application of the SES framework for model-based analysis of the dynamics of social-ecological systems. Ecology and Society, 19(1).",
+    ],
     cardX: 0.5,
     cardY: 0.58,
   },
@@ -96,10 +110,19 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     width: 160,
     height: 72,
     fill: "#7ea7df",
-    title: "Fisheries\nAuthority",
-    hoverTitle: "Fisheries Authority",
+    title: "MICE\nModel",
+    hoverTitle: "MICE Ecosystem Model",
     hoverDescription:
-      "This policy layer represents the management authority that applies limits, governance rules and regulatory constraints which shape fleet behaviour across the scenario system.",
+      "Models of Intermediate Complexity for Ecosystem assessments (MICE) aim to strike a balance between overly simple models, which may miss key ecological processes, and highly complex models, which can be computationally intense, data-hungry, and difficult to interpret. The goal of MICE models is to capture essential ecological dynamics and interactions with enough realism to inform conservation and management, while remaining accessible and applicable in practical scenarios. In SURIMI, we use MICE models in parallel with whole-of-system EwE models. We gradually simplify the EwE models to MICE models at different levels of complexity, which we expect to produce contrasting results that provide a measure of structural uncertainty related to the complexity of the marine ecosystem models used. This is an underutilised method in marine ecosystem modelling which can provide more robust model outputs to policy and decision makers.",
+    references: [
+      "Murphy K. et al. (2024). Developing a Southern Ocean Marine Ecosystem Model Ensemble To Assess Climate Risks and Uncertainties. ESS Open Archive. INPRESS.",
+      "Angelini, S. et al. (2016). An Ecosystem Model of Intermediate Complexity to test management options for fisheries: A case study. Ecological Modelling 319, 218-232.",
+      {
+        label:
+          "Plaganyi, E., Kenyon, R., Blamey, L. et al. Integrated assessment of river development on downstream marine fisheries and ecosystems. Nature Sustainability 7, 31-44 (2024).",
+        url: "https://doi.org/10.1038/s41893-023-01238-x",
+      },
+    ],
     cardX: 0.72,
     cardY: 0.58,
   },
@@ -113,7 +136,31 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     title: "Value Chain",
     hoverTitle: "Value Chain",
     hoverDescription:
-      "This is an extension of the Ecopath model that tracks the flow of fish products from the sea all the way to the end customer.",
+      "To account for how fish landings move from the sea to the final customers, the EwE approach contains a Value Chain module that can run with the Ecosim and Ecospace models. The Value Chain describes at a high level how the raw materials are distributed and processed, adding value through various processes, to be sold and consumed. Integrating a Value Chain model into a mechanistic marine ecosystem model provides a foundation for evaluating management strategies, both in terms of ecology and societal benefits.",
+    videoUrl:
+      "https://www.youtube.com/watch?v=lWVfgNWRLC4&list=PLXKTm_QGiR-hSkLXN1wKySu-wT32br00T&index=6",
+    references: [
+      {
+        label:
+          "Bevilacqua, A. H. V., Angelini, R., Steenbeek, J., Christensen, V., & Carvalho, A. R. (2019). Following the Fish: The Role of Subsistence in a Fish-based Value Chain. Ecological Economics, 159: 326-334.",
+        url: "https://doi.org/10.1016/j.ecolecon.2019.02.004",
+      },
+      {
+        label:
+          "Christensen, V., Steenbeek, J. & Failler, P. (2011). A combined ecosystem and value chain modeling approach for evaluating societal cost and benefit of fishing. Ecological Modelling 222, 857-864.",
+        url: "https://doi.org/10.1016/j.ecolmodel.2010.09.030",
+      },
+      {
+        label:
+          "Craig, J. K., & Link, J. S. (2023). It is past time to use ecosystem models tactically to support ecosystem-based fisheries management: Case studies using Ecopath with Ecosim in an operational management context. Fish and Fisheries, 24(3), 381-406.",
+        url: "https://doi.org/10.1111/faf.12733",
+      },
+      {
+        label:
+          "De la Puente S, Christensen V. 2024. Linking catch reconstructions with downstream supply chain nodes can help strengthen management actions in favour of just, sustainable and resilient futures. Marine Policy 170: 106387.",
+        url: "https://doi.org/10.1016/j.marpol.2024.106387",
+      },
+    ],
     cardX: 0.84,
     cardY: 0.54,
   },

@@ -29,14 +29,22 @@ const ScenarioWorldStorySection = ({
         ease: [0.22, 1, 0.36, 1],
       }}
     >
-      <motion.p
-        className={styles.worldKicker}
+      <motion.div
+        className={styles.worldKickerRow}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.42, delay: 0.2 }}
       >
-        Scenario World Initialization
-      </motion.p>
+        <p className={styles.worldKicker}>Scenario World Initialization</p>
+        <button
+          type="button"
+          className={styles.worldInfoButton}
+          onClick={onOpenInfoModal}
+          aria-label={`Open more information about ${worldTitle}`}
+        >
+          About the scenario
+        </button>
+      </motion.div>
 
       <motion.div
         className={styles.worldTitleRow}
@@ -49,14 +57,6 @@ const ScenarioWorldStorySection = ({
         }}
       >
         <h1 className={styles.worldTitle}>{worldTitle}</h1>
-        <button
-          type="button"
-          className={styles.worldInfoButton}
-          onClick={onOpenInfoModal}
-          aria-label={`Open more information about ${worldTitle}`}
-        >
-          About the scenario
-        </button>
       </motion.div>
 
       <motion.h2
