@@ -78,15 +78,15 @@ const shouldPlayOceanIntro = (isReturningFromWorld: boolean) => {
   }
 
   const navigationType = getNavigationType();
+  if (isReturningFromWorld || navigationType === "back_forward") {
+    return false;
+  }
+
   if (navigationType === "reload") {
     return true;
   }
 
   if (window.sessionStorage.getItem(INTRO_SEEN_SESSION_KEY) === "1") {
-    return false;
-  }
-
-  if (isReturningFromWorld || navigationType === "back_forward") {
     return false;
   }
 
@@ -222,11 +222,11 @@ const SimulationCaseSelectionPage = ({
   };
 
   const viewExistingScenarios = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked || caseId !== "anchovy-bay") {
+    if (isInteractionLocked) {
       return;
     }
 
-    navigate(`/scenario-outputs/${caseId}`);
+    navigate(`/scenario-runs/${caseId}`);
   };
 
   return (
@@ -236,11 +236,9 @@ const SimulationCaseSelectionPage = ({
       <motion.div
         className={styles.topbar}
         initial={
-          isReturningFromWorld
-            ? { opacity: 0, y: -22 }
-            : shouldPlayIntro
-              ? { opacity: 0, y: 24, filter: "blur(14px)" }
-              : false
+          shouldPlayIntro
+            ? { opacity: 0, y: 24, filter: "blur(14px)" }
+            : false
         }
         animate={{
           opacity: isTransitioning ? 0 : isLandingVisible ? 1 : 0,
@@ -248,7 +246,7 @@ const SimulationCaseSelectionPage = ({
           filter: isLandingVisible ? "blur(0px)" : "blur(14px)",
         }}
         transition={{
-          duration: isReturningFromWorld ? 0.58 : shouldPlayIntro ? 1.06 : 0.34,
+          duration: shouldPlayIntro ? 1.06 : 0.34,
           ease: PANEL_EASE,
         }}
       >
@@ -267,11 +265,9 @@ const SimulationCaseSelectionPage = ({
           .join(" ")}
         aria-label="Scenario case studies"
         initial={
-          isReturningFromWorld
-            ? { opacity: 0, scale: 1.05, filter: "blur(8px)" }
-            : shouldPlayIntro
-              ? { opacity: 0.26, scale: 1.04, filter: "blur(8px)" }
-              : false
+          shouldPlayIntro
+            ? { opacity: 0.26, scale: 1.04, filter: "blur(8px)" }
+            : false
         }
         animate={{
           opacity: isLandingVisible ? 1 : 0,
@@ -279,7 +275,7 @@ const SimulationCaseSelectionPage = ({
           filter: isLandingVisible ? "blur(0px)" : "blur(18px)",
         }}
         transition={{
-          duration: isReturningFromWorld ? 0.66 : shouldPlayIntro ? 1.08 : 0.12,
+          duration: shouldPlayIntro ? 1.08 : 0.12,
           ease: PANEL_EASE,
         }}
       >

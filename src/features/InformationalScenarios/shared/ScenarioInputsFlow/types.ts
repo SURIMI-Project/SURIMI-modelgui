@@ -1,11 +1,12 @@
 import type { ComponentType } from "react";
 import type { SelectableCardOption } from "../../../../components/SelectableCards/SelectableCards";
+import type { ScenarioRunInputDraft } from "../../../ScenarioRuns/types";
 import type { SpeciesInputPreset } from "../../anchovyBay/components/AnchovyInputsFlow/types";
 
 export type ScenarioInputsFlowProps = {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: () => void;
+  onComplete?: (draft: ScenarioRunInputDraft) => void;
 };
 
 export type ScenarioInputsFlowStep = {

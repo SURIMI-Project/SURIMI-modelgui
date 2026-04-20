@@ -20,6 +20,7 @@ import type {
   ScenarioInputsFlowConfig,
   ScenarioInputsFlowProps,
 } from "./types";
+import type { ScenarioRunInputDraft } from "../../../ScenarioRuns/types";
 
 type ScenarioInputsFlowShellProps = ScenarioInputsFlowProps & {
   config: ScenarioInputsFlowConfig;
@@ -38,6 +39,7 @@ const ScenarioInputsFlow = ({
   );
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const [selectedYears, setSelectedYears] = useState<number | null>(null);
   const [selectedIpccScenario, setSelectedIpccScenario] = useState<
     string | null
   >(null);
@@ -49,6 +51,7 @@ const ScenarioInputsFlow = ({
     setStepIndex(0);
     setDirection(1);
     setActiveSpeciesId(config.speciesInputs[0]?.ID ?? "");
+    setSelectedYears(null);
     setSelectedIpccScenario(null);
   };
 
@@ -83,13 +86,31 @@ const ScenarioInputsFlow = ({
     setStepIndex((current) => current - 1);
   };
 
-  const completeFlow = () => {
-    onComplete?.();
+  const buildRunDraft = (
+    durationYears: number,
+    ipccScenario: string | null,
+  ): ScenarioRunInputDraft => {
+    const activeSpecies = config.speciesInputs.find(
+      (species) => species.ID === activeSpeciesId,
+    );
+
+    return {
+      speciesId: activeSpecies?.ID ?? activeSpeciesId,
+      speciesLabel: activeSpecies?.LABEL ?? activeSpeciesId,
+      durationYears,
+      ipccScenario,
+      harvestControlProfile: "Configured HCR curve",
+    };
+  };
+
+  const completeFlow = (draft: ScenarioRunInputDraft) => {
+    onComplete?.(draft);
     handleClose();
   };
 
   const handleYearSelect = (yearValue: string) => {
     const years = Number(yearValue);
+    setSelectedYears(years);
 
     if (years > 10) {
       setDirection(1);
@@ -97,12 +118,12 @@ const ScenarioInputsFlow = ({
       return;
     }
 
-    completeFlow();
+    completeFlow(buildRunDraft(years, null));
   };
 
   const handleIpccSelect = (scenarioValue: string) => {
     setSelectedIpccScenario(scenarioValue);
-    completeFlow();
+    completeFlow(buildRunDraft(selectedYears ?? 25, scenarioValue));
   };
 
   return (

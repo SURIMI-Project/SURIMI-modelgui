@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ANCHOVY_BAY_FORECAST_START_YEAR,
   anchovyBayAnnualOutputsData,
@@ -17,6 +18,8 @@ import OutputsMapPanel from "../components/OutputsMapPanel/OutputsMapPanel";
 import SpeciesDropdown from "../components/SpeciesDropdown/SpeciesDropdown";
 import OutputsTrendPanel from "../components/OutputsTrendPanel/OutputsTrendPanel";
 import YearControls from "../components/YearControls/YearControls";
+import { getScenarioRunById } from "../../ScenarioRuns/mockScenarioRuns";
+import type { SimulationCaseId } from "../../../data/simulationCases";
 import type { HeatPoint, ScenarioOutputMetric, SpeciesOption } from "../types";
 import styles from "./AnchovyBayOutputs.module.css";
 
@@ -55,6 +58,13 @@ const speciesOptions: SpeciesOption[] =
 
 const defaultSpecies = speciesOptions[0]?.value ?? "MTS";
 const initialYear = years[0] ?? 2006;
+
+type AnchovyBayOutputsProps = {
+  caseId?: SimulationCaseId;
+  defaultTitle?: string;
+  defaultSubtitle?: string;
+  mapSubtitle?: string;
+};
 
 const salesQuantityBySpecies = salesData.sales_summaries.reduce<
   Record<string, number>
@@ -120,7 +130,18 @@ const buildActualHistoricalSeries = (values: number[], seriesSeed: number) => {
   });
 };
 
-const AnchovyBayOutputs = () => {
+const AnchovyBayOutputs = ({
+  caseId = "anchovy-bay",
+  defaultTitle = "Anchovy Bay Scenario Outputs",
+  defaultSubtitle = "Anchovy Bay outputs with synchronized biomass, landings, and ecosystem status views across 2006-2046.",
+  mapSubtitle = "Anchovy Bay hotspot intensity for the selected year and species.",
+}: AnchovyBayOutputsProps) => {
+  const [searchParams] = useSearchParams();
+  const runId = searchParams.get("run") ?? undefined;
+  const scenarioRun = useMemo(
+    () => getScenarioRunById(caseId, runId),
+    [caseId, runId],
+  );
   const [speciesCode, setSpeciesCode] = useState(defaultSpecies);
   const [metric, setMetric] = useState<ScenarioOutputMetric>("biomass");
   const [selectedYear, setSelectedYear] = useState(initialYear);
@@ -457,7 +478,7 @@ const AnchovyBayOutputs = () => {
     return (
       <OutputsMapPanel
         title=""
-        subtitle="Anchovy Bay hotspot intensity for the selected year and species."
+        subtitle={mapSubtitle}
         kicker={`Year · ${selectedYear}`}
         speciesCode={speciesCode}
         year={selectedYear}
@@ -479,8 +500,16 @@ const AnchovyBayOutputs = () => {
   return (
     <div>
       <DashboardLayout
-        title="Anchovy Bay Scenario Outputs"
-        subtitle="Anchovy Bay outputs with synchronized biomass, landings, and ecosystem status views across 2006-2046."
+        title={
+          scenarioRun
+            ? `${scenarioRun.title} Outputs`
+            : defaultTitle
+        }
+        subtitle={
+          scenarioRun
+            ? `Dashboard linked to run ${scenarioRun.id} and output profile ${scenarioRun.outputProfileId}.`
+            : defaultSubtitle
+        }
         headerLayout="centered"
         showKicker={false}
         headerCopyClassName={styles.headerCopy}

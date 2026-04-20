@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import ScenarioInfoModal from "../../components/ScenarioInfoModal/ScenarioInfoModal";
-import ScenarioLoadingScreen from "../../components/ScenarioLoadingScreen/ScenarioLoadingScreen";
+import { createScenarioRunFromDraft } from "../../features/ScenarioRuns/mockScenarioRuns";
+import type { ScenarioRunInputDraft } from "../../features/ScenarioRuns/types";
 import ScenarioWorldFeatureSection from "./components/ScenarioWorldFeatureSection";
 import ScenarioWorldFooter from "./components/ScenarioWorldFooter";
 import ScenarioWorldStorySection from "./components/ScenarioWorldStorySection";
@@ -10,14 +11,12 @@ import useScenarioWorldRoute from "./hooks/useScenarioWorldRoute";
 import styles from "./ScenarioWorldPage.module.css";
 
 const RETURN_TO_OCEANS_DURATION_MS = 560;
-const SCENARIO_LOADING_DURATION_MS = 5000;
 
 const ScenarioWorldPage = () => {
   const navigate = useNavigate();
   const { caseStudy, worldConfig, fromLanding } = useScenarioWorldRoute();
   const [isReturningToHome, setIsReturningToHome] = useState(false);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
-  const [isScenarioLoading, setIsScenarioLoading] = useState(false);
   const [isScenarioInfoOpen, setIsScenarioInfoOpen] = useState(false);
 
   useEffect(() => {
@@ -36,30 +35,21 @@ const ScenarioWorldPage = () => {
     };
   }, [isReturningToHome, navigate]);
 
-  useEffect(() => {
-    if (!isScenarioLoading || !caseStudy) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      navigate(`/scenario-outputs/${caseStudy.id}`);
-    }, SCENARIO_LOADING_DURATION_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [caseStudy, isScenarioLoading, navigate]);
-
   if (!caseStudy || !worldConfig) {
     return <Navigate to="/" replace />;
   }
 
   const beginReturnToOceans = () => {
-    if (isReturningToHome || isScenarioLoading) {
+    if (isReturningToHome) {
       return;
     }
 
     setIsReturningToHome(true);
+  };
+
+  const handleScenarioInputsComplete = (draft: ScenarioRunInputDraft) => {
+    const run = createScenarioRunFromDraft(caseStudy.id, draft);
+    navigate(`/scenario-runs/${caseStudy.id}/${run.id}`);
   };
 
   const worldVariables = {
@@ -108,10 +98,9 @@ const ScenarioWorldPage = () => {
         className={styles.contentGrid}
         initial={false}
         animate={{
-          opacity: isReturningToHome || isScenarioLoading ? 0 : 1,
-          y: isReturningToHome || isScenarioLoading ? 34 : 0,
-          filter:
-            isReturningToHome || isScenarioLoading ? "blur(6px)" : "blur(0px)",
+          opacity: isReturningToHome ? 0 : 1,
+          y: isReturningToHome ? 34 : 0,
+          filter: isReturningToHome ? "blur(6px)" : "blur(0px)",
         }}
         transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
       >
@@ -122,7 +111,7 @@ const ScenarioWorldPage = () => {
           simulationContext={worldConfig.simulationContext}
           fromLanding={fromLanding}
           onOpenInfoModal={() => {
-            if (isReturningToHome || isScenarioLoading) {
+            if (isReturningToHome) {
               return;
             }
 
@@ -137,10 +126,10 @@ const ScenarioWorldPage = () => {
       </motion.section>
 
       <ScenarioWorldFooter
-        isReturningToHome={isReturningToHome || isScenarioLoading}
+        isReturningToHome={isReturningToHome}
         onBackToOceans={beginReturnToOceans}
         onStartScenario={() => {
-          if (isScenarioLoading || isReturningToHome) {
+          if (isReturningToHome) {
             return;
           }
 
@@ -159,9 +148,9 @@ const ScenarioWorldPage = () => {
           onClose={() => {
             setIsScenarioInputsOpen(false);
           }}
-          onComplete={() => {
+          onComplete={(draft) => {
             setIsScenarioInputsOpen(false);
-            setIsScenarioLoading(true);
+            handleScenarioInputsComplete(draft);
           }}
         />
       ) : null}
@@ -173,16 +162,6 @@ const ScenarioWorldPage = () => {
         title={worldConfig.infoModalTitle}
         description={worldConfig.infoModalDescription}
       />
-      {isScenarioLoading ? (
-        <ScenarioLoadingScreen
-          title={
-            caseStudy.id === "anchovy-bay"
-              ? "Executing Model Anchovy Bay Scenario"
-              : `Initializing ${worldConfig.worldTitle}`
-          }
-          subtitle="Compiling selected input and launching scenario output..."
-        />
-      ) : null}
     </main>
   );
 };

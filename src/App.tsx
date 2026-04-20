@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
 import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage";
+import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
 import ScenarioWorldPage from "./pages/ScenarioWorldPage/ScenarioWorldPage";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
 
@@ -9,6 +10,15 @@ const App = () => {
     <Routes>
       <Route path="/" element={<SimulationCaseSelectionPage />} />
       <Route path="/scenario/:caseId" element={<ScenarioWorldPage />} />
+      <Route
+        path="/scenario-runs"
+        element={<Navigate to="/scenario-runs/anchovy-bay" replace />}
+      />
+      <Route path="/scenario-runs/:caseId" element={<ScenarioRunsPage />} />
+      <Route
+        path="/scenario-runs/:caseId/:runId"
+        element={<ScenarioRunsPage />}
+      />
       <Route path="/scenario-outputs/:scenario" element={<ScenarioOutputsPage />} />
       <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
       <Route path="/test" element={<MsyModelPage />} />
