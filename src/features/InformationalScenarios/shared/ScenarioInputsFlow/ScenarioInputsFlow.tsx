@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Button,
   Group,
@@ -153,7 +154,7 @@ const ScenarioInputsFlow = ({
                   {activeStep.title}
                 </Title>
 
-                {stepIndex === 0 ? (
+                {/* {stepIndex === 0 ? (
                   <Popover
                     width={380}
                     position="bottom-start"
@@ -183,7 +184,7 @@ const ScenarioInputsFlow = ({
                       </div>
                     </Popover.Dropdown>
                   </Popover>
-                ) : null}
+                ) : null} */}
               </Group>
 
               <Group gap="xs">
