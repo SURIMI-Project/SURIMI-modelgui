@@ -12,13 +12,13 @@ type FullBackgroundVideoPlayerProps = {
 };
 
 const sourceByVariant: Record<SimulationCaseId, string> = {
-  "western-mediterranean": "/1.mp4",
+  "northwestern-mediterranean": "/1.mp4",
   "aegean-sea": "/2.mp4",
   "anchovy-bay": "/3.mp4",
 };
 
 const playbackRateByVariant: Record<SimulationCaseId, number> = {
-  "western-mediterranean": 1,
+  "northwestern-mediterranean": 1,
   "aegean-sea": 1,
   "anchovy-bay": 1,
 };

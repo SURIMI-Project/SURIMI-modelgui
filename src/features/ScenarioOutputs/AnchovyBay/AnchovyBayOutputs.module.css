@@ -4,13 +4,20 @@
   position: relative;
 }
 
+.headerCopy {
+  width: min(calc(100vw - 620px), 1480px);
+  max-width: none;
+  position: relative;
+  z-index: 1;
+}
+
 .pageTitle {
   font-size: clamp(1.28rem, 1.72vw, 1.72rem);
   margin-bottom: 10px;
 }
 
 .pageSubtitle {
-  max-width: 450px;
+  max-width: none;
   font-size: clamp(1.02rem, 1.18vw, 1.14rem);
   text-align: left;
 }
@@ -18,10 +25,11 @@
 .controlsCluster {
   display: grid;
   gap: 18px;
+  justify-items: start;
 }
 
 .controlsCluster > * {
-  width: 100%;
+  width: min(100%, 52%);
 }
 
 .leftHeaderColumn {
@@ -29,6 +37,7 @@
   display: grid;
   align-content: start;
   gap: 24px;
+  position: relative;
 }
 
 .metricSection {
@@ -42,6 +51,7 @@
   height: 100%;
   align-content: start;
   gap: 18px;
+  margin-top: 92px;
   padding: 18px;
   border-radius: 18px;
   border: none;
@@ -226,8 +236,17 @@
 }
 
 @media (max-width: 980px) {
-  .headerControlsColumn {
-    grid-template-rows: auto;
+  .headerCopy {
+    width: 100%;
+    max-width: none;
+  }
+
+  .centerControlCard {
+    margin-top: 0;
+  }
+
+  .controlsCluster > * {
+    width: 100%;
   }
 
   .topGrid,

@@ -1,3 +1,5 @@
+import type { SimulationCaseId } from "../../data/simulationCases";
+
 export type ScenarioFlowReference =
   | string
   | {
@@ -35,7 +37,36 @@ export type ScenarioFlowEdge = {
   labels?: ScenarioFlowEdgeLabel[];
 };
 
-export const scenarioFlowNodes: ScenarioFlowNode[] = [
+export type ScenarioFlowGraph = {
+  ariaLabel: string;
+  nodes: ScenarioFlowNode[];
+  edges: ScenarioFlowEdge[];
+};
+
+const cloneNode = (node: ScenarioFlowNode): ScenarioFlowNode => ({
+  ...node,
+  references: node.references ? [...node.references] : undefined,
+});
+
+const cloneEdge = (edge: ScenarioFlowEdge): ScenarioFlowEdge => ({
+  ...edge,
+  labels: edge.labels?.map((label) => ({ ...label })),
+});
+
+const getNodeById = (
+  nodes: ScenarioFlowNode[],
+  nodeId: ScenarioFlowNode["id"],
+): ScenarioFlowNode => {
+  const node = nodes.find(({ id }) => id === nodeId);
+
+  if (!node) {
+    throw new Error(`Missing scenario flow node: ${nodeId}`);
+  }
+
+  return node;
+};
+
+const westernMediterraneanNodes: ScenarioFlowNode[] = [
   {
     id: "poseidon",
     x: 185,
@@ -208,23 +239,9 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     cardX: 0.76,
     cardY: 0.74,
   },
-  // {
-  //   id: "environment",
-  //   x: 185,
-  //   y: 422,
-  //   width: 400,
-  //   height: 76,
-  //   fill: "#68b8b4",
-  //   title: "Environment",
-  //   hoverTitle: "Environment",
-  //   hoverDescription:
-  //     "This layer represents the environmental and oceanographic conditions that drive ecosystem productivity, species interactions and the wider context for the other SURIMI models.",
-  //   cardX: 0.76,
-  //   cardY: 0.88,
-  // },
 ];
 
-export const scenarioFlowEdges: ScenarioFlowEdge[] = [
+const westernMediterraneanEdges: ScenarioFlowEdge[] = [
   {
     id: "poseidon-to-cmsy",
     path: "M185 82 H80 V182",
@@ -295,21 +312,84 @@ export const scenarioFlowEdges: ScenarioFlowEdge[] = [
   {
     id: "ecopath-to-value-chain",
     path: "M585 354 H700 V254",
-    labels: [
-      { text: "Sales", x: 646, y: 368 },
-      // { text: "Biomass", x: 668, y: 302, tone: "muted" },
-    ],
+    labels: [{ text: "Sales", x: 646, y: 368 }],
   },
-  // {
-  //   id: "environment-to-ecopath",
-  //   path: "M385 422 V392",
-  //   labels: [
-  //     {
-  //       text: "Oceanographic conditions",
-  //       x: 470,
-  //       y: 414,
-  //       tone: "muted",
-  //     },
-  //   ],
-  // },
 ];
+
+const westernAuthorityNode = getNodeById(westernMediterraneanNodes, "authority");
+const westernEcopathNode = getNodeById(westernMediterraneanNodes, "ecopath");
+
+const aegeanSeaNodes: ScenarioFlowNode[] = westernMediterraneanNodes
+  .filter(({ id }) => id !== "poseidon")
+  .map((node) => {
+    if (node.id === "authority") {
+      return {
+        ...cloneNode(node),
+        fill: westernEcopathNode.fill,
+        title: "Ecopath",
+        subtitle: "Ecology. All other fleets",
+        hoverTitle: westernEcopathNode.hoverTitle,
+        hoverDescription: westernEcopathNode.hoverDescription,
+        videoUrl: westernEcopathNode.videoUrl,
+        references: westernEcopathNode.references
+          ? [...westernEcopathNode.references]
+          : undefined,
+      };
+    }
+
+    if (node.id === "ecopath") {
+      return {
+        ...cloneNode(node),
+        fill: westernAuthorityNode.fill,
+        title: "MICE Model",
+        subtitle: "(EwE)",
+        hoverTitle: westernAuthorityNode.hoverTitle,
+        hoverDescription: westernAuthorityNode.hoverDescription,
+        videoUrl: westernAuthorityNode.videoUrl,
+        references: westernAuthorityNode.references
+          ? [...westernAuthorityNode.references]
+          : undefined,
+      };
+    }
+
+    return cloneNode(node);
+  });
+
+const aegeanSeaEdges: ScenarioFlowEdge[] = westernMediterraneanEdges
+  .filter(({ id }) => !id.includes("poseidon"))
+  .map(cloneEdge);
+
+const anchovyBayNodes: ScenarioFlowNode[] = westernMediterraneanNodes.map(
+  cloneNode,
+);
+
+const anchovyBayEdges: ScenarioFlowEdge[] = westernMediterraneanEdges.map(
+  cloneEdge,
+);
+
+const scenarioFlowGraphs: Record<SimulationCaseId, ScenarioFlowGraph> = {
+  "northwestern-mediterranean": {
+    ariaLabel:
+      "Scenario model flow graph linking Poseidon, CMSY++, Market, MICE Model, Value Chain, and Ecopath with Ecosim",
+    nodes: westernMediterraneanNodes,
+    edges: westernMediterraneanEdges,
+  },
+  "aegean-sea": {
+    ariaLabel:
+      "Scenario model flow graph linking CMSY++, Market, Ecopath, MICE Model EwE, and Value Chain",
+    nodes: aegeanSeaNodes,
+    edges: aegeanSeaEdges,
+  },
+  "anchovy-bay": {
+    ariaLabel:
+      "Scenario model flow graph linking Poseidon, CMSY++, Market, MICE Model, Value Chain, and Ecopath with Ecosim",
+    nodes: anchovyBayNodes,
+    edges: anchovyBayEdges,
+  },
+};
+
+export const getScenarioFlowGraph = (
+  caseId: SimulationCaseId,
+): ScenarioFlowGraph => {
+  return scenarioFlowGraphs[caseId];
+};

@@ -150,7 +150,7 @@
   box-shadow: 0 14px 26px -22px rgba(0, 6, 18, 0.88);
 }
 
-.scenarioImageSlot[data-case="western-mediterranean"] {
+.scenarioImageSlot[data-case="northwestern-mediterranean"] {
   background:
     radial-gradient(circle at 22% 24%, rgba(114, 242, 232, 0.48), transparent 34%),
     linear-gradient(145deg, rgba(7, 64, 82, 0.78), rgba(3, 18, 34, 0.86));

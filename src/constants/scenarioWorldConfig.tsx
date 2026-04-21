@@ -29,7 +29,7 @@ export type ScenarioWorldConfig = {
 };
 
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
-  "western-mediterranean": {
+  "northwestern-mediterranean": {
     worldTitle: "Northwestern Mediterranean Emissions Field",
     aboutTitle: "About The Northwestern Mediterranean",
     description: [

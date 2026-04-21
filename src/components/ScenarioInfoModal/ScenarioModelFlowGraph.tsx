@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { SimulationCaseId } from "../../data/simulationCases";
 import ScenarioFlowHoverCard from "./ScenarioFlowHoverCard";
-import {
-  scenarioFlowEdges,
-  scenarioFlowNodes,
-} from "./scenarioModelFlowGraphData";
+import { getScenarioFlowGraph } from "./scenarioModelFlowGraphData";
 import styles from "./ScenarioInfoModal.module.css";
 
 const renderNodeTitle = (title: string, centerX: number, centerY: number) => {
@@ -28,10 +26,18 @@ const renderNodeTitle = (title: string, centerX: number, centerY: number) => {
   );
 };
 
-const ScenarioModelFlowGraph = () => {
+type ScenarioModelFlowGraphProps = {
+  caseId: SimulationCaseId;
+};
+
+const ScenarioModelFlowGraph = ({ caseId }: ScenarioModelFlowGraphProps) => {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
-  const activeNode =
-    scenarioFlowNodes.find((node) => node.id === activeNodeId) ?? null;
+  const { ariaLabel, edges, nodes } = getScenarioFlowGraph(caseId);
+  const activeNode = nodes.find((node) => node.id === activeNodeId) ?? null;
+
+  useEffect(() => {
+    setActiveNodeId(null);
+  }, [caseId]);
 
   return (
     <div className={styles.graphFrame}>
@@ -39,7 +45,7 @@ const ScenarioModelFlowGraph = () => {
         className={styles.graphSvg}
         viewBox="0 0 860 530"
         role="img"
-        aria-label="Scenario model flow graph linking Poseidon, CMSY++, Market, MICE Model, Value Chain, Ecopath with Ecosim, and Environment"
+        aria-label={ariaLabel}
       >
         <defs>
           <marker
@@ -56,7 +62,7 @@ const ScenarioModelFlowGraph = () => {
         </defs>
 
         <g transform="translate(40 0)">
-          {scenarioFlowEdges.map((edge) => (
+          {edges.map((edge) => (
             <path
               key={edge.id}
               d={edge.path}
@@ -65,7 +71,7 @@ const ScenarioModelFlowGraph = () => {
             />
           ))}
 
-          {scenarioFlowNodes.map((node) => {
+          {nodes.map((node) => {
             const centerX = node.x + node.width / 2;
             const centerY = node.y + node.height / 2;
             const titleY = node.subtitle ? centerY - 8 : centerY + 5;
@@ -126,7 +132,7 @@ const ScenarioModelFlowGraph = () => {
             );
           })}
 
-          {scenarioFlowEdges.map((edge) =>
+          {edges.map((edge) =>
             edge.labels?.map((label) => (
               <text
                 key={`${edge.id}-${label.text}`}

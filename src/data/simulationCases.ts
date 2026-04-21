@@ -1,7 +1,27 @@
 export type SimulationCaseId =
-  | "western-mediterranean"
+  | "northwestern-mediterranean"
   | "aegean-sea"
   | "anchovy-bay";
+
+export type LegacySimulationCaseId = "western-mediterranean";
+
+export const normalizeSimulationCaseId = (
+  caseId?: string | null,
+): SimulationCaseId | null => {
+  if (caseId === "western-mediterranean") {
+    return "northwestern-mediterranean";
+  }
+
+  if (
+    caseId === "northwestern-mediterranean" ||
+    caseId === "aegean-sea" ||
+    caseId === "anchovy-bay"
+  ) {
+    return caseId;
+  }
+
+  return null;
+};
 
 export type SimulationCaseStudy = {
   id: SimulationCaseId;
@@ -15,7 +35,7 @@ export type SimulationCaseStudy = {
 
 export const simulationCaseStudies: SimulationCaseStudy[] = [
   {
-    id: "western-mediterranean",
+    id: "northwestern-mediterranean",
     seaName: "NORTHWESTERN MEDITERRANEAN SEA",
     subtitle: "Model covering areas GSA06 and GSA07",
     simulationTitle: "Northwestern Mediterranean Case Study",
@@ -47,5 +67,8 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
 ];
 
 export const getSimulationCaseById = (caseId?: string) => {
-  return simulationCaseStudies.find((caseStudy) => caseStudy.id === caseId);
+  const normalizedCaseId = normalizeSimulationCaseId(caseId);
+  return simulationCaseStudies.find(
+    (caseStudy) => caseStudy.id === normalizedCaseId,
+  );
 };

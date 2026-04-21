@@ -1,15 +1,14 @@
 .container {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
 .label {
-  color: rgba(204, 234, 252, 0.86);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 650;
+  color: #f2fbff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .metricStack {
@@ -21,6 +20,8 @@
   display: grid;
   gap: 7px;
   width: 100%;
+  min-height: 132px;
+  align-content: center;
   padding: 16px 18px;
   border: 1px solid rgba(126, 207, 255, 0.24);
   border-radius: 16px;

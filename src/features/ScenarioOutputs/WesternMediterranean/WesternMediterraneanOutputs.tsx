@@ -7,7 +7,7 @@ import {
 const WesternMediterraneanOutputs = () => {
   return (
     <AnchovyBayOutputs
-      caseId="western-mediterranean"
+      caseId="northwestern-mediterranean"
       defaultTitle="Northwestern Mediterranean Scenario Outputs"
       defaultSubtitle="Dashboard of Scenario Outputs showcasing biomass, landings and discards as well as market indicators for the selected period."
       mapSubtitle="Northwestern Mediterranean hotspot intensity for the selected year and species."

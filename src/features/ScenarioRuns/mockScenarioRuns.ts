@@ -171,7 +171,7 @@ const seededRunsList: ScenarioRun[] = [
     createdAt: "2026-04-12T10:02:00Z",
     completedAt: "2026-04-12T10:09:00Z",
   }),
-  buildScenarioRunFromDraft("western-mediterranean", {
+  buildScenarioRunFromDraft("northwestern-mediterranean", {
     speciesId: "sardine",
     speciesLabel: "Sardine",
     durationYears: 25,
@@ -179,7 +179,7 @@ const seededRunsList: ScenarioRun[] = [
     createdAt: "2026-04-20T09:44:00Z",
     completedAt: "2026-04-20T09:51:00Z",
   }),
-  buildScenarioRunFromDraft("western-mediterranean", {
+  buildScenarioRunFromDraft("northwestern-mediterranean", {
     speciesId: "hake",
     speciesLabel: "Hake",
     durationYears: 50,
@@ -187,7 +187,7 @@ const seededRunsList: ScenarioRun[] = [
     createdAt: "2026-04-18T13:24:00Z",
     completedAt: "2026-04-18T13:32:00Z",
   }),
-  buildScenarioRunFromDraft("western-mediterranean", {
+  buildScenarioRunFromDraft("northwestern-mediterranean", {
     speciesId: "red-mullet",
     speciesLabel: "Red mullet",
     durationYears: 10,
@@ -243,9 +243,16 @@ export const getScenarioRunById = (
     return seededRun;
   }
 
+  const legacyCaseId =
+    caseId === "northwestern-mediterranean"
+      ? "western-mediterranean"
+      : caseId;
+
   if (
     runId.startsWith(`${caseId}-demo-`) ||
-    runId.startsWith(`${caseId}-`)
+    runId.startsWith(`${caseId}-`) ||
+    runId.startsWith(`${legacyCaseId}-demo-`) ||
+    runId.startsWith(`${legacyCaseId}-`)
   ) {
     const durationMatch = runId.match(/-(\d+)y-/);
     const durationYears = durationMatch ? Number(durationMatch[1]) : 10;

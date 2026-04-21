@@ -1,4 +1,5 @@
 import { Navigate, useParams } from "react-router-dom";
+import { normalizeSimulationCaseId } from "../../data/simulationCases";
 import AnchovyBayOutputs from "../../features/ScenarioOutputs/AnchovyBay/AnchovyBayOutputs";
 import AegeanSeaOutputs from "../../features/ScenarioOutputs/AegeanSea/AegeanSeaOutputs";
 import WesternMediterraneanOutputs from "../../features/ScenarioOutputs/WesternMediterranean/WesternMediterraneanOutputs";
@@ -6,7 +7,7 @@ import WesternMediterraneanOutputs from "../../features/ScenarioOutputs/WesternM
 const scenarioComponentById = {
   "anchovy-bay": AnchovyBayOutputs,
   "aegean-sea": AegeanSeaOutputs,
-  "western-mediterranean": WesternMediterraneanOutputs,
+  "northwestern-mediterranean": WesternMediterraneanOutputs,
 } as const;
 
 const ScenarioOutputsPage = () => {
@@ -15,9 +16,20 @@ const ScenarioOutputsPage = () => {
     caseId?: string;
   }>();
 
-  const scenarioId = (scenario ?? caseId ?? "").toLowerCase();
-  const OutputsComponent =
-    scenarioComponentById[scenarioId as keyof typeof scenarioComponentById];
+  const requestedScenarioId = (scenario ?? caseId ?? "").toLowerCase();
+  const scenarioId = normalizeSimulationCaseId(requestedScenarioId);
+
+  if (scenario && scenarioId && scenarioId !== requestedScenarioId) {
+    return <Navigate to={`/scenario-outputs/${scenarioId}`} replace />;
+  }
+
+  if (caseId && scenarioId && scenarioId !== requestedScenarioId) {
+    return <Navigate to={`/outputs/${scenarioId}`} replace />;
+  }
+
+  const OutputsComponent = scenarioId
+    ? scenarioComponentById[scenarioId as keyof typeof scenarioComponentById]
+    : null;
 
   if (!OutputsComponent) {
     return <Navigate to="/" replace />;

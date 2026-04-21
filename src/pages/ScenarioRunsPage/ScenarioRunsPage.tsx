@@ -13,6 +13,7 @@ import {
 import { getScenarioWorldConfig } from "../../constants/scenarioWorldConfig";
 import {
   getSimulationCaseById,
+  normalizeSimulationCaseId,
   simulationCaseStudies,
   type SimulationCaseId,
 } from "../../data/simulationCases";
@@ -30,16 +31,8 @@ const PAGE_SIZE = 6;
 const scenarioNavIcons = {
   "anchovy-bay": FiAnchor,
   "aegean-sea": FiCompass,
-  "western-mediterranean": FiNavigation,
+  "northwestern-mediterranean": FiNavigation,
 } satisfies Record<SimulationCaseId, typeof FiAnchor>;
-
-const isSimulationCaseId = (value?: string): value is SimulationCaseId => {
-  return (
-    value === "anchovy-bay" ||
-    value === "aegean-sea" ||
-    value === "western-mediterranean"
-  );
-};
 
 const formatDateTime = (value: string) => {
   return new Intl.DateTimeFormat("en", {
@@ -71,7 +64,8 @@ const getCaseLabel = (caseId: SimulationCaseId) => {
 const ScenarioRunsPage = () => {
   const navigate = useNavigate();
   const { caseId, runId } = useParams<{ caseId?: string; runId?: string }>();
-  const selectedCaseId = isSimulationCaseId(caseId) ? caseId : "anchovy-bay";
+  const normalizedCaseId = normalizeSimulationCaseId(caseId);
+  const selectedCaseId = normalizedCaseId ?? "anchovy-bay";
   const [activePage, setActivePage] = useState(1);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
   const { completeScenarioSetup, isScenarioSetupLoading } =
@@ -87,8 +81,21 @@ const ScenarioRunsPage = () => {
     setActivePage(1);
   }, [caseId]);
 
-  if (!isSimulationCaseId(caseId)) {
+  if (!normalizedCaseId) {
     return <Navigate to="/scenario-runs/anchovy-bay" replace />;
+  }
+
+  if (caseId !== normalizedCaseId) {
+    return (
+      <Navigate
+        to={
+          runId
+            ? `/scenario-runs/${normalizedCaseId}/${runId}`
+            : `/scenario-runs/${normalizedCaseId}`
+        }
+        replace
+      />
+    );
   }
 
   const caseStudy = getSimulationCaseById(selectedCaseId);

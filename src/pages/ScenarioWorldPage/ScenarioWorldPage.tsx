@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import ScenarioInfoModal from "../../components/ScenarioInfoModal/ScenarioInfoModal";
+import { normalizeSimulationCaseId } from "../../data/simulationCases";
 import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
 import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
 import ScenarioWorldFeatureSection from "./components/ScenarioWorldFeatureSection";
@@ -14,6 +15,7 @@ const RETURN_TO_OCEANS_DURATION_MS = 560;
 
 const ScenarioWorldPage = () => {
   const navigate = useNavigate();
+  const { caseId } = useParams<{ caseId?: string }>();
   const { caseStudy, worldConfig, fromLanding } = useScenarioWorldRoute();
   const [isReturningToHome, setIsReturningToHome] = useState(false);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
@@ -42,6 +44,12 @@ const ScenarioWorldPage = () => {
       window.clearTimeout(timeoutId);
     };
   }, [isReturningToHome, navigate]);
+
+  const normalizedCaseId = normalizeSimulationCaseId(caseId);
+
+  if (caseId && normalizedCaseId && normalizedCaseId !== caseId) {
+    return <Navigate to={`/scenario/${normalizedCaseId}`} replace />;
+  }
 
   if (!caseStudy || !worldConfig) {
     return <Navigate to="/" replace />;
@@ -159,8 +167,8 @@ const ScenarioWorldPage = () => {
         onClose={() => {
           setIsScenarioInfoOpen(false);
         }}
+        caseId={caseStudy.id}
         title={worldConfig.infoModalTitle}
-        description={worldConfig.infoModalDescription}
       />
       <ScenarioSetupLoadingOverlay isVisible={isScenarioSetupLoading} />
     </main>

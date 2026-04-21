@@ -10,7 +10,7 @@ const MetricsSelector = ({ value, onChange }: MetricsSelectorProps) => {
   return (
     <div className={styles.container}>
       <label className={styles.label} htmlFor="metrics-selector">
-        Metric
+        Select Metric
       </label>
       <div
         id="metrics-selector"

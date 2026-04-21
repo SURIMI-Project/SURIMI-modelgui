@@ -18,7 +18,7 @@ const INTRO_SEEN_SESSION_KEY = "surimi:ocean-intro-seen";
 const PANEL_EASE = [0.22, 1, 0.36, 1] as const;
 
 const resolveCaseToneClass = (caseId: SimulationCaseId) => {
-  if (caseId === "western-mediterranean") {
+  if (caseId === "northwestern-mediterranean") {
     return styles.toneWestern;
   }
   if (caseId === "aegean-sea") {
