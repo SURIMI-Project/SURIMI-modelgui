@@ -30,16 +30,16 @@ export type ScenarioWorldConfig = {
 
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   "western-mediterranean": {
-    worldTitle: "Western Mediterranean Emissions Field",
-    aboutTitle: "About The Western Mediterranean",
+    worldTitle: "Northwestern Mediterranean Emissions Field",
+    aboutTitle: "About The Northwestern Mediterranean",
     description: [
-      "The Western Mediterranean hosts dense shipping corridors where vessel clusters generate localized pressure on marine air and water quality.",
+      "The Northwestern Mediterranean hosts dense shipping corridors where vessel clusters generate localized pressure on marine air and water quality.",
       "Traffic intensity shifts rapidly between seasonal routes, creating dynamic hotspots that influence ecological exposure and coastal operations.",
       "This scenario lets you test how changes in route density and operational constraints alter regional stress patterns.",
     ],
     simulationContext:
       "Run comparative experiments between baseline traffic and constrained-corridor policies to inspect emissions and ecosystem stress propagation.",
-    infoModalTitle: "Western Mediterranean · About the models behind",
+    infoModalTitle: "Northwestern Mediterranean · About the models behind",
     infoModalDescription: [
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer iaculis nisl at mauris facilisis, vitae finibus justo gravida. Aliquam erat volutpat.",
       "Suspendisse potenti. Curabitur luctus, libero sed maximus vulputate, justo lacus semper purus, sit amet tristique nulla neque eu nibh.",

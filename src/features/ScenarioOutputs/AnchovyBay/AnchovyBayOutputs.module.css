@@ -5,30 +5,42 @@
 }
 
 .headerCopy {
-  max-width: 68ch;
-  justify-self: center;
-  text-align: center;
+  max-width: none;
+  width: 100%;
+  display: grid;
+  justify-items: center;
 }
 
 .pageTitle {
-  font-size: clamp(1.18rem, 1.52vw, 1.52rem);
+  font-size: clamp(1.28rem, 1.72vw, 1.72rem);
+  margin-bottom: 10px;
 }
 
 .pageSubtitle {
-  max-width: 60ch;
-  margin-inline: auto;
-}
-
-.headerAside {
-  width: min(100%, 520px);
-  display: grid;
-  gap: 0;
-  justify-self: start;
+  max-width: 450px;
+  font-size: clamp(1.02rem, 1.18vw, 1.14rem);
+  text-align: center;
 }
 
 .controlsCluster {
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  gap: 8px;
+}
+
+.controlsCluster > * {
+  width: 100%;
+}
+
+.headerControlsColumn {
+  height: 100%;
+  display: grid;
+  gap: 14px;
+  grid-template-rows: auto 1fr;
+}
+
+.controlCard {
+  display: grid;
+  align-content: start;
   gap: 10px;
   padding: 14px;
   border-radius: 18px;
@@ -37,6 +49,32 @@
     linear-gradient(160deg, rgba(9, 38, 66, 0.82), rgba(5, 22, 40, 0.74)),
     rgba(5, 18, 30, 0.66);
   backdrop-filter: blur(12px);
+}
+
+.controlCardHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.controlCardTitle {
+  margin: 0;
+  color: #f2fbff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.controlCardSubtitle {
+  margin: 0;
+  color: rgba(212, 236, 251, 0.84);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.indicatorPanel {
+  min-height: 100%;
+  align-self: stretch;
+  width: 100%;
 }
 
 .ringDock {
@@ -69,7 +107,11 @@
   border: 1px solid rgba(131, 214, 255, 0.42);
   border-radius: 50%;
   background:
-    radial-gradient(circle at 32% 26%, rgba(154, 224, 255, 0.34), rgba(154, 224, 255, 0) 44%),
+    radial-gradient(
+      circle at 32% 26%,
+      rgba(154, 224, 255, 0.34),
+      rgba(154, 224, 255, 0) 44%
+    ),
     linear-gradient(150deg, rgba(16, 62, 96, 0.96), rgba(3, 24, 47, 0.98));
   color: #ffffff;
   display: grid;
@@ -136,10 +178,6 @@
   min-height: 0;
 }
 
-.spiderPanel {
-  min-height: clamp(520px, calc(46vh + 60px), 660px);
-}
-
 .secondarySection {
   display: grid;
   gap: 16px;
@@ -190,13 +228,8 @@
 }
 
 @media (max-width: 980px) {
-  .headerAside {
-    width: 100%;
-    justify-self: stretch;
-  }
-
-  .controlsCluster {
-    flex-wrap: wrap;
+  .headerControlsColumn {
+    grid-template-rows: auto;
   }
 
   .topGrid,
@@ -224,10 +257,6 @@
   .pageMapPanel,
   .primaryChartPanel {
     padding: 14px;
-    min-height: auto;
-  }
-
-  .spiderPanel {
     min-height: auto;
   }
 

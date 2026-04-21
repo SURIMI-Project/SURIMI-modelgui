@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import {
   ANCHOVY_BAY_FORECAST_START_YEAR,
   anchovyBayAnnualOutputsData,
@@ -8,22 +7,30 @@ import {
 import { pricesData } from "../MockData/pricesData";
 import { salesData } from "../MockData/salesData";
 import { anchovyBaySimulationMetadata } from "../MockData/simulationMetadata";
+import {
+  WEST_MEDITERRANEAN_FUNCTIONAL_GROUP_OPTIONS,
+  WEST_MEDITERRANEAN_SPECIES_MAP,
+} from "../../../constants/westMediterraneanTaxonomy";
 import DashboardLayout from "../components/DashboardLayout/DashboardLayout";
+import FunctionalGroupDropdown from "../components/FunctionalGroupDropdown/FunctionalGroupDropdown";
 import InformationLegendsPopover from "../components/InformationLegends/InformationLegendsPopover";
 import { type InformationLegendItem } from "../components/InformationLegends/InformationLegends";
-import FloatingSpiderDock from "./components/FloatingSpiderDock/FloatingSpiderDock";
 import LandingsStackedBarChart from "../components/LandingsStackedBarChart/LandingsStackedBarChart";
 import MetricsSelector from "../components/MetricsSelector/MetricsSelector";
 import OutputsMapPanel from "../components/OutputsMapPanel/OutputsMapPanel";
+import SpiderDiagram, {
+  type SpiderDiagramDatum,
+} from "../components/SpiderDiagram/SpiderDiagram";
 import SpeciesDropdown from "../components/SpeciesDropdown/SpeciesDropdown";
 import OutputsTrendPanel from "../components/OutputsTrendPanel/OutputsTrendPanel";
 import YearControls from "../components/YearControls/YearControls";
-import { getScenarioRunById } from "../../ScenarioRuns/mockScenarioRuns";
 import type { SimulationCaseId } from "../../../data/simulationCases";
 import type { HeatPoint, ScenarioOutputMetric, SpeciesOption } from "../types";
 import styles from "./AnchovyBayOutputs.module.css";
 
 const PLAYBACK_STEP_MS = 900;
+const ALL_FUNCTIONAL_GROUPS_VALUE = "all";
+const ALL_SPECIES_VALUE = "all-species";
 
 const metricMeta: Record<
   ScenarioOutputMetric,
@@ -46,17 +53,20 @@ const metricMeta: Record<
 };
 
 const years = anchovyBayAnnualOutputsData.years;
+const indicatorLabels = {
+  economicRent: ["Economic", "rent"],
+  socialBenefits: ["Social", "benefits"],
+  speciesRebuilding: ["Species", "rebuilding"],
+  biodiversity: "Biodiversity",
+  ecosystemStructure: ["Ecosystem", "structure"],
+} as const;
 
-const speciesOptions: SpeciesOption[] =
-  anchovyBayAnnualOutputsData.species_outputs
-    .map((item) => item.species_code)
-    .sort((a, b) => a.localeCompare(b))
-    .map((speciesCode) => ({
-      value: speciesCode,
-      label: speciesCode,
-    }));
+type SpeciesPresentation = {
+  displayName: string;
+  scientificName: string;
+  functionalGroupKey: string;
+};
 
-const defaultSpecies = speciesOptions[0]?.value ?? "MTS";
 const initialYear = years[0] ?? 2006;
 
 type AnchovyBayOutputsProps = {
@@ -64,6 +74,8 @@ type AnchovyBayOutputsProps = {
   defaultTitle?: string;
   defaultSubtitle?: string;
   mapSubtitle?: string;
+  speciesPresentationByKey?: Record<string, SpeciesPresentation>;
+  functionalGroupOptions?: SpeciesOption[];
 };
 
 const salesQuantityBySpecies = salesData.sales_summaries.reduce<
@@ -135,24 +147,90 @@ const AnchovyBayOutputs = ({
   defaultTitle = "Anchovy Bay Scenario Outputs",
   defaultSubtitle = "Dashboard of Scenario Outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
   mapSubtitle = "Anchovy Bay hotspot intensity for the selected year and species.",
+  speciesPresentationByKey = WEST_MEDITERRANEAN_SPECIES_MAP,
+  functionalGroupOptions = [...WEST_MEDITERRANEAN_FUNCTIONAL_GROUP_OPTIONS],
 }: AnchovyBayOutputsProps) => {
-  const [searchParams] = useSearchParams();
-  const runId = searchParams.get("run") ?? undefined;
-  const scenarioRun = useMemo(
-    () => getScenarioRunById(caseId, runId),
-    [caseId, runId],
-  );
+  const speciesOptions = useMemo<SpeciesOption[]>(() => {
+    return anchovyBayAnnualOutputsData.species_outputs
+      .map((item) => item.species_code)
+      .sort((a, b) => a.localeCompare(b))
+      .map((speciesCode) => ({
+        value: speciesCode,
+        label:
+          speciesPresentationByKey?.[speciesCode.toLowerCase()]?.displayName ??
+          speciesCode,
+      }));
+  }, [speciesPresentationByKey]);
+
+  const defaultSpecies = speciesOptions[0]?.value ?? "MTS";
+  const defaultFunctionalGroup =
+    functionalGroupOptions.find(
+      (option) => option.value === ALL_FUNCTIONAL_GROUPS_VALUE,
+    )?.value ??
+    functionalGroupOptions[0]?.value ??
+    "";
   const [speciesCode, setSpeciesCode] = useState(defaultSpecies);
+  const [selectedFunctionalGroup, setSelectedFunctionalGroup] = useState(
+    defaultFunctionalGroup,
+  );
   const [metric, setMetric] = useState<ScenarioOutputMetric>("biomass");
   const [selectedYear, setSelectedYear] = useState(initialYear);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRingOpen, setIsRingOpen] = useState(false);
+
+  const activeSpeciesPresentation = useMemo(() => {
+    return speciesPresentationByKey?.[speciesCode.toLowerCase()] ?? null;
+  }, [speciesCode, speciesPresentationByKey]);
+
+  const activeSpeciesLabel =
+    activeSpeciesPresentation?.displayName ?? speciesCode;
+  const filteredSpeciesOptions = useMemo(() => {
+    if (
+      selectedFunctionalGroup.length === 0 ||
+      selectedFunctionalGroup === ALL_FUNCTIONAL_GROUPS_VALUE
+    ) {
+      return speciesOptions;
+    }
+
+    return [
+      {
+        value: ALL_SPECIES_VALUE,
+        label: "All species",
+        disabled: true,
+      },
+      ...speciesOptions.filter((option) => {
+        return (
+          speciesPresentationByKey?.[option.value.toLowerCase()]
+            ?.functionalGroupKey === selectedFunctionalGroup
+        );
+      }),
+    ];
+  }, [selectedFunctionalGroup, speciesOptions, speciesPresentationByKey]);
 
   const speciesOutput = useMemo(() => {
     return anchovyBayAnnualOutputsData.species_outputs.find(
       (item) => item.species_code === speciesCode,
     );
   }, [speciesCode]);
+
+  useEffect(() => {
+    if (filteredSpeciesOptions.length === 0) {
+      return;
+    }
+
+    const hasActiveSpecies = filteredSpeciesOptions.some(
+      (option) => option.value === speciesCode,
+    );
+
+    if (!hasActiveSpecies) {
+      const nextSpecies = filteredSpeciesOptions.find(
+        (option) => option.value !== ALL_SPECIES_VALUE,
+      );
+      if (nextSpecies) {
+        setSpeciesCode(nextSpecies.value);
+      }
+    }
+  }, [filteredSpeciesOptions, speciesCode]);
 
   const annualMetricAverages = useMemo(() => {
     if (!speciesOutput) {
@@ -361,9 +439,12 @@ const AnchovyBayOutputs = ({
   const currentSalesValue = salesSeries[selectedYearIndex] ?? 0;
   const currentPriceValue = priceSeries[selectedYearIndex] ?? 0;
 
-  const spiderDockData = useMemo(() => {
+  const performanceIndicatorData = useMemo(() => {
     if (annualMetricAverages.length === 0) {
-      return [];
+      return {
+        baseline: [] as SpiderDiagramDatum[],
+        scenario: [] as SpiderDiagramDatum[],
+      };
     }
 
     const biomassTrend = normalizeSeries(
@@ -393,41 +474,111 @@ const AnchovyBayOutputs = ({
       0,
       1,
     );
+    const progress =
+      years.length > 1 ? safeSelectedYearIndex / (years.length - 1) : 0;
+    const timelineAngle = progress * Math.PI * 2;
+    const buildDatum = (
+      id: string,
+      label: string | readonly string[],
+      value: number,
+      tooltipLabel?: string,
+    ): SpiderDiagramDatum => ({
+      id,
+      label,
+      tooltipLabel,
+      value,
+    });
+    const toPercent = (value: number) => Math.round(clamp(value, 0, 1) * 100);
+    const wave = (offset: number, amplitude: number, secondary = 0.04) => {
+      return (
+        0.56 +
+        Math.sin(timelineAngle + offset) * amplitude +
+        Math.cos(timelineAngle * 0.64 + offset * 0.5) * secondary
+      );
+    };
 
-    return [
-      {
-        label: "Ecology",
-        value: Math.round(
-          clamp(biomassScore * 0.72 + (1 - discardsScore) * 0.28, 0, 1) * 100,
+    return {
+      scenario: [
+        buildDatum(
+          "economic_rent",
+          indicatorLabels.economicRent,
+          toPercent(
+            salesScore * 0.48 + priceScore * 0.34 + efficiencyScore * 0.18,
+          ),
+          "Economic rent",
         ),
-      },
-      {
-        label: "Socioeconomics",
-        value: Math.round(
-          clamp(salesScore * 0.62 + priceScore * 0.38, 0, 1) * 100,
+        buildDatum(
+          "social_benefits",
+          indicatorLabels.socialBenefits,
+          toPercent(
+            salesScore * 0.42 + landingsScore * 0.22 + efficiencyScore * 0.36,
+          ),
+          "Social benefits",
         ),
-      },
-      {
-        label: "Stock Status",
-        value: Math.round(
-          clamp(biomassScore * 0.78 + harvestBalanceScore * 0.22, 0, 1) * 100,
+        buildDatum(
+          "species_rebuilding",
+          indicatorLabels.speciesRebuilding,
+          toPercent(
+            biomassScore * 0.58 +
+              harvestBalanceScore * 0.24 +
+              (1 - discardsScore) * 0.18,
+          ),
+          "Species rebuilding",
         ),
-      },
-      {
-        label: "Harvest Balance",
-        value: Math.round(
-          clamp(harvestBalanceScore * 0.65 + efficiencyScore * 0.35, 0, 1) *
-            100,
+        buildDatum(
+          "biodiversity",
+          indicatorLabels.biodiversity,
+          toPercent(
+            biomassScore * 0.34 +
+              (1 - discardsScore) * 0.34 +
+              (1 - landingsScore) * 0.12 +
+              harvestBalanceScore * 0.2,
+          ),
         ),
-      },
-      {
-        label: "Resource Efficiency",
-        value: Math.round(
-          clamp(efficiencyScore * 0.78 + (1 - discardsScore) * 0.22, 0, 1) *
-            100,
+        buildDatum(
+          "ecosystem_structure",
+          indicatorLabels.ecosystemStructure,
+          toPercent(
+            biomassScore * 0.42 +
+              harvestBalanceScore * 0.28 +
+              (1 - discardsScore) * 0.18 +
+              priceScore * 0.12,
+          ),
+          "Ecosystem structure",
         ),
-      },
-    ];
+      ],
+      baseline: [
+        buildDatum(
+          "economic_rent",
+          indicatorLabels.economicRent,
+          toPercent(wave(0.2, 0.08, 0.03)),
+          "Economic rent",
+        ),
+        buildDatum(
+          "social_benefits",
+          indicatorLabels.socialBenefits,
+          toPercent(wave(1.1, 0.07)),
+          "Social benefits",
+        ),
+        buildDatum(
+          "species_rebuilding",
+          indicatorLabels.speciesRebuilding,
+          toPercent(wave(2.4, 0.06)),
+          "Species rebuilding",
+        ),
+        buildDatum(
+          "biodiversity",
+          indicatorLabels.biodiversity,
+          toPercent(wave(3.3, 0.05)),
+        ),
+        buildDatum(
+          "ecosystem_structure",
+          indicatorLabels.ecosystemStructure,
+          toPercent(wave(4.1, 0.06, 0.03)),
+          "Ecosystem structure",
+        ),
+      ],
+    };
   }, [
     annualMetricAverages,
     catchesSeries,
@@ -436,6 +587,42 @@ const AnchovyBayOutputs = ({
     safeSelectedYearIndex,
     salesSeries,
   ]);
+
+  const handleFunctionalGroupChange = (nextGroup: string) => {
+    setSelectedFunctionalGroup(nextGroup);
+    setIsPlaying(false);
+
+    if (nextGroup === ALL_FUNCTIONAL_GROUPS_VALUE) {
+      return;
+    }
+
+    const firstMatchingSpecies = speciesOptions.find((option) => {
+      return (
+        speciesPresentationByKey?.[option.value.toLowerCase()]
+          ?.functionalGroupKey === nextGroup
+      );
+    });
+
+    if (firstMatchingSpecies) {
+      setSpeciesCode(firstMatchingSpecies.value);
+    }
+  };
+
+  const handleSpeciesChange = (nextSpecies: string) => {
+    if (nextSpecies === ALL_SPECIES_VALUE) {
+      return;
+    }
+
+    setSpeciesCode(nextSpecies);
+    setIsPlaying(false);
+
+    const matchingGroup =
+      speciesPresentationByKey?.[nextSpecies.toLowerCase()]?.functionalGroupKey;
+
+    if (matchingGroup && matchingGroup !== selectedFunctionalGroup) {
+      setSelectedFunctionalGroup(matchingGroup);
+    }
+  };
 
   useEffect(() => {
     if (!isPlaying || years.length === 0) {
@@ -498,39 +685,71 @@ const AnchovyBayOutputs = ({
   };
 
   return (
-    <div>
+    <div data-case-id={caseId}>
       <DashboardLayout
-        title={scenarioRun ? `${scenarioRun.title} Outputs` : defaultTitle}
-        subtitle={
-          scenarioRun
-            ? `Dashboard linked to run ${scenarioRun.id} and output profile ${scenarioRun.outputProfileId}.`
-            : defaultSubtitle
-        }
-        headerLayout="centered"
+        title={defaultTitle}
+        subtitle={defaultSubtitle}
+        headerLayout="three-column"
         showKicker={false}
         headerCopyClassName={styles.headerCopy}
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSubtitle}
-        headerAside={
-          <div className={styles.headerAside}>
-            <div className={styles.controlsCluster}>
-              <SpeciesDropdown
-                options={speciesOptions}
-                value={speciesCode}
-                onChange={(next) => {
-                  setSpeciesCode(next);
-                  setIsPlaying(false);
-                }}
-              />
-              <MetricsSelector
-                value={metric}
-                onChange={(next) => {
-                  setMetric(next);
-                  setIsPlaying(false);
-                }}
-              />
+        headerLeft={
+          <div className={styles.headerControlsColumn}>
+            <div className={styles.controlCard}>
+              <div className={styles.controlCardHeader}>
+                <p className={styles.controlCardTitle}>Select Metric</p>
+              </div>
+
+              <div className={styles.controlsCluster}>
+                <MetricsSelector
+                  value={metric}
+                  onChange={(next) => {
+                    setMetric(next);
+                    setIsPlaying(false);
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className={styles.controlCard}>
+              <div className={styles.controlCardHeader}>
+                <p className={styles.controlCardTitle}>Select Fish</p>
+                <p className={styles.controlCardSubtitle}>
+                  Select a fish species or a functional group.
+                </p>
+              </div>
+
+              <div className={styles.controlsCluster}>
+                {functionalGroupOptions.length > 0 ? (
+                  <FunctionalGroupDropdown
+                    options={functionalGroupOptions}
+                    value={selectedFunctionalGroup}
+                    onChange={handleFunctionalGroupChange}
+                  />
+                ) : null}
+                <SpeciesDropdown
+                  options={filteredSpeciesOptions}
+                  value={speciesCode}
+                  onChange={handleSpeciesChange}
+                />
+              </div>
             </div>
           </div>
+        }
+        headerRight={
+          <SpiderDiagram
+            className={styles.indicatorPanel}
+            title="Performance of Indicators"
+            subtitle="Shows how well the scenario applies to each indicator compared to the baseline."
+            dataLabel="Scenario"
+            data={performanceIndicatorData.scenario}
+            comparison={{
+              label: "Baseline",
+              data: performanceIndicatorData.baseline,
+            }}
+            valueSuffix="%"
+          />
         }
       >
         <div className={styles.layout}>
@@ -590,7 +809,7 @@ const AnchovyBayOutputs = ({
                     discardsValues={discardsSeries}
                     selectedIndex={safeSelectedYearIndex}
                     onSelectIndex={selectYearByIndex}
-                    currentLabel={`${speciesCode} · ${selectedYear}`}
+                    currentLabel={`${activeSpeciesLabel} · ${selectedYear}`}
                     valueSuffix={` ${metricMeta.landings.unit}`}
                     yAxisLabel={metricMeta.landings.unit}
                   />
@@ -642,8 +861,6 @@ const AnchovyBayOutputs = ({
           </section>
         </div>
       </DashboardLayout>
-
-      <FloatingSpiderDock data={spiderDockData} />
 
       <div className={styles.ringDock}>
         <AnimatePresence>

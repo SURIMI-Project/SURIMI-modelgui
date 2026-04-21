@@ -133,7 +133,9 @@ const ScenarioModelFlowGraph = () => {
                 x={label.x}
                 y={label.y}
                 className={
-                  label.tone === "muted" ? styles.edgeLabelMuted : styles.edgeLabel
+                  label.tone === "muted"
+                    ? styles.edgeLabelMuted
+                    : styles.edgeLabel
                 }
               >
                 {label.text.split("\n").map((line, index) => (

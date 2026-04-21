@@ -127,4 +127,5 @@ export type AnchovyBayAnnualOutputsData = {
 export type SpeciesOption = {
   value: string;
   label: string;
+  disabled?: boolean;
 };

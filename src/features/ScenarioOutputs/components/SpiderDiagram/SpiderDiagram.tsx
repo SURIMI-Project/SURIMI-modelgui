@@ -20,15 +20,23 @@ ChartJS.register(
 );
 
 export type SpiderDiagramDatum = {
-  label: string;
+  id: string;
+  label: string | readonly string[];
+  tooltipLabel?: string;
   value: number;
+};
+
+type SpiderDiagramComparison = {
+  label: string;
+  data: SpiderDiagramDatum[];
 };
 
 type SpiderDiagramProps = {
   title: string;
   subtitle: string;
-  currentLabel?: string;
+  dataLabel?: string;
   data: SpiderDiagramDatum[];
+  comparison?: SpiderDiagramComparison;
   maxValue?: number;
   valueSuffix?: string;
   className?: string;
@@ -37,14 +45,23 @@ type SpiderDiagramProps = {
 const SpiderDiagram = ({
   title,
   subtitle,
-  currentLabel,
+  dataLabel = "Scenario",
   data,
+  comparison,
   maxValue = 100,
   valueSuffix = "",
   className,
 }: SpiderDiagramProps) => {
   const labels = data.map((entry) => entry.label);
   const values = data.map((entry) => entry.value);
+  const comparisonValues = comparison?.data.map((entry) => entry.value) ?? [];
+  const tooltipLabels = data.map((entry) => {
+    if (entry.tooltipLabel) {
+      return entry.tooltipLabel;
+    }
+
+    return Array.isArray(entry.label) ? entry.label.join(" ") : entry.label;
+  });
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -53,8 +70,6 @@ const SpiderDiagram = ({
           <p className={styles.kicker}>{title}</p>
           <h3 className={styles.title}>{subtitle}</h3>
         </div>
-
-        {currentLabel ? <span className={styles.currentLabel}>{currentLabel}</span> : null}
       </div>
 
       <div className={styles.chartWrap}>
@@ -63,7 +78,7 @@ const SpiderDiagram = ({
             labels,
             datasets: [
               {
-                label: title,
+                label: dataLabel,
                 data: values,
                 fill: true,
                 borderWidth: 2,
@@ -81,6 +96,23 @@ const SpiderDiagram = ({
                 pointBorderColor: "#f6fcff",
                 pointBorderWidth: 1.2,
               },
+              ...(comparison
+                ? [
+                    {
+                      label: comparison.label,
+                      data: comparisonValues,
+                      fill: true,
+                      borderWidth: 2,
+                      borderColor: "#83f2c8",
+                      backgroundColor: "rgba(131, 242, 200, 0.12)",
+                      pointRadius: 3.4,
+                      pointHoverRadius: 4.8,
+                      pointBackgroundColor: "#83f2c8",
+                      pointBorderColor: "#f6fcff",
+                      pointBorderWidth: 1.1,
+                    },
+                  ]
+                : []),
             ],
           }}
           options={{
@@ -91,16 +123,29 @@ const SpiderDiagram = ({
             },
             plugins: {
               legend: {
-                display: false,
+                display: true,
+                position: "left",
+                align: "center",
+                labels: {
+                  color: "rgba(224, 243, 255, 0.84)",
+                  boxWidth: 12,
+                  boxHeight: 12,
+                  padding: 16,
+                  usePointStyle: true,
+                  pointStyle: "rectRounded",
+                },
               },
               tooltip: {
                 backgroundColor: "rgba(4, 18, 33, 0.94)",
                 borderColor: "rgba(121, 214, 255, 0.3)",
                 borderWidth: 1,
-                displayColors: false,
                 callbacks: {
+                  title: (items) => {
+                    const item = items[0];
+                    return String(tooltipLabels[item?.dataIndex ?? 0] ?? "");
+                  },
                   label: (context: TooltipItem<"radar">) => {
-                    return `${context.label}: ${Number(context.raw).toFixed(0)}${valueSuffix}`;
+                    return `${context.dataset.label}: ${Number(context.raw).toFixed(0)}${valueSuffix}`;
                   },
                 },
               },
@@ -131,18 +176,6 @@ const SpiderDiagram = ({
             },
           }}
         />
-      </div>
-
-      <div className={styles.metricGrid}>
-        {data.map((entry) => (
-          <div key={entry.label} className={styles.metricCard}>
-            <span>{entry.label}</span>
-            <strong>
-              {entry.value.toFixed(0)}
-              {valueSuffix}
-            </strong>
-          </div>
-        ))}
       </div>
     </section>
   );

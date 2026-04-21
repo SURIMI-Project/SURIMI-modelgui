@@ -62,7 +62,7 @@ const buildScenarioRunFromDraft = (
   const ipccSlug = normalizeIpccSlug(ipccScenario);
   const durationSlug = `${durationYears}y`;
   const speciesSlug = speciesId.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const id = `${caseId}-demo-${speciesSlug}-${durationSlug}-${ipccSlug}`;
+  const id = `${caseId}-${speciesSlug}-${durationSlug}-${ipccSlug}`;
 
   return {
     id,
@@ -243,7 +243,10 @@ export const getScenarioRunById = (
     return seededRun;
   }
 
-  if (runId.startsWith(`${caseId}-demo-`)) {
+  if (
+    runId.startsWith(`${caseId}-demo-`) ||
+    runId.startsWith(`${caseId}-`)
+  ) {
     const durationMatch = runId.match(/-(\d+)y-/);
     const durationYears = durationMatch ? Number(durationMatch[1]) : 10;
     const ipccScenario = runId.includes("ssp585")

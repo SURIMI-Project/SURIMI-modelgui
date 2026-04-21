@@ -208,20 +208,20 @@ export const scenarioFlowNodes: ScenarioFlowNode[] = [
     cardX: 0.76,
     cardY: 0.74,
   },
-  {
-    id: "environment",
-    x: 185,
-    y: 422,
-    width: 400,
-    height: 76,
-    fill: "#68b8b4",
-    title: "Environment",
-    hoverTitle: "Environment",
-    hoverDescription:
-      "This layer represents the environmental and oceanographic conditions that drive ecosystem productivity, species interactions and the wider context for the other SURIMI models.",
-    cardX: 0.76,
-    cardY: 0.88,
-  },
+  // {
+  //   id: "environment",
+  //   x: 185,
+  //   y: 422,
+  //   width: 400,
+  //   height: 76,
+  //   fill: "#68b8b4",
+  //   title: "Environment",
+  //   hoverTitle: "Environment",
+  //   hoverDescription:
+  //     "This layer represents the environmental and oceanographic conditions that drive ecosystem productivity, species interactions and the wider context for the other SURIMI models.",
+  //   cardX: 0.76,
+  //   cardY: 0.88,
+  // },
 ];
 
 export const scenarioFlowEdges: ScenarioFlowEdge[] = [
@@ -300,16 +300,16 @@ export const scenarioFlowEdges: ScenarioFlowEdge[] = [
       // { text: "Biomass", x: 668, y: 302, tone: "muted" },
     ],
   },
-  {
-    id: "environment-to-ecopath",
-    path: "M385 422 V392",
-    labels: [
-      {
-        text: "Oceanographic conditions",
-        x: 470,
-        y: 414,
-        tone: "muted",
-      },
-    ],
-  },
+  // {
+  //   id: "environment-to-ecopath",
+  //   path: "M385 422 V392",
+  //   labels: [
+  //     {
+  //       text: "Oceanographic conditions",
+  //       x: 470,
+  //       y: 414,
+  //       tone: "muted",
+  //     },
+  //   ],
+  // },
 ];

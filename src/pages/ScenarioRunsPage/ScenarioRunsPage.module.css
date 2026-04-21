@@ -244,39 +244,6 @@
   padding: clamp(18px, 2vw, 28px);
 }
 
-.summaryStrip {
-  flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.summaryStrip div {
-  border: 1px solid rgba(221, 241, 255, 0.14);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(238, 249, 255, 0.08), rgba(238, 249, 255, 0.04)),
-    rgba(4, 18, 34, 0.34);
-  padding: 13px 14px;
-}
-
-.summaryStrip span {
-  display: block;
-  color: rgba(202, 226, 244, 0.72);
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.summaryStrip strong {
-  display: block;
-  margin-top: 6px;
-  color: #ffffff;
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
 .tableShell {
   flex: 1 1 auto;
   height: 100%;

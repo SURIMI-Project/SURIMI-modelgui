@@ -14,7 +14,7 @@ import {
 } from "../../../anchovyBay/components/AnchovyInputsFlow/const";
 
 const westernMediterraneanInputsFlowConfig: ScenarioInputsFlowConfig = {
-  modalTitle: "Western Mediterranean · Scenario definition",
+  modalTitle: "Northwestern Mediterranean · Scenario definition",
   steps: INPUT_FLOW_STEPS,
   speciesInputs: DEFAULT_SPECIES_INPUTS,
   stepOneInfo: {

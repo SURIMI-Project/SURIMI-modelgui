@@ -63,7 +63,7 @@ const getIpccLabel = (run: ScenarioRun) => {
 const getCaseLabel = (caseId: SimulationCaseId) => {
   const caseStudy = getSimulationCaseById(caseId);
   return caseStudy?.seaName
-    .replace("NORTHWESTERN MEDITERRANEAN SEA", "Western Mediterranean")
+    .replace("NORTHWESTERN MEDITERRANEAN SEA", "Northwestern Mediterranean")
     .replace("AEGEAN SEA", "Aegean Sea")
     .replace("ANCHOVY BAY", "Anchovy Bay");
 };
@@ -107,13 +107,10 @@ const ScenarioRunsPage = () => {
   const visibleRuns = runs.slice(startIndex, startIndex + PAGE_SIZE);
 
   const openDashboard = (id: string) => {
-    navigate(`/scenario-outputs/${selectedCaseId}?run=${encodeURIComponent(id)}`);
+    navigate(
+      `/scenario-outputs/${selectedCaseId}?run=${encodeURIComponent(id)}`,
+    );
   };
-
-  const speciesCount = new Set(runs.map((run) => run.inputs.speciesId)).size;
-  const ipccPathwayCount = new Set(
-    runs.map((run) => run.inputs.ipccScenario ?? "default"),
-  ).size;
 
   return (
     <main
@@ -210,21 +207,6 @@ const ScenarioRunsPage = () => {
         </header>
 
         <section className={styles.panel}>
-          <section className={styles.summaryStrip} aria-label="Run summary">
-            <div>
-              <span>Completed</span>
-              <strong>{runs.length}</strong>
-            </div>
-            <div>
-              <span>Species</span>
-              <strong>{speciesCount}</strong>
-            </div>
-            <div>
-              <span>IPCC pathways</span>
-              <strong>{ipccPathwayCount}</strong>
-            </div>
-          </section>
-
           <ScrollArea
             className={styles.tableShell}
             type="auto"

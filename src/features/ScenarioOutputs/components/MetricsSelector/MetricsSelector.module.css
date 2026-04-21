@@ -1,7 +1,6 @@
 .container {
   display: grid;
   gap: 6px;
-  flex: 1.55 1 330px;
   min-width: 0;
 }
 

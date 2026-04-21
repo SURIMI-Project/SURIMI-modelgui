@@ -8,11 +8,13 @@ type DashboardLayoutProps = {
   subtitle: string;
   children: ReactNode;
   headerAside?: ReactNode;
+  headerLeft?: ReactNode;
+  headerRight?: ReactNode;
   headerCopyClassName?: string;
   titleClassName?: string;
   subtitleClassName?: string;
   showKicker?: boolean;
-  headerLayout?: "default" | "centered";
+  headerLayout?: "default" | "centered" | "three-column";
 };
 
 const DashboardLayout = ({
@@ -20,6 +22,8 @@ const DashboardLayout = ({
   subtitle,
   children,
   headerAside,
+  headerLeft,
+  headerRight,
   headerCopyClassName,
   titleClassName,
   subtitleClassName,
@@ -40,10 +44,15 @@ const DashboardLayout = ({
           className={[
             styles.headerInner,
             headerLayout === "centered" ? styles.headerInnerCentered : "",
+            headerLayout === "three-column" ? styles.headerInnerThreeColumn : "",
           ]
             .filter(Boolean)
             .join(" ")}
         >
+          {headerLayout === "three-column" ? (
+            <div className={styles.headerColumnLeft}>{headerLeft}</div>
+          ) : null}
+
           {headerAside && headerLayout === "centered" ? (
             <div className={styles.headerAsideLeft}>{headerAside}</div>
           ) : null}
@@ -76,6 +85,10 @@ const DashboardLayout = ({
 
           {headerAside && headerLayout !== "centered" ? (
             <div className={styles.headerAside}>{headerAside}</div>
+          ) : null}
+
+          {headerLayout === "three-column" ? (
+            <div className={styles.headerColumnRight}>{headerRight}</div>
           ) : null}
 
           {headerAside && headerLayout === "centered" ? (

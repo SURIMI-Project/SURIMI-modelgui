@@ -2,7 +2,7 @@
   min-height: 0;
   min-width: 0;
   display: grid;
-  gap: 16px;
+  gap: 12px;
   padding: 18px;
   border: 1px solid rgba(126, 206, 255, 0.22);
   border-radius: 24px;
@@ -14,10 +14,11 @@
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  display: grid;
+  gap: 10px;
   align-items: flex-start;
+  justify-items: center;
+  text-align: center;
 }
 
 .kicker {
@@ -32,64 +33,19 @@
 .title {
   margin: 7px 0 0;
   color: #f2fbff;
-  font-size: clamp(0.96rem, 1.2vw, 1.16rem);
-  line-height: 1.28;
-}
-
-.currentLabel {
-  flex: 0 0 auto;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(120, 222, 255, 0.22);
-  background: rgba(12, 41, 68, 0.72);
-  color: rgba(228, 244, 255, 0.88);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  font-weight: 400;
+  max-width: 30ch;
 }
 
 .chartWrap {
-  min-height: clamp(320px, 36vw, 420px);
-}
-
-.metricGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.metricCard {
-  display: grid;
-  gap: 6px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(123, 206, 255, 0.14);
-  background:
-    linear-gradient(180deg, rgba(13, 48, 78, 0.34), rgba(7, 22, 38, 0.16)),
-    rgba(5, 16, 26, 0.38);
-}
-
-.metricCard span {
-  color: rgba(188, 226, 248, 0.72);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.metricCard strong {
-  color: #f6fcff;
-  font-size: 1rem;
-  line-height: 1;
+  min-height: clamp(240px, 19vw, 290px);
 }
 
 @media (max-width: 780px) {
   .header {
     display: grid;
-  }
-
-  .metricGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -99,10 +55,6 @@
   }
 
   .chartWrap {
-    min-height: 280px;
-  }
-
-  .metricGrid {
-    grid-template-columns: 1fr;
+    min-height: 200px;
   }
 }
