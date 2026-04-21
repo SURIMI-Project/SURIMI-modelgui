@@ -1,19 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Button,
   Group,
   Paper,
-  Popover,
   ScrollArea,
   Select,
   Stack,
   Text,
   Title,
-  UnstyledButton,
 } from "@mantine/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { FiInfo } from "react-icons/fi";
 import PrimaryModal from "../../../../components/PrimaryModal/PrimaryModal";
 import SelectableCards from "../../../../components/SelectableCards/SelectableCards";
 import styles from "./ScenarioInputsFlow.module.css";
