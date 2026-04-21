@@ -9,6 +9,7 @@ type DashboardLayoutProps = {
   children: ReactNode;
   headerAside?: ReactNode;
   headerLeft?: ReactNode;
+  headerCenter?: ReactNode;
   headerRight?: ReactNode;
   headerCopyClassName?: string;
   titleClassName?: string;
@@ -23,6 +24,7 @@ const DashboardLayout = ({
   children,
   headerAside,
   headerLeft,
+  headerCenter,
   headerRight,
   headerCopyClassName,
   titleClassName,
@@ -57,31 +59,35 @@ const DashboardLayout = ({
             <div className={styles.headerAsideLeft}>{headerAside}</div>
           ) : null}
 
-          <div
-            className={[styles.headerCopy, headerCopyClassName]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {showKicker ? (
-              <Badge className={styles.kicker} variant="light">
-                Scenario Outputs Dashboard
-              </Badge>
-            ) : null}
-            <Title
-              className={[styles.title, titleClassName]
+          {headerLayout === "three-column" && headerCenter ? (
+            <div className={styles.headerColumnCenter}>{headerCenter}</div>
+          ) : (
+            <div
+              className={[styles.headerCopy, headerCopyClassName]
                 .filter(Boolean)
                 .join(" ")}
             >
-              {title}
-            </Title>
-            <Text
-              className={[styles.subtitle, subtitleClassName]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              {subtitle}
-            </Text>
-          </div>
+              {showKicker ? (
+                <Badge className={styles.kicker} variant="light">
+                  Scenario Outputs Dashboard
+                </Badge>
+              ) : null}
+              <Title
+                className={[styles.title, titleClassName]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {title}
+              </Title>
+              <Text
+                className={[styles.subtitle, subtitleClassName]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {subtitle}
+              </Text>
+            </div>
+          )}
 
           {headerAside && headerLayout !== "centered" ? (
             <div className={styles.headerAside}>{headerAside}</div>

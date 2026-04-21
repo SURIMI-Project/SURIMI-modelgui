@@ -695,45 +695,45 @@ const AnchovyBayOutputs = ({
         titleClassName={styles.pageTitle}
         subtitleClassName={styles.pageSubtitle}
         headerLeft={
-          <div className={styles.headerControlsColumn}>
-            <div className={styles.controlCard}>
-              <div className={styles.controlCardHeader}>
-                <p className={styles.controlCardTitle}>Select Metric</p>
-              </div>
-
-              <div className={styles.controlsCluster}>
-                <MetricsSelector
-                  value={metric}
-                  onChange={(next) => {
-                    setMetric(next);
-                    setIsPlaying(false);
-                  }}
-                />
-              </div>
+          <div className={styles.leftHeaderColumn}>
+            <div className={styles.headerCopy}>
+              <h1 className={styles.pageTitle}>{defaultTitle}</h1>
+              <p className={styles.pageSubtitle}>{defaultSubtitle}</p>
             </div>
 
-            <div className={styles.controlCard}>
-              <div className={styles.controlCardHeader}>
-                <p className={styles.controlCardTitle}>Select Fish</p>
-                <p className={styles.controlCardSubtitle}>
-                  Select a fish species or a functional group.
-                </p>
-              </div>
+            <div className={styles.metricSection}>
+              <MetricsSelector
+                value={metric}
+                onChange={(next) => {
+                  setMetric(next);
+                  setIsPlaying(false);
+                }}
+              />
+            </div>
+          </div>
+        }
+        headerCenter={
+          <div className={styles.centerControlCard}>
+            <div className={styles.controlCardHeader}>
+              <p className={styles.controlCardTitle}>Select Fish</p>
+              <p className={styles.controlCardSubtitle}>
+                Select a fish species or a functional group.
+              </p>
+            </div>
 
-              <div className={styles.controlsCluster}>
-                {functionalGroupOptions.length > 0 ? (
-                  <FunctionalGroupDropdown
-                    options={functionalGroupOptions}
-                    value={selectedFunctionalGroup}
-                    onChange={handleFunctionalGroupChange}
-                  />
-                ) : null}
-                <SpeciesDropdown
-                  options={filteredSpeciesOptions}
-                  value={speciesCode}
-                  onChange={handleSpeciesChange}
+            <div className={styles.controlsCluster}>
+              {functionalGroupOptions.length > 0 ? (
+                <FunctionalGroupDropdown
+                  options={functionalGroupOptions}
+                  value={selectedFunctionalGroup}
+                  onChange={handleFunctionalGroupChange}
                 />
-              </div>
+              ) : null}
+              <SpeciesDropdown
+                options={filteredSpeciesOptions}
+                value={speciesCode}
+                onChange={handleSpeciesChange}
+              />
             </div>
           </div>
         }

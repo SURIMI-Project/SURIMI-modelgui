@@ -4,13 +4,6 @@
   position: relative;
 }
 
-.headerCopy {
-  max-width: none;
-  width: 100%;
-  display: grid;
-  justify-items: center;
-}
-
 .pageTitle {
   font-size: clamp(1.28rem, 1.72vw, 1.72rem);
   margin-bottom: 10px;
@@ -19,41 +12,46 @@
 .pageSubtitle {
   max-width: 450px;
   font-size: clamp(1.02rem, 1.18vw, 1.14rem);
-  text-align: center;
+  text-align: left;
 }
 
 .controlsCluster {
   display: grid;
-  gap: 8px;
+  gap: 18px;
 }
 
 .controlsCluster > * {
   width: 100%;
 }
 
-.headerControlsColumn {
+.leftHeaderColumn {
   height: 100%;
   display: grid;
-  gap: 14px;
-  grid-template-rows: auto 1fr;
+  align-content: start;
+  gap: 24px;
 }
 
-.controlCard {
+.metricSection {
   display: grid;
-  align-content: start;
   gap: 10px;
-  padding: 14px;
+  max-width: 380px;
+}
+
+.centerControlCard {
+  display: grid;
+  height: 100%;
+  align-content: start;
+  gap: 18px;
+  padding: 18px;
   border-radius: 18px;
-  border: 1px solid rgba(124, 206, 255, 0.22);
-  background:
-    linear-gradient(160deg, rgba(9, 38, 66, 0.82), rgba(5, 22, 40, 0.74)),
-    rgba(5, 18, 30, 0.66);
-  backdrop-filter: blur(12px);
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .controlCardHeader {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 .controlCardTitle {
