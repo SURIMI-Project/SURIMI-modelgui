@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import styles from "../ScenarioWorldPage.module.css";
+import { Flex } from "@mantine/core";
 
 type ScenarioWorldStorySectionProps = {
   worldTitle: string;
@@ -30,23 +31,6 @@ const ScenarioWorldStorySection = ({
       }}
     >
       <motion.div
-        className={styles.worldKickerRow}
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.42, delay: 0.2 }}
-      >
-        {/* <p className={styles.worldKicker}>Scenario World Initialization</p> */}
-        <button
-          type="button"
-          className={styles.worldInfoButton}
-          onClick={onOpenInfoModal}
-          aria-label={`Open more information about ${worldTitle}`}
-        >
-          About the models
-        </button>
-      </motion.div>
-
-      <motion.div
         className={styles.worldTitleRow}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,14 +43,35 @@ const ScenarioWorldStorySection = ({
         <h1 className={styles.worldTitle}>{worldTitle}</h1>
       </motion.div>
 
-      <motion.h2
-        className={styles.aboutTitle}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.52, delay: 0.38 }}
-      >
-        {aboutTitle}
-      </motion.h2>
+      <Flex mt={12} gap={12}>
+        <motion.h2
+          className={styles.aboutTitle}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.52, delay: 0.38 }}
+        >
+          {aboutTitle}
+        </motion.h2>
+
+        <motion.div
+          className={styles.worldKickerRow}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.42, delay: 0.2 }}
+        >
+          <button
+            type="button"
+            className={styles.worldInfoButton}
+            onClick={onOpenInfoModal}
+            aria-label={`Open more information about ${worldTitle}`}
+            style={{
+              transform: "translateY(5px)",
+            }}
+          >
+            About the models
+          </button>
+        </motion.div>
+      </Flex>
 
       {description.map((paragraph, index) => (
         <motion.p
