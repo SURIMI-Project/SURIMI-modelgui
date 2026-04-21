@@ -27,7 +27,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   {
     id: "aegean-sea",
     seaName: "AEGEAN SEA",
-    subtitle: "Model covering areas GSA22 and GSA23.",
+    subtitle: "Model covering areas GSA22 and GSA23",
     simulationTitle: "Aegean Sea Case Study",
     description:
       "This case study explores climate and fisheries management scenarios (various fishing effort changes) using representations of the marine ecology (EwE), maximum sustainable yield (CMSY++), fishing activities (MICE model/EwE), prices of caught species (Market model and Value chain).",

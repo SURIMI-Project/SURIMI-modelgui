@@ -35,14 +35,14 @@ const ScenarioWorldStorySection = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.42, delay: 0.2 }}
       >
-        <p className={styles.worldKicker}>Scenario World Initialization</p>
+        {/* <p className={styles.worldKicker}>Scenario World Initialization</p> */}
         <button
           type="button"
           className={styles.worldInfoButton}
           onClick={onOpenInfoModal}
           aria-label={`Open more information about ${worldTitle}`}
         >
-          About the scenario
+          About the models
         </button>
       </motion.div>
 

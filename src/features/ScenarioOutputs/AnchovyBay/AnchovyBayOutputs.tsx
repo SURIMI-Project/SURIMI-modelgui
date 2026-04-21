@@ -133,7 +133,7 @@ const buildActualHistoricalSeries = (values: number[], seriesSeed: number) => {
 const AnchovyBayOutputs = ({
   caseId = "anchovy-bay",
   defaultTitle = "Anchovy Bay Scenario Outputs",
-  defaultSubtitle = "Anchovy Bay outputs with synchronized biomass, landings, and ecosystem status views across 2006-2046.",
+  defaultSubtitle = "Dashboard of Scenario Outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
   mapSubtitle = "Anchovy Bay hotspot intensity for the selected year and species.",
 }: AnchovyBayOutputsProps) => {
   const [searchParams] = useSearchParams();
@@ -500,11 +500,7 @@ const AnchovyBayOutputs = ({
   return (
     <div>
       <DashboardLayout
-        title={
-          scenarioRun
-            ? `${scenarioRun.title} Outputs`
-            : defaultTitle
-        }
+        title={scenarioRun ? `${scenarioRun.title} Outputs` : defaultTitle}
         subtitle={
           scenarioRun
             ? `Dashboard linked to run ${scenarioRun.id} and output profile ${scenarioRun.outputProfileId}.`

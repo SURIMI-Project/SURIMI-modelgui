@@ -50,7 +50,8 @@ const getNavigationType = () => {
 
   const navigationEntries = window.performance.getEntriesByType("navigation");
   if (navigationEntries.length > 0) {
-    const navigationTiming = navigationEntries[0] as PerformanceNavigationTiming;
+    const navigationTiming =
+      navigationEntries[0] as PerformanceNavigationTiming;
     return navigationTiming.type;
   }
 
@@ -100,7 +101,9 @@ const CasePanelVideo = ({
   scale,
   transitionDuration,
 }: CasePanelVideoProps) => {
-  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+    null,
+  );
 
   useAutoplayVideo(videoElement, { playbackRate, enabled: isPlaybackEnabled });
 
@@ -236,9 +239,7 @@ const SimulationCaseSelectionPage = ({
       <motion.div
         className={styles.topbar}
         initial={
-          shouldPlayIntro
-            ? { opacity: 0, y: 24, filter: "blur(14px)" }
-            : false
+          shouldPlayIntro ? { opacity: 0, y: 24, filter: "blur(14px)" } : false
         }
         animate={{
           opacity: isTransitioning ? 0 : isLandingVisible ? 1 : 0,
@@ -399,7 +400,7 @@ const SimulationCaseSelectionPage = ({
                   }}
                   disabled={isInteractionLocked}
                 >
-                  View Existing Scenarios
+                  Compare Scenarios
                 </Button>
               </div>
             </motion.article>
