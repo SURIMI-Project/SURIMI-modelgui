@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { motion } from "framer-motion";
 import styles from "../ScenarioWorldPage.module.css";
 import { Flex } from "@mantine/core";
@@ -85,7 +86,7 @@ const ScenarioWorldStorySection = ({
         </motion.p>
       ))}
 
-      <motion.div
+      {/* <motion.div
         className={styles.contextPanel}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -93,7 +94,7 @@ const ScenarioWorldStorySection = ({
       >
         <span>Scenario Context</span>
         <p>{simulationContext}</p>
-      </motion.div>
+      </motion.div> */}
     </motion.div>
   );
 };

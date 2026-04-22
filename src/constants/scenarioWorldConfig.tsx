@@ -30,13 +30,18 @@ export type ScenarioWorldConfig = {
 
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   "northwestern-mediterranean": {
-    worldTitle: "Northwestern Mediterranean Emissions Field",
+    worldTitle: "Northwestern Mediterranean Case Study",
     aboutTitle: "About The Northwestern Mediterranean",
     description: [
-      "The Northwestern Mediterranean hosts dense shipping corridors where vessel clusters generate localized pressure on marine air and water quality.",
-      "Traffic intensity shifts rapidly between seasonal routes, creating dynamic hotspots that influence ecological exposure and coastal operations.",
-      "This scenario lets you test how changes in route density and operational constraints alter regional stress patterns.",
+      "The Western Mediterranean Sea is a large and diverse marine area, covering both shallow coasts and deep waters. It is one of the most productive parts of the Mediterranean, especially near rivers like the Rhône and Ebro, which bring nutrients that support rich marine life. The region is home to many species, including fish, seabirds, turtles, and marine mammals, making it an important and biologically diverse ecosystem.",
+      "However, this area is under increasing pressure from climate change and fishing. Rising temperatures and more frequent heatwaves are affecting marine habitats and fish populations, while species are shifting to new areas in response to changing conditions. At the same time, fishing continues to impact the ecosystem. Together, these pressures could lead to declines in fish stocks and changes in the balance of marine life.",
+      "To address this, experts recommend better fishing practices, protected marine areas, and flexible management strategies that can adapt to changing environmental conditions.",
     ],
+    // description: [
+    //   "The Northwestern Mediterranean hosts dense shipping corridors where vessel clusters generate localized pressure on marine air and water quality.",
+    //   "Traffic intensity shifts rapidly between seasonal routes, creating dynamic hotspots that influence ecological exposure and coastal operations.",
+    //   "This scenario lets you test how changes in route density and operational constraints alter regional stress patterns.",
+    // ],
     simulationContext:
       "Run comparative experiments between baseline traffic and constrained-corridor policies to inspect emissions and ecosystem stress propagation.",
     infoModalTitle: "Northwestern Mediterranean · About the models behind",
@@ -57,12 +62,12 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     InputsFlowComponent: WesternMediterraneanInputsFlow,
   },
   "aegean-sea": {
-    worldTitle: "Aegean Connectivity Mesh",
+    worldTitle: "Aegean Sea Case Study",
     aboutTitle: "About The Aegean Sea",
     description: [
-      "The Aegean Sea combines fragmented island geography with high coastal activity, forming a sensitive network of ports, routes, and habitats.",
-      "Flow between hubs can amplify local disturbances as traffic and environmental conditions interact across narrow corridors.",
-      "This scenario helps evaluate how connectivity changes reshape both maritime performance and environmental pressure.",
+      "The Aegean Sea is a relatively closed area in the eastern Mediterranean Sea, located between Greece and Turkey, with numerous islands and islets. It is considered as one of the most productive areas of the eastern Mediterranean basin, especially its northern part, facing however the dangers of overfishing, increasing temperature and alien species invasion, but to a lesser extent up till now than the Levantine Sea. In the north, the inflow of nutrient-rich and lower salinity waters originating from the Black Sea and large rivers supports large biomass of commercially important small and medium pelagic fishes.",
+      "Over 100 fish and invertebrate Aegean Sea stocks have been assessed in the area and most of the them are either exploited or over-exploited. Commercial fisheries landings include economically important fish species (mainly European pilchard Sardina pilchardus, European anchovy Engraulis encrasicolus, European hake Merluccius merluccius and red mullet Mullus barbatus) as well as crustaceans and cephalopods.",
+      "There is a considerable difference in fisheries catches between pelagic and demersal habitats, as well as between the northern, central and southern parts of the area. Over 95% of the fishing vessels operating in the Aegean Sea are small-sclae coastal vessels.",
     ],
     simulationContext:
       "Explore route-level what-if scenarios for port connectivity, corridor utilization, and downstream ecological exposure.",
