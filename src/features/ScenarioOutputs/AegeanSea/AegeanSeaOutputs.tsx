@@ -28,12 +28,14 @@ const AegeanSeaOutputs = ({ runIds = [] }: AegeanSeaOutputsProps) => {
   const state = useScenarioDashboardState({
     dataset: primaryDataset,
   });
+
   const seriesBundle = buildScenarioSeriesBundle({
     caseId: "aegean-sea",
     primaryDataset,
     comparisonDataset,
     state,
   });
+
   const headerModel = buildDashboardHeaderModel({
     caseId: "aegean-sea",
     title,
@@ -43,6 +45,7 @@ const AegeanSeaOutputs = ({ runIds = [] }: AegeanSeaOutputsProps) => {
     state,
     seriesBundle,
   });
+
   const primaryPanel = buildMapBiomassAndLandingsPanelModel({
     caseId: "aegean-sea",
     title,
@@ -52,6 +55,7 @@ const AegeanSeaOutputs = ({ runIds = [] }: AegeanSeaOutputsProps) => {
     state,
     seriesBundle,
   });
+
   const marketPanel = buildMarketIndicatorsPanelModel({
     caseId: "aegean-sea",
     title,

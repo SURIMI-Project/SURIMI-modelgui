@@ -389,4 +389,5 @@ export const createMockScenarioDataset = (
   };
 };
 
+export default createMockScenarioDataset;
 export type { MockDatasetConfig, ScenarioSpeciesDefinition };

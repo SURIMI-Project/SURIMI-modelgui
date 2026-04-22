@@ -8,6 +8,10 @@ import {
   type TooltipItem,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import {
+  SCENARIO_COMPARE_COLORS,
+  withAlpha,
+} from "../../scenarioCompare";
 import styles from "./LandingsStackedBarChart.module.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -31,14 +35,27 @@ type LandingsStackedBarChartProps = {
   className?: string;
 };
 
-const LANDINGS_COLOR = "#0c397d";
-const LANDINGS_ACTIVE_COLOR = "#1658b4";
-const DISCARDS_COLOR = "#30c6f7";
-const DISCARDS_ACTIVE_COLOR = "#5ad9ff";
-const COMPARISON_LANDINGS_COLOR = "#0f6a55";
-const COMPARISON_LANDINGS_ACTIVE_COLOR = "#1a8b70";
-const COMPARISON_DISCARDS_COLOR = "#83f2c8";
-const COMPARISON_DISCARDS_ACTIVE_COLOR = "#abf6db";
+const LANDINGS_COLOR = withAlpha(SCENARIO_COMPARE_COLORS.scenarioOne.stroke, 0.68);
+const LANDINGS_ACTIVE_COLOR = SCENARIO_COMPARE_COLORS.scenarioOne.stroke;
+const DISCARDS_COLOR = withAlpha(SCENARIO_COMPARE_COLORS.scenarioOne.stroke, 0.32);
+const DISCARDS_ACTIVE_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+  0.54,
+);
+const COMPARISON_LANDINGS_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
+  0.68,
+);
+const COMPARISON_LANDINGS_ACTIVE_COLOR =
+  SCENARIO_COMPARE_COLORS.scenarioTwo.stroke;
+const COMPARISON_DISCARDS_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
+  0.32,
+);
+const COMPARISON_DISCARDS_ACTIVE_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
+  0.54,
+);
 
 const LandingsStackedBarChart = ({
   title,
@@ -95,7 +112,7 @@ const LandingsStackedBarChart = ({
             labels,
             datasets: [
               {
-                label: comparison ? "Primary landings" : "landings",
+                label: comparison ? "Scenario 1 landings" : "landings",
                 data: landingsValues,
                 stack: "primary",
                 backgroundColor: landingsValues.map((_, index) =>
@@ -112,7 +129,7 @@ const LandingsStackedBarChart = ({
                 categoryPercentage: 0.84,
               },
               {
-                label: comparison ? "Primary discards" : "discards",
+                label: comparison ? "Scenario 1 discards" : "discards",
                 data: discardsValues,
                 stack: "primary",
                 backgroundColor: discardsValues.map((_, index) =>

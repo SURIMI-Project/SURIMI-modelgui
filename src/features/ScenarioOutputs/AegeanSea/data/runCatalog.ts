@@ -1,74 +1,19 @@
 import type { ScenarioOutputsDataset } from "../../types";
-import {
-  createMockScenarioDataset,
-  type ScenarioSpeciesDefinition,
-} from "../../data/createMockScenarioDataset";
+import createMockScenarioDataset from "../../data/createMockScenarioDataset";
+import { createScenarioSpeciesDefinitions } from "../../data/createScenarioSpeciesDefinitions";
+import aegeanFishesCsv from "../../../../data/assets/aegean_fishes.csv?raw";
 
-const aegeanSeaSpecies: ScenarioSpeciesDefinition[] = [
-  {
-    code: "ANE",
-    displayName: "European anchovy",
-    scientificName: "Engraulis encrasicolus",
-    functionalGroupKey: "small_pelagic_fishes",
-    functionalGroupName: "Small pelagic fishes",
-    basePrice: 1.92,
-    baseSalesQuantity: 268,
-  },
-  {
-    code: "SAR",
-    displayName: "European sardine",
-    scientificName: "Sardina pilchardus",
-    functionalGroupKey: "small_pelagic_fishes",
-    functionalGroupName: "Small pelagic fishes",
-    basePrice: 1.74,
-    baseSalesQuantity: 236,
-  },
-  {
-    code: "HKE",
-    displayName: "European hake",
-    scientificName: "Merluccius merluccius",
-    functionalGroupKey: "large_demersal_fishes",
-    functionalGroupName: "Large demersal fishes",
-    basePrice: 3.52,
-    baseSalesQuantity: 148,
-  },
-  {
-    code: "ARA",
-    displayName: "Blue and red shrimp",
-    scientificName: "Aristeus antennatus",
-    functionalGroupKey: "crustaceans",
-    functionalGroupName: "Crustaceans",
-    basePrice: 3.26,
-    baseSalesQuantity: 112,
-  },
-  {
-    code: "HOM",
-    displayName: "Atlantic horse mackerel",
-    scientificName: "Trachurus trachurus",
-    functionalGroupKey: "medium_pelagic_fishes",
-    functionalGroupName: "Medium pelagic fishes",
-    basePrice: 1.48,
-    baseSalesQuantity: 194,
-  },
-  {
-    code: "BOG",
-    displayName: "Bogue",
-    scientificName: "Boops boops",
-    functionalGroupKey: "small_demersal_fishes",
-    functionalGroupName: "Small demersal fishes",
-    basePrice: 1.34,
-    baseSalesQuantity: 152,
-  },
-];
+const aegeanSeaSpecies = createScenarioSpeciesDefinitions(aegeanFishesCsv);
 
 export const aegeanSeaRunDatasets: Record<string, ScenarioOutputsDataset> = {
-  "aegean-sea-anchovy-25y-ssp126": createMockScenarioDataset({
+  "1": createMockScenarioDataset({
     caseId: "aegean-sea",
-    runId: "aegean-sea-anchovy-25y-ssp126",
+    runId: "1",
     title: "Aegean Sea Scenario Outputs",
     subtitle:
       "Dashboard of scenario outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
-    mapSubtitle: "Aegean Sea hotspot intensity for the selected year and species.",
+    mapSubtitle:
+      "Aegean Sea hotspot intensity for the selected year and species.",
     forecastStartYear: 2028,
     startYear: 2008,
     endYear: 2048,
@@ -97,13 +42,14 @@ export const aegeanSeaRunDatasets: Record<string, ScenarioOutputsDataset> = {
     marketBias: 0.03,
     priceBias: 0.01,
   }),
-  "aegean-sea-hake-50y-ssp585": createMockScenarioDataset({
+  "2": createMockScenarioDataset({
     caseId: "aegean-sea",
-    runId: "aegean-sea-hake-50y-ssp585",
+    runId: "2",
     title: "Aegean Sea Scenario Outputs",
     subtitle:
       "Dashboard of scenario outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
-    mapSubtitle: "Aegean Sea hotspot intensity for the selected year and species.",
+    mapSubtitle:
+      "Aegean Sea hotspot intensity for the selected year and species.",
     forecastStartYear: 2028,
     startYear: 2008,
     endYear: 2048,

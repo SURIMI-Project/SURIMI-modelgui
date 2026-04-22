@@ -1,73 +1,19 @@
 import type { ScenarioOutputsDataset } from "../../types";
-import {
-  createMockScenarioDataset,
-  type ScenarioSpeciesDefinition,
-} from "../../data/createMockScenarioDataset";
+import createMockScenarioDataset from "../../data/createMockScenarioDataset";
+import { createScenarioSpeciesDefinitions } from "../../data/createScenarioSpeciesDefinitions";
+import westMediterraneanFishesCsv from "../../../../data/assets/west_med_fishes.csv?raw";
 
-const northwesternMediterraneanSpecies: ScenarioSpeciesDefinition[] = [
-  {
-    code: "PIL",
-    displayName: "European sardine",
-    scientificName: "Sardina pilchardus",
-    functionalGroupKey: "small_pelagic_fishes",
-    functionalGroupName: "Small pelagic fishes",
-    basePrice: 1.86,
-    baseSalesQuantity: 254,
-  },
-  {
-    code: "ANE",
-    displayName: "European anchovy",
-    scientificName: "Engraulis encrasicolus",
-    functionalGroupKey: "small_pelagic_fishes",
-    functionalGroupName: "Small pelagic fishes",
-    basePrice: 1.95,
-    baseSalesQuantity: 241,
-  },
-  {
-    code: "HKE",
-    displayName: "European hake",
-    scientificName: "Merluccius merluccius",
-    functionalGroupKey: "large_demersal_fishes",
-    functionalGroupName: "Large demersal fishes",
-    basePrice: 3.61,
-    baseSalesQuantity: 158,
-  },
-  {
-    code: "ARA",
-    displayName: "Blue and red shrimp",
-    scientificName: "Aristeus antennatus",
-    functionalGroupKey: "crustaceans",
-    functionalGroupName: "Crustaceans",
-    basePrice: 3.22,
-    baseSalesQuantity: 118,
-  },
-  {
-    code: "MAC",
-    displayName: "Atlantic mackerel",
-    scientificName: "Scomber scombrus",
-    functionalGroupKey: "medium_pelagic_fishes",
-    functionalGroupName: "Medium pelagic fishes",
-    basePrice: 1.29,
-    baseSalesQuantity: 208,
-  },
-  {
-    code: "BOG",
-    displayName: "Bogue",
-    scientificName: "Boops boops",
-    functionalGroupKey: "small_demersal_fishes",
-    functionalGroupName: "Small demersal fishes",
-    basePrice: 1.37,
-    baseSalesQuantity: 144,
-  },
-];
+const northwesternMediterraneanSpecies = createScenarioSpeciesDefinitions(
+  westMediterraneanFishesCsv,
+);
 
 export const northwesternMediterraneanRunDatasets: Record<
   string,
   ScenarioOutputsDataset
 > = {
-  "northwestern-mediterranean-sardine-25y-ssp245": createMockScenarioDataset({
+  "1": createMockScenarioDataset({
     caseId: "northwestern-mediterranean",
-    runId: "northwestern-mediterranean-sardine-25y-ssp245",
+    runId: "1",
     title: "Northwestern Mediterranean Scenario Outputs",
     subtitle:
       "Dashboard of scenario outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
@@ -101,9 +47,9 @@ export const northwesternMediterraneanRunDatasets: Record<
     marketBias: 0.04,
     priceBias: 0.02,
   }),
-  "northwestern-mediterranean-hake-50y-ssp370": createMockScenarioDataset({
+  "2": createMockScenarioDataset({
     caseId: "northwestern-mediterranean",
-    runId: "northwestern-mediterranean-hake-50y-ssp370",
+    runId: "2",
     title: "Northwestern Mediterranean Scenario Outputs",
     subtitle:
       "Dashboard of scenario outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",

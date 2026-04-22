@@ -15,17 +15,17 @@
 
 .metricStack {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .metricTag {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   width: 100%;
-  min-height: 108px;
+  min-height: 90px;
 
   align-content: center;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border: 1px solid rgba(126, 207, 255, 0.24);
   border-radius: 16px;
   background:

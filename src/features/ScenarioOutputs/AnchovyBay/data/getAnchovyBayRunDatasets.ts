@@ -2,5 +2,5 @@ import { resolveScenarioRunDatasets } from "../../data/resolveScenarioRunDataset
 import { anchovyBayRunDatasets } from "./runCatalog";
 
 export const getAnchovyBayRunDatasets = (runIds: string[]) => {
-  return resolveScenarioRunDatasets("anchovy-bay", anchovyBayRunDatasets, runIds);
+  return resolveScenarioRunDatasets(anchovyBayRunDatasets, runIds);
 };

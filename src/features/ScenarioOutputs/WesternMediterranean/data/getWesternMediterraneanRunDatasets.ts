@@ -2,9 +2,5 @@ import { resolveScenarioRunDatasets } from "../../data/resolveScenarioRunDataset
 import { northwesternMediterraneanRunDatasets } from "./runCatalog";
 
 export const getWesternMediterraneanRunDatasets = (runIds: string[]) => {
-  return resolveScenarioRunDatasets(
-    "northwestern-mediterranean",
-    northwesternMediterraneanRunDatasets,
-    runIds,
-  );
+  return resolveScenarioRunDatasets(northwesternMediterraneanRunDatasets, runIds);
 };

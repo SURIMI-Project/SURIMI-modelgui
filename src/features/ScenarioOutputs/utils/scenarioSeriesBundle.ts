@@ -1,6 +1,10 @@
 import { getScenarioRunById } from "../../ScenarioRuns/mockScenarioRuns";
 import type { SimulationCaseId } from "../../../data/simulationCases";
 import {
+  SCENARIO_ONE_LABEL,
+  SCENARIO_TWO_LABEL,
+} from "../scenarioCompare";
+import {
   type AnnualMetricAverages,
   aggregateSpeciesOutput,
   buildAnnualMetricAverages,
@@ -57,10 +61,10 @@ export const buildScenarioSeriesBundle = ({
   state: ScenarioDashboardState;
 }): ScenarioSeriesBundle => {
   const primarySpeciesOutput = primaryDataset
-    ? aggregateSpeciesOutput(primaryDataset, state.selectedSpeciesCodes)
+    ? aggregateSpeciesOutput(primaryDataset, [state.selectedSpeciesCode])
     : null;
   const comparisonSpeciesOutput = comparisonDataset
-    ? aggregateSpeciesOutput(comparisonDataset, state.selectedSpeciesCodes)
+    ? aggregateSpeciesOutput(comparisonDataset, [state.selectedSpeciesCode])
     : null;
 
   const annualMetricAverages = buildAnnualMetricAverages(primarySpeciesOutput);
@@ -102,34 +106,34 @@ export const buildScenarioSeriesBundle = ({
 
   const salesSeries = buildSalesSeriesFromAverages(
     annualMetricAverages,
-    state.selectedSpeciesCodes,
+    [state.selectedSpeciesCode],
     primarySalesQuantityBySpecies,
   );
   const priceSeries = buildPriceSeriesFromAverages(
     annualMetricAverages,
-    state.selectedSpeciesCodes,
+    [state.selectedSpeciesCode],
     primaryPricePerTonneBySpecies,
   );
   const comparisonSalesSeries = buildSalesSeriesFromAverages(
     comparisonAnnualMetricAverages,
-    state.selectedSpeciesCodes,
+    [state.selectedSpeciesCode],
     comparisonSalesQuantityBySpecies,
   );
   const comparisonPriceSeries = buildPriceSeriesFromAverages(
     comparisonAnnualMetricAverages,
-    state.selectedSpeciesCodes,
+    [state.selectedSpeciesCode],
     comparisonPricePerTonneBySpecies,
   );
 
   const primaryRunLabel =
     (primaryDataset && getScenarioRunById(caseId, primaryDataset.runId)?.title) ??
     primaryDataset?.runId ??
-    "Scenario";
+    SCENARIO_ONE_LABEL;
   const comparisonRunLabel =
     (comparisonDataset &&
       getScenarioRunById(caseId, comparisonDataset.runId)?.title) ??
     comparisonDataset?.runId ??
-    "Comparison";
+    SCENARIO_TWO_LABEL;
 
   return {
     annualMetricAverages,

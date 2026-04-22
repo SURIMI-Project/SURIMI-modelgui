@@ -1,17 +1,12 @@
 import { type OutputsTrendChartSeries } from "./components/Charts/OutputsTrendChart";
 import { type InformationLegendItem } from "./components/InformationLegends/InformationLegends";
-import { type SpiderDiagramDatum } from "./components/SpiderDiagram/SpiderDiagram";
+import { type SpiderDiagramSeries } from "./components/SpiderDiagram/SpiderDiagram";
 import type { HeatPoint, ScenarioOutputMetric, SpeciesOption } from "./types";
 
 export type IndicatorPanelModel = {
   title: string;
   subtitle: string;
-  dataLabel: string;
-  data: SpiderDiagramDatum[];
-  comparison: {
-    label: string;
-    data: SpiderDiagramDatum[];
-  };
+  datasets: SpiderDiagramSeries[];
   valueSuffix: string;
 };
 
@@ -24,10 +19,14 @@ export type DashboardHeaderModel = {
   selectedFunctionalGroup: string;
   onFunctionalGroupChange: (next: string) => void;
   speciesOptions: SpeciesOption[];
-  selectedSpeciesCodes: string[];
-  onSpeciesChange: (next: string[]) => void;
+  selectedSpeciesCode: string;
+  onSpeciesChange: (next: string) => void;
   selectedSpeciesLabels: string[];
   indicatorPanel: IndicatorPanelModel;
+  compareLegendItems: Array<{
+    label: string;
+    color: string;
+  }>;
 };
 
 export type BiomassPanelModel = {

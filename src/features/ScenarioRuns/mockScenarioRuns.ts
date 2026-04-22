@@ -1,13 +1,17 @@
 import type { SimulationCaseId } from "../../data/simulationCases";
-import { getSimulationCaseById } from "../../data/simulationCases";
 import type { ScenarioRun, ScenarioRunInputDraft } from "./types";
 
 const DEFAULT_CREATED_AT = "2026-04-20T10:18:00Z";
 const DEFAULT_COMPLETED_AT = "2026-04-20T10:21:00Z";
 const userCreatedRuns = new Map<string, ScenarioRun>();
 
-const normalizeIpccSlug = (ipccScenario?: string | null) => {
-  return ipccScenario?.replace(".", "").replace("-", "") ?? "default";
+const getNumericRunId = (caseId: SimulationCaseId) => {
+  const numericIds = [...seededRuns.values(), ...userCreatedRuns.values()]
+    .filter((run) => run.caseId === caseId)
+    .map((run) => Number.parseInt(run.id, 10))
+    .filter((value) => Number.isFinite(value));
+
+  return String((Math.max(0, ...numericIds) || 0) + 1);
 };
 
 const getAnchovyOutputProfileId = (durationYears: number, ipccScenario?: string | null) => {
@@ -42,15 +46,6 @@ const getOutputProfileId = (
   return `${caseId}-managed-transition`;
 };
 
-const buildRunTitle = (
-  caseId: SimulationCaseId,
-  durationYears: number,
-  speciesLabel: string,
-) => {
-  const caseStudy = getSimulationCaseById(caseId);
-  return `${caseStudy?.simulationTitle ?? "Scenario"} · ${speciesLabel} · ${durationYears} years`;
-};
-
 const buildScenarioRunFromDraft = (
   caseId: SimulationCaseId,
   draft: ScenarioRunInputDraft,
@@ -59,15 +54,12 @@ const buildScenarioRunFromDraft = (
   const speciesId = draft.speciesId ?? "anchovy";
   const speciesLabel = draft.speciesLabel ?? "Anchovy";
   const ipccScenario = durationYears > 10 ? draft.ipccScenario ?? "ssp2-4.5" : null;
-  const ipccSlug = normalizeIpccSlug(ipccScenario);
-  const durationSlug = `${durationYears}y`;
-  const speciesSlug = speciesId.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const id = `${caseId}-${speciesSlug}-${durationSlug}-${ipccSlug}`;
+  const id = draft.id ?? getNumericRunId(caseId);
 
   return {
     id,
     caseId,
-    title: draft.name ?? buildRunTitle(caseId, durationYears, speciesLabel),
+    title: draft.name ?? `Scenario ${id}`,
     status: "completed",
     createdAt: draft.createdAt ?? DEFAULT_CREATED_AT,
     completedAt: draft.completedAt ?? DEFAULT_COMPLETED_AT,
@@ -100,6 +92,8 @@ export const createScenarioRunFromDraft = (
 
 const seededRunsList: ScenarioRun[] = [
   buildScenarioRunFromDraft("anchovy-bay", {
+    id: "1",
+    name: "Scenario 1",
     speciesId: "anchovy",
     speciesLabel: "Anchovy",
     durationYears: 10,
@@ -108,6 +102,8 @@ const seededRunsList: ScenarioRun[] = [
     completedAt: "2026-04-20T10:21:00Z",
   }),
   buildScenarioRunFromDraft("anchovy-bay", {
+    id: "2",
+    name: "Scenario 2",
     speciesId: "anchovy",
     speciesLabel: "Anchovy",
     durationYears: 25,
@@ -116,6 +112,8 @@ const seededRunsList: ScenarioRun[] = [
     completedAt: "2026-04-19T14:13:00Z",
   }),
   buildScenarioRunFromDraft("northwestern-mediterranean", {
+    id: "1",
+    name: "Scenario 1",
     speciesId: "sardine",
     speciesLabel: "Sardine",
     durationYears: 25,
@@ -124,6 +122,8 @@ const seededRunsList: ScenarioRun[] = [
     completedAt: "2026-04-20T09:51:00Z",
   }),
   buildScenarioRunFromDraft("northwestern-mediterranean", {
+    id: "2",
+    name: "Scenario 2",
     speciesId: "hake",
     speciesLabel: "Hake",
     durationYears: 50,
@@ -132,6 +132,8 @@ const seededRunsList: ScenarioRun[] = [
     completedAt: "2026-04-18T13:32:00Z",
   }),
   buildScenarioRunFromDraft("aegean-sea", {
+    id: "1",
+    name: "Scenario 1",
     speciesId: "anchovy",
     speciesLabel: "Anchovy",
     durationYears: 25,
@@ -140,6 +142,8 @@ const seededRunsList: ScenarioRun[] = [
     completedAt: "2026-04-19T10:24:00Z",
   }),
   buildScenarioRunFromDraft("aegean-sea", {
+    id: "2",
+    name: "Scenario 2",
     speciesId: "hake",
     speciesLabel: "Hake",
     durationYears: 50,
@@ -177,6 +181,7 @@ export const getScenarioRunById = (
       : caseId;
 
   if (
+    /^\d+$/.test(runId) ||
     runId.startsWith(`${caseId}-demo-`) ||
     runId.startsWith(`${caseId}-`) ||
     runId.startsWith(`${legacyCaseId}-demo-`) ||
@@ -195,6 +200,7 @@ export const getScenarioRunById = (
         : null;
 
     return createScenarioRunFromDraft(caseId, {
+      id: /^\d+$/.test(runId) ? runId : undefined,
       speciesId: "anchovy",
       speciesLabel: "Anchovy",
       durationYears,
@@ -211,7 +217,7 @@ export const getScenarioRunsByCaseId = (
 ): ScenarioRun[] => {
   const runsById = new Map<string, ScenarioRun>();
   [...seededRuns.values(), ...userCreatedRuns.values()].forEach((run) => {
-    runsById.set(run.id, run);
+    runsById.set(`${run.caseId}:${run.id}`, run);
   });
 
   const runs = [...runsById.values()]

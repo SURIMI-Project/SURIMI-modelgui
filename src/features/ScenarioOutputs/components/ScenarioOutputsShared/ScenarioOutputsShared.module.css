@@ -11,9 +11,49 @@
   z-index: 1;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(126, 210, 255, 0.24);
+  background: rgba(5, 24, 40, 0.36);
+  color: rgba(239, 249, 255, 0.92);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  transform: translateX(-1px);
+  border-color: rgba(150, 224, 255, 0.5);
+  background: rgba(12, 46, 74, 0.56);
+  color: #ffffff;
+}
+
+.backLink:focus-visible {
+  outline: 2px solid rgba(120, 220, 255, 0.68);
+  outline-offset: 3px;
+}
+
 .pageTitle {
   font-size: clamp(1.28rem, 1.72vw, 1.72rem);
-  margin: 0 0 10px;
+  margin: 0;
 }
 
 .pageSubtitle {
@@ -39,10 +79,46 @@
     0 24px 44px -34px rgba(0, 0, 0, 0.84);
 }
 
-.headerControlsRow {
+.compareLegend {
   display: flex;
-  gap: 64px;
-  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.compareLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 216, 255, 0.22);
+  background: rgba(6, 29, 49, 0.52);
+}
+
+.compareLegendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--legend-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--legend-color) 18%, transparent);
+}
+
+.compareLegendLabel {
+  color: #f3fbff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.headerControlsRow {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(300px, 1.08fr) minmax(
+      260px,
+      0.9fr
+    );
+  gap: 28px;
+  align-items: start;
 }
 
 .metricSection {
@@ -58,11 +134,11 @@
   min-width: 0;
 }
 
-.controlCardTopRow {
+.selectedSpeciesSection {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: start;
+  align-content: start;
+  gap: 18px;
+  min-width: 0;
 }
 
 .controlsCluster {
@@ -83,7 +159,8 @@
 .selectedSpeciesPills {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-content: start;
   gap: 8px;
 }
 
@@ -91,6 +168,13 @@
   background: rgba(19, 86, 132, 0.72);
   color: #f3fbff;
   border: 1px solid rgba(128, 216, 255, 0.32);
+}
+
+.selectedSpeciesEmpty {
+  margin: 0;
+  color: rgba(208, 233, 249, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .controlCardTitle {
@@ -270,13 +354,15 @@
     max-width: none;
   }
 
-  .headerControlsRow {
-    flex-direction: column;
-    gap: 24px;
+  .titleRow {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .controlCardTopRow {
+  .headerControlsRow {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .controlsCluster > * {

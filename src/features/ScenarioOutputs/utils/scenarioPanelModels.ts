@@ -11,6 +11,12 @@ import type { ScenarioOutputsDataset } from "../types";
 import type { ScenarioDashboardState } from "../hooks/useScenarioDashboardState";
 import { buildActualHistoricalSeries } from "./dashboardData";
 import {
+  BASELINE_LABEL,
+  SCENARIO_COMPARE_COLORS,
+  SCENARIO_ONE_LABEL,
+  SCENARIO_TWO_LABEL,
+} from "../scenarioCompare";
+import {
   buildBaselineIndicatorData,
   buildIndicatorSet,
 } from "./scenarioIndicatorModels";
@@ -95,21 +101,36 @@ export const buildDashboardHeaderModel = (
     subtitle: context.comparisonDataset
       ? "Shows how the selected runs compare on the same indicator set."
       : "Shows how well the scenario applies to each indicator compared to the baseline.",
-    dataLabel: context.comparisonDataset
-      ? context.seriesBundle.primaryRunLabel
-      : "Scenario",
-    data: scenarioIndicatorData,
-    comparison: {
-      label: context.comparisonDataset
-        ? context.seriesBundle.comparisonRunLabel
-        : "Baseline",
-      data: context.comparisonDataset
-        ? comparisonIndicatorData
-        : buildBaselineIndicatorData(
-            safeSelectedYearIndex,
-            context.state.years,
-          ),
-    },
+    datasets: [
+      {
+        label: BASELINE_LABEL,
+        data: buildBaselineIndicatorData(
+          safeSelectedYearIndex,
+          context.state.years,
+        ),
+        borderColor: SCENARIO_COMPARE_COLORS.baseline.stroke,
+        backgroundColor: SCENARIO_COMPARE_COLORS.baseline.fill,
+        pointBackgroundColor: SCENARIO_COMPARE_COLORS.baseline.point,
+      },
+      {
+        label: context.seriesBundle.primaryRunLabel,
+        data: scenarioIndicatorData,
+        borderColor: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+        backgroundColor: SCENARIO_COMPARE_COLORS.scenarioOne.fill,
+        pointBackgroundColor: SCENARIO_COMPARE_COLORS.scenarioOne.point,
+      },
+      ...(context.comparisonDataset
+        ? [
+            {
+              label: context.seriesBundle.comparisonRunLabel,
+              data: comparisonIndicatorData,
+              borderColor: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
+              backgroundColor: SCENARIO_COMPARE_COLORS.scenarioTwo.fill,
+              pointBackgroundColor: SCENARIO_COMPARE_COLORS.scenarioTwo.point,
+            },
+          ]
+        : []),
+    ],
     valueSuffix: "%",
   };
 
@@ -122,10 +143,25 @@ export const buildDashboardHeaderModel = (
     selectedFunctionalGroup: context.state.selectedFunctionalGroup,
     onFunctionalGroupChange: context.state.onFunctionalGroupChange,
     speciesOptions: context.state.filteredSpeciesOptions,
-    selectedSpeciesCodes: context.state.selectedSpeciesCodes,
+    selectedSpeciesCode: context.state.selectedSpeciesCode,
     onSpeciesChange: context.state.onSpeciesChange,
     selectedSpeciesLabels: context.state.selectedSpeciesLabels,
     indicatorPanel,
+    compareLegendItems: [
+      {
+        label: context.seriesBundle.primaryRunLabel || SCENARIO_ONE_LABEL,
+        color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+      },
+      ...(context.comparisonDataset
+        ? [
+            {
+              label:
+                context.seriesBundle.comparisonRunLabel || SCENARIO_TWO_LABEL,
+              color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
+            },
+          ]
+        : []),
+    ],
   };
 };
 
@@ -251,14 +287,14 @@ export const buildMapBiomassAndLandingsPanelModel = (
         ? [
             {
               label: context.seriesBundle.primaryRunLabel,
-              color: metricMeta.biomass.lineColor,
+              color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
               historicalValues: historicalBiomassSeries,
               actualHistoricalValues: actualHistoricalBiomassSeries,
               futureValues: futureBiomassSeries,
             },
             {
               label: context.seriesBundle.comparisonRunLabel,
-              color: "#83f2c8",
+              color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               historicalValues: comparisonHistoricalBiomassSeries,
               actualHistoricalValues: comparisonActualHistoricalBiomassSeries,
               futureValues: comparisonFutureBiomassSeries,
@@ -311,19 +347,19 @@ export const buildMarketIndicatorsPanelModel = (
         ? [
             {
               label: context.seriesBundle.primaryRunLabel,
-              color: "#83f2c8",
+              color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
               values: context.seriesBundle.salesSeries,
             },
             {
               label: context.seriesBundle.comparisonRunLabel,
-              color: "#74dbff",
+              color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               values: context.seriesBundle.comparisonSalesSeries,
             },
           ]
         : undefined,
       selectedIndex: safeSelectedYearIndex,
       onSelectIndex: context.state.onSelectYearByIndex,
-      lineColor: "#83f2c8",
+      lineColor: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
     },
     prices: {
       currentValue: context.seriesBundle.priceSeries[safeSelectedYearIndex] ?? 0,
@@ -338,19 +374,19 @@ export const buildMarketIndicatorsPanelModel = (
         ? [
             {
               label: context.seriesBundle.primaryRunLabel,
-              color: "#c2a0ff",
+              color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
               values: context.seriesBundle.priceSeries,
             },
             {
               label: context.seriesBundle.comparisonRunLabel,
-              color: "#83f2c8",
+              color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               values: context.seriesBundle.comparisonPriceSeries,
             },
           ]
         : undefined,
       selectedIndex: safeSelectedYearIndex,
       onSelectIndex: context.state.onSelectYearByIndex,
-      lineColor: "#c2a0ff",
+      lineColor: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
     },
   };
 };

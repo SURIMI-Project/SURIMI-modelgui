@@ -1,70 +1,14 @@
 import type { ScenarioOutputsDataset } from "../../types";
-import {
-  createMockScenarioDataset,
-  type ScenarioSpeciesDefinition,
-} from "../../data/createMockScenarioDataset";
+import createMockScenarioDataset from "../../data/createMockScenarioDataset";
+import { createScenarioSpeciesDefinitions } from "../../data/createScenarioSpeciesDefinitions";
+import anchovyFishesCsv from "../../../../data/assets/anchovy_fishes.csv?raw";
 
-const anchovyBaySpecies: ScenarioSpeciesDefinition[] = [
-  {
-    code: "MTS",
-    displayName: "Blue whiting",
-    scientificName: "Micromesistius poutassou",
-    functionalGroupKey: "medium_pelagic_fishes",
-    functionalGroupName: "Medium pelagic fishes",
-    basePrice: 2.48,
-    baseSalesQuantity: 174,
-  },
-  {
-    code: "NEP",
-    displayName: "Norway lobster",
-    scientificName: "Nephrops norvegicus",
-    functionalGroupKey: "crustaceans",
-    functionalGroupName: "Crustaceans",
-    basePrice: 4.36,
-    baseSalesQuantity: 88,
-  },
-  {
-    code: "ARA",
-    displayName: "Blue and red shrimp",
-    scientificName: "Aristeus antennatus",
-    functionalGroupKey: "crustaceans",
-    functionalGroupName: "Crustaceans",
-    basePrice: 3.18,
-    baseSalesQuantity: 132,
-  },
-  {
-    code: "PIL",
-    displayName: "European sardine",
-    scientificName: "Sardina pilchardus",
-    functionalGroupKey: "small_pelagic_fishes",
-    functionalGroupName: "Small pelagic fishes",
-    basePrice: 1.82,
-    baseSalesQuantity: 228,
-  },
-  {
-    code: "HKE",
-    displayName: "European hake",
-    scientificName: "Merluccius merluccius",
-    functionalGroupKey: "large_demersal_fishes",
-    functionalGroupName: "Large demersal fishes",
-    basePrice: 3.44,
-    baseSalesQuantity: 164,
-  },
-  {
-    code: "MAC",
-    displayName: "Atlantic mackerel",
-    scientificName: "Scomber scombrus",
-    functionalGroupKey: "medium_pelagic_fishes",
-    functionalGroupName: "Medium pelagic fishes",
-    basePrice: 1.26,
-    baseSalesQuantity: 246,
-  },
-];
+const anchovyBaySpecies = createScenarioSpeciesDefinitions(anchovyFishesCsv);
 
 export const anchovyBayRunDatasets: Record<string, ScenarioOutputsDataset> = {
-  "anchovy-bay-anchovy-10y-default": createMockScenarioDataset({
+  "1": createMockScenarioDataset({
     caseId: "anchovy-bay",
-    runId: "anchovy-bay-anchovy-10y-default",
+    runId: "1",
     title: "Anchovy Bay Scenario Outputs",
     subtitle:
       "Dashboard of scenario outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
@@ -97,9 +41,9 @@ export const anchovyBayRunDatasets: Record<string, ScenarioOutputsDataset> = {
     marketBias: 0.05,
     priceBias: 0.02,
   }),
-  "anchovy-bay-anchovy-25y-ssp245": createMockScenarioDataset({
+  "2": createMockScenarioDataset({
     caseId: "anchovy-bay",
-    runId: "anchovy-bay-anchovy-25y-ssp245",
+    runId: "2",
     title: "Anchovy Bay Scenario Outputs",
     subtitle:
       "Dashboard of scenario outputs showcasing biomass, landings and discards as well as market indicators for the selected period.",
