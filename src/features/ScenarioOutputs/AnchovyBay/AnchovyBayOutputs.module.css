@@ -58,6 +58,13 @@
   min-width: 0;
 }
 
+.controlCardTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
 .controlsCluster {
   display: grid;
   gap: 18px;
@@ -71,6 +78,19 @@
 .controlCardHeader {
   display: grid;
   gap: 8px;
+}
+
+.selectedSpeciesPills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.selectedSpeciesPill {
+  background: rgba(19, 86, 132, 0.72);
+  color: #f3fbff;
+  border: 1px solid rgba(128, 216, 255, 0.32);
 }
 
 .controlCardTitle {
@@ -254,6 +274,10 @@
     grid-template-columns: 1fr;
   }
 
+  .controlCardTopRow {
+    grid-template-columns: 1fr;
+  }
+
   .controlsCluster > * {
     width: 100%;
   }
@@ -293,6 +317,10 @@
 
   .headerControlsRow {
     gap: 16px;
+  }
+
+  .selectedSpeciesPills {
+    justify-content: flex-start;
   }
 
   .pageMapSurface {

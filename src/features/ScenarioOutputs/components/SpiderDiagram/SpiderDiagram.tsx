@@ -5,7 +5,6 @@ import {
   PointElement,
   RadialLinearScale,
   Tooltip,
-  type ScriptableContext,
   type TooltipItem,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
@@ -26,17 +25,18 @@ export type SpiderDiagramDatum = {
   value: number;
 };
 
-type SpiderDiagramComparison = {
+export type SpiderDiagramSeries = {
   label: string;
   data: SpiderDiagramDatum[];
+  borderColor: string;
+  backgroundColor: string;
+  pointBackgroundColor: string;
 };
 
 type SpiderDiagramProps = {
   title: string;
   subtitle: string;
-  dataLabel?: string;
-  data: SpiderDiagramDatum[];
-  comparison?: SpiderDiagramComparison;
+  datasets: SpiderDiagramSeries[];
   maxValue?: number;
   valueSuffix?: string;
   className?: string;
@@ -45,23 +45,20 @@ type SpiderDiagramProps = {
 const SpiderDiagram = ({
   title,
   subtitle,
-  dataLabel = "Scenario",
-  data,
-  comparison,
+  datasets,
   maxValue = 100,
   valueSuffix = "",
   className,
 }: SpiderDiagramProps) => {
-  const labels = data.map((entry) => entry.label);
-  const values = data.map((entry) => entry.value);
-  const comparisonValues = comparison?.data.map((entry) => entry.value) ?? [];
-  const tooltipLabels = data.map((entry) => {
+  const baseDataset = datasets[0];
+  const labels = baseDataset?.data.map((entry) => entry.label) ?? [];
+  const tooltipLabels = baseDataset?.data.map((entry) => {
     if (entry.tooltipLabel) {
       return entry.tooltipLabel;
     }
 
     return Array.isArray(entry.label) ? entry.label.join(" ") : entry.label;
-  });
+  }) ?? [];
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -76,44 +73,19 @@ const SpiderDiagram = ({
         <Radar
           data={{
             labels,
-            datasets: [
-              {
-                label: dataLabel,
-                data: values,
-                fill: true,
-                borderWidth: 2,
-                borderColor: "#78deff",
-                backgroundColor: (context: ScriptableContext<"radar">) => {
-                  const chart = context.chart;
-                  const gradient = chart.ctx.createLinearGradient(0, 0, 0, chart.height);
-                  gradient.addColorStop(0, "rgba(120, 222, 255, 0.34)");
-                  gradient.addColorStop(1, "rgba(255, 176, 107, 0.08)");
-                  return gradient;
-                },
-                pointRadius: 3.6,
-                pointHoverRadius: 5,
-                pointBackgroundColor: "#ffb36b",
-                pointBorderColor: "#f6fcff",
-                pointBorderWidth: 1.2,
-              },
-              ...(comparison
-                ? [
-                    {
-                      label: comparison.label,
-                      data: comparisonValues,
-                      fill: true,
-                      borderWidth: 2,
-                      borderColor: "#83f2c8",
-                      backgroundColor: "rgba(131, 242, 200, 0.12)",
-                      pointRadius: 3.4,
-                      pointHoverRadius: 4.8,
-                      pointBackgroundColor: "#83f2c8",
-                      pointBorderColor: "#f6fcff",
-                      pointBorderWidth: 1.1,
-                    },
-                  ]
-                : []),
-            ],
+            datasets: datasets.map((dataset) => ({
+              label: dataset.label,
+              data: dataset.data.map((entry) => entry.value),
+              fill: true,
+              borderWidth: 2,
+              borderColor: dataset.borderColor,
+              backgroundColor: dataset.backgroundColor,
+              pointRadius: 3.6,
+              pointHoverRadius: 5,
+              pointBackgroundColor: dataset.pointBackgroundColor,
+              pointBorderColor: "#f6fcff",
+              pointBorderWidth: 1.2,
+            })),
           }}
           options={{
             responsive: true,

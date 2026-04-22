@@ -1,4 +1,4 @@
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import { normalizeSimulationCaseId } from "../../data/simulationCases";
 import AnchovyBayOutputs from "../../features/ScenarioOutputs/AnchovyBay/AnchovyBayOutputs";
 import AegeanSeaOutputs from "../../features/ScenarioOutputs/AegeanSea/AegeanSeaOutputs";
@@ -11,6 +11,7 @@ const scenarioComponentById = {
 } as const;
 
 const ScenarioOutputsPage = () => {
+  const [searchParams] = useSearchParams();
   const { scenario, caseId } = useParams<{
     scenario?: string;
     caseId?: string;
@@ -35,7 +36,7 @@ const ScenarioOutputsPage = () => {
     return <Navigate to="/" replace />;
   }
 
-  return <OutputsComponent />;
+  return <OutputsComponent runIds={searchParams.getAll("run")} />;
 };
 
 export default ScenarioOutputsPage;

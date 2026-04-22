@@ -1,5 +1,3 @@
-import europeanHakeDatasetCsv from "./assets/european_hake_dataset.csv?raw";
-
 export type CatchPoint = {
   year: number;
   catchKtonnes: number | null;
@@ -50,137 +48,91 @@ export type StockMockData = {
 const FIRST_SUPPORTED_YEAR = 1985;
 const LAST_SUPPORTED_YEAR = 2030;
 
-const normalizeCsvCell = (token: string) => {
-  return token.trim().replace(/^\uFEFF/, "").replace(/^"(.*)"$/, "$1");
-};
+const years = Array.from(
+  { length: LAST_SUPPORTED_YEAR - FIRST_SUPPORTED_YEAR + 1 },
+  (_, index) => FIRST_SUPPORTED_YEAR + index,
+);
 
-const parseSingleRecordCsv = (rawCsv: string) => {
-  const lines = rawCsv
-    .replace(/^\uFEFF/, "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  const [headerRow, dataRow] = lines;
-
-  if (!headerRow || !dataRow) {
-    throw new Error("European hake CSV is missing header or data row.");
-  }
-
-  const headers = headerRow.split(",").map(normalizeCsvCell);
-  const values = dataRow.split(",").map(normalizeCsvCell);
-
-  if (headers.length !== values.length) {
-    throw new Error(
-      `European hake CSV column mismatch: ${headers.length} headers vs ${values.length} values.`,
-    );
-  }
-
-  return headers.reduce<Record<string, string>>((acc, header, index) => {
-    acc[header] = values[index] ?? "";
-    return acc;
-  }, {});
-};
-
-const resolveCellValue = (row: Record<string, string>, key: string) => {
-  const normalizedKey = normalizeCsvCell(key);
-  const direct = row[key] ?? row[normalizedKey];
-
-  if (direct !== undefined) {
-    return direct;
-  }
-
-  const match = Object.keys(row).find(
-    (candidate) =>
-      normalizeCsvCell(candidate).toLowerCase() === normalizedKey.toLowerCase(),
-  );
-
-  return match ? row[match] : undefined;
-};
-
-const parseOptionalNumber = (rawValue: string | undefined) => {
-  const value = rawValue?.trim();
-
-  if (!value || value === "NA") {
-    return null;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const readRequiredNumber = (row: Record<string, string>, key: string) => {
-  const value = parseOptionalNumber(resolveCellValue(row, key));
-
-  if (value === null) {
-    throw new Error(`Expected numeric value for '${key}' in European hake CSV.`);
-  }
-
-  return value;
-};
-
-const readRequiredText = (row: Record<string, string>, key: string) => {
-  const value = resolveCellValue(row, key)?.trim();
-
-  if (!value) {
-    throw new Error(`Expected text value for '${key}' in European hake CSV.`);
-  }
-
-  return value;
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(max, Math.max(min, value));
 };
 
 const formatYearSuffix = (year: number) => {
   return String(year % 100).padStart(2, "0");
 };
 
-const rawRow = parseSingleRecordCsv(europeanHakeDatasetCsv);
-const years = Array.from(
-  { length: LAST_SUPPORTED_YEAR - FIRST_SUPPORTED_YEAR + 1 },
-  (_, index) => FIRST_SUPPORTED_YEAR + index,
-);
+const buildStockSizeSeries = (): StockSizePoint[] => {
+  return years.map((year, index) => {
+    const era = index / Math.max(years.length - 1, 1);
+    const biomass =
+      168 +
+      Math.sin(era * Math.PI * 2.3) * 26 +
+      Math.cos(era * Math.PI * 4.2) * 11 -
+      era * 18;
 
-export const europeanHakeWestMediterraneanNorthSpain: StockMockData = {
-  group: readRequiredText(rawRow, "Group"),
-  region: readRequiredText(rawRow, "Region"),
-  subregion: readRequiredText(rawRow, "Subregion"),
-  name: readRequiredText(rawRow, "Name"),
-  sciName: readRequiredText(rawRow, "SciName"),
-  msyBsm: readRequiredNumber(rawRow, "MSY_BSM"),
-  lclMsyBsm: readRequiredNumber(rawRow, "lcl.MSY_BSM"),
-  uclMsyBsm: readRequiredNumber(rawRow, "ucl.MSY_BSM"),
-  stockSize: {
-    bmsy: readRequiredNumber(rawRow, "Bmsy"),
-    lclBmsy: readRequiredNumber(rawRow, "lcl.Bmsy"),
-    uclBmsy: readRequiredNumber(rawRow, "ucl.Bmsy"),
-    defaultRatio: readRequiredNumber(rawRow, "rel_B_BSM"),
-    unavailableRawValue: -1,
-    series: years.map((year) => {
-      const suffix = formatYearSuffix(year);
-      return {
-        year,
-        biomass: parseOptionalNumber(rawRow[`B${suffix}`]),
-        sourceColumn: `B${suffix}`,
-      };
-    }),
-  },
-  exploitation: {
-    defaultRatio: readRequiredNumber(rawRow, "rel_F_BSM"),
-    unavailableRawValue: -1,
-    series: years.map((year) => {
-      const suffix = formatYearSuffix(year);
-      return {
-        year,
-        ratioRaw: parseOptionalNumber(rawRow[`F.Fmsy${suffix}`]),
-        sourceColumn: `F.Fmsy${suffix}`,
-      };
-    }),
-  },
-  catches: years.map((year) => {
-    const suffix = formatYearSuffix(year);
     return {
       year,
-      catchKtonnes: parseOptionalNumber(rawRow[`c${suffix}`]),
-      sourceColumn: `c${suffix}`,
+      biomass: Number(clamp(biomass, 108, 224).toFixed(2)),
+      sourceColumn: `B${formatYearSuffix(year)}`,
     };
-  }),
+  });
+};
+
+const buildExploitationSeries = (): ExploitationPoint[] => {
+  return years.map((year, index) => {
+    const era = index / Math.max(years.length - 1, 1);
+    const ratio =
+      0.86 +
+      Math.sin(era * Math.PI * 2.8 + 0.7) * 0.18 +
+      Math.cos(era * Math.PI * 1.4) * 0.08 +
+      era * 0.11;
+
+    return {
+      year,
+      ratioRaw: Number(clamp(ratio, 0.48, 1.34).toFixed(3)),
+      sourceColumn: `F.Fmsy${formatYearSuffix(year)}`,
+    };
+  });
+};
+
+const buildCatchSeries = (): CatchPoint[] => {
+  return years.map((year, index) => {
+    const era = index / Math.max(years.length - 1, 1);
+    const catchKtonnes =
+      72 +
+      Math.sin(era * Math.PI * 3.1 + 0.4) * 13 +
+      Math.cos(era * Math.PI * 1.7) * 7 -
+      era * 6;
+
+    return {
+      year,
+      catchKtonnes: Number(clamp(catchKtonnes, 42, 98).toFixed(2)),
+      sourceColumn: `c${formatYearSuffix(year)}`,
+    };
+  });
+};
+
+export const europeanHakeWestMediterraneanNorthSpain: StockMockData = {
+  group: "Large demersal fishes",
+  region: "West Mediterranean",
+  subregion: "North_Spain",
+  name: "European hake",
+  sciName: "Merluccius merluccius",
+  msyBsm: 1.02,
+  lclMsyBsm: 0.88,
+  uclMsyBsm: 1.16,
+  stockSize: {
+    bmsy: 162,
+    lclBmsy: 146,
+    uclBmsy: 178,
+    defaultRatio: 1.04,
+    unavailableRawValue: -1,
+    series: buildStockSizeSeries(),
+  },
+  exploitation: {
+    defaultRatio: 0.93,
+    unavailableRawValue: -1,
+    series: buildExploitationSeries(),
+  },
+  catches: buildCatchSeries(),
 };

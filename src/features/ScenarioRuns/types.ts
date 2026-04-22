@@ -3,6 +3,7 @@ import type { SimulationCaseId } from "../../data/simulationCases";
 export type ScenarioRunStatus = "draft" | "queued" | "running" | "completed" | "failed";
 
 export type ScenarioRunInputDraft = {
+  id?: string;
   speciesId?: string;
   speciesLabel?: string;
   durationYears?: number;

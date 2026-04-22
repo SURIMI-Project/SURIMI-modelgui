@@ -29,7 +29,6 @@ const SpeciesDropdown = ({
         }}
         placeholder="Select species"
         searchable
-        limit={200}
         size="md"
         className={styles.select}
         comboboxProps={{ withinPortal: true, zIndex: 500 }}

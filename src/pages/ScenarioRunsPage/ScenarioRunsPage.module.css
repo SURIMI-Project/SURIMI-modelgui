@@ -302,6 +302,20 @@
   border-bottom: 1px solid rgba(221, 241, 255, 0.08);
 }
 
+.checkboxCell {
+  width: 82px;
+}
+
+.checkboxCell :global(.mantine-Checkbox-input) {
+  border-color: rgba(221, 241, 255, 0.36);
+  background: rgba(4, 16, 31, 0.48);
+}
+
+.checkboxCell :global(.mantine-Checkbox-input:checked) {
+  background: color-mix(in srgb, var(--runs-accent) 70%, #ffffff 10%);
+  border-color: color-mix(in srgb, var(--runs-accent) 74%, #ffffff 12%);
+}
+
 .runsTable tbody tr {
   transition:
     background-color 140ms ease,

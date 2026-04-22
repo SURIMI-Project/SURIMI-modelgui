@@ -77,31 +77,39 @@ const buildCellsForYear = (
   const hotspotCenters = anchors.map((anchor, hotspotIndex) => ({
     lon:
       anchor.lon +
-      Math.sin(eraT * Math.PI * 2.4 + hotspotIndex * 1.33 + speciesIndex * 0.2) *
+      Math.sin(
+        eraT * Math.PI * 2.4 + hotspotIndex * 1.33 + speciesIndex * 0.2,
+      ) *
         0.65,
     lat:
       anchor.lat +
-      Math.cos(eraT * Math.PI * 2.1 + hotspotIndex * 1.18 + speciesIndex * 0.15) *
+      Math.cos(
+        eraT * Math.PI * 2.1 + hotspotIndex * 1.18 + speciesIndex * 0.15,
+      ) *
         0.48,
   }));
 
   return baseCoordinates.map((baseCoord) => {
-    const hotspotStrength = hotspotCenters.reduce((maxStrength, hotspotCenter) => {
-      const d = distance(
-        baseCoord.longitude,
-        baseCoord.latitude,
-        hotspotCenter.lon,
-        hotspotCenter.lat,
-      );
-      const strength = Math.exp(-(d * d) / (2 * 0.9 * 0.9));
-      return Math.max(maxStrength, strength);
-    }, 0);
+    const hotspotStrength = hotspotCenters.reduce(
+      (maxStrength, hotspotCenter) => {
+        const d = distance(
+          baseCoord.longitude,
+          baseCoord.latitude,
+          hotspotCenter.lon,
+          hotspotCenter.lat,
+        );
+        const strength = Math.exp(-(d * d) / (2 * 0.9 * 0.9));
+        return Math.max(maxStrength, strength);
+      },
+      0,
+    );
 
     const microVariation =
       normalize(
-        Math.sin((baseCoord.pointIndex + 2) * 1.51 + yearIndex * 0.19 + speciesIndex),
-      ) *
-      0.28;
+        Math.sin(
+          (baseCoord.pointIndex + 2) * 1.51 + yearIndex * 0.19 + speciesIndex,
+        ),
+      ) * 0.28;
 
     const pressureFactor = clamp(
       0.22 + hotspotStrength * 0.95 + (decadePulse + 1) * 0.17 + microVariation,
@@ -137,11 +145,13 @@ const buildCellsForYear = (
     const landings = catches + discards;
 
     const longitudeShift =
-      Math.sin(yearIndex * 0.12 + baseCoord.pointIndex * 0.08 + speciesIndex * 0.2) *
-      0.035;
+      Math.sin(
+        yearIndex * 0.12 + baseCoord.pointIndex * 0.08 + speciesIndex * 0.2,
+      ) * 0.035;
     const latitudeShift =
-      Math.cos(yearIndex * 0.11 + baseCoord.pointIndex * 0.07 + speciesIndex * 0.3) *
-      0.029;
+      Math.cos(
+        yearIndex * 0.11 + baseCoord.pointIndex * 0.07 + speciesIndex * 0.3,
+      ) * 0.029;
 
     return {
       longitude: clamp(baseCoord.longitude + longitudeShift, xmin, xmax),
