@@ -18,6 +18,11 @@ type LandingsStackedBarChartProps = {
   labels: string[];
   landingsValues: number[];
   discardsValues: number[];
+  comparison?: {
+    label: string;
+    landingsValues: number[];
+    discardsValues: number[];
+  };
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
   currentLabel?: string;
@@ -30,6 +35,10 @@ const LANDINGS_COLOR = "#0c397d";
 const LANDINGS_ACTIVE_COLOR = "#1658b4";
 const DISCARDS_COLOR = "#30c6f7";
 const DISCARDS_ACTIVE_COLOR = "#5ad9ff";
+const COMPARISON_LANDINGS_COLOR = "#0f6a55";
+const COMPARISON_LANDINGS_ACTIVE_COLOR = "#1a8b70";
+const COMPARISON_DISCARDS_COLOR = "#83f2c8";
+const COMPARISON_DISCARDS_ACTIVE_COLOR = "#abf6db";
 
 const LandingsStackedBarChart = ({
   title,
@@ -37,6 +46,7 @@ const LandingsStackedBarChart = ({
   labels,
   landingsValues,
   discardsValues,
+  comparison,
   selectedIndex,
   onSelectIndex,
   currentLabel,
@@ -46,6 +56,10 @@ const LandingsStackedBarChart = ({
 }: LandingsStackedBarChartProps) => {
   const currentLandingsValue = landingsValues[selectedIndex] ?? 0;
   const currentDiscardsValue = discardsValues[selectedIndex] ?? 0;
+  const currentComparisonLandingsValue =
+    comparison?.landingsValues[selectedIndex] ?? 0;
+  const currentComparisonDiscardsValue =
+    comparison?.discardsValues[selectedIndex] ?? 0;
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -65,6 +79,13 @@ const LandingsStackedBarChart = ({
             discards {currentDiscardsValue.toFixed(2)}
             {valueSuffix}
           </small>
+          {comparison ? (
+            <small>
+              {comparison.label}: {currentComparisonLandingsValue.toFixed(2)}
+              {valueSuffix} · discards {currentComparisonDiscardsValue.toFixed(2)}
+              {valueSuffix}
+            </small>
+          ) : null}
         </div>
       </div>
 
@@ -74,9 +95,9 @@ const LandingsStackedBarChart = ({
             labels,
             datasets: [
               {
-                label: "landings",
+                label: comparison ? "Primary landings" : "landings",
                 data: landingsValues,
-                stack: "totals",
+                stack: "primary",
                 backgroundColor: landingsValues.map((_, index) =>
                   index === selectedIndex ? LANDINGS_ACTIVE_COLOR : LANDINGS_COLOR,
                 ),
@@ -91,9 +112,9 @@ const LandingsStackedBarChart = ({
                 categoryPercentage: 0.84,
               },
               {
-                label: "discards",
+                label: comparison ? "Primary discards" : "discards",
                 data: discardsValues,
-                stack: "totals",
+                stack: "primary",
                 backgroundColor: discardsValues.map((_, index) =>
                   index === selectedIndex ? DISCARDS_ACTIVE_COLOR : DISCARDS_COLOR,
                 ),
@@ -107,6 +128,48 @@ const LandingsStackedBarChart = ({
                 barPercentage: 0.72,
                 categoryPercentage: 0.84,
               },
+              ...(comparison
+                ? [
+                    {
+                      label: `${comparison.label} landings`,
+                      data: comparison.landingsValues,
+                      stack: "comparison",
+                      backgroundColor: comparison.landingsValues.map((_, index) =>
+                        index === selectedIndex
+                          ? COMPARISON_LANDINGS_ACTIVE_COLOR
+                          : COMPARISON_LANDINGS_COLOR,
+                      ),
+                      borderRadius: {
+                        topLeft: 0,
+                        topRight: 0,
+                        bottomLeft: 2,
+                        bottomRight: 2,
+                      },
+                      borderSkipped: false,
+                      barPercentage: 0.72,
+                      categoryPercentage: 0.84,
+                    },
+                    {
+                      label: `${comparison.label} discards`,
+                      data: comparison.discardsValues,
+                      stack: "comparison",
+                      backgroundColor: comparison.discardsValues.map((_, index) =>
+                        index === selectedIndex
+                          ? COMPARISON_DISCARDS_ACTIVE_COLOR
+                          : COMPARISON_DISCARDS_COLOR,
+                      ),
+                      borderRadius: {
+                        topLeft: 2,
+                        topRight: 2,
+                        bottomLeft: 0,
+                        bottomRight: 0,
+                      },
+                      borderSkipped: false,
+                      barPercentage: 0.72,
+                      categoryPercentage: 0.84,
+                    },
+                  ]
+                : []),
             ],
           }}
           options={{

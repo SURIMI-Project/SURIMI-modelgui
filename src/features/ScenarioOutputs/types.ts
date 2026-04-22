@@ -1,3 +1,5 @@
+import type { SimulationCaseId } from "../../data/simulationCases";
+
 export type ScenarioOutputMetric = "biomass" | "landings";
 
 export type SpeciesRef = {
@@ -128,4 +130,27 @@ export type SpeciesOption = {
   value: string;
   label: string;
   disabled?: boolean;
+};
+
+export type SpeciesPresentation = {
+  displayName: string;
+  scientificName: string;
+  functionalGroupKey: string;
+  functionalGroupName: string;
+};
+
+export type ScenarioOutputsDataset = {
+  caseId: SimulationCaseId;
+  runId: string;
+  title: string;
+  subtitle: string;
+  mapSubtitle: string;
+  forecastStartYear: number;
+  years: number[];
+  species_outputs: SpeciesAnnualOutput[];
+  simulationMetadata: ScenarioSimulationMetadata;
+  salesData: SalesData;
+  pricesData: PricesData;
+  speciesPresentationByKey: Record<string, SpeciesPresentation>;
+  functionalGroupOptions: SpeciesOption[];
 };

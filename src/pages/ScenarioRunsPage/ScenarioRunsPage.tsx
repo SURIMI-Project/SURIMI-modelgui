@@ -1,4 +1,4 @@
-import { Button, Pagination, ScrollArea } from "@mantine/core";
+import { Button, Checkbox, Pagination, ScrollArea } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiCheckCircle, FiEye, FiPlus } from "react-icons/fi";
@@ -60,6 +60,7 @@ const ScenarioRunsPage = () => {
   const selectedCaseId = normalizedCaseId ?? "anchovy-bay";
   const [activePage, setActivePage] = useState(1);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
+  const [selectedRunIds, setSelectedRunIds] = useState<string[]>([]);
   const { completeScenarioSetup, isScenarioSetupLoading } =
     useScenarioSetupCompletion({
       caseId: selectedCaseId,
@@ -71,6 +72,10 @@ const ScenarioRunsPage = () => {
 
   useEffect(() => {
     setActivePage(1);
+  }, [caseId]);
+
+  useEffect(() => {
+    setSelectedRunIds([]);
   }, [caseId]);
 
   if (!normalizedCaseId) {
@@ -106,9 +111,34 @@ const ScenarioRunsPage = () => {
   const visibleRuns = runs.slice(startIndex, startIndex + PAGE_SIZE);
 
   const openDashboard = (id: string) => {
-    navigate(
-      `/scenario-outputs/${selectedCaseId}?run=${encodeURIComponent(id)}`,
-    );
+    navigate(`/scenario-outputs/${selectedCaseId}?run=${encodeURIComponent(id)}`);
+  };
+
+  const openCompareDashboard = () => {
+    if (selectedRunIds.length !== 2) {
+      return;
+    }
+
+    const query = selectedRunIds
+      .slice(0, 2)
+      .map((id) => `run=${encodeURIComponent(id)}`)
+      .join("&");
+
+    navigate(`/scenario-outputs/${selectedCaseId}?${query}`);
+  };
+
+  const toggleRunSelection = (id: string, checked: boolean) => {
+    setSelectedRunIds((current) => {
+      if (checked) {
+        if (current.includes(id)) {
+          return current;
+        }
+
+        return [...current, id].slice(-2);
+      }
+
+      return current.filter((runId) => runId !== id);
+    });
   };
 
   return (
@@ -197,15 +227,24 @@ const ScenarioRunsPage = () => {
             </div>
           </div>
 
-          <Button
-            variant="primaryFilled"
-            leftSection={<FiPlus size={16} />}
-            onClick={() => {
-              setIsScenarioInputsOpen(true);
-            }}
-          >
-            Set Up Scenario
-          </Button>
+          <div className={styles.topbarActions}>
+            <Button
+              variant="primaryOutlined"
+              disabled={selectedRunIds.length !== 2}
+              onClick={openCompareDashboard}
+            >
+              Compare Selected
+            </Button>
+            <Button
+              variant="primaryFilled"
+              leftSection={<FiPlus size={16} />}
+              onClick={() => {
+                setIsScenarioInputsOpen(true);
+              }}
+            >
+              Set Up Scenario
+            </Button>
+          </div>
         </header>
 
         <section className={styles.panel}>
@@ -218,6 +257,7 @@ const ScenarioRunsPage = () => {
             <table className={styles.runsTable}>
               <thead>
                 <tr>
+                  <th>Compare</th>
                   <th>Inputs</th>
                   <th>Name</th>
                   <th>Conducted at</th>
@@ -228,12 +268,22 @@ const ScenarioRunsPage = () => {
               <tbody>
                 {visibleRuns.map((run) => {
                   const isActive = activeRun?.id === run.id;
+                  const isSelected = selectedRunIds.includes(run.id);
 
                   return (
                     <tr
                       key={run.id}
                       className={isActive ? styles.activeRow : undefined}
                     >
+                      <td className={styles.checkboxCell}>
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={(event) => {
+                            toggleRunSelection(run.id, event.currentTarget.checked);
+                          }}
+                          aria-label={`Select ${getRunName(run)} for comparison`}
+                        />
+                      </td>
                       <td>
                         <dl className={styles.inputsCell}>
                           <div>

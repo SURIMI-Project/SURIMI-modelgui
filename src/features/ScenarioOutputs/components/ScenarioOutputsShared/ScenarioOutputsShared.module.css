@@ -1,0 +1,330 @@
+.layout {
+  display: grid;
+  gap: 24px;
+  position: relative;
+}
+
+.headerCopy {
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+  z-index: 1;
+}
+
+.pageTitle {
+  font-size: clamp(1.28rem, 1.72vw, 1.72rem);
+  margin: 0 0 10px;
+}
+
+.pageSubtitle {
+  margin: 0;
+  max-width: none;
+  font-size: clamp(1.02rem, 1.18vw, 1.14rem);
+  text-align: left;
+}
+
+.headerCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-content: start;
+  gap: 24px;
+  position: relative;
+  padding: 20px 24px 24px;
+  border: 1px solid rgba(127, 208, 255, 0.2);
+  border-radius: 26px;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 0 0 1px rgba(214, 243, 255, 0.04),
+    0 24px 44px -34px rgba(0, 0, 0, 0.84);
+}
+
+.headerControlsRow {
+  display: flex;
+  gap: 64px;
+  justify-content: flex-start;
+}
+
+.metricSection {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.selectFishSection {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-width: 0;
+}
+
+.controlCardTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.controlsCluster {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+
+.controlsCluster > * {
+  width: min(100%, 420px);
+}
+
+.controlCardHeader {
+  display: grid;
+  gap: 8px;
+}
+
+.selectedSpeciesPills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.selectedSpeciesPill {
+  background: rgba(19, 86, 132, 0.72);
+  color: #f3fbff;
+  border: 1px solid rgba(128, 216, 255, 0.32);
+}
+
+.controlCardTitle {
+  margin: 0;
+  color: #f2fbff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.controlCardSubtitle {
+  margin: 0;
+  color: rgba(212, 236, 251, 0.84);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.indicatorPanel {
+  min-height: 100%;
+  align-self: stretch;
+  width: 100%;
+}
+
+.ringDock {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  display: grid;
+  justify-items: end;
+  gap: 14px;
+}
+
+.ringPanel {
+  padding: 18px 34px;
+  border-radius: 28px;
+  border: 1px solid rgba(124, 206, 255, 0.22);
+  background:
+    linear-gradient(160deg, rgba(8, 34, 57, 0.94), rgba(3, 19, 35, 0.9)),
+    rgba(3, 18, 31, 0.92);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 24px 48px -30px rgba(0, 0, 0, 0.86),
+    0 10px 28px -18px rgba(84, 180, 255, 0.26);
+  transform-origin: bottom right;
+}
+
+.ringLauncher {
+  width: 74px;
+  height: 74px;
+  border: 1px solid rgba(131, 214, 255, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 32% 26%,
+      rgba(154, 224, 255, 0.34),
+      rgba(154, 224, 255, 0) 44%
+    ),
+    linear-gradient(150deg, rgba(16, 62, 96, 0.96), rgba(3, 24, 47, 0.98));
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow:
+    0 18px 38px -24px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(149, 225, 255, 0.14);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.ringLauncher:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(152, 225, 255, 0.62);
+  box-shadow:
+    0 22px 42px -24px rgba(0, 0, 0, 0.92),
+    0 0 0 5px rgba(90, 186, 255, 0.1);
+}
+
+.ringLauncherYear {
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #f6fcff;
+  text-shadow:
+    0 1px 0 rgba(2, 14, 26, 0.92),
+    0 0 12px rgba(105, 212, 255, 0.18);
+}
+
+.pageMapPanel,
+.primaryChartPanel {
+  height: 100%;
+  min-height: clamp(620px, calc(58vh + 60px), 760px);
+  padding: 18px;
+  border: 1px solid rgba(125, 208, 255, 0.22);
+  border-radius: 24px;
+  background:
+    linear-gradient(160deg, rgba(10, 38, 64, 0.82), rgba(4, 18, 33, 0.72)),
+    rgba(4, 15, 29, 0.7);
+  backdrop-filter: blur(14px);
+}
+
+.pageMapSurface {
+  min-height: clamp(440px, calc(56vh + 32px), 660px);
+}
+
+.topGrid,
+.bottomGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.92fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.bottomGrid {
+  grid-template-columns: 1fr;
+}
+
+.dynamicChartPanel {
+  min-width: 0;
+  min-height: 0;
+}
+
+.secondarySection {
+  display: grid;
+  gap: 16px;
+  margin-top: 54px;
+}
+
+.sectionCopy {
+  display: grid;
+  gap: 8px;
+  max-width: 60ch;
+}
+
+.sectionKicker {
+  margin: 0;
+  color: rgba(180, 226, 249, 0.78);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 680;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #f0fbff;
+  font-size: clamp(1.08rem, 1.4vw, 1.4rem);
+  line-height: 1.18;
+}
+
+.sectionDescription {
+  margin: 0;
+  color: rgba(216, 239, 252, 0.82);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 54px;
+}
+
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1240px) {
+  .ringDock {
+    right: 20px;
+    bottom: 20px;
+  }
+}
+
+@media (max-width: 980px) {
+  .headerCopy {
+    width: 100%;
+    max-width: none;
+  }
+
+  .headerControlsRow {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .controlCardTopRow {
+    grid-template-columns: 1fr;
+  }
+
+  .controlsCluster > * {
+    width: 100%;
+  }
+
+  .topGrid,
+  .bottomGrid,
+  .secondaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .ringDock {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .ringPanel {
+    padding: 12px 20px;
+  }
+
+  .ringLauncher {
+    width: 66px;
+    height: 66px;
+  }
+
+  .pageMapPanel,
+  .primaryChartPanel {
+    padding: 14px;
+    min-height: auto;
+  }
+
+  .headerCard {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .headerControlsRow {
+    gap: 16px;
+  }
+
+  .selectedSpeciesPills {
+    justify-content: flex-start;
+  }
+
+  .pageMapSurface {
+    min-height: 380px;
+  }
+}

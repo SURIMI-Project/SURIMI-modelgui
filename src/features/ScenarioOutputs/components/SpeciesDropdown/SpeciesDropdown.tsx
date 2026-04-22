@@ -1,11 +1,11 @@
-import { Select } from "@mantine/core";
+import { MultiSelect } from "@mantine/core";
 import type { SpeciesOption } from "../../types";
 import styles from "./SpeciesDropdown.module.css";
 
 type SpeciesDropdownProps = {
   options: SpeciesOption[];
-  value: string;
-  onChange: (next: string) => void;
+  value: string[];
+  onChange: (next: string[]) => void;
 };
 
 const SpeciesDropdown = ({
@@ -18,17 +18,14 @@ const SpeciesDropdown = ({
       <label className={styles.label} htmlFor="species-selector">
         Species
       </label>
-      <Select
+      <MultiSelect
         id="species-selector"
         data={options}
         value={value}
-        onChange={(next) => {
-          if (next) {
-            onChange(next);
-          }
-        }}
-        placeholder="Select species"
+        onChange={onChange}
+        placeholder="Select one or more species"
         searchable
+        hidePickedOptions
         limit={200}
         size="md"
         className={styles.select}
