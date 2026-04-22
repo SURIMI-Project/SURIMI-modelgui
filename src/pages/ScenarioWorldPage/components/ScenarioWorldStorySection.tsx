@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { motion } from "framer-motion";
 import styles from "../ScenarioWorldPage.module.css";
 import { Flex } from "@mantine/core";
@@ -16,7 +15,6 @@ const ScenarioWorldStorySection = ({
   worldTitle,
   aboutTitle,
   description,
-  simulationContext,
   fromLanding,
   onOpenInfoModal,
 }: ScenarioWorldStorySectionProps) => {

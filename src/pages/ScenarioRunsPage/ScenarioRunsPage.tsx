@@ -1,15 +1,7 @@
 import { Button, Pagination, ScrollArea } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import {
-  FiAnchor,
-  FiArrowLeft,
-  FiCheckCircle,
-  FiCompass,
-  FiEye,
-  FiNavigation,
-  FiPlus,
-} from "react-icons/fi";
+import { FiArrowLeft, FiCheckCircle, FiEye, FiPlus } from "react-icons/fi";
 import { getScenarioWorldConfig } from "../../constants/scenarioWorldConfig";
 import {
   getSimulationCaseById,
@@ -28,11 +20,11 @@ import smallSurimiLogo from "../../assets/smallSurimiLogo.png";
 import styles from "./ScenarioRunsPage.module.css";
 
 const PAGE_SIZE = 6;
-const scenarioNavIcons = {
-  "anchovy-bay": FiAnchor,
-  "aegean-sea": FiCompass,
-  "northwestern-mediterranean": FiNavigation,
-} satisfies Record<SimulationCaseId, typeof FiAnchor>;
+const scenarioNavImages = {
+  "anchovy-bay": "/sidemenu/anchovyItem.jpg",
+  "aegean-sea": "/sidemenu/aegeanItem.jpg",
+  "northwestern-mediterranean": "/sidemenu/northwesternseaItem.jpg",
+} satisfies Record<SimulationCaseId, string>;
 
 const formatDateTime = (value: string) => {
   return new Intl.DateTimeFormat("en", {
@@ -151,7 +143,6 @@ const ScenarioRunsPage = () => {
           {simulationCaseStudies.map((item) => {
             const isActive = item.id === caseId;
             const itemRunCount = getScenarioRunsByCaseId(item.id).length;
-            const ScenarioIcon = scenarioNavIcons[item.id];
 
             return (
               <button
@@ -172,7 +163,11 @@ const ScenarioRunsPage = () => {
                   data-case={item.id}
                   aria-hidden="true"
                 >
-                  <ScenarioIcon aria-hidden="true" />
+                  <img
+                    src={scenarioNavImages[item.id]}
+                    alt=""
+                    className={styles.scenarioImage}
+                  />
                 </span>
                 <span className={styles.scenarioNavCopy}>
                   <strong>{getCaseLabel(item.id)}</strong>
