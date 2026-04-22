@@ -15,7 +15,7 @@ type DashboardLayoutProps = {
   titleClassName?: string;
   subtitleClassName?: string;
   showKicker?: boolean;
-  headerLayout?: "default" | "centered" | "three-column";
+  headerLayout?: "default" | "centered" | "three-column" | "split";
 };
 
 const DashboardLayout = ({
@@ -32,6 +32,10 @@ const DashboardLayout = ({
   showKicker = true,
   headerLayout = "default",
 }: DashboardLayoutProps) => {
+  const isCentered = headerLayout === "centered";
+  const isThreeColumn = headerLayout === "three-column";
+  const isSplit = headerLayout === "split";
+
   return (
     <main className={styles.page}>
       <div className={styles.atmosphere} aria-hidden="true" />
@@ -45,59 +49,62 @@ const DashboardLayout = ({
         <div
           className={[
             styles.headerInner,
-            headerLayout === "centered" ? styles.headerInnerCentered : "",
-            headerLayout === "three-column" ? styles.headerInnerThreeColumn : "",
+            isCentered ? styles.headerInnerCentered : "",
+            isThreeColumn ? styles.headerInnerThreeColumn : "",
+            isSplit ? styles.headerInnerSplit : "",
           ]
             .filter(Boolean)
             .join(" ")}
         >
-          {headerLayout === "three-column" ? (
+          {isThreeColumn || isSplit ? (
             <div className={styles.headerColumnLeft}>{headerLeft}</div>
           ) : null}
 
-          {headerAside && headerLayout === "centered" ? (
+          {headerAside && isCentered ? (
             <div className={styles.headerAsideLeft}>{headerAside}</div>
           ) : null}
 
-          {headerLayout === "three-column" && headerCenter ? (
+          {isThreeColumn && headerCenter ? (
             <div className={styles.headerColumnCenter}>{headerCenter}</div>
           ) : (
-            <div
-              className={[styles.headerCopy, headerCopyClassName]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              {showKicker ? (
-                <Badge className={styles.kicker} variant="light">
-                  Scenario Outputs Dashboard
-                </Badge>
-              ) : null}
-              <Title
-                className={[styles.title, titleClassName]
+            !isSplit ? (
+              <div
+                className={[styles.headerCopy, headerCopyClassName]
                   .filter(Boolean)
                   .join(" ")}
               >
-                {title}
-              </Title>
-              <Text
-                className={[styles.subtitle, subtitleClassName]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                {subtitle}
-              </Text>
-            </div>
+                {showKicker ? (
+                  <Badge className={styles.kicker} variant="light">
+                    Scenario Outputs Dashboard
+                  </Badge>
+                ) : null}
+                <Title
+                  className={[styles.title, titleClassName]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  {title}
+                </Title>
+                <Text
+                  className={[styles.subtitle, subtitleClassName]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  {subtitle}
+                </Text>
+              </div>
+            ) : null
           )}
 
-          {headerAside && headerLayout !== "centered" ? (
+          {headerAside && !isCentered ? (
             <div className={styles.headerAside}>{headerAside}</div>
           ) : null}
 
-          {headerLayout === "three-column" ? (
+          {isThreeColumn || isSplit ? (
             <div className={styles.headerColumnRight}>{headerRight}</div>
           ) : null}
 
-          {headerAside && headerLayout === "centered" ? (
+          {headerAside && isCentered ? (
             <div className={styles.headerAsideSpacer} aria-hidden="true" />
           ) : null}
         </div>
