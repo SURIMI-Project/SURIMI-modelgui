@@ -223,6 +223,12 @@
   line-height: 1.14;
 }
 
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .panel {
   flex: 1 1 auto;
   min-height: 0;
@@ -309,6 +315,20 @@
 
 .runsTable tbody tr:last-child td {
   border-bottom: 0;
+}
+
+.checkboxCell {
+  width: 82px;
+}
+
+.checkboxCell :global(.mantine-Checkbox-input) {
+  border-color: rgba(221, 241, 255, 0.36);
+  background: rgba(4, 16, 31, 0.48);
+}
+
+.checkboxCell :global(.mantine-Checkbox-input:checked) {
+  background: color-mix(in srgb, var(--runs-accent) 70%, #ffffff 10%);
+  border-color: color-mix(in srgb, var(--runs-accent) 74%, #ffffff 12%);
 }
 
 .inputsCell {
