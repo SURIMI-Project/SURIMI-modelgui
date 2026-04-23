@@ -12,10 +12,12 @@ const MarketIndicatorsPanel = ({
     <section className={styles.secondarySection}>
       <div className={styles.sectionCopy}>
         <p className={styles.sectionKicker}>Market indicators</p>
-        <h2 className={styles.sectionTitle}>Sales volume and market price trends</h2>
+        <h2 className={styles.sectionTitle}>
+          Sales volume and market price trends
+        </h2>
         <p className={styles.sectionDescription}>
-          The commercial outputs below stay synchronized with the same species
-          and year selected in the map and main ecological trend chart.
+          The commercial outputs below stay synchronised with the same species
+          selected in the map and main ecological trend chart.
         </p>
       </div>
 

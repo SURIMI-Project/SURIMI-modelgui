@@ -15,7 +15,7 @@ type OutputsTrendPanelProps = {
   values?: number[];
   historicalLabels?: string[];
   historicalValues?: number[];
-  actualHistoricalValues?: number[];
+  simulatedHistoricalValues?: number[];
   futureLabels?: string[];
   futureValues?: number[];
   series?: OutputsTrendChartSeries[];
@@ -38,7 +38,7 @@ const OutputsTrendPanel = ({
   values,
   historicalLabels,
   historicalValues,
-  actualHistoricalValues,
+  simulatedHistoricalValues,
   futureLabels,
   futureValues,
   series,
@@ -76,7 +76,7 @@ const OutputsTrendPanel = ({
           values={values}
           historicalLabels={historicalLabels}
           historicalValues={historicalValues}
-          actualHistoricalValues={actualHistoricalValues}
+          simulatedHistoricalValues={simulatedHistoricalValues}
           futureLabels={futureLabels}
           futureValues={futureValues}
           series={series}

@@ -123,7 +123,7 @@ const westernMediterraneanNodes: ScenarioFlowNode[] = [
     subtitle: "System Dynamics Model",
     hoverTitle: "Market Model",
     hoverDescription:
-      "SURIMI combines different models to capture the dynamic interactions among ecological, social, and economic factors in a fishery system. When data are insufficient, specific components of advanced models sometimes cannot be sufficiently informed. In such a case, system dynamics models are designed to fill the model gaps with tailored puzzle pieces. This allows SURIMI to replace data-heavy model components of advanced models with simpler alternatives, reducing reliance on large datasets while still capturing the essential dynamics of the fishery system. System dynamics modelling is a mathematical technique that maps how things in a system are related and change over time. Key parts of a system dynamics model include causal loops, and stocks and flows. Applied to fisheries, a causal loop can for example illustrate how various factors interact to either increase or decrease the fish population.",
+      "The SURIMI Market Model estimates prices for fish species landed in local port markets, using historical data as its baseline. It generates time-stamped price outputs by species, gear type, and market, enabling the calculation of landing values across ports and vessel types over defined periods. Implemented as a system dynamics model, it captures how prices evolve over time in response to changes in supply across markets. The model differentiates between global and local market conditions. Global prices serve as reference values, while local prices respond dynamically to the volume of fish supplied. As landings increase, prices decline due to market saturation, with a minimum threshold ensuring they remain within realistic bounds. The extent of this response is governed by an elasticity parameter.",
     videoUrl:
       "https://www.youtube.com/watch?v=cK8JoxFI6bU&list=PLXKTm_QGiR-hSkLXN1wKySu-wT32br00T&index=7",
     references: [
@@ -316,7 +316,10 @@ const westernMediterraneanEdges: ScenarioFlowEdge[] = [
   },
 ];
 
-const westernAuthorityNode = getNodeById(westernMediterraneanNodes, "authority");
+const westernAuthorityNode = getNodeById(
+  westernMediterraneanNodes,
+  "authority",
+);
 const westernEcopathNode = getNodeById(westernMediterraneanNodes, "ecopath");
 
 const aegeanSeaNodes: ScenarioFlowNode[] = westernMediterraneanNodes
@@ -359,13 +362,11 @@ const aegeanSeaEdges: ScenarioFlowEdge[] = westernMediterraneanEdges
   .filter(({ id }) => !id.includes("poseidon"))
   .map(cloneEdge);
 
-const anchovyBayNodes: ScenarioFlowNode[] = westernMediterraneanNodes.map(
-  cloneNode,
-);
+const anchovyBayNodes: ScenarioFlowNode[] =
+  westernMediterraneanNodes.map(cloneNode);
 
-const anchovyBayEdges: ScenarioFlowEdge[] = westernMediterraneanEdges.map(
-  cloneEdge,
-);
+const anchovyBayEdges: ScenarioFlowEdge[] =
+  westernMediterraneanEdges.map(cloneEdge);
 
 const scenarioFlowGraphs: Record<SimulationCaseId, ScenarioFlowGraph> = {
   "northwestern-mediterranean": {

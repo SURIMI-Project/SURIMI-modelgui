@@ -32,7 +32,7 @@ export const normalizeSeries = (values: number[]) => {
   return values.map((value) => (value - min) / span);
 };
 
-export const buildActualHistoricalSeries = (
+export const buildSimulatedHistoricalSeries = (
   values: number[],
   seriesSeed: number,
 ) => {
@@ -52,6 +52,7 @@ export const buildActualHistoricalSeries = (
     const amplitude =
       0.2 + Math.abs(Math.sin((index + 1) * (0.49 + seriesSeed * 0.05))) * 0.16;
     const offset = sign * valueRange * amplitude;
+
     return Number((value + offset).toFixed(3));
   });
 };

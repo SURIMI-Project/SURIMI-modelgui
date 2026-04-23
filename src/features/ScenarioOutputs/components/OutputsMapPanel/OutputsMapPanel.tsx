@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { HeatPoint } from "../../types";
 import HeatMap from "../HeatMap/HeatMap";
 import MapLegend from "../MapLegend/MapLegend";
@@ -16,6 +17,7 @@ type OutputsMapPanelProps = {
     min: number;
     max: number;
   };
+  headerCenter?: ReactNode;
   className?: string;
   mapClassName?: string;
   compact?: boolean;
@@ -31,6 +33,7 @@ const OutputsMapPanel = ({
   metricLabel,
   bounds,
   valueDomain,
+  headerCenter,
   className,
   mapClassName,
   compact = false,
@@ -46,18 +49,31 @@ const OutputsMapPanel = ({
         .join(" ")}
     >
       {!compact ? (
-        <div className={styles.header}>
+        <div
+          className={[
+            styles.header,
+            headerCenter ? styles.headerWithCenter : styles.headerWithoutCenter,
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <div className={styles.headerCopy}>
             <p className={styles.kicker}>{kicker ?? `${speciesCode} · ${year}`}</p>
             {title ? <h2 className={styles.title}>{title}</h2> : null}
             {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
           </div>
 
-          <MapLegend
-            metricLabel={metricLabel}
-            min={valueDomain.min}
-            max={valueDomain.max}
-          />
+          {headerCenter ? (
+            <div className={styles.headerCenter}>{headerCenter}</div>
+          ) : null}
+
+          <div className={styles.headerLegend}>
+            <MapLegend
+              metricLabel={metricLabel}
+              min={valueDomain.min}
+              max={valueDomain.max}
+            />
+          </div>
         </div>
       ) : null}
 

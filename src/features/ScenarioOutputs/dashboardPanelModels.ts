@@ -35,7 +35,7 @@ export type BiomassPanelModel = {
   selectionCopy: string;
   historicalLabels: string[];
   historicalValues: number[];
-  actualHistoricalValues: number[];
+  simulatedHistoricalValues: number[];
   futureLabels: string[];
   futureValues: number[];
   series?: OutputsTrendChartSeries[];
@@ -78,6 +78,7 @@ export type MapPanelModel = {
 export type MapBiomassAndLandingsPanelModel = {
   metric: ScenarioOutputMetric;
   map: MapPanelModel;
+  comparisonMap?: MapPanelModel;
   biomass: BiomassPanelModel;
   landings: LandingsPanelModel;
 };

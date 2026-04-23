@@ -1,9 +1,17 @@
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import InformationLegendsPopover from "../InformationLegends/InformationLegendsPopover";
 import LandingsStackedBarChart from "../LandingsStackedBarChart/LandingsStackedBarChart";
 import OutputsMapPanel from "../OutputsMapPanel/OutputsMapPanel";
 import OutputsTrendPanel from "../OutputsTrendPanel/OutputsTrendPanel";
 import { type MapBiomassAndLandingsPanelModel } from "../../dashboardPanelModels";
+import {
+  SCENARIO_COMPARE_COLORS,
+  SCENARIO_ONE_LABEL,
+  SCENARIO_TWO_LABEL,
+} from "../../scenarioCompare";
+import mapStyles from "../OutputsMapPanel/OutputsMapPanel.module.css";
 import styles from "../ScenarioOutputsShared/ScenarioOutputsShared.module.css";
 
 type MapBiomassAndLandingsPanelProps = MapBiomassAndLandingsPanelModel;
@@ -11,21 +19,79 @@ type MapBiomassAndLandingsPanelProps = MapBiomassAndLandingsPanelModel;
 const MapBiomassAndLandingsPanel = ({
   metric,
   map,
+  comparisonMap,
   biomass,
   landings,
 }: MapBiomassAndLandingsPanelProps) => {
+  const [selectedMapView, setSelectedMapView] = useState<"primary" | "comparison">(
+    "primary",
+  );
+
+  useEffect(() => {
+    if (!comparisonMap) {
+      setSelectedMapView("primary");
+    }
+  }, [comparisonMap]);
+
+  const activeMap =
+    comparisonMap && selectedMapView === "comparison" ? comparisonMap : map;
+
   return (
     <section className={styles.topGrid}>
       <OutputsMapPanel
         title=""
-        subtitle={map.subtitle}
-        kicker={map.kicker}
-        speciesCode={map.speciesCode}
-        year={map.year}
-        points={map.points}
-        metricLabel={map.metricLabel}
-        bounds={map.bounds}
-        valueDomain={map.valueDomain}
+        subtitle={activeMap.subtitle}
+        kicker={activeMap.kicker}
+        speciesCode={activeMap.speciesCode}
+        year={activeMap.year}
+        points={activeMap.points}
+        metricLabel={activeMap.metricLabel}
+        bounds={activeMap.bounds}
+        valueDomain={activeMap.valueDomain}
+        headerCenter={
+          comparisonMap ? (
+            <div className={mapStyles.compareToggle} role="tablist" aria-label="Switch compared scenario map">
+              {[
+                {
+                  value: "primary" as const,
+                  label: SCENARIO_ONE_LABEL,
+                  color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+                },
+                {
+                  value: "comparison" as const,
+                  label: SCENARIO_TWO_LABEL,
+                  color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
+                },
+              ].map((option) => {
+                const isActive = selectedMapView === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={[
+                      mapStyles.compareToggleButton,
+                      isActive ? mapStyles.compareToggleButtonActive : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={
+                      { "--toggle-color": option.color } as CSSProperties
+                    }
+                    onClick={() => {
+                      setSelectedMapView(option.value);
+                    }}
+                  >
+                    <span className={mapStyles.compareToggleSwatch} aria-hidden="true" />
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : undefined
+        }
         className={styles.pageMapPanel}
         mapClassName={styles.pageMapSurface}
       />
@@ -57,7 +123,7 @@ const MapBiomassAndLandingsPanel = ({
               selectionCopy={biomass.selectionCopy}
               historicalLabels={biomass.historicalLabels}
               historicalValues={biomass.historicalValues}
-              actualHistoricalValues={biomass.actualHistoricalValues}
+              simulatedHistoricalValues={biomass.simulatedHistoricalValues}
               futureLabels={biomass.futureLabels}
               futureValues={biomass.futureValues}
               series={biomass.series}

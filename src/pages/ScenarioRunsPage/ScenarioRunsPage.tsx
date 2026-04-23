@@ -24,6 +24,10 @@ import {
 import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
 import type { ScenarioRun } from "../../features/ScenarioRuns/types";
 import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
+import {
+  SCENARIO_ONE_LABEL,
+  SCENARIO_TWO_LABEL,
+} from "../../features/ScenarioOutputs/scenarioCompare";
 import smallSurimiLogo from "../../assets/smallSurimiLogo.png";
 import styles from "./ScenarioRunsPage.module.css";
 
@@ -44,13 +48,18 @@ const formatDateTime = (value: string) => {
   }).format(new Date(value));
 };
 
-const getRunName = (run: ScenarioRun) => {
-  const climate = run.inputs.ipccScenario ?? "default";
-  return `${run.inputs.speciesLabel} · ${run.inputs.durationYears}y · ${climate}`;
-};
-
 const getIpccLabel = (run: ScenarioRun) => {
   return run.inputs.ipccScenario ?? "Default IPCC scenario";
+};
+
+const getScenarioSlotLabel = (run: ScenarioRun) => {
+  const numericRunId = Number.parseInt(run.id, 10);
+
+  if (!Number.isFinite(numericRunId)) {
+    return run.title;
+  }
+
+  return numericRunId % 2 === 0 ? SCENARIO_TWO_LABEL : SCENARIO_ONE_LABEL;
 };
 
 const getCaseLabel = (caseId: SimulationCaseId) => {
@@ -291,7 +300,7 @@ const ScenarioRunsPage = () => {
                               event.currentTarget.checked,
                             );
                           }}
-                          aria-label={`Select ${getRunName(run)} for comparison`}
+                          aria-label={`Select ${getScenarioSlotLabel(run)} for comparison`}
                         />
                       </td>
                       <td>
@@ -312,8 +321,8 @@ const ScenarioRunsPage = () => {
                       </td>
                       <td>
                         <div className={styles.nameCell}>
-                          <strong>{getRunName(run)}</strong>
-                          <span>{run.id}</span>
+                          <strong>{getScenarioSlotLabel(run)}</strong>
+                          <span>{""}</span>
                         </div>
                       </td>
                       <td className={styles.dateCell}>
@@ -332,7 +341,7 @@ const ScenarioRunsPage = () => {
                           onClick={() => {
                             openDashboard(run.id);
                           }}
-                          aria-label={`Open dashboard for ${getRunName(run)}`}
+                          aria-label={`Open dashboard for ${getScenarioSlotLabel(run)}`}
                         >
                           <FiEye aria-hidden="true" />
                           <span>View</span>

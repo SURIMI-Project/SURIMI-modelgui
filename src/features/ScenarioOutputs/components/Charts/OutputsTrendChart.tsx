@@ -30,7 +30,7 @@ type OutputsTrendChartProps = {
   values?: number[];
   historicalLabels?: string[];
   historicalValues?: number[];
-  actualHistoricalValues?: number[];
+  simulatedHistoricalValues?: number[];
   futureLabels?: string[];
   futureValues?: number[];
   metricLabel: string;
@@ -48,9 +48,11 @@ export type OutputsTrendChartSeries = {
   boundOpacity?: number;
   values?: number[];
   historicalValues?: number[];
-  actualHistoricalValues?: number[];
+  simulatedHistoricalValues?: number[];
   futureValues?: number[];
 };
+
+const SIMULATION_POINT_FILL = "#8f1f1c";
 
 const smoothSeries = (values: number[]) => {
   if (values.length < 3) {
@@ -140,6 +142,8 @@ const mixWithWhite = (hexColor: string, ratio: number) => {
   return `rgb(${mixedRed}, ${mixedGreen}, ${mixedBlue})`;
 };
 
+const LEGEND_TEXT_COLOR = "rgba(216, 236, 249, 0.88)";
+
 const computeBandValues = (
   rawValues: number[],
   displayValues: number[],
@@ -178,7 +182,7 @@ const OutputsTrendChart = ({
   values,
   historicalLabels,
   historicalValues,
-  actualHistoricalValues,
+  simulatedHistoricalValues,
   futureLabels,
   futureValues,
   metricLabel,
@@ -203,11 +207,13 @@ const OutputsTrendChart = ({
       ? series
       : [
           {
-            label: metricLabel,
+            label: hasSplitSeries
+              ? `Modelled ${metricLabel.toLowerCase()} line`
+              : metricLabel,
             color: lineColor,
             values,
             historicalValues,
-            actualHistoricalValues,
+            simulatedHistoricalValues,
             futureValues,
           },
         ]
@@ -221,8 +227,8 @@ const OutputsTrendChart = ({
         ? [...(entry.historicalValues ?? []), ...(entry.futureValues ?? [])]
         : (entry.values ?? []),
       historicalValues: entry.historicalValues ?? [],
-      actualHistoricalValues:
-        entry.actualHistoricalValues ?? entry.historicalValues ?? [],
+      simulatedHistoricalValues:
+        entry.simulatedHistoricalValues ?? entry.historicalValues ?? [],
     }))
     .map((entry) => ({
       ...entry,
@@ -251,16 +257,17 @@ const OutputsTrendChart = ({
   });
 
   const futureStartIndex = hasSplitSeries ? historicalLabels.length : -1;
-
-  const actualValueSeries = hasSplitSeries
+  const simulationPointSeries = hasSplitSeries
     ? enrichedSeries.map((entry) => ({
-        label: `Actual ${entry.label}`,
+        label: `__points__${entry.label}`,
+        accentColor: entry.color,
         values: [
-          ...entry.actualHistoricalValues,
+          ...entry.simulatedHistoricalValues,
           ...futureLabels.map(() => null),
         ],
       }))
     : [];
+  const hasLegend = hasMultipleSeries;
 
   const eraSplitPlugin = {
     id: "eraSplit",
@@ -364,11 +371,13 @@ const OutputsTrendChart = ({
                   : 5;
             }
 
-            if (hasSplitSeries || hasMultipleSeries) {
-              return 0;
-            }
-
-            return 2;
+            return compact
+              ? hasSplitSeries || hasMultipleSeries
+                ? 2.8
+                : 2.2
+              : hasSplitSeries || hasMultipleSeries
+                ? 3.4
+                : 2.8;
           },
           pointHoverRadius: compact ? 4.8 : 6,
           pointBackgroundColor: (context: ScriptableContext<"line">) => {
@@ -376,13 +385,18 @@ const OutputsTrendChart = ({
               ? "#ffffff"
               : entry.color;
           },
-          pointBorderColor: entry.color,
-          pointBorderWidth:
-            hasSplitSeries || hasMultipleSeries
-              ? (context: ScriptableContext<"line">) => {
-                  return context.dataIndex === selectedIndex ? 2.2 : 0;
-                }
-              : 2,
+          pointBorderColor: (context: ScriptableContext<"line">) => {
+            return context.dataIndex === selectedIndex
+              ? entry.color
+              : "rgba(242, 251, 255, 0.92)";
+          },
+          pointBorderWidth: (context: ScriptableContext<"line">) => {
+            if (context.dataIndex === selectedIndex) {
+              return 2.2;
+            }
+
+            return hasSplitSeries || hasMultipleSeries ? 1.2 : 1.6;
+          },
           fill: !hasSplitSeries && !hasMultipleSeries,
           spanGaps: false,
           backgroundColor: (context: ScriptableContext<"line">) => {
@@ -446,16 +460,16 @@ const OutputsTrendChart = ({
           lineDataset,
         ];
       }),
-      ...actualValueSeries.map((entry) => ({
+      ...simulationPointSeries.map((entry) => ({
         label: entry.label,
         data: entry.values,
         borderColor: "transparent",
-        backgroundColor: "#8f1f1c",
-        pointBackgroundColor: "#8f1f1c",
-        pointBorderColor: "rgba(255, 248, 248, 0.95)",
-        pointBorderWidth: 1.4,
-        pointRadius: compact ? 3.2 : hasMultipleSeries ? 3.8 : 4.4,
-        pointHoverRadius: compact ? 3.6 : hasMultipleSeries ? 4.2 : 4.8,
+        backgroundColor: SIMULATION_POINT_FILL,
+        pointBackgroundColor: SIMULATION_POINT_FILL,
+        pointBorderColor: entry.accentColor,
+        pointBorderWidth: compact ? 1.8 : 2.2,
+        pointRadius: compact ? 3.6 : hasMultipleSeries ? 4.2 : 4.8,
+        pointHoverRadius: compact ? 4 : hasMultipleSeries ? 4.8 : 5.4,
         pointStyle: "circle" as const,
         pointHitRadius: compact ? 4 : 6,
         showLine: false,
@@ -487,14 +501,99 @@ const OutputsTrendChart = ({
     },
     plugins: {
       legend: {
-        display: hasMultipleSeries,
+        display: hasLegend,
+        onClick: (
+          _event: unknown,
+          legendItem: LegendItem,
+          legend: { chart: ChartJS<"line"> },
+        ) => {
+          const chart = legend.chart;
+          const datasetIndex = legendItem.datasetIndex;
+
+          if (datasetIndex === undefined) {
+            return;
+          }
+
+          const clickedDataset = chart.data.datasets[datasetIndex];
+          const datasetLabel = clickedDataset?.label ?? "";
+          const nextVisibility = !chart.isDatasetVisible(datasetIndex);
+
+          chart.data.datasets.forEach(
+            (
+              dataset: { label?: string | undefined },
+              index: number,
+            ) => {
+              const label = dataset.label ?? "";
+              const isMatchingBound =
+                label === `__bound__${datasetLabel} lower` ||
+                label === `__bound__${datasetLabel} upper`;
+              const isMatchingPoints = label === `__points__${datasetLabel}`;
+
+              if (index === datasetIndex || isMatchingBound || isMatchingPoints) {
+                chart.setDatasetVisibility(index, nextVisibility);
+              }
+            },
+          );
+
+          chart.update();
+        },
         labels: {
-          color: "rgba(216, 236, 249, 0.8)",
+          color: LEGEND_TEXT_COLOR,
           boxWidth: 10,
           boxHeight: 10,
           usePointStyle: true,
-          pointStyle: "line",
           padding: 16,
+          generateLabels: (chart: ChartJS) => {
+            return chart.data.datasets.flatMap(
+              (
+                dataset: {
+                  label?: string | undefined;
+                  showLine?: boolean | undefined;
+                  pointBackgroundColor?: unknown;
+                  pointBorderColor?: unknown;
+                  borderColor?: unknown;
+                  backgroundColor?: unknown;
+                },
+                datasetIndex: number,
+              ) => {
+                const label = dataset.label ?? "";
+                if (
+                  label.startsWith("__bound__") ||
+                  label.startsWith("__points__")
+                ) {
+                  return [];
+                }
+
+                const color =
+                  (typeof dataset.backgroundColor === "string" &&
+                    dataset.backgroundColor) ||
+                  (typeof dataset.pointBackgroundColor === "string" &&
+                    dataset.pointBackgroundColor) ||
+                  (typeof dataset.borderColor === "string" &&
+                    dataset.borderColor) ||
+                  lineColor;
+                const strokeColor =
+                  (typeof dataset.pointBorderColor === "string" &&
+                    dataset.pointBorderColor) ||
+                  (typeof dataset.borderColor === "string" &&
+                    dataset.borderColor) ||
+                  color;
+
+                return [
+                  {
+                    text: label,
+                    datasetIndex,
+                    hidden: !chart.isDatasetVisible(datasetIndex),
+                    fillStyle: color,
+                    strokeStyle: strokeColor,
+                    fontColor: LEGEND_TEXT_COLOR,
+                    lineWidth: 3,
+                    pointStyle: "line" as const,
+                  },
+                ];
+              },
+            );
+          },
           filter: (legendItem: LegendItem) => {
             return !legendItem.text.startsWith("__bound__");
           },
