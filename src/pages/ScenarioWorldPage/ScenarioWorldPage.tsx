@@ -121,6 +121,11 @@ const ScenarioWorldPage = () => {
           description={worldConfig.description}
           simulationContext={worldConfig.simulationContext}
           fromLanding={fromLanding}
+        />
+
+        <ScenarioWorldFeatureSection
+          worldConfig={worldConfig}
+          fromLanding={fromLanding}
           onOpenInfoModal={() => {
             if (isReturningToHome) {
               return;
@@ -128,11 +133,6 @@ const ScenarioWorldPage = () => {
 
             setIsScenarioInfoOpen(true);
           }}
-        />
-
-        <ScenarioWorldFeatureSection
-          worldConfig={worldConfig}
-          fromLanding={fromLanding}
         />
       </motion.section>
 

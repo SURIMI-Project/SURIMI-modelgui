@@ -163,13 +163,13 @@
   z-index: 4;
   margin-top: clamp(56px, 9vh, 98px);
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
+  grid-template-columns: minmax(240px, 0.92fr) minmax(360px, 1.08fr);
   align-items: start;
-  gap: clamp(24px, 4vw, 68px);
+  gap: clamp(20px, 3.2vw, 52px);
 }
 
 .storyColumn {
-  max-width: min(66ch, 100%);
+  max-width: min(58ch, 100%);
 }
 
 .worldKickerRow {
@@ -287,7 +287,7 @@
   font-size: clamp(0.94rem, 1.08vw, 1.06rem);
   line-height: 1.62;
   text-wrap: pretty;
-  max-width: 62ch;
+  max-width: 56ch;
 }
 
 .contextPanel {

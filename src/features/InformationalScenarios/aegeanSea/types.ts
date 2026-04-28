@@ -1,6 +1,6 @@
 export type AegeanPlaceholderContent = {
-  eyebrow: string;
   title: string;
-  body: string[];
-  note: string;
+  subtitle: string;
+  imageSrc: string;
+  imageAlt: string;
 };

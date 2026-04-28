@@ -1,11 +1,18 @@
-import TrophicLevelGraphCard from "./components/TrophicLevelGraphCard/TrophicLevelGraphCard";
-import styles from "./AnchovyBayFeature.module.css";
 import GlassCard from "../../../components/GlassCard/GlassCard";
+import AnchovyBayPlaceholderCard from "./components/AnchovyBayPlaceholderCard/AnchovyBayPlaceholderCard";
+import styles from "./AnchovyBayFeature.module.css";
+// import TrophicLevelGraphCard from "./components/TrophicLevelGraphCard/TrophicLevelGraphCard";
 
-const AnchovyBayFeature = () => {
+type AnchovyBayFeatureProps = {
+  onOpenInfoModal?: () => void;
+};
+
+const AnchovyBayFeature = ({ onOpenInfoModal }: AnchovyBayFeatureProps) => {
   return (
     <GlassCard variant="anchovy" className={styles.anchovyCard}>
-      <div className={styles.statusRow}>
+      <AnchovyBayPlaceholderCard onOpenInfoModal={onOpenInfoModal} />
+
+      {/* <div className={styles.statusRow}>
         <div>
           <span>Recovered Marine Mammals</span>
           <strong>Predator pressure increasing</strong>
@@ -16,7 +23,7 @@ const AnchovyBayFeature = () => {
         </div>
       </div>
 
-      <TrophicLevelGraphCard />
+      <TrophicLevelGraphCard /> */}
     </GlassCard>
   );
 };

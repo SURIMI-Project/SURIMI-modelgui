@@ -4,12 +4,11 @@
   gap: 12px;
 }
 
-.eyebrow {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  font-size: 0.67rem;
-  color: rgba(203, 246, 251, 0.84);
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .title {
@@ -19,20 +18,62 @@
   line-height: 1.25;
 }
 
-.body {
-  margin: 0;
-  color: rgba(211, 242, 248, 0.9);
-  font-size: clamp(0.84rem, 0.96vw, 0.94rem);
-  line-height: 1.58;
+.infoButton {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 8px;
+  background: rgba(8, 28, 50, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 14px 26px -22px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 18px rgba(232, 77, 72, 0.22);
+  cursor: pointer;
+  font-size: clamp(0.66rem, 0.82vw, 0.75rem);
+  font-weight: 760;
+  text-transform: uppercase;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
-.noteBox {
-  margin-top: 2px;
+.infoButton:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+}
+
+.infoButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.86);
+  outline-offset: 3px;
+}
+
+.subtitle {
+  margin: 0;
+  color: rgba(211, 242, 248, 0.9);
+  font-size: clamp(0.82rem, 0.92vw, 0.9rem);
+  line-height: 1.5;
+}
+
+.mediaFrame {
+  margin: 0;
+  overflow: hidden;
   border-radius: 14px;
-  border: 1px dashed rgba(162, 236, 242, 0.46);
-  background: rgba(8, 52, 68, 0.34);
-  padding: 10px 12px;
-  color: rgba(223, 248, 255, 0.9);
-  font-size: 0.82rem;
-  line-height: 1.45;
+  border: 1px solid rgba(162, 236, 242, 0.34);
+  background:
+    linear-gradient(160deg, rgba(7, 46, 61, 0.88), rgba(6, 30, 42, 0.84));
+  box-shadow:
+    0 18px 34px -28px rgba(0, 10, 24, 0.86),
+    0 0 0 1px rgba(236, 248, 255, 0.04) inset;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
 }

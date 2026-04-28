@@ -24,7 +24,9 @@ export type ScenarioWorldConfig = {
   backgroundTopColor: string;
   backgroundBottomColor: string;
   backgroundHighlightColor: string;
-  FeatureComponent: ComponentType;
+  FeatureComponent: ComponentType<{
+    onOpenInfoModal?: () => void;
+  }>;
   InputsFlowComponent?: ComponentType<ScenarioInputsFlowProps>;
 };
 
@@ -50,8 +52,9 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
       "Suspendisse potenti. Curabitur luctus, libero sed maximus vulputate, justo lacus semper purus, sit amet tristique nulla neque eu nibh.",
       "Mauris suscipit, nisl nec volutpat gravida, massa velit laoreet odio, sed fermentum erat turpis ac neque. Phasellus feugiat sem sed risus accumsan pretium.",
     ],
-    featureTitle: "Corridor Dynamics",
-    featureSubtitle: "Shipping lanes and emission hubs update in real time.",
+    featureTitle: "",
+    featureSubtitle: "",
+    featureColumnMaxWidth: 860,
     accentColor: "#72f2e8",
     secondaryColor: "#8de8ff",
     glowColor: "rgba(92, 237, 214, 0.4)",
@@ -77,9 +80,9 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
       "Sed convallis, dui nec posuere euismod, lacus lacus ultrices risus, non vulputate sem magna sed orci. Nullam posuere, augue vel tincidunt tempor, justo erat luctus tortor, eu efficitur lectus mauris sed elit.",
       "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Integer volutpat mi et arcu tincidunt, at commodo ipsum posuere.",
     ],
-    featureTitle: "Networked Port Ecology",
-    featureSubtitle:
-      "Transport links and drift patterns reveal pressure transfer paths.",
+    featureTitle: "",
+    featureSubtitle: "",
+    featureColumnMaxWidth: 860,
     accentColor: "#7ad6ff",
     secondaryColor: "#9af2ff",
     glowColor: "rgba(90, 211, 255, 0.42)",
@@ -109,9 +112,9 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
       "Quisque vulputate magna quis felis semper, nec dictum libero ullamcorper. Aenean posuere imperdiet efficitur. Donec in pulvinar justo.",
       "Nam sed orci a sapien rutrum tincidunt. Pellentesque ac urna sed justo pellentesque posuere a vitae sapien. Pellentesque habitant morbi tristique senectus et netus.",
     ],
-    featureTitle: "Trophic Flow Network",
+    featureTitle: "",
     featureSubtitle: "",
-    featureColumnMaxWidth: 760,
+    featureColumnMaxWidth: 860,
     accentColor: "#88b4ff",
     secondaryColor: "#ffc69d",
     glowColor: "rgba(124, 171, 255, 0.44)",

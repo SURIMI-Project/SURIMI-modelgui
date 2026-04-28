@@ -5,13 +5,17 @@ import styles from "../ScenarioWorldPage.module.css";
 type ScenarioWorldFeatureSectionProps = {
   worldConfig: ScenarioWorldConfig;
   fromLanding: boolean;
+  onOpenInfoModal: () => void;
 };
 
 const ScenarioWorldFeatureSection = ({
   worldConfig,
   fromLanding,
+  onOpenInfoModal,
 }: ScenarioWorldFeatureSectionProps) => {
   const FeatureComponent = worldConfig.FeatureComponent;
+  const hasFeatureTitle = worldConfig.featureTitle.trim().length > 0;
+  const hasFeatureSubtitle = worldConfig.featureSubtitle.trim().length > 0;
 
   return (
     <motion.div
@@ -27,16 +31,18 @@ const ScenarioWorldFeatureSection = ({
         ease: [0.22, 1, 0.36, 1],
       }}
     >
-      <motion.p
-        className={styles.featureKicker}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.44, delay: 0.42 }}
-      >
-        {worldConfig.featureTitle}
-      </motion.p>
+      {hasFeatureTitle ? (
+        <motion.p
+          className={styles.featureKicker}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.44, delay: 0.42 }}
+        >
+          {worldConfig.featureTitle}
+        </motion.p>
+      ) : null}
 
-      {worldConfig.featureSubtitle ? (
+      {hasFeatureSubtitle ? (
         <motion.p
           className={styles.featureSubtitle}
           initial={{ opacity: 0, y: 12 }}
@@ -46,7 +52,7 @@ const ScenarioWorldFeatureSection = ({
           {worldConfig.featureSubtitle}
         </motion.p>
       ) : null}
-      <FeatureComponent />
+      <FeatureComponent onOpenInfoModal={onOpenInfoModal} />
     </motion.div>
   );
 };
