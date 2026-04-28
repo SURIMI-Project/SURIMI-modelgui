@@ -32,7 +32,7 @@ export type ScenarioWorldConfig = {
 
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   "northwestern-mediterranean": {
-    worldTitle: "Northwestern Mediterranean",
+    worldTitle: "Northwestern Mediterranean Sea",
     aboutTitle: "About this Case Study",
     description: [
       "The Western Mediterranean Sea is a large and diverse marine area, covering both shallow coasts and deep waters. It is one of the most productive parts of the Mediterranean, especially near rivers like the Rhône and Ebro, which bring nutrients that support rich marine life. The region is home to many species, including fish, seabirds, turtles, and marine mammals, making it an important and biologically diverse ecosystem.",
