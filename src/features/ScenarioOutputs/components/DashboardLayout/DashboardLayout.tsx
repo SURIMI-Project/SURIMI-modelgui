@@ -1,6 +1,7 @@
 import { Badge, Text, Title } from "@mantine/core";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+import { FiAlertTriangle } from "react-icons/fi";
 import styles from "./DashboardLayout.module.css";
 
 type DashboardLayoutProps = {
@@ -39,6 +40,13 @@ const DashboardLayout = ({
   return (
     <main className={styles.page}>
       <div className={styles.atmosphere} aria-hidden="true" />
+
+      <div className={styles.mockBanner} role="status" aria-live="polite">
+        <FiAlertTriangle className={styles.mockBannerIcon} aria-hidden="true" />
+        <span className={styles.mockBannerText}>
+          <strong>Mock data:</strong> the values shown on this page are placeholders for demonstration only — please disregard the figures themselves.
+        </span>
+      </div>
 
       <motion.header
         className={styles.header}
