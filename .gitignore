@@ -4,6 +4,7 @@
 # FS
 .DS_Store
 Thumbs.db
+.directory
 
 # Logs
 logs
