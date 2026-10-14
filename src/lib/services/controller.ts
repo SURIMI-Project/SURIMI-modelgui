@@ -19,6 +19,16 @@ export const getScenarioNames = async (signal?: AbortSignal) => {
   return response.scenarioNames;
 };
 
+// Statuses of every simulation on the controller, across all scenarios: the
+// request takes no filter, so callers group/filter by `scenarioName` themselves.
+export const getAllSimulationStatuses = async (signal?: AbortSignal) => {
+  const response = await controllerClient.getAllSimulationStatuses(
+    {},
+    { signal },
+  );
+  return response.simulationStatuses;
+};
+
 export const getSimulationContract = (
   scenarioName: string,
   signal?: AbortSignal,

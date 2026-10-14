@@ -1,10 +1,17 @@
+import {
+  type Duration,
+  type Timestamp,
+  timestampDate,
+} from "@bufbuild/protobuf/wkt";
 import { Button, Checkbox, Pagination, ScrollArea } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
+  FiAlertCircle,
   FiAnchor,
   FiArrowLeft,
   FiCheckCircle,
+  FiClock,
   FiCompass,
   FiEye,
   FiNavigation,
@@ -17,17 +24,10 @@ import {
   simulationCaseStudies,
   type SimulationCaseId,
 } from "../../data/simulationCases";
-import {
-  getScenarioRunById,
-  getScenarioRunsByCaseId,
-} from "../../features/ScenarioRuns/mockScenarioRuns";
 import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
-import type { ScenarioRun } from "../../features/ScenarioRuns/types";
 import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
-import {
-  SCENARIO_ONE_LABEL,
-  SCENARIO_TWO_LABEL,
-} from "../../features/ScenarioOutputs/scenarioCompare";
+import type { SimulationStatus } from "../../gen/surimi/v1/simulation_status_pb";
+import { useSimulationStatuses } from "../../hooks/useSimulationStatuses";
 import smallSurimiLogo from "../../assets/smallSurimiLogo.png";
 import styles from "./ScenarioRunsPage.module.css";
 
@@ -38,28 +38,85 @@ const scenarioNavIcons = {
   "northwestern-mediterranean": FiNavigation,
 } satisfies Record<SimulationCaseId, typeof FiAnchor>;
 
-const formatDateTime = (value: string) => {
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+const statusIcons = {
+  done: FiCheckCircle,
+  failed: FiAlertCircle,
+  pending: FiClock,
+};
+
+const formatDateTime = (value?: Timestamp) => {
+  if (!value) {
+    return "—";
+  }
+
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(timestampDate(value));
 };
 
-const getIpccLabel = (run: ScenarioRun) => {
-  return run.inputs.ipccScenario ?? "Default IPCC scenario";
+const formatYear = (value?: Timestamp) => {
+  return value ? String(timestampDate(value).getUTCFullYear()) : "?";
 };
 
-const getScenarioSlotLabel = (run: ScenarioRun) => {
-  const numericRunId = Number.parseInt(run.id, 10);
-
-  if (!Number.isFinite(numericRunId)) {
-    return run.title;
+const formatSimulatedYears = (run: SimulationStatus) => {
+  if (!run.startDateTime || !run.endDateTime) {
+    return "—";
   }
 
-  return numericRunId % 2 === 0 ? SCENARIO_TWO_LABEL : SCENARIO_ONE_LABEL;
+  const years =
+    (timestampDate(run.endDateTime).getTime() -
+      timestampDate(run.startDateTime).getTime()) /
+    MS_PER_YEAR;
+  return `${Math.round(years * 10) / 10} years`;
+};
+
+const formatRunTime = (value?: Duration) => {
+  if (!value) {
+    return "—";
+  }
+
+  const totalSeconds = Math.round(Number(value.seconds));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+};
+
+const getRunName = (run: SimulationStatus) => `Simulation ${run.order}`;
+
+// The protocol leaves the status values open ("Initialising, t.b.d."); the
+// controller currently sends "Initialised" and "Finished".
+const getStatusTone = (status: string): keyof typeof statusIcons => {
+  if (/finish|complet|success/i.test(status)) {
+    return "done";
+  }
+
+  if (/fail|error|cancel|abort/i.test(status)) {
+    return "failed";
+  }
+
+  return "pending";
+};
+
+// How far through its simulated period a run is, e.g. "40%"; null if unknown.
+const getProgressLabel = (run: SimulationStatus) => {
+  if (!run.startDateTime || !run.endDateTime || !run.simulationCurrent) {
+    return null;
+  }
+
+  const start = timestampDate(run.startDateTime).getTime();
+  const end = timestampDate(run.endDateTime).getTime();
+  const current = timestampDate(run.simulationCurrent).getTime();
+  if (end <= start) {
+    return null;
+  }
+
+  const ratio = Math.min(1, Math.max(0, (current - start) / (end - start)));
+  return `${Math.round(ratio * 100)}%`;
 };
 
 const getCaseLabel = (caseId: SimulationCaseId) => {
@@ -78,6 +135,7 @@ const ScenarioRunsPage = () => {
   const [activePage, setActivePage] = useState(1);
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
   const [selectedRunIds, setSelectedRunIds] = useState<string[]>([]);
+  const { statuses, error: statusesError } = useSimulationStatuses();
   const { completeScenarioSetup, isScenarioSetupLoading } =
     useScenarioSetupCompletion({
       caseId: selectedCaseId,
@@ -114,13 +172,25 @@ const ScenarioRunsPage = () => {
 
   const caseStudy = getSimulationCaseById(selectedCaseId);
   const worldConfig = getScenarioWorldConfig(selectedCaseId);
-  const activeRun = getScenarioRunById(selectedCaseId, runId);
-  const runs = getScenarioRunsByCaseId(selectedCaseId, runId);
   const InputsFlowComponent = worldConfig.InputsFlowComponent;
 
-  if (!caseStudy || runs.length === 0) {
+  if (!caseStudy) {
     return <Navigate to="/" replace />;
   }
+
+  // GetAllSimulationStatuses has no scenario filter, so filter here.
+  const getCaseRuns = (id: SimulationCaseId) => {
+    const scenarioName = getSimulationCaseById(id)?.controllerScenarioName;
+    return (statuses ?? [])
+      .filter((run) => run.scenarioName === scenarioName)
+      .sort((a, b) => b.order - a.order);
+  };
+
+  const caseRuns = getCaseRuns(selectedCaseId);
+  const activeRun = caseRuns.find((run) => run.simulationId === runId);
+  const runs = activeRun
+    ? [activeRun, ...caseRuns.filter((run) => run !== activeRun)]
+    : caseRuns;
 
   const totalPages = Math.max(1, Math.ceil(runs.length / PAGE_SIZE));
   const safeActivePage = Math.min(activePage, totalPages);
@@ -191,7 +261,7 @@ const ScenarioRunsPage = () => {
         <nav className={styles.scenarioNav}>
           {simulationCaseStudies.map((item) => {
             const isActive = item.id === caseId;
-            const itemRunCount = getScenarioRunsByCaseId(item.id).length;
+            const itemRunCount = statuses ? getCaseRuns(item.id).length : "…";
             const ScenarioIcon = scenarioNavIcons[item.id];
 
             return (
@@ -282,13 +352,28 @@ const ScenarioRunsPage = () => {
                 </tr>
               </thead>
               <tbody>
+                {runs.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className={styles.emptyCell}>
+                      {statuses
+                        ? "No simulations for this case study yet."
+                        : statusesError
+                          ? "Could not load simulations from the controller."
+                          : "Loading simulations…"}
+                    </td>
+                  </tr>
+                ) : null}
                 {visibleRuns.map((run) => {
-                  const isActive = activeRun?.id === run.id;
-                  const isSelected = selectedRunIds.includes(run.id);
+                  const isActive = activeRun === run;
+                  const isSelected = selectedRunIds.includes(run.simulationId);
+                  const statusTone = getStatusTone(run.status);
+                  const StatusIcon = statusIcons[statusTone];
+                  const progressLabel =
+                    statusTone === "pending" ? getProgressLabel(run) : null;
 
                   return (
                     <tr
-                      key={run.id}
+                      key={run.simulationId}
                       className={isActive ? styles.activeRow : undefined}
                     >
                       <td className={styles.checkboxCell}>
@@ -296,42 +381,51 @@ const ScenarioRunsPage = () => {
                           checked={isSelected}
                           onChange={(event) => {
                             toggleRunSelection(
-                              run.id,
+                              run.simulationId,
                               event.currentTarget.checked,
                             );
                           }}
-                          aria-label={`Select ${getScenarioSlotLabel(run)} for comparison`}
+                          aria-label={`Select ${getRunName(run)} for comparison`}
                         />
                       </td>
                       <td>
                         <dl className={styles.inputsCell}>
                           <div>
-                            <dt>Species</dt>
-                            <dd>{run.inputs.speciesLabel}</dd>
+                            <dt>Period</dt>
+                            <dd>
+                              {formatYear(run.startDateTime)} –{" "}
+                              {formatYear(run.endDateTime)}
+                            </dd>
                           </div>
                           <div>
                             <dt>Duration</dt>
-                            <dd>{run.inputs.durationYears} years</dd>
+                            <dd>{formatSimulatedYears(run)}</dd>
                           </div>
                           <div>
-                            <dt>IPCC</dt>
-                            <dd>{getIpccLabel(run)}</dd>
+                            <dt>Run time</dt>
+                            <dd>{formatRunTime(run.simulationDuration)}</dd>
                           </div>
                         </dl>
                       </td>
                       <td>
                         <div className={styles.nameCell}>
-                          <strong>{getScenarioSlotLabel(run)}</strong>
-                          <span>{""}</span>
+                          <strong>{getRunName(run)}</strong>
+                          <span title={run.experimentId}>
+                            Experiment {run.experimentId.slice(0, 8)}
+                          </span>
                         </div>
                       </td>
                       <td className={styles.dateCell}>
-                        {formatDateTime(run.createdAt)}
+                        {formatDateTime(run.simulationStarted)}
                       </td>
                       <td>
-                        <span className={styles.statusPill}>
-                          <FiCheckCircle aria-hidden="true" />
-                          Completed
+                        <span
+                          className={styles.statusPill}
+                          data-tone={statusTone}
+                        >
+                          <StatusIcon aria-hidden="true" />
+                          {run.status || "Unknown"}
+                          {progressLabel ? ` · ${progressLabel}` : null}
                         </span>
                       </td>
                       <td>
@@ -339,9 +433,9 @@ const ScenarioRunsPage = () => {
                           type="button"
                           className={styles.reportButton}
                           onClick={() => {
-                            openDashboard(run.id);
+                            openDashboard(run.simulationId);
                           }}
-                          aria-label={`Open dashboard for ${getScenarioSlotLabel(run)}`}
+                          aria-label={`Open dashboard for ${getRunName(run)}`}
                         >
                           <FiEye aria-hidden="true" />
                           <span>View</span>
@@ -357,6 +451,7 @@ const ScenarioRunsPage = () => {
           <footer className={styles.paginationBar}>
             <span>
               Showing {visibleRuns.length} of {runs.length} scenario runs
+              {statuses && statusesError ? " · last refresh failed" : null}
             </span>
             <Pagination
               total={totalPages}

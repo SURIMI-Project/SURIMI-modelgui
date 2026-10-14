@@ -1,0 +1,45 @@
+info:
+  name: SubmitExperiment
+  type: grpc
+  seq: 5
+
+grpc:
+  url: "{{urlGrpcProxy}}"
+  method: /surimi.v1.ControllerService/SubmitExperiment
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "scenario_name": "northwestern_med",
+          "experiment_id": "b7c1e2a4-5d3f-4e8a-9c6b-1f2a3d4e5f60",
+          "end_date_time": "2030-01-01T00:00:00Z",
+          "is_mse_run": false,
+          "regulations_definitions_summary": {
+            "target_fishing_mortalities": [
+              {
+                "species": {
+                  "species_code": "HKE",
+                  "length_class": "",
+                  "age": "",
+                  "life_stage": "adult"
+                },
+                "biomass_limit": 0.05,
+                "biomass_base": 0.15,
+                "f_max": 0.3
+              },
+              {
+                "species": {
+                  "species_code": "ANE",
+                  "length_class": "",
+                  "age": "",
+                  "life_stage": "adult"
+                },
+                "biomass_limit": 0.4,
+                "biomass_base": 1.2,
+                "f_max": 0.5
+              }
+            ]
+          },
+          "climate_scenario": "RCP_4.5"
+        }

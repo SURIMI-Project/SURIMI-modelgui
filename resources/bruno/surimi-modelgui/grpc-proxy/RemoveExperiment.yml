@@ -1,0 +1,15 @@
+info:
+  name: RemoveExperiment
+  type: grpc
+  seq: 6
+
+grpc:
+  url: "{{urlGrpcProxy}}"
+  method: /surimi.v1.ControllerService/RemoveExperiment
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "experiment_id": "b7c1e2a4-5d3f-4e8a-9c6b-1f2a3d4e5f60"
+        }

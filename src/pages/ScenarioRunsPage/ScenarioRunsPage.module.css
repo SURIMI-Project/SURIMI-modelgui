@@ -540,3 +540,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+.statusPill[data-tone="pending"] svg {
+  color: #ffd27a;
+  background: rgba(255, 196, 92, 0.14);
+  border-color: rgba(255, 210, 122, 0.24);
+}
+
+.statusPill[data-tone="failed"] svg {
+  color: #ff8f8f;
+  background: rgba(255, 120, 120, 0.14);
+  border-color: rgba(255, 143, 143, 0.24);
+}
+
+.emptyCell {
+  padding: 32px 16px;
+  color: rgba(202, 226, 244, 0.7);
+  font-size: 0.86rem;
+  font-weight: 650;
+  text-align: center;
+}
