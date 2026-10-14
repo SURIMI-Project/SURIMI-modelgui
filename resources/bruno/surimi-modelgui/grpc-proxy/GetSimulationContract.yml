@@ -1,0 +1,15 @@
+info:
+  name: GetSimulationContract
+  type: grpc
+  seq: 4
+
+grpc:
+  url: "{{urlGrpcProxy}}"
+  method: /surimi.v1.ControllerService/GetSimulationContract
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "scenario_name": "northwestern_med"
+        }

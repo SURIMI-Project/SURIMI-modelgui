@@ -1,0 +1,4 @@
+name: local
+variables:
+  - name: urlGrpcProxy
+    value: http://localhost:18081

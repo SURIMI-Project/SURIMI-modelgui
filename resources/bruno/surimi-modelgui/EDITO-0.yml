@@ -1,7 +1,7 @@
 info:
   name: EDITO-0
   type: grpc
-  seq: 4
+  seq: 1
 
 grpc:
   url: https://user-rikkert-surimi-controller.lab.dive.edito.eu/

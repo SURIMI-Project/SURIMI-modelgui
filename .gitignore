@@ -1,5 +1,6 @@
 # Secrets
 .env*
+!.env.example
 
 # FS
 .DS_Store

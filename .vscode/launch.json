@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "web-ui",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "nvm use $(cat .nvmrc) && npm run dev",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

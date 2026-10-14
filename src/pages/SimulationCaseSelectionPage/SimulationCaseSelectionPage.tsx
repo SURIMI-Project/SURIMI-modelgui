@@ -8,6 +8,7 @@ import {
   type SimulationCaseId,
 } from "../../data/simulationCases";
 import { useAutoplayVideo } from "../../hooks/useAutoplayVideo";
+import { useAvailableScenarios } from "../../hooks/useAvailableScenarios";
 import OceanDiveIntro from "./components/OceanDiveIntro/OceanDiveIntro";
 import styles from "./SimulationCaseSelectionPage.module.css";
 
@@ -141,7 +142,24 @@ const SimulationCaseSelectionPage = ({
     null,
   );
 
-  const focusedCaseId = enteringCaseId ?? activeCaseId;
+  // Cases whose scenario the controller does not return stay visible but are
+  // greyed out and cannot be opened. While the request is pending (null) we
+  // don't grey anything out yet, but nothing can be entered either.
+  const availableScenarios = useAvailableScenarios();
+  const isAvailabilityPending = availableScenarios === null;
+  const isCaseAvailable = (caseId: SimulationCaseId) =>
+    simulationCaseStudies.some(
+      (caseStudy) =>
+        caseStudy.id === caseId &&
+        Boolean(availableScenarios?.has(caseStudy.controllerScenarioName)),
+    );
+  // e.g. returning from a world whose scenario has since disappeared.
+  const visibleActiveCaseId =
+    activeCaseId && (isAvailabilityPending || isCaseAvailable(activeCaseId))
+      ? activeCaseId
+      : null;
+
+  const focusedCaseId = enteringCaseId ?? visibleActiveCaseId;
   const hasFocusedCase = Boolean(focusedCaseId);
   const isTransitioning = enteringCaseId !== null;
   const isReturningFromWorld = Boolean(
@@ -208,7 +226,7 @@ const SimulationCaseSelectionPage = ({
   const isInteractionLocked = isTransitioning || isIntroRunning;
 
   const toggleActivePanel = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked) {
+    if (isInteractionLocked || !isCaseAvailable(caseId)) {
       return;
     }
 
@@ -216,7 +234,7 @@ const SimulationCaseSelectionPage = ({
   };
 
   const beginWorldEntry = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked) {
+    if (isInteractionLocked || !isCaseAvailable(caseId)) {
       return;
     }
 
@@ -225,7 +243,7 @@ const SimulationCaseSelectionPage = ({
   };
 
   const viewExistingScenarios = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked) {
+    if (isInteractionLocked || !isCaseAvailable(caseId)) {
       return;
     }
 
@@ -284,6 +302,8 @@ const SimulationCaseSelectionPage = ({
           const isFocused = focusedCaseId === caseStudy.id;
           const isEnteringPanel = enteringCaseId === caseStudy.id;
           const isLeavingPanel = isTransitioning && !isEnteringPanel;
+          const isUnavailable =
+            !isAvailabilityPending && !isCaseAvailable(caseStudy.id);
           const panelFlexGrow = isTransitioning
             ? isEnteringPanel
               ? 7.6
@@ -310,6 +330,7 @@ const SimulationCaseSelectionPage = ({
             hasFocusedCase && !isFocused ? styles.casePanelCompressed : "",
             isLeavingPanel ? styles.casePanelLeaving : "",
             isEnteringPanel ? styles.casePanelEntering : "",
+            isUnavailable ? styles.casePanelUnavailable : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -329,7 +350,12 @@ const SimulationCaseSelectionPage = ({
                 }
               }}
               role="button"
-              aria-label={caseStudy.seaName}
+              aria-label={
+                isUnavailable
+                  ? `${caseStudy.seaName} (not available)`
+                  : caseStudy.seaName
+              }
+              aria-disabled={isUnavailable || undefined}
               tabIndex={isInteractionLocked ? -1 : 0}
               initial={false}
               animate={{
@@ -370,6 +396,11 @@ const SimulationCaseSelectionPage = ({
               <div className={styles.minimalCopy}>
                 <h2>{caseStudy.seaName}</h2>
                 <p>{caseStudy.subtitle}</p>
+                {isUnavailable && (
+                  <span className={styles.unavailableBadge}>
+                    Currently unavailable
+                  </span>
+                )}
               </div>
 
               <div className={styles.expandedCopy}>

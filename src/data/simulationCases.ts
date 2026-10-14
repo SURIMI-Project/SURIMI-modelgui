@@ -25,6 +25,8 @@ export const normalizeSimulationCaseId = (
 
 export type SimulationCaseStudy = {
   id: SimulationCaseId;
+  /** Scenario name as returned by the controller's GetScenarioNames. */
+  controllerScenarioName: string;
   seaName: string;
   subtitle: string;
   simulationTitle: string;
@@ -36,6 +38,7 @@ export type SimulationCaseStudy = {
 export const simulationCaseStudies: SimulationCaseStudy[] = [
   {
     id: "northwestern-mediterranean",
+    controllerScenarioName: "northwestern_med",
     seaName: "NORTHWESTERN MEDITERRANEAN SEA",
     subtitle: "Model covering areas GSA06 and GSA07",
     simulationTitle: "Northwestern Mediterranean Case Study",
@@ -46,6 +49,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   },
   {
     id: "aegean-sea",
+    controllerScenarioName: "aegean_sea",
     seaName: "AEGEAN SEA",
     subtitle: "Model covering areas GSA22 and GSA23",
     simulationTitle: "Aegean Sea Case Study",
@@ -56,6 +60,7 @@ export const simulationCaseStudies: SimulationCaseStudy[] = [
   },
   {
     id: "anchovy-bay",
+    controllerScenarioName: "anchovy_bay",
     seaName: "ANCHOVY BAY",
     subtitle: "Educational Case Study",
     simulationTitle: "Anchovy Bay Case Study",

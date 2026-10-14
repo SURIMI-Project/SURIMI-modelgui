@@ -1,0 +1,13 @@
+info:
+  name: GetProtocolVersion
+  type: grpc
+  seq: 1
+
+grpc:
+  url: "{{urlGrpcProxy}}"
+  method: /surimi.v1.ControllerService/GetProtocolVersion
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {}

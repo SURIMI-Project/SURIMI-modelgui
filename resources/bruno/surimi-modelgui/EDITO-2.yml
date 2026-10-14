@@ -1,0 +1,15 @@
+info:
+  name: EDITO-2
+  type: grpc
+  seq: 3
+
+grpc:
+  url: https://user-rikkert-surimi-controller.lab.dive.edito.eu/
+  method: /surimi.v1.ControllerService/GetProtocolVersion
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "scenario_name": "northwestern_med"
+        }

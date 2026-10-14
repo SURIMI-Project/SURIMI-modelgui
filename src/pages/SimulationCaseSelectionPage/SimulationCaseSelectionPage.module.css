@@ -370,6 +370,38 @@
   transform: translateY(-1px);
 }
 
+/* Scenario not offered by the controller: shown, but greyed out and inert. */
+.casePanelUnavailable {
+  cursor: not-allowed;
+}
+
+.casePanelUnavailable .caseVideo {
+  filter: grayscale(1) brightness(0.55);
+}
+
+.casePanelUnavailable .minimalCopy {
+  opacity: 0.6;
+}
+
+.casePanel.casePanelUnavailable:hover .minimalCopy h2,
+.casePanel.casePanelUnavailable:hover .minimalCopy p,
+.casePanel.casePanelUnavailable:focus-visible .minimalCopy h2,
+.casePanel.casePanelUnavailable:focus-visible .minimalCopy p {
+  transform: none;
+}
+
+.unavailableBadge {
+  align-self: center;
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-pill);
+  color: #ffffff;
+  font-size: clamp(0.66rem, 0.8vw, 0.78rem);
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .casePanelActive .expandedCopy {
   transform: translateY(0);
   opacity: 1;
