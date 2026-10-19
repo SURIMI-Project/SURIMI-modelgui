@@ -1,7 +1,8 @@
 import { createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import { ControllerService } from "../../gen/surimi/v1/controller_service_pb";
-import { API_BASE_URL } from "../config";
+import { API_BASE_URL, MOCK } from "../config";
+import { createMockControllerTransport } from "./controllerMock";
 
 // Client for the gRPC service `surimi.v1.ControllerService`.
 //
@@ -9,8 +10,13 @@ import { API_BASE_URL } from "../config";
 // gRPC-Web and the Envoy grpc-proxy (see envoy/) translates it. The client is
 // generated from the controller's reflection descriptors: `npm run proto:pull`
 // then `npm run proto:gen`. Failed calls reject with a ConnectError.
+//
+// With MOCK=true no request leaves the browser: the client talks to the
+// in-memory mock in ./controllerMock instead.
 
-const transport = createGrpcWebTransport({ baseUrl: API_BASE_URL });
+const transport = MOCK
+  ? createMockControllerTransport()
+  : createGrpcWebTransport({ baseUrl: API_BASE_URL });
 
 export const controllerClient = createClient(ControllerService, transport);
 

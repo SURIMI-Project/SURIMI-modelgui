@@ -6,7 +6,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+# MOCK=true builds an image that serves canned controller responses.
+ARG MOCK=false
+RUN MOCK=$MOCK npm run build
 
 FROM nginx:1.27-alpine
 

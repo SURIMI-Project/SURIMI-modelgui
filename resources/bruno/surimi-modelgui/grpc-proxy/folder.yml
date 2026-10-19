@@ -1,0 +1,6 @@
+info:
+  name: grpc-proxy
+  type: folder
+  seq: 1
+
+request: {}

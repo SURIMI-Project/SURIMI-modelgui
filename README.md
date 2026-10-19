@@ -58,6 +58,17 @@ npm run docker:logs
 SURIMI_PORT=19090 docker compose up --build -d
 ```
 
+### Mock mode (controller down)
+
+Set `MOCK=true` to use canned controller responses
+(`src/lib/services/controllerMock.ts`) instead of calling the controller.
+It defaults to `false` and is read at build time:
+
+```bash
+MOCK=true npm run dev
+MOCK=true docker compose up --build -d
+```
+
 ## Pastebin
 
 ### Controller interface

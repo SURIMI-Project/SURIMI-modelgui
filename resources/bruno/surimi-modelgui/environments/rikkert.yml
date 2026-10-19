@@ -1,0 +1,5 @@
+name: rikkert
+variables:
+  - name: urlGrpcProxy
+    value: https://user-rikkert-surimi-controller.lab.dive.edito.eu/
+    description: ""

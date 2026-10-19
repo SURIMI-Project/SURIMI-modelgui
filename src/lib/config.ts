@@ -4,3 +4,7 @@
 export const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "/api/controller"
 ).replace(/\/+$/, "");
+
+// Serve canned controller responses instead of calling the controller (see
+// src/lib/services/controllerMock.ts). Set with MOCK=true at build time.
+export const MOCK = __MOCK__;
