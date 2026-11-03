@@ -1,0 +1,62 @@
+.page, .page * { box-sizing: border-box; }
+.page { min-height: 100vh; padding: 36px 24px 60px; color: #203749; background: #f3f6f8; font-family: var(--app-font-family, system-ui), sans-serif; }
+.container { max-width: 1320px; min-width: 0; margin: auto; }
+.header { margin-bottom: 26px; }
+.back { display: block; width: fit-content; margin-bottom: 32px; color: #536b7c; text-decoration: none; font-size: 13px; }
+.eyebrow { font-size: 10px; letter-spacing: .14em; font-weight: 700; color: #087f8c; }
+.header h1 { font-size: clamp(30px, 4vw, 46px); letter-spacing: -.04em; margin: 12px 0; line-height: 1.2; }
+.header p { color: #607687; max-width: 750px; font-size: 14px; line-height: 1.7; }
+.sourceCard { border: 1px solid #d8e3e9; border-radius: 12px; padding: 24px; background: white; }
+.sourceHeading { display: flex; align-items: center; gap: 15px; }
+.sourceHeading h2 { font-size: 16px; margin: 0 0 7px; }
+.sourceHeading p { color: #607687; font-size: 12px; margin: 0; line-height: 1.6; }
+.fileIcon { color: #087f8c; background: #e8f5f4; padding: 16px 12px; border-radius: 8px; font-weight: 700; }
+.urlLabel { display: block; margin-top: 18px; font-size: 12px; color: #536b7c; }
+.urlLabel input { display: block; width: 100%; margin: 8px 0 16px; padding: 12px; background: #f8fafb; border: 1px solid #cddde6; border-radius: 7px; color: #243f53; font: inherit; }
+.fileInput { display: none; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.primary, .secondary { border-radius: 7px; padding: 10px 15px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.primary { border: 1px solid #087f8c; background: #087f8c; color: white; }
+.primary:hover { background: #066975; }
+.secondary { border: 1px solid #cddde6; background: white; color: #34556b; }
+.secondary:hover { background: #f0f7f8; }
+.page button:disabled { opacity: .45; cursor: not-allowed; }
+.page :is(button, a, input):focus-visible { outline: 3px solid #71c8cc; outline-offset: 3px; }
+.sourceSummary { color: #607687; font-size: 12px; line-height: 1.7; margin: 14px 0 0; overflow-wrap: anywhere; }
+.privacy { margin: 12px 2px 20px; font-size: 12px; color: #607687; line-height: 1.7; }
+.downloadProgress { margin-top: 20px; background: #eaf6f5; padding: 14px; border-radius: 8px; }
+.downloadProgress label { display: block; color: #087f8c; font-size: 12px; margin-bottom: 10px; }
+.downloadProgress progress { width: 100%; height: 10px; accent-color: #087f8c; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #d8e3e9; border-radius: 10px; background: white; }
+.stats div { padding: 17px 20px; border-right: 1px solid #d8e3e9; }
+.stats div:last-child { border: 0; }
+.stats span { display: block; font-size: 11px; color: #607687; }
+.stats strong { display: block; margin-top: 8px; font-size: 20px; font-weight: 600; }
+.status { color: #536b7c; font-size: 12px; line-height: 1.6; margin: 16px 0; }
+.error, .notice { font-size: 12px; line-height: 1.7; padding: 13px 16px; border-radius: 7px; margin-bottom: 14px; overflow-wrap: anywhere; }
+.error { background: #fff0ef; color: #993d37; border: 1px solid #edc6c3; }
+.notice { background: #fff8e9; color: #79571b; border: 1px solid #ecddb8; }
+.explorer { display: grid; grid-template-columns: 230px minmax(0, 1fr); border: 1px solid #d8e3e9; border-radius: 12px; background: white; overflow: hidden; }
+.tabs { display: flex; flex-direction: column; gap: 3px; background: #f8fafb; padding: 12px; border-right: 1px solid #d8e3e9; align-self: stretch; max-height: 1200px; overflow-y: auto; }
+.tabs button { text-align: left; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #526e82; cursor: pointer; padding: 10px 11px; font: inherit; font-size: 11px; overflow-wrap: anywhere; flex-shrink: 0; }
+.tabs button[aria-selected=true] { color: #066e79; background: #e5f3f3; border-color: #c7e5e4; font-weight: 700; }
+.tabs button:hover { background: #edf3f6; }
+.tabs small { display: block; font-size: 9px; opacity: .7; margin-top: 4px; font-weight: 400; }
+.panel { min-width: 0; padding: 26px; }
+.panelHeader { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.panelHeader h2 { font-size: 24px; margin: 7px 0 0; overflow-wrap: anywhere; }
+.explanation { color: #607687; font-size: 12px; line-height: 1.8; margin: 16px 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+.tags span { background: #f0f5f7; border: 1px solid #dfE7ed; border-radius: 5px; padding: 6px 9px; font-size: 11px; }
+.rangeTable { overflow-x: auto; margin: 0 0 16px; }
+.rangeTable table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+.rangeTable th { color: #607687; font-weight: 500; background: #f5f8fa; }
+.rangeTable th, .rangeTable td { padding: 9px; border-bottom: 1px solid #e3ebef; }
+.rangeTable input { width: 95px; max-width: 100%; padding: 7px; border: 1px solid #cedde5; border-radius: 5px; font: inherit; color: #24445a; }
+.selectionSummary { color: #607687; font-size: 11px; }
+.scope { color: #087f8c; font-size: 12px; line-height: 1.7; margin: 16px 0 0; }
+.encoding { font-size: 11px; line-height: 1.7; color: #738492; margin: 16px 0 12px; }
+.json { margin: 0; padding: 20px; border-radius: 8px; background: #102a3b; color: #c5e9e5; font-size: 12px; line-height: 1.7; overflow: auto; max-height: 780px; tab-size: 2; }
+.empty { padding: 40px 20px; border: 1px dashed #cbdce5; border-radius: 8px; color: #738492; font-size: 13px; }
+.footer { font-size: 11px; color: #738492; line-height: 1.8; margin: 18px 2px; }
+@media (max-width: 760px) { .page { padding: 24px 14px; } .sourceCard { padding: 18px; } .stats { grid-template-columns: repeat(2,1fr); } .stats div:nth-child(2) { border-right: 0; } .stats div:nth-child(-n+2) { border-bottom: 1px solid #d8e3e9; } .explorer { grid-template-columns: minmax(0,1fr); } .tabs { border-right: 0; border-bottom: 1px solid #d8e3e9; max-height: 235px; } .panel { padding: 20px 14px; } .panelHeader h2 { font-size: 21px; } .json { padding: 14px; font-size: 11px; } .rangeTable input { width: 72px; } }

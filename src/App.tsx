@@ -4,6 +4,9 @@ import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage
 import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
 import ScenarioWorldPage from "./pages/ScenarioWorldPage/ScenarioWorldPage";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
+import { lazy, Suspense } from "react";
+
+const NetcdfLabPage = lazy(() => import("../experiments/netcdf-lab/NetcdfLabPage"));
 
 const App = () => {
   return (
@@ -22,6 +25,7 @@ const App = () => {
       <Route path="/scenario-outputs/:scenario" element={<ScenarioOutputsPage />} />
       <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
       <Route path="/test" element={<MsyModelPage />} />
+      <Route path="/netcdf-lab" element={<Suspense fallback={<p>Loading NetCDF lab…</p>}><NetcdfLabPage /></Suspense>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
