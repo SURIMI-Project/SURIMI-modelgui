@@ -1,0 +1,64 @@
+[project]
+name = "surimi-backend"
+version = "0.1.0"
+description = "Backend of the SURIMI model GUI: REST API and worker (ADR 0002)"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.120",               # API (ADR 0002)
+    "uvicorn[standard]>=0.38",      # ASGI server
+    "pydantic-settings>=2.11",      # settings from env vars
+    "sqlalchemy[asyncio]>=2.0.44",  # ORM, async (ADR 0003)
+    "asyncpg>=0.30",                # PostgreSQL driver
+    "alembic>=1.17",                # migrations
+    "structlog>=25.4",              # JSON logs (ADR 0010)
+    "surimi-protocol",              # controller stubs (ADR 0011), workspace member
+    "pwdlib[argon2]>=0.2",          # Argon2id password hashing (ADR 0004)
+    "pyjwt[crypto]>=2.10",          # access tokens; OIDC ID token verification
+    "httpx>=0.28",                  # OIDC discovery, token exchange, JWKS
+    "pydantic[email]>=2.11",        # EmailStr
+]
+
+[project.scripts]
+surimi-backend = "surimi_backend.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-asyncio>=1.2",
+    "httpx>=0.28",
+    "testcontainers[postgres]>=4.13",
+    "mypy>=1.18",
+    "ruff>=0.14",
+    "types-protobuf>=7.35.1.20260906",
+    "types-grpcio>=1.85.0.20261028",
+]
+
+[tool.uv.sources]
+surimi-protocol = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/surimi_backend"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]  # `from tests.conftest import …` for shared helpers
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+    "integration: needs Docker (PostgreSQL in a container)",
+]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+packages = ["surimi_backend"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["surimi.*", "buf.*", "grpc.*", "testcontainers.*"]
+ignore_missing_imports = true

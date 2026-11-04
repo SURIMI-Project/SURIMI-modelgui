@@ -1,0 +1,76 @@
+# uv workspace root (ADR 0001). Not a package itself: one uv.lock here covers
+# every Python member.
+
+[tool.uv.workspace]
+members = ["apps/backend", "packages/proto"]
+
+# --- Ruff, shared by every Python member ----------------------------------------
+# Lint and format rules for all Python code. Conventions behind them: the
+# /backend skill (.claude/skills/backend/SKILL.md). CI fails on any finding.
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["packages/proto/src"]   # generated code
+
+[tool.ruff.lint]
+select = [
+    "E", "F",  # pycodestyle errors, pyflakes
+    "I",       # import order
+    "UP",      # modern syntax for the target Python
+    "B",       # bugbear: likely bugs
+    "SIM",     # simpler equivalents
+    "ASYNC",   # blocking calls and timeouts in async code
+    "S",       # bandit: security
+    "BLE",     # blind `except Exception` must be justified with a noqa
+    "N",       # PEP 8 naming
+    "C4",      # comprehensions
+    "PT",      # pytest style
+    "RUF",     # Ruff's own checks (mutable defaults, unused noqa, …)
+    "TID",     # tidy imports: absolute only
+    "RET",     # return statements
+    "PTH",     # pathlib instead of os.path
+    "PIE",     # misc. lints
+    "T20",     # no print() outside the CLI
+    "ERA",     # no commented-out code
+    "DTZ",     # no naive datetimes
+    "PL",      # pylint: complexity, refactoring hints
+    "FBT",     # no bare boolean positional parameters
+]
+ignore = [
+    "E501",    # line length: the formatter handles it
+    "PLR2004", # "magic value": HTTP status codes read better as numbers
+]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/backend/tests/**" = [
+    "S101", "S105", "S106",  # asserts and test passwords
+    "N802",                  # gRPC servicer methods carry the protocol's names
+    "FBT001",                # parametrized boolean arguments
+    "PLC0415",               # imports inside fixtures (optional test dependencies)
+]
+"apps/backend/src/surimi_backend/**/router.py" = [
+    "PLR0913", "PLR0917", # FastAPI injects each input (dependencies, query filters) as a parameter
+    "FBT001",             # optional boolean query filters (?active=true)
+]
+"apps/backend/src/surimi_backend/cli.py" = [
+    "PLC0415", # lazy imports: `version` and `migrate` do not load uvicorn or the app
+    "T201",    # printing is the CLI's output
+]
+"packages/proto/generate.py" = [
+    "PLC0415", # grpc_tools is a dev dependency, imported when the script runs
+    "T201",    # the script reports what it generated
+]
+
+[tool.ruff.lint.pylint]
+# Keyword-only parameters stay readable; positional ones are still capped at 5.
+max-args = 8
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+known-first-party = ["surimi_backend"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
