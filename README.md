@@ -98,6 +98,8 @@ npm run build        # typecheck and production build
 npm run lint
 ```
 
+Open the local URL printed by Vite after starting the development server.
+
 Frontend settings for `npm run dev` go in `apps/frontend/.env` (copy
 `apps/frontend/.env.example`).
 
