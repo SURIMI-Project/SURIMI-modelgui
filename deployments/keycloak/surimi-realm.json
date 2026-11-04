@@ -1,0 +1,114 @@
+{
+  "realm": "surimi",
+  "displayName": "SURIMI (local development)",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "groups": [
+    {
+      "name": "surimi-admins"
+    },
+    {
+      "name": "surimi-members"
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "surimi-modelgui",
+      "name": "SURIMI model GUI",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-only-client-secret",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:18080/api/v1/auth/sso/keycloak/callback",
+        "http://localhost:18082/api/v1/auth/sso/keycloak/callback",
+        "http://localhost:8000/api/v1/auth/sso/keycloak/callback"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups in the tokens",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "groups",
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "00000000-0000-4000-8000-0000000a11ce",
+      "username": "alice",
+      "email": "alice@example.org",
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alice-local-only",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/surimi-admins"
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000b0b",
+      "username": "bob",
+      "email": "bob@example.org",
+      "emailVerified": true,
+      "firstName": "Bob",
+      "lastName": "Member",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "bob-local-only",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/surimi-members"
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-0000000ca201",
+      "username": "carol",
+      "email": "carol@example.org",
+      "emailVerified": true,
+      "firstName": "Carol",
+      "lastName": "NoRole",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "carol-local-only",
+          "temporary": false
+        }
+      ],
+      "groups": []
+    }
+  ]
+}
