@@ -1,0 +1,40 @@
+info:
+  name: get users
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/users?page=1&size=50&sort=-created_at"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get users
+
+  Users, newest first. Admin only.
+
+  ## Query
+
+  | Parameter | Meaning |
+  | --- | --- |
+  | `q` | Part of the e-mail, username, first, last or display name |
+  | `role` | `admin` or `member` |
+  | `role_source` | `local` or `idp` |
+  | `active` | `true` or `false` |
+  | `page`, `size` | From 1; `size` at most 200 |
+  | `sort` | `created_at`, `username`, `last_name`, `last_login_at`, with `-` for descending |
+
+  ## Response
+
+  `{"items": [<user as in auth/get me>], "total", "page", "size"}`.
+
+  ## Notes
+
+  An SSO user whose access was removed at the provider keeps the role they
+  last had here, but cannot sign in and their sessions were ended.

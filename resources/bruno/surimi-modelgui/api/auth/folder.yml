@@ -1,0 +1,29 @@
+info:
+  name: auth
+  type: folder
+  seq: 5
+
+request:
+  auth: inherit
+
+docs: |-
+  # Sign-in
+
+  `/api/v1/auth`: local sign-in, the current user and SSO.
+
+  | Request | Use it to |
+  | --- | --- |
+  | `post token` | Get a bearer token for Bruno and scripts; stores `accessToken` |
+  | `get me` | See who the token belongs to and their role |
+  | `get providers` | List the SSO providers (`OIDC_PROVIDERS`) |
+  | `post login` | Sign in the way the browser does: cookies, not a token |
+  | `post refresh` | Rotate the cookie session started by `post login` |
+  | `post password` | Change your own password |
+  | `post logout` | End the session of the current token or cookie |
+  | `get sso login` | See the redirect to the provider; finish it in a browser |
+
+  ## Notes
+
+  Five failed sign-ins for one account within `LOGIN_FAILURE_WINDOW_MINUTES`
+  (15) lock further tries until the window passes: `429` `too_many_attempts`
+  with `Retry-After`. Design: `docs/features/auth-and-users/README.md`.

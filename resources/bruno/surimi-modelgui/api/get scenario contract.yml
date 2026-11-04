@@ -1,0 +1,33 @@
+info:
+  name: get scenario contract
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/contract"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get scenario contract
+
+  The simulation contract of one scenario (`GetSimulationContract`), cached
+  for 10 minutes.
+
+  ## Response
+
+  | Field | Meaning |
+  | --- | --- |
+  | `scenario_name` | As in the path |
+  | `simulation` | `surimi.v1.Simulation` as protobuf JSON with the `.proto` field names: `case_study_name`, `start_date_time`, `maximum_end_date_time`, `time_step`, `geography`, `standards`, `items` |
+
+  ## Notes
+
+  Unknown scenario: `404` `not_found`. Change the last path segment to try
+  another scenario.

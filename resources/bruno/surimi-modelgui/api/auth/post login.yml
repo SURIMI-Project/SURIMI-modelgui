@@ -1,0 +1,57 @@
+info:
+  name: post login
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "login": "{{login}}",
+        "password": "{{password}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // The browser reads surimi_csrf and echoes it in X-CSRF-Token; keep it for post refresh.
+        const cookies = [].concat(res.headers["set-cookie"] || []);
+        const csrf = cookies.map((c) => c.split(";")[0]).find((c) => c.startsWith("surimi_csrf="));
+        if (csrf) {
+          bru.setEnvVar("csrfToken", csrf.slice("surimi_csrf=".length));
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # post login
+
+  Signs in the way the web app does: the response sets HttpOnly cookies
+  instead of returning a token. For Bruno and scripts use `post token`.
+
+  ## Response
+
+  The user, as in `get me`, and three cookies:
+
+  | Cookie | Holds |
+  | --- | --- |
+  | `surimi_access` | Access JWT, 15 minutes, HttpOnly |
+  | `surimi_refresh` | Refresh token, path `/api/v1/auth`, HttpOnly |
+  | `surimi_csrf` | Readable by the page; sent back in `X-CSRF-Token` |
+
+  The script stores `csrfToken` for `post refresh`.
+
+  ## Notes
+
+  Cookie requests that change data need `X-CSRF-Token` equal to the
+  `surimi_csrf` cookie, or they get `403` `csrf_failed`. With
+  `COOKIE_SECURE=true` (the default outside compose) the cookies are only
+  sent over https.

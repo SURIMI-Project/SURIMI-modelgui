@@ -1,0 +1,30 @@
+info:
+  name: users
+  type: folder
+  seq: 1
+
+request:
+  auth: inherit
+
+docs: |-
+  # Users
+
+  `/api/v1/admin/users`: list, create and change users.
+
+  | Request | Use it to |
+  | --- | --- |
+  | `get users` | Search and page through users |
+  | `post user` | Create a local user with a temporary password; stores `userId` |
+  | `get user` | One user, by `userId` |
+  | `patch user` | Change role or names, or deactivate |
+  | `post user reset password` | Set a new temporary password |
+
+  ## Notes
+
+  Users created by an SSO sign-in have `account` `sso`: their e-mail and
+  names come from the provider at every sign-in (`409`
+  `profile_managed_by_provider` on an edit), and with `role_source` `idp`
+  their role too (`409` `role_managed_by_provider`). Local and SSO accounts
+  are never linked, and no two users share an e-mail. The last active admin
+  cannot be demoted or deactivated (`409` `last_admin`), and admins cannot
+  deactivate themselves (`422`). Every change is written to `audit_events`.

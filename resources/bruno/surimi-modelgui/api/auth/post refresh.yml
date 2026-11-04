@@ -1,0 +1,40 @@
+info:
+  name: post refresh
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/auth/refresh"
+  headers:
+    - name: X-CSRF-Token
+      value: "{{csrfToken}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # post refresh
+
+  New access cookie from the refresh cookie; the refresh token is replaced
+  (rotated) at every call.
+
+  ## Before you run it
+
+  Run `post login` first: this request uses its cookies and the `csrfToken`
+  it stored. It does not use `accessToken`.
+
+  ## Response
+
+  `204` with new `surimi_access` and `surimi_refresh` cookies.
+
+  ## Notes
+
+  No refresh cookie: `401`. A refresh token used again more than 30 seconds
+  after it was replaced is treated as stolen: the whole session is revoked
+  and the call returns `401`. Sessions end after `SESSION_MAX_AGE_HOURS`
+  (720) for local sign-in and `SSO_SESSION_MAX_AGE_HOURS` (12) for SSO,
+  whatever the refreshes.

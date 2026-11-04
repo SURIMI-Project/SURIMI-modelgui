@@ -1,0 +1,13 @@
+info:
+  name: admin
+  type: folder
+  seq: 6
+
+request:
+  auth: inherit
+
+docs: |-
+  # Admin
+
+  `/api/v1/admin`: requests for the `admin` role only. Run `auth/post token`
+  as an admin first; a member gets `403` `forbidden`.

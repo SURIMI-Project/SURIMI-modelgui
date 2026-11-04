@@ -1,0 +1,26 @@
+name: project-surimi
+variables:
+  - name: urlGrpcProxy
+    value: https://project-surimi-surimi-controller.lab.dive.edito.eu/
+    description: "Controller of the project-surimi namespace on EDITO (server reflection is off: Bruno needs the .proto from buf.build/surimi/surimi-protocol)"
+  - name: apiUrl
+    value: ""
+    description: "Backend API on EDITO, once deployed (phase 9)"
+  - name: login
+    value: ""
+    description: "E-mail or username for auth/post token and post login"
+  - name: password
+    secret: true
+    description: "Password of login; set it in Bruno, never in this file"
+  - name: newPassword
+    secret: true
+    description: "New password for auth/post password"
+  - name: accessToken
+    secret: true
+    description: "Set by auth/post token; sent as Bearer by the api folder"
+  - name: csrfToken
+    secret: true
+    description: "Set by auth/post login; sent by auth/post refresh"
+  - name: userId
+    value: ""
+    description: "Set by admin/users/post user; used by get, patch and reset password"

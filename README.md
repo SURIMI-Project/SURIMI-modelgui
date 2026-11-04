@@ -1,72 +1,115 @@
-# SURIMI Web App
+# SURIMI model GUI
 
-Minimal Docker setup for sharing the project with non-developers.
+Web application of the SURIMI project: set up experiments, run them on the
+SURIMI controller (EDITO datalab) and view their outputs.
 
-## What the project manager needs
+This repository is a monorepo, built in phases following the
+[plan](docs/plans/2026-11-03-monorepo-and-backend.md).
 
-- Docker Desktop installed and running
-- Optional: Node.js and npm, only if they want to use the npm shortcut commands
+| Path | What it is |
+| --- | --- |
+| [apps/backend/](apps/backend/) | FastAPI backend (Python 3.13, uv): REST API under `/api/v1` |
+| [apps/frontend/](apps/frontend/) | React + Vite + TypeScript app |
+| [packages/proto/](packages/proto/) | Python stubs of the SURIMI controller protocol, generated |
+| [deployments/](deployments/) | `compose.yml`, PostgreSQL bootstrap, nginx and Envoy configuration, `.env.example` |
+| [resources/bruno/](resources/bruno/) | Bruno API collection |
+| [docs/](docs/README.md) | Architecture, plans, decisions, features, open issues |
 
-## Fastest way to run
+## Run it with Docker (no Node.js needed)
 
-From the project root:
-
-```bash
-docker compose up --build -d
-```
-
-Open:
-
-```text
-http://localhost:18080
-```
-
-To stop it:
+Docker Desktop must be running. From the repository root:
 
 ```bash
-docker compose down
+docker compose -f deployments/compose.yml up --build -d
 ```
 
-## npm shortcuts
-
-If npm is available, the same flow can be run with:
+Open <http://localhost:18080>. To stop it:
 
 ```bash
-npm run docker:up
+docker compose -f deployments/compose.yml down
 ```
 
-To stop:
+With npm installed, the same as shortcuts: `npm run docker:up`,
+`npm run docker:down`, `npm run docker:logs`.
+
+- The stack is the web app (nginx), the backend API, and PostgreSQL. On start,
+  the database and its user are created and migrated before the API starts.
+- The API answers under <http://localhost:18080/api/v1/> (OpenAPI docs at
+  `/api/v1/docs`) and directly on <http://localhost:18082>. Without a reachable
+  controller it uses a built-in fake (`CONTROLLER_MODE=fake`, the default); set
+  `CONTROLLER_MODE=grpc` and `CONTROLLER_GRPC_URL` for a real one.
+- The app is built once into static files and served by nginx; client-side
+  routes such as `/scenario/...` survive a refresh.
+- Settings go in `deployments/.env` (copy `deployments/.env.example`). For a
+  one-off change: `SURIMI_PORT=19090 docker compose -f deployments/compose.yml up --build -d`.
+- To reach a controller, also start the gRPC-Web proxy and set
+  `CONTROLLER_GRPC_URL`:
+  `docker compose -f deployments/compose.yml --profile grpc-proxy up --build -d`.
+
+### Sign in to the API
+
+Every API route except health and sign-in needs a user. The web app does not
+have a sign-in page yet (phase 10); use Bruno, curl or `/api/v1/docs`.
+
+- **First admin:** set `ADMIN_EMAIL`, `ADMIN_USERNAME`, `ADMIN_FIRST_NAME`,
+  `ADMIN_LAST_NAME` and `ADMIN_PASSWORD` in `deployments/.env`. The `migrate` job creates that admin on every start
+  (or makes the existing user admin).
+- **Token for scripts and Bruno:**
+  `curl -X POST http://localhost:18082/api/v1/auth/token -H 'Content-Type: application/json' -d '{"login": "admin", "password": "..."}'`,
+  then send `Authorization: Bearer <access_token>`. In Bruno, run
+  `api/auth/post token`.
+- **SSO with a local Keycloak:** add `OIDC_PROVIDERS=keycloak` to
+  `deployments/.env` and start with `--profile keycloak`. Then open
+  <http://localhost:18080/api/v1/auth/sso/keycloak/login> and sign in as
+  `alice` / `alice-local-only` (admin), `bob` / `bob-local-only` (member) or
+  `carol` / `carol-local-only` (no access). The Keycloak console is at
+  <http://localhost:18083> (`admin` / `admin-local-only`).
+
+Design and every setting: [docs/features/auth-and-users](docs/features/auth-and-users/README.md).
+
+## Develop the backend
+
+uv 0.10 and Python 3.13 (`.python-version`). From the repository root:
 
 ```bash
-npm run docker:down
+uv sync --all-packages                       # install the uv workspace
+cd apps/backend
+uv run ruff check . && uv run ruff format --check . && uv run mypy
+uv run pytest -q                             # needs Docker for the PostgreSQL tests
+uv run pytest -q -m "not integration"        # without Docker
 ```
 
-To view logs:
+Run it against the compose database:
+`docker compose -f deployments/compose.yml up -d postgres db-bootstrap migrate`,
+then `DB_PORT=15432 DB_PASSWORD=surimi-local-only CONTROLLER_MODE=fake JWT_SECRET=<32+ characters> COOKIE_SECURE=false uv run surimi-backend serve`
+(the compose `api` service is the same thing in a container). The controller
+stubs are regenerated with
+`uv run --package surimi-protocol python packages/proto/generate.py`; the
+protocol version is pinned in `packages/proto/pyproject.toml`.
+
+## Develop the frontend
+
+Node.js 22 (`.nvmrc`). From the repository root:
 
 ```bash
-npm run docker:logs
+npm install          # installs the workspace (apps/frontend)
+npm run dev          # Vite dev server
+npm run build        # typecheck and production build
+npm run lint
 ```
 
-## Notes
-
-- The app is built once into static files and served by Nginx.
-- Client-side routes are supported, so refreshing pages like `/scenario/...` still works.
-- The default host port is `18080`.
-- You can change it temporarily without editing files:
-
-```bash
-SURIMI_PORT=19090 docker compose up --build -d
-```
+Frontend settings for `npm run dev` go in `apps/frontend/.env` (copy
+`apps/frontend/.env.example`).
 
 ### Mock mode (controller down)
 
 Set `MOCK=true` to use canned controller responses
-(`src/lib/services/controllerMock.ts`) instead of calling the controller.
-It defaults to `false` and is read at build time:
+(`apps/frontend/src/lib/services/controllerMock.ts`) instead of calling the
+controller. It defaults to `false` and is read at build time:
 
 ```bash
 MOCK=true npm run dev
-MOCK=true docker compose up --build -d
+MOCK=true docker compose -f deployments/compose.yml up --build -d
 ```
 
 ## Pastebin
