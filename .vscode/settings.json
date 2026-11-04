@@ -1,0 +1,6 @@
+{
+  // LF line endings for new and saved files in this repository
+  // (same rule as .editorconfig and .gitattributes).
+  "files.eol": "\n",
+  "files.insertFinalNewline": true
+}
