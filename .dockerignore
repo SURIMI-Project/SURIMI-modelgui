@@ -1,9 +1,33 @@
-node_modules
-dist
+# Image builds use the repository root as context (npm and uv workspace lock
+# files). Keep everything an image does not need out of it.
+
+# Version control and editor
 .git
-.gitignore
-.DS_Store
+.github
+.vscode
+.claude
+
+# Local data and documentation
+output_folder
+docs
+resources
 README.md
+CLAUDE.md
+
+# Dependencies, caches and build output
+**/node_modules
+**/dist
 npm-debug.log*
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+apps/backend/tests
+
 # Local env files (Vite would inline VITE_* from them into the image)
-.env*
+**/.env*
+!**/.env.example
+
+# OS files
+**/.DS_Store

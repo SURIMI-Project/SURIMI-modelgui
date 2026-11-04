@@ -1,0 +1,318 @@
+// SURIMI model GUI — database surimi_modelgui_db
+// Status: Proposed design, 2026-11-03. See docs/database/README.md.
+// After phase 2 this file is regenerated from the migrated database; until then
+// it is the design and the Alembic models follow it.
+
+Project surimi_modelgui_db {
+  database_type: 'PostgreSQL'
+  Note: '''
+  PostgreSQL 17. No extensions required (ADR 0014).
+  One application user, surimi_modelgui (DB_USER): owns the schema, runs the
+  migrations, and is used by the API and the worker. Created by deployments/postgres/bootstrap.sql.
+  Procrastinate keeps its own procrastinate_* tables in the same database; they
+  are not described here.
+  Retention of each table: ADR 0013.
+  No output values are stored: they stay in the .nc files (ADR 0009).
+  '''
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+Enum user_role {
+  admin
+  member
+}
+
+Enum role_source {
+  local [note: 'set by an admin in our app']
+  idp [note: 'computed from SSO claims at every sign-in (ADR 0005)']
+}
+
+Enum login_method {
+  password
+  sso
+}
+
+Enum login_result {
+  success
+  bad_credentials
+  locked [note: 'rate limit or lockout']
+  inactive
+  no_role [note: 'SSO claims matched no role and default is deny']
+  email_rejected [note: 'first SSO sign-in: e-mail missing, unverified or used by another user (ADR 0016)']
+  error
+}
+
+Enum experiment_status {
+  queued [note: 'waiting for controller capacity (ADR 0015)']
+  submitting
+  submit_failed
+  submitted
+  initialising
+  running
+  finished
+  failed [note: 'controller Error, or lost after a controller restart']
+  cancelling
+  cancelled
+}
+
+Enum simulation_status {
+  initialising
+  initialised
+  running
+  finished
+  failed [note: 'controller Error']
+  cancelled [note: 'controller Canceled']
+  unknown [note: 'controller string not in the mapping; raw value kept']
+}
+
+Enum output_state {
+  pending
+  waiting_for_file
+  indexing
+  ready
+  failed
+  outputs_missing [note: 'the .nc is no longer in the bucket']
+}
+
+Enum period_kind {
+  month
+  year
+}
+
+// ── Users and sign-in ────────────────────────────────────────────────────────
+
+Table users {
+  id uuid [pk]
+  email text [not null]
+  username text [not null]
+  first_name text [note: 'required for local users; for SSO users the given_name claim, may be null (ADR 0016)']
+  last_name text [note: 'required for local users; for SSO users the family_name claim, may be null']
+  display_name text [not null, note: 'given, else "first last", else the username']
+  password_hash text [note: 'Argon2id; null exactly for SSO users (ADR 0016)']
+  role user_role [not null, default: 'member']
+  role_source role_source [not null, default: 'local']
+  role_synced_at timestamptz [note: 'last time the role was computed from SSO claims']
+  is_active boolean [not null, default: true]
+  must_change_password boolean [not null, default: false]
+  last_login_at timestamptz
+  login_count integer [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deleted_at timestamptz [note: 'anonymised on delete (ADR 0013)']
+
+  indexes {
+    (`lower(email)`) [unique, name: 'users_email_lower_uq', note: 'sign-in by email']
+    (`lower(username)`) [unique, name: 'users_username_lower_uq', note: 'sign-in by username']
+  }
+}
+
+Table identities {
+  id uuid [pk]
+  user_id uuid [not null]
+  provider text [not null, note: "'local' or an OIDC provider key such as 'keycloak'"]
+  subject text [not null, note: 'OIDC sub; user id for local']
+  email text
+  email_verified boolean [not null, default: false]
+  claims_snapshot jsonb [note: 'role-related claims seen at the last sign-in']
+  last_login_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (provider, subject) [unique]
+    user_id
+  }
+}
+
+Table sessions {
+  id uuid [pk, note: 'sid claim in the access JWT']
+  user_id uuid [not null]
+  method login_method [not null]
+  provider text
+  refresh_token_hash text [not null, unique, note: 'SHA-256 of the current refresh token']
+  previous_refresh_token_hash text [note: 'the token it replaced; a later reuse revokes the session']
+  idp_refresh_token_enc bytea [note: 'reserved for OIDC_RESYNC_ON_REFRESH, not built']
+  created_at timestamptz [not null, default: `now()`]
+  last_used_at timestamptz
+  expires_at timestamptz [not null, note: 'refresh token expiry, sliding']
+  absolute_expires_at timestamptz [not null, note: 'SESSION_MAX_AGE_HOURS, or SSO_SESSION_MAX_AGE_HOURS for SSO']
+  revoked_at timestamptz
+  revoked_reason text [note: 'logout, password_changed, password_reset, deactivated, demoted, access_removed, refresh_token_reuse, user_inactive']
+
+  indexes {
+    refresh_token_hash [unique, name: 'sessions_refresh_token_hash_uq', note: 'refresh']
+    previous_refresh_token_hash [name: 'sessions_previous_refresh_token_hash_idx', note: 'partial WHERE previous_refresh_token_hash IS NOT NULL: refresh-token reuse detection']
+    user_id [note: 'revoke all sessions of a user; FK']
+    expires_at [note: 'purge']
+  }
+}
+
+Table login_events {
+  id bigint [pk, increment]
+  user_id uuid [note: 'null when the login matched no user; the typed login is not stored']
+  method login_method [not null]
+  provider text
+  result login_result [not null]
+  ip inet [note: 'nulled after RETENTION_LOGIN_IP_DAYS (90)']
+  user_agent text [note: 'nulled after RETENTION_LOGIN_USER_AGENT_DAYS (90)']
+  at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (user_id, at) [name: 'login_events_user_at_idx', note: 'DESC on at in the migration; per-user activity and stats; FK']
+    at [name: 'login_events_at_idx', note: 'purge, platform totals by period']
+    at [name: 'login_events_ip_at_idx', note: 'partial WHERE ip IS NOT NULL in the migration: nightly IP clean-up scans only rows that still have one']
+    at [name: 'login_events_ua_at_idx', note: 'partial WHERE user_agent IS NOT NULL: same for the user agent']
+    at [name: 'login_events_failed_at_idx', note: "partial WHERE result <> 'success', DESC: recent failed sign-ins for admins"]
+  }
+}
+
+Table login_stats_monthly {
+  user_id uuid [not null]
+  month date [not null, note: 'first day of the month']
+  method login_method [not null]
+  successes integer [not null, default: 0]
+  failures integer [not null, default: 0]
+
+  indexes {
+    (user_id, month, method) [pk]
+    month [name: 'login_stats_monthly_month_idx', note: 'platform totals by month across users']
+  }
+  Note: 'Roll-up of login_events older than 13 months (ADR 0013)'
+}
+
+// ── Experiments ──────────────────────────────────────────────────────────────
+
+Table experiments {
+  id uuid [pk, note: 'also the controller experiment_id; generated by us']
+  owner_id uuid [not null]
+  name text [not null]
+  scenario_name text [not null]
+  request jsonb [not null, note: 'SubmitExperimentRequest as sent']
+  protocol_version text [not null]
+  status experiment_status [not null, default: 'queued']
+  controller_status_raw text
+  is_mse_run boolean [not null]
+  pods_required integer [not null, note: 'Ecopath pods: CONTROLLER_MSE_SIMULATIONS if MSE, else 1; corrected to the real simulation count (ADR 0015)']
+  priority integer [not null, default: 0, note: 'admins may raise it']
+  queued_at timestamptz [not null, default: `now()`]
+  submit_attempts integer [not null, default: 0]
+  submitted_at timestamptz
+  started_at timestamptz
+  finished_at timestamptz [note: 'set on finished, failed, cancelled, submit_failed']
+  cancel_requested_at timestamptz
+  progress real [note: '0..1 from simulation_current']
+  last_progress_at timestamptz
+  stalled boolean [not null, default: false, note: 'no progress for STALL_AFTER, or Initialising longer than INIT_TIMEOUT']
+  missing_polls integer [not null, default: 0, note: 'consecutive polls where the controller did not report it']
+  error text
+  cloned_from_id uuid
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deleted_at timestamptz [note: 'soft delete']
+
+  indexes {
+    (owner_id, created_at) [name: 'experiments_owner_created_idx', note: 'member list; partial WHERE deleted_at IS NULL, created_at DESC; FK']
+    created_at [name: 'experiments_created_idx', note: 'admin list; partial WHERE deleted_at IS NULL, DESC']
+    (status, created_at) [name: 'experiments_status_created_idx', note: 'admin status filter; partial WHERE deleted_at IS NULL']
+    status [name: 'experiments_in_flight_idx', note: "partial WHERE status IN (submitting, submitted, initialising, running, cancelling): poller and pod count"]
+    (priority, queued_at) [name: 'experiments_queue_idx', note: "partial WHERE status = 'queued', priority DESC: dispatcher"]
+    (owner_id, finished_at) [name: 'experiments_owner_finished_idx', note: 'activity stats; partial WHERE finished_at IS NOT NULL, INCLUDE (status)']
+    (`to_tsvector('simple', name)`) [name: 'experiments_name_fts_idx', note: 'GIN in indexes.sql (DBML has only btree and hash); search box: full-text match on the experiment name, no extension needed']
+    cloned_from_id [name: 'experiments_cloned_from_idx', note: 'partial WHERE cloned_from_id IS NOT NULL; FK']
+    deleted_at [name: 'experiments_deleted_idx', note: 'partial WHERE deleted_at IS NOT NULL: purge']
+    last_progress_at [name: 'experiments_stalled_idx', note: 'partial WHERE stalled: admin view of stalled runs']
+  }
+}
+
+Table simulations {
+  id uuid [pk, note: 'controller simulation_id']
+  experiment_id uuid [not null]
+  sim_order integer [not null, note: 'controller field order']
+  status simulation_status [not null]
+  status_raw text [not null]
+  start_date_time timestamptz
+  end_date_time timestamptz
+  simulation_started timestamptz
+  simulation_current timestamptz
+  duration interval
+  ecology_host text
+  first_seen_at timestamptz [not null, default: `now()`]
+  last_seen_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (experiment_id, sim_order) [unique]
+  }
+}
+
+Table experiment_events {
+  id bigint [pk, increment, note: 'SSE event id']
+  experiment_id uuid [not null]
+  owner_id uuid [not null, note: 'copied from experiments so SSE replay needs no join']
+  type text [not null, note: 'experiment.status_changed, experiment.outputs_ready, …']
+  data jsonb [not null]
+  at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (experiment_id, id) [note: 'history of one experiment; FK']
+    (owner_id, id) [note: 'SSE replay for a member after Last-Event-ID']
+  }
+}
+
+Table audit_events {
+  id bigint [pk, increment]
+  actor_id uuid [note: 'null for the system (role.synced, purges)']
+  action text [not null, note: 'user.created, role.changed, role.synced, experiment.cancelled, …']
+  target_type text [not null]
+  target_id text [not null]
+  details jsonb
+  at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (actor_id, at) [name: 'audit_events_actor_at_idx', note: 'DESC on at; what did this admin do; FK']
+    (target_type, target_id, at) [name: 'audit_events_target_at_idx', note: 'DESC on at; history of one user or experiment']
+    (action, at) [name: 'audit_events_action_at_idx', note: 'DESC on at; admin filter by action']
+    at [note: 'purge, admin listing by date']
+  }
+}
+
+Table app_settings {
+  key text [pk, note: 'queue_paused, …']
+  value jsonb [not null]
+  updated_by uuid
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+// ── Outputs ──────────────────────────────────────────────────────────────────
+
+Table experiment_outputs {
+  experiment_id uuid [pk]
+  uri text [not null, note: '<OUTPUTS_URI>/<id>/<id>.nc']
+  state output_state [not null, default: 'pending']
+  parser_version text
+  size_bytes bigint
+  chunk_index bytea [note: 'kerchunk references (chunk offsets in the .nc), zstd; maps are read on demand through it (ADR 0009)']
+  report jsonb [note: 'data-quality counts: non-finite, out-of-range, shared series']
+  error text
+  attempts integer [not null, default: 0]
+  indexed_at timestamptz
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    updated_at [name: 'experiment_outputs_todo_idx', note: "partial WHERE state <> 'ready': worker picks outputs still to index"]
+  }
+}
+
+// ── Relations ────────────────────────────────────────────────────────────────
+
+Ref: identities.user_id > users.id [delete: cascade]
+Ref: sessions.user_id > users.id [delete: cascade]
+Ref: login_events.user_id > users.id [delete: set null]
+Ref: login_stats_monthly.user_id > users.id [delete: cascade]
+Ref: experiments.owner_id > users.id [delete: restrict]
+Ref: experiments.cloned_from_id > experiments.id [delete: set null]
+Ref: simulations.experiment_id > experiments.id [delete: cascade]
+Ref: experiment_events.experiment_id > experiments.id [delete: cascade]
+Ref: experiment_events.owner_id > users.id [delete: cascade]
+Ref: audit_events.actor_id > users.id [delete: set null]
+Ref: app_settings.updated_by > users.id [delete: set null]
+Ref: experiment_outputs.experiment_id > experiments.id [delete: cascade] // one-to-one: experiment_id is also the PK

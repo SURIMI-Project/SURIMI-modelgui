@@ -1,0 +1,44 @@
+info:
+  name: patch user
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{apiUrl}}/api/v1/admin/users/{{userId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "role": "admin"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # patch user
+
+  Changes the user in `userId`. Admin only. Send only the fields to change.
+
+  ## Body
+
+  | Field | Meaning |
+  | --- | --- |
+  | `role` | `admin` or `member`; only for `role_source` `local` |
+  | `is_active` | `false` deactivates and ends all the user's sessions at once |
+  | `first_name`, `last_name` | 1 to 100 characters; local users only |
+  | `display_name` | 1 to 200 characters; local users only. Left out, a display name that was the default follows the new first and last name |
+
+  ## Notes
+
+  SSO user's role: `409` `role_managed_by_provider`; SSO user's names:
+  `409` `profile_managed_by_provider` (they come from the provider at every
+  sign-in). Demoting or deactivating the last active admin: `409`
+  `last_admin`. Deactivating yourself: `422` `invalid_input`. A role change
+  applies from the user's next request: the role is read from the database
+  at every request, not from the token.

@@ -1,0 +1,26 @@
+# Line endings: LF everywhere, on every OS, in the repository and in working
+# copies. Git detects text files; the binary types below are never touched.
+* text=auto eol=lf
+
+# Generated controller stubs (ADR 0011): collapsed in GitHub diffs.
+packages/proto/src/** linguist-generated=true
+
+# Binary files
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.mp4    binary
+*.webm   binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary
+*.binpb  binary
+*.nc     binary
+*.bin    binary
+*.xlsx   binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary

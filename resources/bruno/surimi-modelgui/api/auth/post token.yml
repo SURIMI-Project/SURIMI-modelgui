@@ -1,0 +1,57 @@
+info:
+  name: post token
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/auth/token"
+  body:
+    type: json
+    data: |-
+      {
+        "login": "{{login}}",
+        "password": "{{password}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setEnvVar("accessToken", res.body.access_token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # post token
+
+  Signs in with a local password and returns a bearer token. Run it first:
+  it stores `accessToken`, which the `api` folder sends with every request.
+
+  ## Before you run it
+
+  Set `login` (e-mail or username) and the secret `password` in the
+  environment. SSO-only users have no password; they cannot use this.
+
+  ## Response
+
+  | Field | Meaning |
+  | --- | --- |
+  | `access_token` | JWT, valid `expires_in` seconds (900) |
+  | `token_type` | `bearer` |
+  | `expires_in` | Seconds |
+
+  ## Notes
+
+  Each call opens a session of 15 minutes that cannot be refreshed; it counts
+  as a sign-in in the user's statistics. Wrong login or password: `401`
+  `invalid_credentials`, the same for both so accounts cannot be probed.
+  Deactivated account: `403` `account_inactive`. A user who must change the
+  password gets a token that only `get me`, `post password` and
+  `post logout` accept (`403` `password_change_required` elsewhere).

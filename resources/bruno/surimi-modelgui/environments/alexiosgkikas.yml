@@ -1,0 +1,26 @@
+name: alexiosgkikas
+variables:
+  - name: urlGrpcProxy
+    value: https://user-alexiosgkikas-surimi-controller.lab.dive.edito.eu/
+    description: "Controller of the user-alexiosgkikas namespace on EDITO (server reflection on)"
+  - name: apiUrl
+    value: http://localhost:18082
+    description: "Local backend; set CONTROLLER_GRPC_URL in deployments/.env to this controller"
+  - name: login
+    value: admin
+    description: "E-mail or username for auth/post token and post login"
+  - name: password
+    secret: true
+    description: "Password of login; set it in Bruno, never in this file"
+  - name: newPassword
+    secret: true
+    description: "New password for auth/post password"
+  - name: accessToken
+    secret: true
+    description: "Set by auth/post token; sent as Bearer by the api folder"
+  - name: csrfToken
+    secret: true
+    description: "Set by auth/post login; sent by auth/post refresh"
+  - name: userId
+    value: ""
+    description: "Set by admin/users/post user; used by get, patch and reset password"

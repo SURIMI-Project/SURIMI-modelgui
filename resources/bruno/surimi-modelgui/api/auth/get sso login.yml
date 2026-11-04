@@ -1,0 +1,39 @@
+info:
+  name: get sso login
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/auth/sso/keycloak/login?next=/scenario-runs"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0
+
+docs: |-
+  # get sso login
+
+  Starts SSO with the provider in the path (`keycloak`, from `OIDC_PROVIDERS`).
+  Shows the `302` to the provider; redirects are off so you can read it.
+
+  ## Response
+
+  `302` with `Location` the provider's authorization URL (with `state`,
+  `nonce`, PKCE `code_challenge`) and the cookie `surimi_sso_flow` (10
+  minutes) that the callback checks.
+
+  ## Notes
+
+  Bruno cannot fill in the provider's login form; to sign in through SSO, open
+  `http://localhost:18080/api/v1/auth/sso/keycloak/login` in a browser
+  (compose `--profile keycloak`; users `alice`, `bob`, `carol`, see
+  `deployments/.env.example`). The callback,
+  `/api/v1/auth/sso/keycloak/callback`, is called by the provider, not by
+  you. `next` must be a path on this site; anything else is replaced by `/`.
+  A first sign-in is refused (`403`) when the provider sends no verified
+  e-mail (`email_not_verified`) or another SURIMI user has it
+  (`email_taken`): accounts are never linked by e-mail.
+  Unknown provider: `404`.

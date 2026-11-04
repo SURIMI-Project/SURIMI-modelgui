@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "web-ui",
+            "name": "frontend",
             "type": "node-terminal",
             "request": "launch",
-            "command": "nvm use $(cat .nvmrc) && npm run dev",
-            "envFile": "${workspaceFolder}/.env"
+            "cwd": "${workspaceFolder}",
+            "command": "nvm use $(cat .nvmrc) && npm run dev"
         }
     ]
 }

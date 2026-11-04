@@ -1,0 +1,28 @@
+[project]
+name = "surimi-protocol"
+version = "2026.10.20"
+description = "Python messages and gRPC stubs of the SURIMI controller protocol, generated from buf.build/surimi/surimi-protocol (ADR 0011)"
+requires-python = ">=3.13"
+# Lower bounds = the versions the code was generated with; the generated code
+# refuses to load on an older runtime. Updated by generate.py.
+dependencies = [
+    "grpcio>=1.85.1",
+    "protobuf>=7.35.1",
+]
+
+[dependency-groups]
+dev = ["grpcio-tools>=1.85.1"]
+
+# The protocol version this package is generated from. To upgrade: change
+# `ref`, run `uv run --package surimi-protocol python packages/proto/generate.py`,
+# review the diff of packages/proto/src, update the mapping tests.
+[tool.surimi-protocol]
+module = "buf.build/surimi/surimi-protocol"
+ref = "b10b05a0ca7f4712a333392a7d431b25"  # 2026-10-20, github.com/SURIMI-Project/SURIMI-protocol@ee03680
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/surimi", "src/buf"]

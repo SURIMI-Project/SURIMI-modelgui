@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'deployments/nginx/**'
+              - '.dockerignore'
+              - '.nvmrc'
+              - '.github/workflows/ci.yml'
+            backend:
+              - 'apps/backend/**'
+              - 'packages/proto/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - '.python-version'
+              - 'deployments/postgres/**'
+              - '.dockerignore'
+              - '.github/workflows/ci.yml'
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build (typecheck + Vite)
+        run: npm run build
+      - name: Lint
+        # 20 lint errors exist on main since before the monorepo move
+        # (docs/ISSUES.md). Report them without failing until they are fixed,
+        # then remove continue-on-error.
+        continue-on-error: true
+        run: npm run lint
+
+  frontend-image:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the frontend image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/frontend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.4"
+          enable-cache: true
+      - run: uv sync --all-packages --frozen
+      - name: Lint
+        run: uv run ruff check apps/backend packages/proto/generate.py
+      - name: Format
+        run: uv run ruff format --check apps/backend packages/proto/generate.py
+      - name: Types (mypy strict)
+        working-directory: apps/backend
+        run: uv run mypy
+      - name: Tests, including PostgreSQL in Docker
+        working-directory: apps/backend
+        run: uv run pytest -q
+
+  backend-image:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the backend image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/backend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+  proto-stubs:
+    # Regenerates the controller stubs from the pinned protocol and fails if
+    # they differ from what is committed (ADR 0011).
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci   # provides the buf CLI
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.4"
+          enable-cache: true
+      - run: uv sync --package surimi-protocol --frozen
+      - run: uv run --package surimi-protocol python packages/proto/generate.py
+      - name: Committed stubs match the pinned protocol
+        run: git diff --exit-code -- packages/proto

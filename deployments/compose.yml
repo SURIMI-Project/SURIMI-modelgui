@@ -1,0 +1,195 @@
+# Run from the repository root:
+#   docker compose -f deployments/compose.yml up --build -d     (or: npm run docker:up)
+# Variables come from deployments/.env (see deployments/.env.example).
+#
+# Start order: postgres (healthy) -> db-bootstrap -> migrate -> api; web
+# (nginx) serves the SPA and proxies /api/v1/ to api and /api/controller/ to
+# grpc-proxy (profile).
+
+# Keeps container and network names as before the move to deployments/.
+name: surimi-modelgui
+
+x-db-env: &db-env
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: ${DB_NAME:-surimi_modelgui_db}
+  DB_USER: ${DB_USER:-surimi_modelgui}
+  # Local-only default; any shared environment sets its own (ADR 0014).
+  DB_PASSWORD: ${DB_PASSWORD:-surimi-local-only}
+  DB_SSLMODE: disable
+
+x-backend: &backend
+  build:
+    # Repository root: the image needs the uv workspace lock file.
+    context: ..
+    dockerfile: apps/backend/Dockerfile
+  image: surimi-modelgui-backend:local
+
+services:
+  web:
+    build:
+      # Repository root: the image needs the npm workspace lock file.
+      context: ..
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        MOCK: ${MOCK:-false}
+    ports:
+      - "${SURIMI_PORT:-18080}:80"
+    environment:
+      # Substituted into nginx/default.conf.template at container start.
+      # Defaults to the grpc-proxy service below (the browser speaks gRPC-Web).
+      CONTROLLER_BASE_URL: ${CONTROLLER_BASE_URL:-http://grpc-proxy:8080}
+      API_BASE_URL: ${API_BASE_URL:-http://api:8000}
+    restart: unless-stopped
+
+  # --- database (ADR 0014) --------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      # Instance admin: name and password are applied only when the volume is
+      # first created (official image behaviour). To change them later, use
+      # ALTER ROLE, or `down -v` to start from an empty database.
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      # Local-only default.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-local-only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      # For running the backend or a SQL client from the host; local machine
+      # only, and not 5432 so it does not clash with a locally installed PostgreSQL.
+      - "127.0.0.1:${POSTGRES_PORT:-15432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # Creates the database and its application user if missing, and sets the
+  # user's password on every start (so a changed DB_PASSWORD takes effect).
+  db-bootstrap:
+    image: postgres:17-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres-local-only}
+      APP_DB: ${DB_NAME:-surimi_modelgui_db}
+      APP_USER: ${DB_USER:-surimi_modelgui}
+      APP_PASSWORD: ${DB_PASSWORD:-surimi-local-only}
+    # $$ keeps compose from interpolating; the shell reads the variables, so
+    # passwords with spaces or quotes are passed as they are.
+    command: >-
+      sh -c 'psql -v ON_ERROR_STOP=1 -d postgres
+      -v app_db="$$APP_DB" -v app_user="$$APP_USER" -v app_password="$$APP_PASSWORD"
+      -f /bootstrap/bootstrap.sql'
+    volumes:
+      - ./postgres/bootstrap.sql:/bootstrap/bootstrap.sql:ro,z
+    restart: "no"
+
+  # --- backend (apps/backend) -----------------------------------------------------
+  # Migrations, then the first admin from ADMIN_* (nothing happens when all are
+  # unset, a partly set group fails; safe on every start).
+  migrate:
+    <<: *backend
+    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env"]
+    environment:
+      <<: *db-env
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
+
+  api:
+    <<: *backend
+    command: ["surimi-backend", "serve"]
+    environment:
+      <<: *db-env
+      # fake: built-in stand-in; grpc: the real controller at CONTROLLER_GRPC_URL.
+      CONTROLLER_MODE: ${CONTROLLER_MODE:-fake}
+      CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # nginx in front: trust X-Forwarded-For from the compose network.
+      TRUSTED_PROXIES: "*"
+      # --- sign-in (ADR 0004) ---
+      # Local-only default; any shared environment sets its own (>= 32 characters).
+      JWT_SECRET: ${JWT_SECRET:-local-only-jwt-secret-change-me-0123456789abcdef}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:18080}
+      # Plain http on localhost: browsers drop Secure cookies there.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # SSO: empty = password sign-in only. "keycloak" with --profile keycloak.
+      OIDC_PROVIDERS: ${OIDC_PROVIDERS:-}
+      OIDC_KEYCLOAK_ISSUER: ${OIDC_KEYCLOAK_ISSUER:-http://localhost:18083/realms/surimi}
+      # The API reaches Keycloak inside the compose network, browsers on localhost.
+      OIDC_KEYCLOAK_DISCOVERY_URL: ${OIDC_KEYCLOAK_DISCOVERY_URL:-http://keycloak:8080/realms/surimi/.well-known/openid-configuration}
+      OIDC_KEYCLOAK_CLIENT_ID: ${OIDC_KEYCLOAK_CLIENT_ID:-surimi-modelgui}
+      OIDC_KEYCLOAK_CLIENT_SECRET: ${OIDC_KEYCLOAK_CLIENT_SECRET:-local-only-client-secret}
+      OIDC_KEYCLOAK_DISPLAY_NAME: ${OIDC_KEYCLOAK_DISPLAY_NAME:-Keycloak}
+      # Role from the groups claim (Group Membership mapper, full group path off).
+      OIDC_KEYCLOAK_ROLE_CLAIM: ${OIDC_KEYCLOAK_ROLE_CLAIM:-groups}
+      OIDC_KEYCLOAK_ADMIN_VALUES: ${OIDC_KEYCLOAK_ADMIN_VALUES:-surimi-admins}
+      OIDC_KEYCLOAK_MEMBER_VALUES: ${OIDC_KEYCLOAK_MEMBER_VALUES:-surimi-members}
+      OIDC_KEYCLOAK_DEFAULT_ROLE: ${OIDC_KEYCLOAK_DEFAULT_ROLE:-deny}
+      # Days the sign-in history keeps the IP and the user agent; 0 = not stored (ADR 0013).
+      RETENTION_LOGIN_IP_DAYS: ${RETENTION_LOGIN_IP_DAYS:-90}
+      RETENTION_LOGIN_USER_AGENT_DAYS: ${RETENTION_LOGIN_USER_AGENT_DAYS:-90}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      # Direct access for Bruno and debugging, local machine only.
+      - "127.0.0.1:${API_PORT:-18082}:8000"
+    restart: unless-stopped
+
+  # --- Keycloak for local SSO (profile "keycloak") ---------------------------------
+  # Realm "surimi" with client surimi-modelgui and users alice (admin), bob
+  # (member), carol (no access); see deployments/keycloak/surimi-realm.json.
+  # Browsers use http://localhost:18083; the API uses http://keycloak:8080.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    profiles: ["keycloak"]
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin-local-only}
+      # Issuer and browser URLs on localhost; back-channel calls from the API
+      # (token, JWKS) answered on the address the API used.
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-18083}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./keycloak/surimi-realm.json:/opt/keycloak/data/import/surimi-realm.json:ro,z
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-18083}:8080"
+    restart: unless-stopped
+
+  # gRPC-Web -> gRPC bridge in front of the SURIMI controller, for the current
+  # frontend (until phase 10). Opt-in via profile:
+  #   docker compose up grpc-proxy                (just the proxy)
+  #   docker compose --profile grpc-proxy up      (proxy + web)
+  grpc-proxy:
+    image: envoyproxy/envoy:v1.36.13
+    profiles: ["grpc-proxy"]
+    entrypoint: ["sh", "/etc/envoy/entrypoint.sh"]
+    environment:
+      # Native gRPC endpoint of the controller. Required (entrypoint.sh fails
+      # fast without it); not marked :? here so the web service alone still runs.
+      CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-.*}
+    volumes:
+      - ./envoy:/etc/envoy:ro,z
+    ports:
+      - "${GRPC_PROXY_PORT:-18081}:8080"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

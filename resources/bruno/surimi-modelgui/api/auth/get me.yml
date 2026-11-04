@@ -1,0 +1,33 @@
+info:
+  name: get me
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/auth/me"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get me
+
+  The signed-in user.
+
+  ## Response
+
+  | Field | Meaning |
+  | --- | --- |
+  | `first_name`, `last_name` | Always set for local users; for SSO users what the provider sends (may be null) |
+  | `display_name` | Always set: chosen, or `first_name last_name`, or the username |
+  | `account` | `local`, or `sso` (e-mail and names come from the provider at every sign-in) |
+  | `role` | `admin` or `member` |
+  | `role_source` | `local` (set by an admin here) or `idp` (synced from SSO at every sign-in) |
+  | `has_password` | `false` for SSO-only users |
+  | `must_change_password` | `true` after an admin set a temporary password |
+  | `last_login_at`, `login_count` | Updated at every successful sign-in |

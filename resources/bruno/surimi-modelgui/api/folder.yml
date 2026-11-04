@@ -1,0 +1,54 @@
+info:
+  name: api
+  type: folder
+  seq: 2
+
+request:
+  auth:
+    type: bearer
+    token: "{{accessToken}}"
+
+docs: |-
+  # Backend API
+
+  Requests to the SURIMI model GUI backend (`apps/backend`), REST/JSON under
+  `/api/v1`. The OpenAPI document is at `{{apiUrl}}/api/v1/openapi.json` and
+  the interactive docs at `{{apiUrl}}/api/v1/docs`.
+
+  ## Before you run it
+
+  - Start the stack: `docker compose -f deployments/compose.yml up --build -d`
+    (add `--profile keycloak` for SSO).
+  - Pick the `local` environment (`apiUrl` = `http://localhost:18082`).
+  - Set the secret `password` in the environment (for the compose admin:
+    `ADMIN_PASSWORD` in `deployments/.env`), then run `auth/post token`. It
+    stores `accessToken`, which every request here sends as
+    `Authorization: Bearer`. The token lasts 15 minutes; run it again after.
+
+  ## Folders
+
+  | Folder | What it holds |
+  | --- | --- |
+  | `auth/` | Sign-in, the current user, password change, SSO start |
+  | `admin/users/` | User management; admin only |
+
+  ## Requests here
+
+  | Request | What it shows |
+  | --- | --- |
+  | `get healthz` | The process runs (no sign-in needed) |
+  | `get readyz` | Database and controller checks; 503 without a database |
+  | `get scenarios` | Scenario names from the controller (cached 10 min) |
+  | `get scenario contract` | `surimi.v1.Simulation` of one scenario |
+
+  ## Notes
+
+  Without a token: `401` `not_authenticated`. A member calling an admin
+  request: `403` `forbidden`. Requests with a bearer token need no CSRF
+  header; that header is only for the browser's cookies.
+
+  Every response carries `X-Request-ID`; send your own to find the request in
+  the logs. Errors have the body
+  `{"error": {"code", "message", "details", "request_id"}}`.
+  Design: `docs/features/backend-skeleton/README.md`,
+  `docs/features/auth-and-users/README.md`.

@@ -1,0 +1,55 @@
+info:
+  name: post user
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/admin/users"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "maria@example.org",
+        "username": "maria.k",
+        "first_name": "Maria",
+        "last_name": "Kostaki",
+        "role": "member",
+        "temporary_password": "first-sign-in-2026"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201) {
+          bru.setEnvVar("userId", res.body.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # post user
+
+  Creates a local user. Admin only. Side effect: a new account that can sign
+  in; stores its id in `userId`.
+
+  ## Body
+
+  | Field | Meaning |
+  | --- | --- |
+  | `email`, `username` | Unique, compared without case; username 3 to 50 of `A-Z a-z 0-9 . _ -` |
+  | `first_name`, `last_name` | Required, 1 to 100 characters |
+  | `display_name` | Optional; defaults to `first_name last_name` |
+  | `role` | `member` (default) or `admin` |
+  | `temporary_password` | Follows the password policy; the user must change it at first sign-in |
+
+  ## Notes
+
+  `201` with the user. E-mail or username taken: `409` `conflict`. Run it a
+  second time with another e-mail and username.

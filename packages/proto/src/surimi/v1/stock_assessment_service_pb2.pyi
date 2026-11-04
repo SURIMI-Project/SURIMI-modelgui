@@ -1,0 +1,12 @@
+from surimi.v1 import cancel_experiment_pb2 as _cancel_experiment_pb2
+from surimi.v1 import experiment_step_pb2 as _experiment_step_pb2
+from surimi.v1 import finalise_experiment_pb2 as _finalise_experiment_pb2
+from surimi.v1 import get_protocol_version_pb2 as _get_protocol_version_pb2
+from surimi.v1 import get_stock_assessment_pb2 as _get_stock_assessment_pb2
+from surimi.v1 import initialise_experiment_pb2 as _initialise_experiment_pb2
+from surimi.v1 import update_biomass_statistics_pb2 as _update_biomass_statistics_pb2
+from surimi.v1 import update_catch_disposition_statistics_pb2 as _update_catch_disposition_statistics_pb2
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
+
+DESCRIPTOR: _descriptor.FileDescriptor
