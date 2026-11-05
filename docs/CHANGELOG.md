@@ -19,6 +19,14 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-05
+
+### Change — Frontend uses one shared demo report without browser gRPC
+
+All three case studies are navigable and show the same labelled example simulation/report. Setup creates no run and stores nothing; fake execution delay and output variants were removed. Fixtures, species references and descriptive content are centralized under `apps/frontend/mock-data/`. Browser protocol files/dependencies and Envoy were removed; native backend gRPC is retained, with Buf tooling moved to the root npm package. Auth/REST integration is next, not part of this change. See [frontend demo](features/frontend-demo/README.md).
+
+> **Deploying this:** rebuild the frontend image. Remove the old `grpc-proxy` service/container when updating an existing stack; `MOCK`, `CONTROLLER_BASE_URL`, `GRPC_PROXY_PORT`, and `CORS_ALLOWED_ORIGINS` are obsolete frontend/proxy settings. Keep backend `CONTROLLER_MODE` and `CONTROLLER_GRPC_URL`. This intermediate frontend is for development review; authentication is not yet connected.
+
 ## 2026-11-04
 
 ### Change — SSO role from the `groups` claim

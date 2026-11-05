@@ -11,7 +11,7 @@ import {
   IPCC_OPTIONS,
   IPCC_SCENARIO_DESCRIPTION,
   YEAR_OPTIONS,
-} from "../../../anchovyBay/components/AnchovyInputsFlow/const";
+} from "../../../../../../mock-data/inputs";
 
 const aegeanSeaInputsFlowConfig: ScenarioInputsFlowConfig = {
   modalTitle: "Aegean Sea · Scenario definition",

@@ -1,4 +1,4 @@
-import type { ScenarioFlowNode } from "./scenarioModelFlowGraphData";
+import type { ScenarioFlowNode } from "../../../mock-data/content/modelFlowGraphs";
 import { FiX } from "react-icons/fi";
 import { FaYoutube } from "react-icons/fa";
 import styles from "./ScenarioInfoModal.module.css";

@@ -1,3 +1,5 @@
+import { stockSizeChartHints } from "../../../../../mock-data/content/chartDescriptions";
+import { buildExampleStockSizeSeries } from "../../../../../mock-data/stockSizeChartSeries";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -9,7 +11,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import type { StockMockData } from "../../../../data/mockData";
+import type { StockMockData } from "../../../../../mock-data/cmsy";
 import InsightChartCard from "../InsightChartCard/InsightChartCard";
 
 ChartJS.register(
@@ -26,60 +28,8 @@ type StockSizeChartProps = {
   stock: StockMockData;
 };
 
-const normalizeBiomassValue = (rawBiomass: number, bmsy: number) => {
-  let normalized = rawBiomass;
-
-  // Some source values appear one order of magnitude too high.
-  while (normalized / bmsy > 2) {
-    normalized /= 10;
-  }
-
-  return normalized;
-};
-
 const StockSizeChart = ({ stock }: StockSizeChartProps) => {
-  const { stockSize } = stock;
-
-  const observedYears = stockSize.series
-    .filter(
-      (point) =>
-        point.biomass !== null &&
-        point.biomass !== stockSize.unavailableRawValue,
-    )
-    .map((point) => point.year);
-
-  const lastObservedYear =
-    observedYears.length > 0 ? Math.max(...observedYears) : 2012;
-
-  const points = stockSize.series
-    .filter((point) => point.year >= 1985 && point.year <= lastObservedYear)
-    .map((point) => {
-      const isUnavailable =
-        point.biomass === null || point.biomass === stockSize.unavailableRawValue;
-
-      let ratio = stockSize.defaultRatio;
-
-      if (!isUnavailable && point.biomass !== null) {
-        ratio = normalizeBiomassValue(point.biomass, stockSize.bmsy) / stockSize.bmsy;
-      }
-
-      return {
-        year: point.year,
-        ratio,
-      };
-    });
-
-  const labels = points.map((point) => point.year.toString());
-  const ratioSeries = points.map((point) => point.ratio);
-  const center = (points.length - 1) / 2;
-
-  const spreadSeries = points.map((_, index) => {
-    const edgeDistance = Math.abs(index - center) / center;
-    return 0.055 + 0.05 * edgeDistance;
-  });
-
-  const lowerBand = ratioSeries.map((value, i) => Math.max(0, value - spreadSeries[i]));
-  const upperBand = ratioSeries.map((value, i) => Math.min(2, value + spreadSeries[i]));
+  const { labels, lowerBand, upperBand, ratioSeries } = buildExampleStockSizeSeries(stock);
 
   const data = {
     labels,
@@ -140,12 +90,7 @@ const StockSizeChart = ({ stock }: StockSizeChartProps) => {
     <InsightChartCard
       title="Stock Size (B/BMSY)"
       subtitle="State of biomass relative to sustainable target"
-      hints={[
-        "Blue line is B/BMSY through time.",
-        "Red dashed line at 1 means biomass is at target.",
-        "Orange dashed line at 0.5 marks depleted zone.",
-        "Hover points to read stock state for that year.",
-      ]}
+      hints={stockSizeChartHints}
     >
       <Line
         data={data}

@@ -7,6 +7,7 @@ first, and is created with the first code change. Start a new feature with
 
 | Folder | What it covers | Phase | Status |
 | --- | --- | --- | --- |
+| [frontend-demo/](frontend-demo/README.md) | T05 browser gRPC removal; centralized fixtures; one shared demo report, no run creation | Frontend cleanup | Implemented 2026-11-05; auth/REST next |
 | [monorepo-restructure/](monorepo-restructure/README.md) | Move the app to `apps/frontend`, workspaces, `deployments/`, CI | 1 | Done 2026-11-03 on `develop`, not merged into `main` |
 | [backend-skeleton/](backend-skeleton/README.md) | FastAPI app, settings, JSON logs with request ids, PostgreSQL bootstrap and migrations, health, controller client (gRPC and fake), pinned stubs, `/api/v1/scenarios`, compose and CI | 2 | Done 2026-11-03 on `develop`, not merged into `main` |
 | [auth-and-users/](auth-and-users/README.md) | Local and OIDC sign-in (Keycloak first), sessions, `admin`/`member` roles synced from SSO claims, admin user management | 3 | Built 2026-11-03 (backend and API) on `develop`, not merged into `main` |

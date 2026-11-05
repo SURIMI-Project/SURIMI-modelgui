@@ -12,7 +12,7 @@ import {
 } from "chart.js";
 import dragDataPlugin from "chartjs-plugin-dragdata";
 import { Line } from "react-chartjs-2";
-import { CHART_POINT_LABELS } from "./const";
+import { CHART_POINT_LABELS } from "../../../../../../mock-data/inputs";
 import type { GraphPoint, SpeciesInputRow } from "./types";
 
 ChartJS.register(

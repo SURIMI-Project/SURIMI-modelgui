@@ -10,34 +10,6 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ## This repo
 
-### The browser can call the controller, which has no authentication
-
-**Severity:** High — anyone who can load the app can list every experiment and remove any of them
-**Evidence:** Read from source, 2026-11-03
-**Owner:** this repo, with the controller team
-**Where:** `deployments/nginx/default.conf.template` (`/api/controller/`), `deployments/envoy/envoy.yaml.template`
-
-nginx forwards `/api/controller/*` to Envoy and on to the controller. The
-controller protocol has no credentials, and the Bruno collection calls
-`RemoveExperiment` without any.
-
-**Fix:** phase 10 of the plan (frontend refactor) removes the browser path; the controller is then
-reached only by the backend, and should be restricted at network level.
-
-### Controller descriptor in the repo is out of date
-
-**Severity:** Medium — the generated client lacks `GetSimulationStatuses`
-**Evidence:** Verified 2026-11-03
-**Owner:** this repo
-**Where:** `apps/frontend/proto/surimi.binpb`, `apps/frontend/src/gen/surimi/v1/`
-
-The descriptor was pulled by reflection from `rikkert`. The registry module
-`buf.build/surimi/surimi-protocol` has `GetSimulationStatuses(experiment_ids)`;
-the local descriptor does not. Reflection is off on `project-surimi`, so
-`npm run proto:pull` cannot refresh it from there.
-
-**Fix:** generate from the registry, pinned ([ADR 0011](decisions/0011-controller-stubs-from-buf-registry.md)).
-
 ### Lint fails with 20 errors and 5 warnings
 
 **Severity:** Low — CI runs lint in report-only mode until these are fixed

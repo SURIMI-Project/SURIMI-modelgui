@@ -3,8 +3,7 @@
 # Variables come from deployments/.env (see deployments/.env.example).
 #
 # Start order: postgres (healthy) -> db-bootstrap -> migrate -> api; web
-# (nginx) serves the SPA and proxies /api/v1/ to api and /api/controller/ to
-# grpc-proxy (profile).
+# (nginx) serves the SPA and retains /api/v1/ for the later REST integration.
 
 # Keeps container and network names as before the move to deployments/.
 name: surimi-modelgui
@@ -31,14 +30,10 @@ services:
       # Repository root: the image needs the npm workspace lock file.
       context: ..
       dockerfile: apps/frontend/Dockerfile
-      args:
-        MOCK: ${MOCK:-false}
     ports:
       - "${SURIMI_PORT:-18080}:80"
     environment:
       # Substituted into nginx/default.conf.template at container start.
-      # Defaults to the grpc-proxy service below (the browser speaks gRPC-Web).
-      CONTROLLER_BASE_URL: ${CONTROLLER_BASE_URL:-http://grpc-proxy:8080}
       API_BASE_URL: ${API_BASE_URL:-http://api:8000}
     restart: unless-stopped
 
@@ -172,24 +167,6 @@ services:
       - "127.0.0.1:${KEYCLOAK_PORT:-18083}:8080"
     restart: unless-stopped
 
-  # gRPC-Web -> gRPC bridge in front of the SURIMI controller, for the current
-  # frontend (until phase 10). Opt-in via profile:
-  #   docker compose up grpc-proxy                (just the proxy)
-  #   docker compose --profile grpc-proxy up      (proxy + web)
-  grpc-proxy:
-    image: envoyproxy/envoy:v1.36.13
-    profiles: ["grpc-proxy"]
-    entrypoint: ["sh", "/etc/envoy/entrypoint.sh"]
-    environment:
-      # Native gRPC endpoint of the controller. Required (entrypoint.sh fails
-      # fast without it); not marked :? here so the web service alone still runs.
-      CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-.*}
-    volumes:
-      - ./envoy:/etc/envoy:ro,z
-    ports:
-      - "${GRPC_PROXY_PORT:-18081}:8080"
-    restart: unless-stopped
 
 volumes:
   postgres-data:

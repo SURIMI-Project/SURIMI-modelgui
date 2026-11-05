@@ -3,7 +3,6 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import ScenarioInfoModal from "../../components/ScenarioInfoModal/ScenarioInfoModal";
 import { normalizeSimulationCaseId } from "../../data/simulationCases";
-import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
 import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
 import ScenarioWorldFeatureSection from "./components/ScenarioWorldFeatureSection";
 import ScenarioWorldFooter from "./components/ScenarioWorldFooter";
@@ -21,7 +20,7 @@ const ScenarioWorldPage = () => {
   const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
   const [isScenarioInfoOpen, setIsScenarioInfoOpen] = useState(false);
   const setupCaseId = caseStudy?.id ?? "anchovy-bay";
-  const { completeScenarioSetup, isScenarioSetupLoading } =
+  const { completeScenarioSetup } =
     useScenarioSetupCompletion({
       caseId: setupCaseId,
       onSetupStarted: () => {
@@ -170,7 +169,6 @@ const ScenarioWorldPage = () => {
         caseId={caseStudy.id}
         title={worldConfig.infoModalTitle}
       />
-      <ScenarioSetupLoadingOverlay isVisible={isScenarioSetupLoading} />
     </main>
   );
 };

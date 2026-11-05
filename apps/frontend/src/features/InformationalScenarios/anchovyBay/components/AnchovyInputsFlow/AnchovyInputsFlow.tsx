@@ -11,7 +11,7 @@ import {
   IPCC_OPTIONS,
   IPCC_SCENARIO_DESCRIPTION,
   YEAR_OPTIONS,
-} from "./const";
+} from "../../../../../../mock-data/inputs";
 
 const anchovyInputsFlowConfig: ScenarioInputsFlowConfig = {
   modalTitle: "Anchovy Bay · Scenario definition",
