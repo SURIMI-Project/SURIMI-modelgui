@@ -89,3 +89,22 @@
   .userName { display: none; }
   .card { border-radius: 18px; }
 }
+.sso { margin-top: 24px; display: grid; gap: 12px; }
+.divider { margin: 0 0 4px; text-align: center; font-size: 12px; color: #adc5d3; }
+.providerButton {
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #74949e;
+  border-radius: 10px;
+  background: transparent;
+  color: #edfbff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.providerButton:hover:not(:disabled) { background: rgba(128, 227, 220, .1); }
+.providerButton:focus-visible { outline: 2px solid #80e3dc; outline-offset: 3px; }
+.providerButton:disabled { opacity: .6; cursor: wait; }
+.providerNote { margin-top: 22px; color: #b6cbd7; font-size: 12px; line-height: 1.6; }
+.cardSession { margin-top: 24px; }

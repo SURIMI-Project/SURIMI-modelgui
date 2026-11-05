@@ -77,7 +77,7 @@ phase 1 move) is fine. Feature docs list what the frontend will need under
 before starting it, ask the user whether they want it done** (user,
 2026-11-03).
 
-**User-authorized exception, 2026-11-05:** T05 removes browser gRPC and centralizes fixed frontend fixtures before later backend phases. The user additionally approved the Axios/Zod request, REST services and TanStack server-state foundation in T06 on 2026-11-05 (ADR 0017). The user subsequently authorized local login and Docker/Vite verification; local login, guards, session restoration and sign-out are implemented. SSO, password-change completion and scenario availability remain next. Do not change backend, protocol, CI or deployment files for frontend tasks. See `docs/implementation-plan/`.
+**User-authorized exception, 2026-11-05:** T05 removes browser gRPC and centralizes fixed frontend fixtures before later backend phases. The user additionally approved the Axios/Zod request, REST services and TanStack server-state foundation in T06 on 2026-11-05 (ADR 0017). The user subsequently authorized local login and Docker/Vite verification; local login, guards, session restoration and sign-out are implemented. The user then authorized and verified SSO, required password completion and real scenario availability on 2026-11-05. Contract-driven inputs and real experiment/output integration remain future work. Local ignored callback settings and runtime Keycloak registration may be configured for testing; tracked backend/deployment files remain untouched. Do not change backend, protocol, CI or deployment files for frontend tasks. See `docs/implementation-plan/`.
 
 ## Before changing anything
 

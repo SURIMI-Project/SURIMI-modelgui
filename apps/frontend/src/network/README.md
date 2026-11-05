@@ -21,6 +21,6 @@ Use `error.kind` for general UI states and `error.code` for backend-specific han
 
 ## Current integration boundary
 
-Local login, session restoration and protected navigation now use the auth hooks. Vite proxies `/api/v1` to the local Docker API. Scenario hooks and SSO browser navigation remain unconnected; provider discovery is available for later SSO UI. A different API origin alone does not configure backend CORS or cookie/SSO origins.
+Local login, session restoration and protected navigation now use the auth hooks. Vite proxies `/api/v1` to the local Docker API. Login now renders provider-discovered SSO entry, password change uses the existing service, and home mounts the catalogue query. The backend owns the SSO callback/token exchange. The contract service is available but not wired into input forms. A different API origin alone does not configure backend CORS or cookie/SSO origins.
 
 Run `npm --workspace apps/frontend run test:network` from the repository root. Tests use a controlled Axios adapter and Node's test runner; they do not call the live backend.

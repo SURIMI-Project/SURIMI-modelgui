@@ -1,3 +1,6 @@
+import { passwordChangeFormSchema } from "../src/features/auth/passwordChangeForm";
+import { getSsoLoginPath } from "../src/features/auth/ssoLoginPath";
+import { getScenarioAvailability } from "../src/features/scenarios/scenarioAvailability";
 import { QueryObserver } from "@tanstack/react-query";
 import { getReturnPath } from "../src/features/auth/returnPath";
 import assert from "node:assert/strict";
@@ -324,4 +327,32 @@ test("login return paths preserve internal links and reject external URLs and lo
   for (const value of [null, "", "https://other.example.org", "//other.example.org", "/\\other.example.org", "/login", "/login?next=/", "/%6cogin", "/%2f%2fother.example.org", "/bad%encoding"]) {
     assert.equal(getReturnPath(value), "/", String(value));
   }
+});
+
+
+test("password confirmation validates locally and preserves the service payload contract", () => {
+  const values = { current_password: "temporary-password", new_password: "A-new-long-passphrase", confirm_password: "A-new-long-passphrase" };
+  assert.equal(passwordChangeFormSchema.safeParse(values).success, true);
+  assert.equal(passwordChangeFormSchema.safeParse({ ...values, confirm_password: "different-password" }).success, false);
+  assert.equal(passwordChangeFormSchema.safeParse({ ...values, new_password: "short" }).success, false);
+  assert.equal(passwordChangeFormSchema.safeParse({ ...values, new_password: "x".repeat(257) }).success, false);
+  assert.equal(getReturnPath("/change-password?next=/"), "/");
+});
+
+test("SSO navigation uses only the backend's local provider route and a safe next", () => {
+  assert.equal(getSsoLoginPath("/api/v1/auth/sso/keycloak/login", "/scenario-runs/aegean-sea"), "/api/v1/auth/sso/keycloak/login?next=%2Fscenario-runs%2Faegean-sea");
+  assert.equal(getSsoLoginPath("/api/v1/auth/sso/keycloak/login", "https://outside.example.org"), "/api/v1/auth/sso/keycloak/login?next=%2F");
+  for (const path of ["https://outside.example.org/api/v1/auth/sso/keycloak/login", "//outside.example.org/login", "/api/v1/auth/me", "/api/v1/auth/sso/../login"]) {
+    assert.throws(() => getSsoLoginPath(path, "/"));
+  }
+});
+
+test("availability distinguishes unknown/error from a successful unavailable result", () => {
+  const list = { scenarios: [{ name: "anchovy_bay" }] };
+  assert.equal(getScenarioAvailability("anchovy_bay", undefined, false), "loading");
+  assert.equal(getScenarioAvailability("anchovy_bay", undefined, true), "error");
+  assert.equal(getScenarioAvailability("anchovy_bay", list, true), "error");
+  assert.equal(getScenarioAvailability("anchovy_bay", list, false), "available");
+  assert.equal(getScenarioAvailability("aegean_sea", list, false), "unavailable");
+  assert.equal(getScenarioAvailability("anchovy_bay", { scenarios: [] }, false), "unavailable");
 });

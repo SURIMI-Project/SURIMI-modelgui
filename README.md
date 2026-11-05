@@ -47,7 +47,7 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
 ### Sign in to the API
 
 Every API route except health and sign-in needs a user. The frontend now has local password sign-in at `/login`; the API also remains
-accessible through Bruno, curl or `/api/v1/docs`. SSO frontend entry is deferred.
+accessible through Bruno, curl or `/api/v1/docs`. Configured SSO providers are also offered on the login page.
 
 - **First admin:** set `ADMIN_EMAIL`, `ADMIN_USERNAME`, `ADMIN_FIRST_NAME`,
   `ADMIN_LAST_NAME` and `ADMIN_PASSWORD` in `deployments/.env`. The `migrate` job creates that admin on every start
@@ -117,8 +117,10 @@ The Axios/Zod request, typed services and TanStack foundation are implemented un
 fixtures for scenarios/results; local login, session restoration, protected
 routes and sign-out are connected to the existing backend. `/test` remains public.
 Vite proxies `/api/v1` to `http://127.0.0.1:18082` by default. The local backend
-uses the admin configured in git-ignored `deployments/.env`. SSO, password-change
-completion and real scenario availability are deferred.
+uses the admin configured in git-ignored `deployments/.env`. Required password changes, configured SSO entry and real scenario availability
+are connected. The backend handles SSO exchange. For local Vite callbacks, see
+[SSO setup](docs/features/frontend-local-login/README.md#reproduce-local-vite-sso).
+Experiment submission and scientific outputs are still demonstrative.
 Run focused tests with `npm --workspace apps/frontend run test:network`. See
 [the implementation plan](docs/implementation-plan/README.md).
 Local login was tested against Docker; the wider product remains a development prototype.

@@ -10,6 +10,16 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ## This repo
 
+### Denied SSO callback displays JSON instead of a frontend error page
+
+**Severity:** Low — access is denied correctly; recovery experience is incomplete.
+**Evidence:** Verified 2026-11-05 against local Keycloak: Carol (no mapped role) receives HTTP 403 `no_access` at `/api/v1/auth/sso/keycloak/callback`, with no SURIMI access/refresh cookies.
+**Owner:** backend/frontend callback contract; no backend changes authorized in this frontend task.
+
+The backend redirects successful callbacks into the app but returns JSON for callback errors. A full-page browser navigation never mounts React on that JSON response, so the frontend cannot render a friendly failure screen there. Navigating back to `/login` remains possible.
+
+**Next action:** agree a safe, non-sensitive failure redirect (or gateway error-page mechanism) with the backend owner. Do not add a dev-only Vite interception that would hide the production behaviour. This issue does not grant access to a rejected user.
+
 ### Existing frontend dependencies have npm audit findings
 
 **Severity:** High — audit includes a critical MapLibre advisory

@@ -24,8 +24,8 @@ export const loginPayloadSchema = z.object({
   password: z.string().min(1),
 });
 export const passwordChangePayloadSchema = z.object({
-  current_password: z.string().min(1),
-  new_password: z.string().min(12).max(256),
+  current_password: z.string().min(1, "Enter your current password."),
+  new_password: z.string().min(12, "Use at least 12 characters for your new password.").max(256, "Use at most 256 characters for your new password."),
 });
 export const authProviderSchema = z.object({
   key: z.string(),

@@ -21,6 +21,12 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-05
 
+### Feature — Password completion, Keycloak SSO and real case availability
+
+Users with temporary passwords can now complete the required change and enter their requested page. Login offers configured SSO providers; Keycloak code/token exchange stays in the backend. Case selection uses the authenticated REST catalogue with distinct loading/error/unavailable states and retry. Live password/SSO/catalogue and controlled error states were browser-tested. Scientific reports and experiment submission remain demo implementations.
+
+> **Local SSO:** ignored local settings use `PUBLIC_BASE_URL=http://localhost:5173`; the same callback must be registered on the local Keycloak client. Tracked backend/protocol/CI/deployment files are unchanged. Callback denials still display backend JSON; see ISSUES. Setup and verification are in the frontend-local-login feature.
+
 ### Feature — Local frontend login and protected access
 
 Local username/email/password login now uses the existing backend cookie session. Session restoration, deep-link return, protected content and sign-out are connected. `/test` remains public; `/netcdf-lab` requires login. Existing scientific/demo data is unchanged. SSO, password-change completion and scenario availability remain deferred. See [local login](features/frontend-local-login/README.md).
@@ -35,7 +41,7 @@ Added centralized Axios/Zod transport, typed auth/catalogue services, and TanSta
 
 ### Change — Frontend uses one shared demo report without browser gRPC
 
-All three case studies are navigable and show the same labelled example simulation/report. Setup creates no run and stores nothing; fake execution delay and output variants were removed. Fixtures, species references and descriptive content are centralized under `apps/frontend/mock-data/`. Browser protocol files/dependencies and Envoy were removed; native backend gRPC is retained, with Buf tooling moved to the root npm package. Auth/REST integration is next, not part of this change. See [frontend demo](features/frontend-demo/README.md).
+All three case studies are navigable and show the same labelled example simulation/report. Setup creates no run and stores nothing; fake execution delay and output variants were removed. Fixtures, species references and descriptive content are centralized under `apps/frontend/mock-data/`. Browser protocol files/dependencies and Envoy were removed; native backend gRPC is retained, with Buf tooling moved to the root npm package. Auth/REST integration is next, not part of this change. See [frontend cleanup](implementation-plan/T05-remove-frontend-grpc.md).
 
 > **Deploying this:** rebuild the frontend image. Remove the old `grpc-proxy` service/container when updating an existing stack; `MOCK`, `CONTROLLER_BASE_URL`, `GRPC_PROXY_PORT`, and `CORS_ALLOWED_ORIGINS` are obsolete frontend/proxy settings. Keep backend `CONTROLLER_MODE` and `CONTROLLER_GRPC_URL`. This intermediate frontend is for development review; authentication is not yet connected.
 

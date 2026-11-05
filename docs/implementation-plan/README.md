@@ -1,6 +1,6 @@
 # Frontend implementation plan
 
-**Updated:** 2026-11-05. T05 implemented; T06 local login and session integration verified; SSO/password change/catalogue pending.
+**Updated:** 2026-11-05. T05 implemented; T06 authentication and scenario availability verified; callback-denial presentation remains a follow-up.
 
 ## Confirmed direction
 
@@ -19,7 +19,7 @@ Ticket IDs are stable local references, not execution order or PM tracker IDs.
 | Order | Ticket | Current scope/status |
 | --- | --- | --- |
 | 1 — confirmed | [T05 — Remove frontend gRPC](T05-remove-frontend-grpc.md) | Implemented; build/route-render checks passed; browser review pending |
-| 2 — confirmed | [T06 — Authentication and REST foundation](T06-authentication-and-rest-foundation.md) | Local login, session restoration, route protection and sign-out verified; SSO/password change/catalogue pending |
+| 2 — confirmed | [T06 — Authentication and REST foundation](T06-authentication-and-rest-foundation.md) | Local/SSO login, password completion, sessions and real availability verified; callback-denial UX follow-up |
 | Later — order pending | [T02 — Signed-in case selection](T02-landing-page-map.md) | Explore two design approaches; discuss concepts first |
 | Later — order pending | [T03 — Harvest Control inputs](T03-harvest-control-page.md) | Latest input requirements/design still needed |
 | Later — order pending | [T04 — Anchovy Bay introduction](T04-anchovy-bay-intro-screen.md) | Confirm asset placement and screen changes |

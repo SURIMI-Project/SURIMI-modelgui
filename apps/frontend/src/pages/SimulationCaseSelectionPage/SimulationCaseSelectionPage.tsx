@@ -1,3 +1,5 @@
+import { useScenarios } from "../../serverState/scenarios/useScenarios";
+import { getScenarioAvailability } from "../../features/scenarios/scenarioAvailability";
 import SessionMenu from "../../features/auth/SessionMenu";
 import { Button } from "@mantine/core";
 import { motion } from "framer-motion";
@@ -142,7 +144,13 @@ const SimulationCaseSelectionPage = ({
     null,
   );
 
-  const visibleActiveCaseId = activeCaseId;
+  const scenarios = useScenarios();
+  const availabilityFor = (caseId: SimulationCaseId) => {
+    const scenarioName = simulationCaseStudies.find((item) => item.id === caseId)!.scenarioName;
+    return getScenarioAvailability(scenarioName, scenarios.data, scenarios.isError);
+  };
+  const visibleActiveCaseId = activeCaseId && availabilityFor(activeCaseId) === "available"
+    ? activeCaseId : null;
 
   const focusedCaseId = enteringCaseId ?? visibleActiveCaseId;
   const hasFocusedCase = Boolean(focusedCaseId);
@@ -211,7 +219,7 @@ const SimulationCaseSelectionPage = ({
   const isInteractionLocked = isTransitioning || isIntroRunning;
 
   const toggleActivePanel = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked) {
+    if (isInteractionLocked || availabilityFor(caseId) !== "available") {
       return;
     }
 
@@ -219,7 +227,7 @@ const SimulationCaseSelectionPage = ({
   };
 
   const beginWorldEntry = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked) {
+    if (isInteractionLocked || availabilityFor(caseId) !== "available") {
       return;
     }
 
@@ -228,7 +236,7 @@ const SimulationCaseSelectionPage = ({
   };
 
   const viewExistingScenarios = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked) {
+    if (isInteractionLocked || availabilityFor(caseId) !== "available") {
       return;
     }
 
@@ -261,6 +269,19 @@ const SimulationCaseSelectionPage = ({
         <SessionMenu />
       </motion.div>
 
+      {scenarios.isPending || scenarios.isError || scenarios.data?.scenarios.length === 0 ? (
+        <div className={styles.availabilityStatus} role={scenarios.isError ? "alert" : "status"}>
+          <span>{scenarios.isError
+            ? "We could not check case-study availability. Please try again."
+            : scenarios.isPending ? "Checking available case studies…" : "No case studies are currently available."}</span>
+          {scenarios.isError ? (
+            <button type="button" disabled={scenarios.isFetching} onClick={() => { void scenarios.refetch(); }}>
+              {scenarios.isFetching ? "Checking…" : "Try again"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <motion.section
         className={[
           styles.caseGrid,
@@ -285,6 +306,8 @@ const SimulationCaseSelectionPage = ({
         }}
       >
         {simulationCaseStudies.map((caseStudy, index) => {
+          const availability = availabilityFor(caseStudy.id);
+          const isAvailable = availability === "available";
           const isFocused = focusedCaseId === caseStudy.id;
           const isEnteringPanel = enteringCaseId === caseStudy.id;
           const isLeavingPanel = isTransitioning && !isEnteringPanel;
@@ -309,6 +332,7 @@ const SimulationCaseSelectionPage = ({
 
           const panelClassName = [
             styles.casePanel,
+            !isAvailable ? styles.casePanelUnavailable : "",
             resolveCaseToneClass(caseStudy.id),
             isFocused ? styles.casePanelActive : "",
             hasFocusedCase && !isFocused ? styles.casePanelCompressed : "",
@@ -327,6 +351,7 @@ const SimulationCaseSelectionPage = ({
                 toggleActivePanel(caseStudy.id);
               }}
               onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
                   toggleActivePanel(caseStudy.id);
@@ -334,7 +359,10 @@ const SimulationCaseSelectionPage = ({
               }}
               role="button"
               aria-label={caseStudy.seaName}
-              tabIndex={isInteractionLocked ? -1 : 0}
+              aria-disabled={!isAvailable || undefined}
+              aria-describedby={!isAvailable ? `availability-${caseStudy.id}` : undefined}
+              data-availability={availability}
+              tabIndex={isInteractionLocked || !isAvailable ? -1 : 0}
               initial={false}
               animate={{
                 flexGrow: panelFlexGrow,
@@ -374,6 +402,12 @@ const SimulationCaseSelectionPage = ({
               <div className={styles.minimalCopy}>
                 <h2>{caseStudy.seaName}</h2>
                 <p>{caseStudy.subtitle}</p>
+                {!isAvailable ? (
+                  <span className={styles.availabilityBadge} id={`availability-${caseStudy.id}`}>
+                    {availability === "unavailable" ? "Currently unavailable"
+                      : availability === "error" ? "Availability not checked" : "Checking availability…"}
+                  </span>
+                ) : null}
 
               </div>
 
@@ -391,7 +425,7 @@ const SimulationCaseSelectionPage = ({
                     event.stopPropagation();
                     beginWorldEntry(caseStudy.id);
                   }}
-                  disabled={isInteractionLocked}
+                  disabled={isInteractionLocked || !isAvailable}
                 >
                   Explore Scenario
                 </Button>
@@ -403,7 +437,7 @@ const SimulationCaseSelectionPage = ({
                     event.stopPropagation();
                     viewExistingScenarios(caseStudy.id);
                   }}
-                  disabled={isInteractionLocked}
+                  disabled={isInteractionLocked || !isAvailable}
                 >
                   Compare Scenarios
                 </Button>

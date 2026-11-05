@@ -6,7 +6,7 @@ export const getReturnPath = (value: string | null): string => {
     const url = new URL(value, "https://surimi.invalid");
     const decodedPath = decodeURIComponent(url.pathname);
     if (url.origin !== "https://surimi.invalid" || decodedPath.includes("\\")
-      || decodedPath.startsWith("//") || /^\/login(?:\/|$)/i.test(decodedPath)) return "/";
+      || decodedPath.startsWith("//") || /^\/(?:login|change-password)(?:\/|$)/i.test(decodedPath)) return "/";
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return "/";

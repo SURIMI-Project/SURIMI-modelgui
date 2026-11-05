@@ -48,4 +48,4 @@ Case-study navigation and setup → fixed demo results can be reviewed without c
 - **Read from source:** setup navigates without creating/storing runs or running a timer; gRPC calls/polling/transport and proxy configuration removed; existing chart playback timer remains UI behaviour.
 - **Not verified:** browser clicks, WebGL rendering, visual/responsive behaviour, Docker image rebuild or live backend integration. Existing build chunk-size warning remains.
 
-See [feature details](../features/frontend-demo/README.md) and [mock-data inventory](../../apps/frontend/mock-data/README.md).
+See [removal audit](../plans/2026-11-04-frontend-rest-migration-audit.md) and [mock-data inventory](../../apps/frontend/mock-data/README.md).

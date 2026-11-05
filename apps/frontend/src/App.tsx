@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import RequireSession from "./features/auth/RequireSession";
+import PasswordChangePage from "./pages/PasswordChangePage/PasswordChangePage";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
 import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage";
@@ -13,6 +14,7 @@ const NetcdfLabPage = lazy(() => import("../../../experiments/netcdf-lab/NetcdfL
 const App = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
+    <Route path="/change-password" element={<PasswordChangePage />} />
     <Route path="/test" element={<MsyModelPage />} />
     <Route element={<RequireSession />}>
       <Route path="/" element={<SimulationCaseSelectionPage />} />

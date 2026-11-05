@@ -28,7 +28,7 @@ export const normalizeSimulationCaseId = (
 
 export type SimulationCaseStudy = {
   id: SimulationCaseId;
-  /** Backend scenario identifier, retained for future REST integration. */
+  /** Backend scenario identifier used to match the REST availability response. */
   scenarioName: string;
   seaName: string;
   subtitle: string;

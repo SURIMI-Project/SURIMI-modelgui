@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import Logo from "../../components/Logo/Logo";
+import SsoSignIn from "../../features/auth/SsoSignIn";
 import SessionGate from "../../features/auth/SessionGate";
 import { authErrorMessage } from "../../features/auth/authErrorMessage";
 import { getReturnPath } from "../../features/auth/returnPath";
@@ -15,13 +16,14 @@ const LoginForm = () => {
   const login = useLogin();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [isSsoStarting, setIsSsoStarting] = useState(false);
   const returnPath = getReturnPath(searchParams.get("next"));
 
   if (session.data) return <Navigate to={returnPath} replace />;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (login.isPending) return;
+    if (login.isPending || isSsoStarting) return;
     login.mutate({ login: identifier.trim(), password }, {
       onSuccess: () => setPassword(""),
     });
@@ -37,13 +39,13 @@ const LoginForm = () => {
           <label className={styles.field}>
             Username or email
             <input name="login" autoComplete="username" className={styles.input}
-              required maxLength={320} value={identifier} disabled={login.isPending}
+              required maxLength={320} value={identifier} disabled={login.isPending || isSsoStarting}
               onChange={(event) => { setIdentifier(event.target.value); login.reset(); }} />
           </label>
           <label className={styles.field}>
             Password
             <input name="password" type="password" autoComplete="current-password"
-              className={styles.input} required value={password} disabled={login.isPending}
+              className={styles.input} required value={password} disabled={login.isPending || isSsoStarting}
               onChange={(event) => { setPassword(event.target.value); login.reset(); }} />
           </label>
           {login.isError ? (
@@ -54,10 +56,12 @@ const LoginForm = () => {
               ) : null}
             </p>
           ) : null}
-          <button type="submit" className={styles.submit} disabled={login.isPending || !identifier.trim() || !password}>
+          <button type="submit" className={styles.submit} disabled={login.isPending || isSsoStarting || !identifier.trim() || !password}>
             {login.isPending ? "Signing in…" : "Sign in"}
           </button>
         </form>
+        <SsoSignIn next={returnPath} disabled={login.isPending}
+          onRedirectingChange={(starting) => { if (starting) setPassword(""); setIsSsoStarting(starting); }} />
       </section>
     </main>
   );

@@ -1,10 +1,10 @@
 # Local demonstration data
 
-All case-study flows show **the same example simulation/report**. Completing an input form only navigates to the example; it never creates or saves a run or changes the report. There is no localStorage, database, controller call, or REST request for this flow.
+All case-study flows show **the same example simulation/report**. Completing an input form only navigates to the example; it never creates or saves a run or changes the report. Simulation setup/report demonstration creates no run, persistence or execution request. Authentication, password changes, SSO entry and case-study availability now use the real REST backend; these are separate from the scientific demo data.
 
 | File/folder | Contains |
 | --- | --- |
-| `caseStudies.ts` | Case names, descriptions, video sources and future REST scenario identifiers |
+| `caseStudies.ts` | Case names, descriptions, video sources and REST scenario identifiers |
 | `simulation.ts` | The one fixed example simulation shown in the library |
 | `inputs.ts` | Prototype HCR values, duration/IPCC choices and explanations |
 | `content/` | Case introductions, model-flow descriptions, legend descriptions and reference-page concepts |

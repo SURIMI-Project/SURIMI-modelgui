@@ -1,5 +1,21 @@
 # Frontend local login — changelog
 
+## 2026-11-05 — Password completion, Keycloak SSO and real availability
+
+**User authorized all three follow-ups.** Added `/change-password` with current/new/confirmation validation, backend error display and current-user refetch before returning to the requested page. Confirmation is never sent to the API. Login now discovers SSO providers and navigates through the backend; no Keycloak SDK, code exchange or token storage in React. Home reads the authenticated REST catalogue, mapping scenario names onto local case content; it distinguishes loading, failed checks, and successful unavailable/empty results, with retry. Reports and experiment setup/submission remain demo data.
+
+**Source:** password page and form schema; `SsoSignIn`/safe login URL helper; return-path and protected-route updates; auth schema messages; scenario availability helper; home card state/styles; tests. Sign-out is disabled during password submission. Returning from SSO through browser Back restores usable controls.
+
+**Verified live in isolated Chrome:** a dedicated local account was created through the existing admin API with `must_change_password=true`. Local length/confirmation failures made no password request; wrong current password returned 401 without ending the session; a common password returned 422; a valid change returned 204, cleared the requirement via `/auth/me`, returned to the original runs route and survived reload. Temporary test accounts were deactivated afterwards; configured admin credentials are unchanged.
+
+**Verified SSO:** local Keycloak Bob signed in as member and Alice as admin; both returned to a protected deep link, restored sessions after reload, and received `account=sso`, `role_source=idp`, `has_password=false`. Browser requests did not exchange tokens. Carol, with no mapped role, received 403 `no_access` and no SURIMI session. The current backend displays that denial as JSON at the callback URL; a friendly frontend denial redirect needs a backend/gateway contract change and is recorded in ISSUES.
+
+**Verified catalogue:** the actual controller-backed REST endpoint returned `aegean_sea`, `anchovy_bay`, and `northwestern_med`; all three card states matched. Controlled subset/error/empty responses verified disabled unavailable cards, no false-unavailable label on an error, and successful retry. Controlled provider-list failure preserves local login and retry restores SSO. Desktop/mobile screenshots inspected; no horizontal overflow in the mobile login/password screens; no browser page errors.
+
+**Local configuration only:** started the existing Keycloak profile, set ignored `deployments/.env` `PUBLIC_BASE_URL=http://localhost:5173`, and registered the exact Vite callback on the running local Keycloak client via its admin API. Checked-in realm, Compose, backend, protocol and CI files are unchanged. Runtime registration does not survive recreating Keycloak without persistent data; reproduction steps are in README. The previously built local API image was reused with `--no-build`.
+
+**Checks:** 23 focused tests passed; targeted ESLint and production build passed. Existing third-party Zod annotation and bundle-size warnings remain. No commit created.
+
 ## 2026-11-05 — Local login with the running Docker API
 
 **Implemented:** local username/email/password login; session restoration and retry/error screens; shared protected route boundary; validated internal return paths; mandatory-password/inactive-account blocking states; small local sign-out control on case selection. `/test` stays public; `/netcdf-lab` requires authentication. The case-selection and report data remain fixtures. No SSO UI, password-change form, registration/reset-password screen or scenario availability integration.
