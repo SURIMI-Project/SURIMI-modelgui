@@ -1,7 +1,7 @@
 # T06 — Authentication and REST server-state foundation
 
 **Priority:** 2, confirmed by the user on 2026-11-05; follows T05.  
-**Status:** Planned; no frontend implementation.  
+**Status:** Request/service/TanStack foundation implemented 2026-11-05; login UI, route protection and live integration remain pending.
 **Goal:** Users sign in before entering SURIMI, and frontend server state comes from our backend REST API through TanStack Query.
 
 ## Existing backend — read from source
@@ -26,8 +26,8 @@ See [backend auth design](../features/auth-and-users/README.md), [auth changelog
 ## Tasks
 
 - [ ] Verify backend login/logout/session/SSO behaviour and cookie requirements with the running API and Bruno collection.
-- [ ] Define a generic request function: cookies, JSON/204 handling, normalized errors, cancellation, CSRF, and a shared bounded refresh/retry flow.
-- [ ] Define plain endpoint services and TanStack query keys/hooks; keep request handling out of components. Decide OpenAPI type tooling using the existing proposed ADR.
+- [x] Define a generic request function: cookies, JSON/204 handling, normalized errors, cancellation, CSRF, and a shared bounded refresh/retry flow.
+- [x] Define plain endpoint services and TanStack query keys/hooks; keep request handling out of components. Decide OpenAPI type tooling using the existing proposed ADR.
 - [ ] Implement login UI and session restoration. Protect SURIMI content routes, including direct links and `/netcdf-lab`; `/test` remains public for now by the user’s explicit decision on 2026-11-05. Avoid briefly showing protected content while checking the session.
 - [ ] Implement logout, expired-session handling, mandatory password change, and appropriate access errors; clear user-scoped query caches on logout/account change.
 - [ ] Implement SSO entry using backend provider URLs and browser redirects. Coordinate local/public origins and registered callback URLs with the backend developer.
@@ -47,3 +47,9 @@ The backend enforces permissions; frontend route guards only control the user ex
 ## Done when
 
 Signed-out users cannot enter protected SURIMI content, including `/netcdf-lab`, through navigation or a direct URL. `/test` remains public for now. Local login and agreed SSO work; refresh, logout, required password changes, and denied access behave correctly. Authenticated scenario data uses the shared REST/services/TanStack flow, with no browser-to-controller communication.
+
+## Foundation delivered — 2026-11-05
+
+See [frontend network feature](../features/frontend-network/README.md) and [ADR 0017](../decisions/0017-frontend-axios-zod-and-query-layers.md). Axios/Zod and TanStack layers are implemented under `apps/frontend/src/network/` and `src/serverState/`; copied examples were removed. Eighteen focused tests cover payloads, response/error shapes, refresh/cancellation and cache boundaries. Existing demo pages make no new API requests because none of these hooks is mounted there.
+
+This does not complete authentication. Live API verification, local proxy/SSO setup, login design, protected routes and scenario-page wiring still need the remaining tasks above. No backend or deployment files were changed.

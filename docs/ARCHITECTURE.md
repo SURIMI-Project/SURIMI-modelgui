@@ -27,8 +27,9 @@ removed. The native Python gRPC client and protocol package are retained. Buf
 is a root npm development dependency for Python stub-generation CI.
 
 The API implements password/OIDC authentication, users and scenario catalogue
-endpoints; nginx retains `/api/v1/`. The FE auth/REST connection is not yet
-implemented. The earlier backend stack verification was on 2026-11-03; this
+endpoints; nginx retains `/api/v1/`. The FE request/services/TanStack foundation is implemented under
+`apps/frontend/src/{network,serverState}` (ADR 0017), but no fetching hook is
+mounted on existing pages. Login UI, route guards and live integration are pending. The earlier backend stack verification was on 2026-11-03; this
 cleanup does not claim a fresh running-stack test. The portable NetCDF lab is
 independent and may download a file when explicitly used.
 

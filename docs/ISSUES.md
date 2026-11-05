@@ -10,6 +10,16 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ## This repo
 
+### Existing frontend dependencies have npm audit findings
+
+**Severity:** High — audit includes a critical MapLibre advisory
+**Evidence:** Verified 2026-11-05, `npm audit --json`: 20 findings (2 low, 4 moderate, 13 high, 1 critical) after installing the REST foundation. Every reported package family was already present in the HEAD lockfile; Axios, Zod and TanStack Query are not listed in that report.
+**Owner:** frontend dependency maintenance
+
+The critical finding is MapLibre GL JS sanitizer bypass ([GHSA-jrc7-96c5-q579](https://github.com/advisories/GHSA-jrc7-96c5-q579)); the installed 5.x dependency falls in the reported range. Audit proposes a major MapLibre upgrade. This is a reported dependency finding, not a demonstrated exploit in this app.
+
+**Next action:** review affected usage and plan dependency updates with map/chart/build regression checks. Do not run broad `npm audit fix --force` as part of request-layer work. No unrelated upgrades were attempted in this increment.
+
 ### Lint fails with 20 errors and 5 warnings
 
 **Severity:** Low — CI runs lint in report-only mode until these are fixed

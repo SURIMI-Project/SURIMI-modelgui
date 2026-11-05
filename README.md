@@ -112,7 +112,10 @@ Datasets, species references and descriptive content live in
 [apps/frontend/mock-data/](apps/frontend/mock-data/README.md). Ordinary UI labels
 remain in components. The isolated `/netcdf-lab` file reader is retained.
 
-Authentication and REST/TanStack integration are the next task; see
+The Axios/Zod request, typed services and TanStack foundation are implemented under
+`apps/frontend/src/network/` and `src/serverState/`. Existing pages still use
+fixtures; login UI, route protection and live REST integration are the next task.
+Run focused tests with `npm --workspace apps/frontend run test:network`. See
 [the implementation plan](docs/implementation-plan/README.md).
 The current frontend is for development review, not an authenticated public release.
 

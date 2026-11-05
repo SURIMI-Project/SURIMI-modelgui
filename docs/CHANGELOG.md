@@ -21,6 +21,12 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-05
 
+### Change — Frontend REST request and server-state foundation
+
+Added centralized Axios/Zod transport, typed auth/catalogue services, and TanStack query/mutation hooks. Removed copied examples from another project. Existing demo pages still make no API requests; login UI and live integration remain pending. See [frontend network](features/frontend-network/README.md) and ADR 0017. Backend/protocol/CI/deployment files are unchanged.
+
+> **Developing this:** install updated frontend dependencies with `npm ci`; run `npm --workspace apps/frontend run test:network` for focused tests.
+
 ### Change — Frontend uses one shared demo report without browser gRPC
 
 All three case studies are navigable and show the same labelled example simulation/report. Setup creates no run and stores nothing; fake execution delay and output variants were removed. Fixtures, species references and descriptive content are centralized under `apps/frontend/mock-data/`. Browser protocol files/dependencies and Envoy were removed; native backend gRPC is retained, with Buf tooling moved to the root npm package. Auth/REST integration is next, not part of this change. See [frontend demo](features/frontend-demo/README.md).
