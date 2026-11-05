@@ -1,7 +1,7 @@
 # Architecture
 
-Current frontend cleanup: 2026-11-05. The frontend uses local fixtures only;
-authentication and REST integration remain next. Part 2 describes the wider
+Current frontend cleanup: 2026-11-05. The frontend uses real local authentication and fixed fixtures for
+case-study/report data; SSO and business REST integration remain next. Part 2 describes the wider
 backend target. Diagram conventions: [DIAGRAMS.md](DIAGRAMS.md).
 
 ## Part 1 — Current source
@@ -10,6 +10,7 @@ backend target. Diagram conventions: [DIAGRAMS.md](DIAGRAMS.md).
 flowchart LR
     user(("User")) --> spa["React frontend: fixed demo"]
     fixtures["apps/frontend/mock-data"] --> spa
+    spa -->|"Auth REST via nginx or Vite proxy"| api
     nginx["nginx: SPA and /api/v1 REST proxy"] --> spa
     nginx --> api["FastAPI backend"]
     api --> postgres[("PostgreSQL")]
@@ -18,8 +19,9 @@ flowchart LR
     models --> s3[("S3 outputs")]
 ```
 
-**Read from source, 2026-11-05:** the frontend makes no backend/controller
-requests. All case studies use one example report. Setup only navigates to the
+**Verified with local Docker API and Chrome, 2026-11-05:** the frontend calls our
+backend for local login, session/refresh and logout. It makes no direct controller
+requests or scenario-availability requests. All case studies use one example report. Setup only navigates to the
 example library; no mock run is created or persisted. Fixtures and descriptive
 content are centralized in `apps/frontend/mock-data/`; ordinary UI labels stay
 in components. Envoy, browser gRPC clients/stubs and `/api/controller/` have been
@@ -28,10 +30,12 @@ is a root npm development dependency for Python stub-generation CI.
 
 The API implements password/OIDC authentication, users and scenario catalogue
 endpoints; nginx retains `/api/v1/`. The FE request/services/TanStack foundation is implemented under
-`apps/frontend/src/{network,serverState}` (ADR 0017), but no fetching hook is
-mounted on existing pages. Login UI, route guards and live integration are pending. The earlier backend stack verification was on 2026-11-03; this
-cleanup does not claim a fresh running-stack test. The portable NetCDF lab is
-independent and may download a file when explicitly used.
+`apps/frontend/src/{network,serverState}` (ADR 0017). Local login, protected routes
+and session restoration are implemented and browser-tested; Vite proxies
+`/api/v1` to localhost:18082. SSO/password-change completion and business API
+integration remain pending. See [local verification](features/frontend-local-login/CHANGELOG.md)
+for the temporary uv/PyPI build workaround. The portable NetCDF lab is independent,
+requires login and may download a file when explicitly used.
 
 ### Controller API
 

@@ -1,7 +1,7 @@
 # T06 — Authentication and REST server-state foundation
 
 **Priority:** 2, confirmed by the user on 2026-11-05; follows T05.  
-**Status:** Request/service/TanStack foundation implemented 2026-11-05; login UI, route protection and live integration remain pending.
+**Status:** Foundation and local login/session/protected routes/sign-out implemented and tested 2026-11-05. SSO, password-change form and scenario availability remain pending.
 **Goal:** Users sign in before entering SURIMI, and frontend server state comes from our backend REST API through TanStack Query.
 
 ## Existing backend — read from source
@@ -25,11 +25,14 @@ See [backend auth design](../features/auth-and-users/README.md), [auth changelog
 
 ## Tasks
 
-- [ ] Verify backend login/logout/session/SSO behaviour and cookie requirements with the running API and Bruno collection.
+- [x] Review Bruno auth contracts and verify local login/logout/session/refresh/cookies against the running API.
+- [ ] Verify SSO against the configured provider in its later integration step.
 - [x] Define a generic request function: cookies, JSON/204 handling, normalized errors, cancellation, CSRF, and a shared bounded refresh/retry flow.
 - [x] Define plain endpoint services and TanStack query keys/hooks; keep request handling out of components. Decide OpenAPI type tooling using the existing proposed ADR.
-- [ ] Implement login UI and session restoration. Protect SURIMI content routes, including direct links and `/netcdf-lab`; `/test` remains public for now by the user’s explicit decision on 2026-11-05. Avoid briefly showing protected content while checking the session.
-- [ ] Implement logout, expired-session handling, mandatory password change, and appropriate access errors; clear user-scoped query caches on logout/account change.
+- [x] Implement login UI and session restoration. Protect SURIMI content routes, including direct links and `/netcdf-lab`; `/test` remains public for now by the user’s explicit decision on 2026-11-05. Avoid briefly showing protected content while checking the session.
+- [x] Implement local logout, expired-session handling, access/error states and user-scoped cache cleanup.
+- [x] Block protected content when a mandatory password change is required.
+- [ ] Implement and test the password-change form/completion flow.
 - [ ] Implement SSO entry using backend provider URLs and browser redirects. Coordinate local/public origins and registered callback URLs with the backend developer.
 - [ ] Once signed in, connect `GET /api/v1/scenarios` through service/query hooks. Distinguish real unavailability from loading and errors.
 - [ ] Inspect `GET /api/v1/scenarios/{name}/contract` through REST before connecting configuration inputs; do not reintroduce generated gRPC messages.
@@ -40,8 +43,8 @@ The backend enforces permissions; frontend route guards only control the user ex
 
 ## Defining questions
 
-1. Should the login screen offer both local username/password and SSO immediately, or emphasize one method?
-2. After login, should users always reach case selection, or return to the protected page they originally opened?
+1. **Confirmed:** local login first; SSO will be a separate step.
+2. **Implemented default:** return to a validated original local page, otherwise case selection.
 3. Is account creation/reset-password UI required now, or are accounts/password resets managed by administrators and the SSO provider?
 
 ## Done when
@@ -52,4 +55,4 @@ Signed-out users cannot enter protected SURIMI content, including `/netcdf-lab`,
 
 See [frontend network feature](../features/frontend-network/README.md) and [ADR 0017](../decisions/0017-frontend-axios-zod-and-query-layers.md). Axios/Zod and TanStack layers are implemented under `apps/frontend/src/network/` and `src/serverState/`; copied examples were removed. Eighteen focused tests cover payloads, response/error shapes, refresh/cancellation and cache boundaries. Existing demo pages make no new API requests because none of these hooks is mounted there.
 
-This does not complete authentication. Live API verification, local proxy/SSO setup, login design, protected routes and scenario-page wiring still need the remaining tasks above. No backend or deployment files were changed.
+**Follow-up:** local login and proxy are now implemented with live API/browser verification; see [local login](../features/frontend-local-login/README.md). SSO, password-change completion and scenario-page API wiring remain pending. No backend or deployment files were changed.

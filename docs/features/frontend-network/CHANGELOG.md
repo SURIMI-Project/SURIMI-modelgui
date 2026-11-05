@@ -1,5 +1,9 @@
 # Frontend REST foundation — changelog
 
+## 2026-11-05 — Notify mounted session observers
+
+Live local-login testing exposed a cache-replacement issue: removing the observed `auth/me` query detached route guards from updates. Session replacement now cancels requests, removes other queries, and updates the existing user query. Added a mounted QueryObserver regression test. See [local login changelog](../frontend-local-login/CHANGELOG.md) for live verification.
+
 ## 2026-11-05 — Request, contracts, services and TanStack foundation
 
 **User-approved:** replace copied gateway/port/surge examples with SURIMI's Axios/Zod/services/query-hook structure. Original `apps/frontend/network/` and `serverState/` examples removed; supported files now live under `src/`.

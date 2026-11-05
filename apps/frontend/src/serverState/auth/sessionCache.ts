@@ -4,7 +4,11 @@ import { authQueryKeys } from "./authQueryKeys";
 
 export const replaceSession = async (client: QueryClient, user: User | null) => {
   await client.cancelQueries();
-  client.removeQueries();
+  // Keep the observed /me query so mounted route guards receive the identity change.
+  client.removeQueries({
+    predicate: (query) => !(query.queryKey.length === 2
+      && query.queryKey[0] === "auth" && query.queryKey[1] === "me"),
+  });
   client.setQueryData(authQueryKeys.me(), user);
 };
 

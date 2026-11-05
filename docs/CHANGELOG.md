@@ -21,6 +21,12 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-05
 
+### Feature — Local frontend login and protected access
+
+Local username/email/password login now uses the existing backend cookie session. Session restoration, deep-link return, protected content and sign-out are connected. `/test` remains public; `/netcdf-lab` requires login. Existing scientific/demo data is unchanged. SSO, password-change completion and scenario availability remain deferred. See [local login](features/frontend-local-login/README.md).
+
+> **Local development:** start the existing API/database and Vite. Vite proxies `/api/v1` to `127.0.0.1:18082`. Backend/protocol/deployment files are unchanged. The GHCR uv image denial required a temporary local-only build workaround; details and live verification are in the feature changelog.
+
 ### Change — Frontend REST request and server-state foundation
 
 Added centralized Axios/Zod transport, typed auth/catalogue services, and TanStack query/mutation hooks. Removed copied examples from another project. Existing demo pages still make no API requests; login UI and live integration remain pending. See [frontend network](features/frontend-network/README.md) and ADR 0017. Backend/protocol/CI/deployment files are unchanged.

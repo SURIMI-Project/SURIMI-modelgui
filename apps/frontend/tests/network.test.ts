@@ -1,3 +1,5 @@
+import { QueryObserver } from "@tanstack/react-query";
+import { getReturnPath } from "../src/features/auth/returnPath";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import axios, { AxiosError, AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
@@ -299,4 +301,27 @@ test("a late current-user response cannot restore an expired cached session", as
     await cancelledUser;
     assert.equal(client.getQueryData(authQueryKeys.me()), null);
   } finally { release.resolve(); client.clear(); }
+});
+
+
+test("session changes notify mounted user observers immediately", async () => {
+  const client = createQueryClient();
+  client.setQueryData(authQueryKeys.me(), userSchema.parse(user));
+  const observer = new QueryObserver(client, { queryKey: authQueryKeys.me(), enabled: false });
+  const unsubscribe = observer.subscribe(() => {});
+  try {
+    await replaceSession(client, null);
+    assert.equal(observer.getCurrentResult().data, null);
+    const next = userSchema.parse({ ...user, id: "f278cc21-eac7-43f6-835d-b7ea830b5592" });
+    await replaceSession(client, next);
+    assert.deepEqual(observer.getCurrentResult().data, next);
+  } finally { unsubscribe(); client.clear(); }
+});
+
+test("login return paths preserve internal links and reject external URLs and loops", () => {
+  assert.equal(getReturnPath("/scenario-runs/aegean-sea?run=demo#report"), "/scenario-runs/aegean-sea?run=demo#report");
+  assert.equal(getReturnPath("/netcdf-lab"), "/netcdf-lab");
+  for (const value of [null, "", "https://other.example.org", "//other.example.org", "/\\other.example.org", "/login", "/login?next=/", "/%6cogin", "/%2f%2fother.example.org", "/bad%encoding"]) {
+    assert.equal(getReturnPath(value), "/", String(value));
+  }
 });

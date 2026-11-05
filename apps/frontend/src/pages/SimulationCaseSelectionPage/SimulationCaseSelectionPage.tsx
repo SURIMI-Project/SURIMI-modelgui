@@ -1,3 +1,4 @@
+import SessionMenu from "../../features/auth/SessionMenu";
 import { Button } from "@mantine/core";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
@@ -257,6 +258,7 @@ const SimulationCaseSelectionPage = ({
           <Logo className={styles.brandLogo} />
           <p className={styles.kicker}>MODEL USER INTERFACE</p>
         </div>
+        <SessionMenu />
       </motion.div>
 
       <motion.section

@@ -1,0 +1,91 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  color: #effaff;
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(26, 139, 162, .23), transparent 50%),
+    radial-gradient(ellipse at 90% 90%, rgba(41, 89, 137, .22), transparent 48%),
+    #041a2b;
+}
+.card {
+  width: min(100%, 440px);
+  border: 1px solid rgba(167, 224, 237, .18);
+  border-radius: 24px;
+  padding: clamp(24px, 5vw, 40px);
+  background: rgba(10, 39, 58, .88);
+  box-shadow: 0 28px 80px rgba(0, 8, 20, .3);
+}
+.logo { width: 100px; margin-bottom: 26px; }
+.eyebrow {
+  color: #73d8d2;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.title { font-size: clamp(26px, 5vw, 32px); line-height: 1.2; margin: 0 0 12px; }
+.description { color: #b6cbd7; font-size: 14px; line-height: 1.7; margin: 0 0 28px; }
+.form { display: grid; gap: 20px; }
+.field { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  font: inherit;
+  font-weight: 400;
+  color: #f4fcff;
+  background: rgba(0, 11, 24, .35);
+  border: 1px solid #557284;
+  border-radius: 10px;
+}
+.input:focus-visible { outline: 2px solid #80e3dc; outline-offset: 3px; }
+.input:disabled { opacity: .6; }
+.submit {
+  min-height: 48px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: #80e3dc;
+  color: #042537;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 20px;
+  cursor: pointer;
+}
+.submit:hover:not(:disabled) { background: #a0eee8; }
+.submit:disabled { opacity: .6; cursor: wait; }
+.submit:focus-visible, .sessionButton:focus-visible { outline: 2px solid #b8fff7; outline-offset: 4px; }
+.error {
+  color: #ffe5df;
+  background: rgba(128, 38, 37, .25);
+  border: 1px solid rgba(251, 150, 135, .42);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+.requestId { display: block; font-size: 11px; margin-top: 5px; overflow-wrap: anywhere; }
+.session { display: grid; justify-items: end; gap: 6px; color: #fff; }
+.sessionActions { display: flex; align-items: center; gap: 12px; }
+.userName { font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sessionButton {
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, .5);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(4, 26, 43, .7);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.sessionButton:disabled { opacity: .65; cursor: wait; }
+.sessionError { margin: 0; font-size: 12px; max-width: 260px; color: #ffe1d7; }
+@media (max-width: 540px) {
+  .userName { display: none; }
+  .card { border-radius: 18px; }
+}

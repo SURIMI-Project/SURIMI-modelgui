@@ -23,7 +23,7 @@ flowchart LR
 
 ## Boundaries
 
-The query provider is installed but no hook is mounted on existing pages: opening the demo makes no new API requests. Services cover existing auth and catalogue endpoints only. There is no guessed experiment API or copied surge/port behaviour. HTTP uses same-origin `/api/v1`, credentials, and the readable CSRF cookie for writes. JavaScript does not access authentication tokens.
+**Initial foundation snapshot:** the query provider was installed without mounting requests. **Follow-up, 2026-11-05:** local login now mounts auth hooks; see [local login](../frontend-local-login/README.md). Scenario hooks remain unmounted. Services cover existing auth and catalogue endpoints only. There is no guessed experiment API or copied surge/port behaviour. HTTP uses same-origin `/api/v1`, credentials, and the readable CSRF cookie for writes. JavaScript does not access authentication tokens.
 
 Login, providers and password-change requests do not trigger automatic refresh on wrong credentials. Protected requests may refresh once after a 401; 403, network errors, and invalid responses are not replayed. A caller can cancel its own wait without cancelling refresh for other callers. CSRF is read again after refresh. The refresh response must be 204.
 
@@ -35,8 +35,8 @@ The HTTP layer returns errors; TanStack manages session cache changes. Terminal 
 
 Read from `apps/backend/src/surimi_backend/{auth,users,catalog}`; no backend file is edited. User dates stay ISO strings, IDs are UUID strings, roles are `admin/member`. Nullable fields remain nullable. `contract.simulation` is a record of unknown values: the backend does not yet expose a strongly typed nested schema. The frontend does not invent one.
 
-SSO provider URLs are returned as data; future login UI will perform browser navigation. No Keycloak client code or tokens are added. Local Vite API proxy and coordinated SSO callbacks still belong to the later live integration step; Docker already has the same-origin REST proxy.
+SSO provider URLs are returned as data; future login UI will perform browser navigation. No Keycloak client code or tokens are added. Vite now has the local `/api/v1` proxy; coordinated SSO callbacks remain a later integration step. Docker retains its same-origin REST proxy.
 
 ## Next step
 
-Implement the login experience and route/session boundary using these hooks after agreeing login-screen behaviour. End-to-end cookie, SSO, password-change and live catalogue verification remains separate from mocked transport tests.
+Local login/session/route protection is implemented and tested with the running API in the linked feature. SSO, password-change completion and live catalogue integration remain later steps.

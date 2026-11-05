@@ -46,8 +46,8 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
 
 ### Sign in to the API
 
-Every API route except health and sign-in needs a user. The web app does not
-have a sign-in page yet (phase 10); use Bruno, curl or `/api/v1/docs`.
+Every API route except health and sign-in needs a user. The frontend now has local password sign-in at `/login`; the API also remains
+accessible through Bruno, curl or `/api/v1/docs`. SSO frontend entry is deferred.
 
 - **First admin:** set `ADMIN_EMAIL`, `ADMIN_USERNAME`, `ADMIN_FIRST_NAME`,
   `ADMIN_LAST_NAME` and `ADMIN_PASSWORD` in `deployments/.env`. The `migrate` job creates that admin on every start
@@ -114,10 +114,16 @@ remain in components. The isolated `/netcdf-lab` file reader is retained.
 
 The Axios/Zod request, typed services and TanStack foundation are implemented under
 `apps/frontend/src/network/` and `src/serverState/`. Existing pages still use
-fixtures; login UI, route protection and live REST integration are the next task.
+fixtures for scenarios/results; local login, session restoration, protected
+routes and sign-out are connected to the existing backend. `/test` remains public.
+Vite proxies `/api/v1` to `http://127.0.0.1:18082` by default. The local backend
+uses the admin configured in git-ignored `deployments/.env`. SSO, password-change
+completion and real scenario availability are deferred.
 Run focused tests with `npm --workspace apps/frontend run test:network`. See
 [the implementation plan](docs/implementation-plan/README.md).
-The current frontend is for development review, not an authenticated public release.
+Local login was tested against Docker; the wider product remains a development prototype.
+See [local login verification](docs/features/frontend-local-login/CHANGELOG.md) for
+the local-only workaround for the blocked GHCR build dependency.
 
 The Buf CLI remains a root development dependency for Python protocol generation;
 there are no frontend gRPC runtime or code-generation dependencies.
