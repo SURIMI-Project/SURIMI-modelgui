@@ -1,0 +1,66 @@
+@layer aria {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+    cursor: pointer;
+  }
+  .track {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: calc(var(--spacing-lg) + var(--spacing-xs));
+    padding: var(--border-width);
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-input);
+  }
+  .thumb {
+    width: calc(var(--spacing-lg) - var(--border-width) * 2);
+    height: calc(var(--spacing-lg) - var(--border-width) * 2);
+    border-radius: 50%;
+    background: var(--color-text-muted);
+  }
+  .switch[data-selected] .track {
+    border-color: var(--color-primary-border);
+    background: var(--color-primary);
+  }
+  .switch[data-selected] .thumb {
+    margin-inline-start: auto;
+    background: var(--color-on-primary);
+  }
+  .switch[data-hovered] .track {
+    border-color: var(--color-accent);
+  }
+  .switch[data-focus-visible] .track {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .switch[data-invalid] .track {
+    border-color: var(--color-danger);
+  }
+  .field[data-disabled] {
+    opacity: 0.4;
+  }
+  .switch:is([data-disabled], [data-readonly]) {
+    cursor: default;
+  }
+  @media (forced-colors: active) {
+    .switch[data-selected] .track {
+      background: Highlight;
+      forced-color-adjust: none;
+    }
+    .switch[data-selected] .thumb {
+      background: HighlightText;
+    }
+  }
+}

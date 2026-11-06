@@ -1,0 +1,65 @@
+@layer aria {
+  .trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-smd) var(--spacing-md);
+    text-align: left;
+    cursor: pointer;
+  }
+  .trigger [data-placeholder] {
+    color: var(--color-text-subtle);
+  }
+  .popover {
+    width: var(--trigger-width);
+    min-width: 12rem;
+    padding: var(--spacing-xs);
+  }
+  .list {
+    max-height: 18rem;
+    overflow: auto;
+    outline: none;
+  }
+  .option {
+    border-radius: var(--radius-xs);
+    padding: var(--spacing-smd) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    outline: none;
+    color: var(--color-text);
+  }
+  .option[data-focused],
+  .option[data-selected] {
+    background: var(--color-selected);
+    color: var(--color-primary);
+  }
+  .option[data-disabled] {
+    color: var(--color-disabled-text);
+    cursor: default;
+  }
+  .combo {
+    display: flex;
+    align-items: center;
+  }
+  .search {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: inherit;
+    padding: var(--spacing-smd) var(--spacing-md);
+    font: inherit;
+  }
+  .toggle {
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    padding: var(--spacing-smd);
+    border: 0;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+}

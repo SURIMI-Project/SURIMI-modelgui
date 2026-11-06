@@ -1,128 +1,101 @@
-:root {
-}
+@layer components {
+  :root {
+  }
+  html,
+  body {
+  }
+  .specialBackground {
+  }
+  .specialBackground:before {
+    content: " ";
+    background-image: none;
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-html,
-body {
-}
-
-.specialBackground {
-}
-
-.specialBackground:before {
-  content: " ";
-  background-image: none;
-
-  display: block;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  width: 100%;
-  height: 100%;
-  opacity: 0.02;
-}
-
-.eclipseText {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cursorPointer {
-  cursor: pointer;
-}
-
-.disabled {
-  background-color: var(--color-surfaceMuted);
-  opacity: 0.3;
-}
-
-.hoverOpacity {
-}
-
-.hoverOpacity:hover {
-  opacity: 0.7;
-}
-
-/* its being used for the scrollBar color under the ScrollArea component */
-.thumb {
-  background-color: var(--color-borderDefault);
-}
-
-.preventUserSelect {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* its being used for the text on the top left of every page */
-.textPageIndicator {
-  position: absolute;
-  left: 0;
-}
-
-/* its being used for the button on the top right of every page Add student - add class etc*/
-.actionButtonIndicator {
-  position: absolute;
-  right: 0;
-}
-
-/* its being used as the first wrapper under every route for example School component */
-.routeWrapper {
-  position: relative;
-  max-width: 1660px;
-  width: 100%;
-  height: 100%;
-  padding-top: var(--spacing-xl);
-  margin: 0 auto;
-}
-
-.routeHeaderWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-  background-color: var(--color-surfaceBase);
-  z-index: 10;
-  height: 76px;
-}
-
-/* its being used header of each page with it contains the Page name segmented controls and action button*/
-.pageHeaderWrapper {
-  position: sticky;
-  top: 0px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-  background-color: var(--color-surfaceBase);
-  z-index: 10;
-  height: 76px;
-}
-
-.hideScrollBar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.menuDropdown {
-  min-width: 160px;
-  border-radius: var(--radius-xs);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 22px;
-}
-
-.menuDropdown svg {
-  color: var(--color-accent);
+    display: block;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 100%;
+    height: 100%;
+    opacity: 0.02;
+  }
+  .eclipseText {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cursorPointer {
+    cursor: pointer;
+  }
+  .disabled {
+    background-color: var(--color-surfaceMuted);
+    opacity: 0.3;
+  }
+  .hoverOpacity {
+  }
+  .hoverOpacity:hover {
+    opacity: 0.7;
+  } /* its being used for the scrollBar color under the ScrollArea component */
+  .thumb {
+    background-color: var(--color-borderDefault);
+  }
+  .preventUserSelect {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  } /* its being used for the text on the top left of every page */
+  .textPageIndicator {
+    position: absolute;
+    left: 0;
+  } /* its being used for the button on the top right of every page Add student - add class etc*/
+  .actionButtonIndicator {
+    position: absolute;
+    right: 0;
+  } /* its being used as the first wrapper under every route for example School component */
+  .routeWrapper {
+    position: relative;
+    max-width: 1660px;
+    width: 100%;
+    height: 100%;
+    padding-top: var(--spacing-xl);
+    margin: 0 auto;
+  }
+  .routeHeaderWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    background-color: var(--color-surfaceBase);
+    z-index: 10;
+    height: 76px;
+  } /* its being used header of each page with it contains the Page name segmented controls and action button*/
+  .pageHeaderWrapper {
+    position: sticky;
+    top: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    background-color: var(--color-surfaceBase);
+    z-index: 10;
+    height: 76px;
+  }
+  .hideScrollBar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .menuDropdown {
+    min-width: 160px;
+    border-radius: var(--radius-xs);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+  }
+  .menuDropdown svg {
+    color: var(--color-accent);
+  }
 }

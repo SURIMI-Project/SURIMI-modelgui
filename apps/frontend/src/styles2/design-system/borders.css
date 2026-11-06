@@ -1,0 +1,7 @@
+@layer tokens {
+  :root {
+    --border-width: 1px;
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
+  }
+}

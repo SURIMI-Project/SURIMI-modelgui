@@ -1,0 +1,33 @@
+@layer tokens {
+  :root {
+    --palette-sea-100: #c5e4e5;
+    --palette-sea-400: #79b6c3;
+    --palette-sea-600: #448b9f;
+    --palette-sea-800: #28677b;
+    --palette-red-50: #fff1f1;
+    --palette-red-100: #ffe0e1;
+    --palette-red-500: #dc4650;
+    --palette-red-600: #bd2935;
+    --palette-red-700: #9e202e;
+    --palette-orange-50: #fff5ec;
+    --palette-orange-100: #ffe4c8;
+    --palette-orange-400: #f5ad72;
+    --palette-orange-500: #ed8844;
+    --palette-orange-700: #9e4919;
+    --palette-pink-100: #f8dce5;
+    --palette-pink-500: #b43e6e;
+    --palette-neutral-0: #ffffff;
+    --palette-neutral-50: #faf9f7;
+    --palette-neutral-100: #f3f1ee;
+    --palette-neutral-200: #e6e2de;
+    --palette-neutral-300: #cec7c0;
+    --palette-neutral-500: #766e68;
+    --palette-neutral-600: #625a54;
+    --palette-neutral-800: #342e2a;
+    --palette-neutral-900: #27221f;
+    --palette-green-50: #edf7f1;
+    --palette-green-700: #267047;
+    --palette-blue-50: #edf3fb;
+    --palette-blue-700: #315c94;
+  }
+}

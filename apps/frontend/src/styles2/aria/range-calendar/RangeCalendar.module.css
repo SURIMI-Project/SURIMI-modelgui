@@ -1,0 +1,28 @@
+@layer aria {
+  .calendar {
+    width: min(100%, calc(var(--spacing-2xl) * 8));
+  }
+  .calendar :global([data-range][data-selected]) {
+    border-radius: 0;
+    background: var(--color-selected);
+    color: var(--color-text);
+  }
+  .calendar :global([data-range][data-selected][data-selection-start]),
+  .calendar :global([data-range][data-selected][data-selection-end]) {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .calendar :global([data-range][data-selection-start]) {
+    border-start-start-radius: var(--radius-sm);
+    border-end-start-radius: var(--radius-sm);
+  }
+  .calendar :global([data-range][data-selection-end]) {
+    border-start-end-radius: var(--radius-sm);
+    border-end-end-radius: var(--radius-sm);
+  }
+  .error {
+    margin-top: var(--spacing-sm);
+    color: var(--color-danger);
+    font-size: var(--font-size-xs);
+  }
+}

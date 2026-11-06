@@ -1,0 +1,8 @@
+@layer tokens {
+  :root {
+    --shadow-overlay: 0 1.25rem 5rem var(--color-shadow);
+  }
+  :root[data-theme="light"] {
+    --shadow-floating-action: 0 8px 24px var(--color-shadow);
+  }
+}

@@ -1,0 +1,58 @@
+@layer aria {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    min-width: 0;
+  }
+  .label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+  }
+  .control {
+    width: 100%;
+    min-height: 2.875rem;
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-input);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-sm);
+    transition:
+      border-color var(--motion-fast),
+      box-shadow var(--motion-fast);
+  }
+  .control[data-hovered],
+  .control:hover {
+    border-color: var(--color-text-muted);
+  }
+  .control[data-focused],
+  .control:focus-within {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+    border-color: var(--color-focus);
+  }
+  .field[data-invalid] .control {
+    border-color: var(--color-danger);
+  }
+  .field[data-disabled] .control {
+    background: var(--color-disabled);
+    color: var(--color-disabled-text);
+    cursor: not-allowed;
+  }
+  .field[data-readonly] .control {
+    background: var(--color-surface-muted);
+  }
+  .description,
+  .error {
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-body);
+  }
+  .description {
+    color: var(--color-text-muted);
+  }
+  .error {
+    color: var(--color-danger);
+  }
+}

@@ -133,3 +133,9 @@ there are no frontend gRPC runtime or code-generation dependencies.
 The signed-in case-selection page uses a cinematic geographic map with separate
 case previews. Its previous video/cards view is preserved as an unused component.
 See [T02 design and remaining boundary requirements](docs/features/case-study-map/README.md).
+
+### Frontend design system
+
+The light theme and shared controls use CSS semantic tokens and React Aria Components; Mantine has been removed. Sign in and open `/design-system` for Theme, UI components and actual report compositions. Login uses the same shared fields, buttons and card foundation. There is no dark theme or props playground. See [design-system architecture](docs/features/frontend-design-system/README.md) and [ADR 0018](docs/decisions/0018-frontend-css-tokens-and-react-aria.md).
+
+The active case selector also uses the light theme, with procedural animated map water, pause/resume and reduced-motion/static fallback. Selected seas show official GFCM GSA 22 + 23 (Aegean) or 06 + 07 (Northwestern) boundaries. The equal-width selector sits over a wider overview; Anchovy Bay uses its full upright illustration with animated water beneath it.

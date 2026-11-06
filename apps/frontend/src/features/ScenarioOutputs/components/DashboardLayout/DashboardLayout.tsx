@@ -1,4 +1,4 @@
-import { Badge, Text, Title } from "@mantine/core";
+import Badge from "../../../../components/ui/Tag/Tag";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { FiAlertTriangle } from "react-icons/fi";
@@ -44,7 +44,9 @@ const DashboardLayout = ({
       <div className={styles.mockBanner} role="status" aria-live="polite">
         <FiAlertTriangle className={styles.mockBannerIcon} aria-hidden="true" />
         <span className={styles.mockBannerText}>
-          <strong>Mock data:</strong> the values shown on this page are placeholders for demonstration only — please disregard the figures themselves.
+          <strong>Mock data:</strong> the values shown on this page are
+          placeholders for demonstration only — please disregard the figures
+          themselves.
         </span>
       </div>
 
@@ -74,35 +76,33 @@ const DashboardLayout = ({
 
           {isThreeColumn && headerCenter ? (
             <div className={styles.headerColumnCenter}>{headerCenter}</div>
-          ) : (
-            !isSplit ? (
-              <div
-                className={[styles.headerCopy, headerCopyClassName]
+          ) : !isSplit ? (
+            <div
+              className={[styles.headerCopy, headerCopyClassName]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {showKicker ? (
+                <Badge className={styles.kicker}>
+                  Scenario Outputs Dashboard
+                </Badge>
+              ) : null}
+              <h1
+                className={[styles.title, titleClassName]
                   .filter(Boolean)
                   .join(" ")}
               >
-                {showKicker ? (
-                  <Badge className={styles.kicker} variant="light">
-                    Scenario Outputs Dashboard
-                  </Badge>
-                ) : null}
-                <Title
-                  className={[styles.title, titleClassName]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  {title}
-                </Title>
-                <Text
-                  className={[styles.subtitle, subtitleClassName]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  {subtitle}
-                </Text>
-              </div>
-            ) : null
-          )}
+                {title}
+              </h1>
+              <p
+                className={[styles.subtitle, subtitleClassName]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {subtitle}
+              </p>
+            </div>
+          ) : null}
 
           {headerAside && !isCentered ? (
             <div className={styles.headerAside}>{headerAside}</div>

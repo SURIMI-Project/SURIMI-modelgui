@@ -1,4 +1,4 @@
-import { Button, ScrollArea } from "@mantine/core";
+import Button from "../../components/ui/Button/Button";
 import { useState, type CSSProperties } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
@@ -65,7 +65,11 @@ const ScenarioRunsPage = () => {
           onClick={backToCases}
           aria-label="Back to case studies"
         >
-          <img src={smallSurimiLogo} alt="SURIMI" className={styles.logoImage} />
+          <img
+            src={smallSurimiLogo}
+            alt="SURIMI"
+            className={styles.logoImage}
+          />
         </button>
         <nav className={styles.scenarioNav}>
           {simulationCaseStudies.map((item) => {
@@ -76,7 +80,9 @@ const ScenarioRunsPage = () => {
                 type="button"
                 className={[
                   styles.scenarioNavItem,
-                  item.id === selectedCaseId ? styles.scenarioNavItemActive : "",
+                  item.id === selectedCaseId
+                    ? styles.scenarioNavItemActive
+                    : "",
                 ].join(" ")}
                 onClick={() => navigate(`/scenario-runs/${item.id}`)}
               >
@@ -99,11 +105,9 @@ const ScenarioRunsPage = () => {
       <section className={styles.workspace}>
         <header className={styles.topbar}>
           <div className={styles.topbarTitle}>
-            <Button
-              variant="primaryOutlined"
-              leftSection={<FiArrowLeft size={16} />}
-              onClick={backToCases}
-            >
+            <Button variant="primary-outlined" onPress={backToCases}>
+              {" "}
+              <FiArrowLeft size={16} />
               Back To Case Studies
             </Button>
             <div>
@@ -113,28 +117,28 @@ const ScenarioRunsPage = () => {
           </div>
           <div className={styles.topbarActions}>
             <Button
-              variant="primaryOutlined"
-              disabled
-              title="Only one example simulation is available"
+              variant="primary-outlined"
+              isDisabled
+              aria-description="Only one example simulation is available"
             >
               Compare Selected
             </Button>
             <Button
-              variant="primaryFilled"
-              leftSection={<FiPlus size={16} />}
-              onClick={() => setIsScenarioInputsOpen(true)}
+              variant="primary"
+              onPress={() => setIsScenarioInputsOpen(true)}
             >
+              {" "}
+              <FiPlus size={16} />
               Set Up Scenario
             </Button>
           </div>
         </header>
         <p role="note">{exampleSimulation.description}</p>
         <section className={styles.panel}>
-          <ScrollArea
-            className={styles.tableShell}
-            type="auto"
-            offsetScrollbars
-            scrollbarSize={8}
+          <div
+            className={[styles.tableShell, styles.scrollAreaLayout1]
+              .filter(Boolean)
+              .join(" ")}
           >
             <table className={styles.runsTable}>
               <thead>
@@ -166,7 +170,9 @@ const ScenarioRunsPage = () => {
                     <button
                       type="button"
                       className={styles.reportButton}
-                      onClick={() => navigate(`/scenario-outputs/${selectedCaseId}`)}
+                      onClick={() =>
+                        navigate(`/scenario-outputs/${selectedCaseId}`)
+                      }
                       aria-label="Open example simulation dashboard"
                     >
                       <FiEye aria-hidden="true" />
@@ -176,7 +182,7 @@ const ScenarioRunsPage = () => {
                 </tr>
               </tbody>
             </table>
-          </ScrollArea>
+          </div>
           <footer className={styles.paginationBar}>
             <span>Showing 1 shared example simulation</span>
           </footer>

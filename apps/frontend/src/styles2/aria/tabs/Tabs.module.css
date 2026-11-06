@@ -1,0 +1,112 @@
+@layer aria {
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    min-width: 0;
+  }
+  .list {
+    display: flex;
+    gap: var(--spacing-lg);
+    border-bottom: var(--border-width) solid var(--color-border);
+    overflow-x: auto;
+  }
+  .tab {
+    padding: var(--spacing-md) var(--spacing-xs);
+    border-bottom: var(--focus-ring-width) solid transparent;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  .tab[data-selected] {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  .tab[data-hovered] {
+    color: var(--color-text);
+  }
+  .tab[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .tab[data-focus-visible],
+  .panel[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  .panel {
+    min-width: 0;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+    outline: none;
+  }
+  .panel[data-inert] {
+    display: none;
+  }
+  .tabs[data-variant="pills"] > .list {
+    border: 0;
+    gap: var(--spacing-sm);
+  }
+  .tabs[data-variant="pills"] > .list > .tab {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .tabs[data-variant="pills"] > .list > .tab[data-selected] {
+    background: var(--color-selected);
+    border-color: var(--color-accent);
+  }
+  .tabs[data-variant="segmented"] {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    gap: var(--spacing-md);
+  }
+  .tabs[data-variant="segmented"] > .list {
+    flex-shrink: 0;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-input);
+  }
+  .tabs[data-variant="segmented"] > .list > .tab {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 0;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 600;
+  }
+  .tabs[data-variant="segmented"] > .list > .tab[data-selected] {
+    background: var(--color-selected);
+    color: var(--color-text);
+  }
+  .tabs[data-variant="segmented"] > .panel {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .tabs[data-hide-panel-scrollbar] > .panel {
+    scrollbar-width: none;
+  }
+  .tabs[data-hide-panel-scrollbar] > .panel::-webkit-scrollbar {
+    display: none;
+  }
+  .tabs[data-orientation="vertical"] {
+    flex-direction: row;
+  }
+  .tabs[data-orientation="vertical"] > .list {
+    flex-direction: column;
+    border-bottom: 0;
+    border-inline-end: var(--border-width) solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .tabs[data-orientation="vertical"] > .panel {
+    flex: 1;
+  }
+}

@@ -1,4 +1,3 @@
-import { Paper, ScrollArea } from "@mantine/core";
 import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 import AnchovyInputGraph from "./AnchovyInputGraph";
@@ -206,15 +205,17 @@ const AnchovyInputsStepOne = ({
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       className={styles.stepShell}
     >
-      <ScrollArea
-        className={styles.stepScrollArea}
-        type="auto"
-        offsetScrollbars
-        scrollbarSize={8}
-        classNames={{ thumb: "thumb" }}
+      <div
+        className={[styles.stepScrollArea, styles.scrollAreaLayout1]
+          .filter(Boolean)
+          .join(" ")}
       >
         <div className={styles.stepContent}>
-          <Paper className={styles.chartPanel} withBorder>
+          <div
+            className={[styles.chartPanel, styles.paperLayout2]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <div className={styles.chartSurface}>
               <AnchovyInputGraph
                 activeRow={activeRow}
@@ -226,17 +227,21 @@ const AnchovyInputsStepOne = ({
                 onDragEnd={handleDragEnd}
               />
             </div>
-          </Paper>
+          </div>
 
-          <Paper className={styles.tablePanel} withBorder>
+          <div
+            className={[styles.tablePanel, styles.paperLayout3]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <AnchovyInputsTable
               tableData={rows}
               activeSpeciesId={activeSpeciesId}
               onSelectRow={onChangeActiveSpecies}
             />
-          </Paper>
+          </div>
         </div>
-      </ScrollArea>
+      </div>
     </MotionDiv>
   );
 };

@@ -1,0 +1,6 @@
+@layer aria {
+  .input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}

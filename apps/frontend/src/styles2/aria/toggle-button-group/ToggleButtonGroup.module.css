@@ -1,0 +1,11 @@
+@layer aria {
+  .group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+  .group[data-orientation="vertical"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

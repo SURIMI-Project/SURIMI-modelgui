@@ -1,0 +1,69 @@
+@layer aria {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 0;
+  }
+  .radio {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+    cursor: pointer;
+  }
+  .indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--spacing-lg);
+    height: var(--spacing-lg);
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: 50%;
+    background: var(--color-input);
+  }
+  .indicator::after {
+    content: "";
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+    border-radius: 50%;
+    background: transparent;
+  }
+  .radio[data-hovered] .indicator {
+    border-color: var(--color-accent);
+  }
+  .radio[data-selected] .indicator {
+    border-color: var(--color-accent);
+  }
+  .radio[data-selected] .indicator::after {
+    background: var(--color-accent);
+  }
+  .radio[data-focus-visible] .indicator {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .radio[data-invalid] .indicator {
+    border-color: var(--color-danger);
+  }
+  .field[data-disabled] {
+    opacity: 0.4;
+  }
+  .radio:is([data-disabled], [data-readonly]) {
+    cursor: default;
+  }
+  @media (forced-colors: active) {
+    .indicator {
+      border-color: ButtonText;
+    }
+    .radio[data-selected] .indicator {
+      border-color: Highlight;
+    }
+    .radio[data-selected] .indicator::after {
+      background: Highlight;
+      forced-color-adjust: none;
+    }
+  }
+}

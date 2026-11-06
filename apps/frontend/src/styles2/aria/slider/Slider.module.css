@@ -1,0 +1,95 @@
+@layer aria {
+  .slider {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    min-width: 0;
+    width: 100%;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .track {
+    position: relative;
+    height: var(--spacing-xl);
+    width: 100%;
+  }
+  .track::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: var(--spacing-xs);
+    transform: translateY(-50%);
+    border-radius: var(--radius-sm);
+    background: var(--color-input-border);
+  }
+  .fill {
+    position: absolute;
+    top: 50%;
+    height: var(--spacing-xs);
+    transform: translateY(-50%);
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);
+  }
+  .thumb {
+    top: 50%;
+    width: var(--spacing-lg);
+    height: var(--spacing-lg);
+    border: var(--border-width) solid var(--color-accent);
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+  .thumb[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .thumb[data-dragging] {
+    background: var(--color-focus);
+  }
+  .slider[data-disabled] {
+    opacity: 0.4;
+  }
+  .slider[data-orientation="vertical"] {
+    width: auto;
+    align-items: center;
+  }
+  .slider[data-orientation="vertical"] .header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  .slider[data-orientation="vertical"] .track {
+    width: var(--spacing-xl);
+    height: calc(var(--spacing-2xl) * 5);
+  }
+  .slider[data-orientation="vertical"] .track::before {
+    inset-block: 0;
+    left: 50%;
+    top: 0;
+    width: var(--spacing-xs);
+    height: auto;
+    transform: translateX(-50%);
+  }
+  .slider[data-orientation="vertical"] .fill {
+    left: 50%;
+    top: auto;
+    width: var(--spacing-xs);
+    transform: translateX(-50%);
+  }
+  .slider[data-orientation="vertical"] .thumb {
+    left: 50%;
+    top: auto;
+  }
+  @media (forced-colors: active) {
+    .thumb,
+    .fill {
+      background: Highlight;
+      forced-color-adjust: none;
+    }
+  }
+}

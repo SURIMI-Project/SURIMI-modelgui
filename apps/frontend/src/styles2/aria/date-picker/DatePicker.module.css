@@ -1,0 +1,54 @@
+@layer aria {
+  .group {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-xs) 0 var(--spacing-md);
+  }
+  .input {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--font-size-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .segment {
+    padding: var(--focus-ring-width) var(--border-width);
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+  .segment[data-placeholder] {
+    color: var(--color-text-subtle);
+  }
+  .segment[data-type="literal"] {
+    padding-inline: 0;
+    color: var(--color-text-muted);
+  }
+  .segment:focus {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .trigger {
+    display: grid;
+    place-items: center;
+    width: calc(var(--spacing-xl) + var(--spacing-xs));
+    height: calc(var(--spacing-xl) + var(--spacing-xs));
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+  .trigger[data-hovered],
+  .trigger[aria-expanded="true"] {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  .trigger[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--border-width);
+  }
+}

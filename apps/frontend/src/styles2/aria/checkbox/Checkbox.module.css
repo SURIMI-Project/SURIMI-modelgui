@@ -1,0 +1,60 @@
+@layer aria {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 0;
+  }
+  .checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+    cursor: pointer;
+  }
+  .indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--spacing-lg);
+    height: var(--spacing-lg);
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-input);
+    color: var(--color-on-primary);
+  }
+  .checkbox[data-hovered] .indicator {
+    border-color: var(--color-accent);
+  }
+  .checkbox:is([data-selected], [data-indeterminate]) .indicator {
+    border-color: var(--color-primary-border);
+    background: var(--color-primary);
+  }
+  .checkbox[data-focus-visible] .indicator {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .checkbox[data-invalid] .indicator {
+    border-color: var(--color-danger);
+  }
+  .field[data-disabled] {
+    opacity: 0.4;
+  }
+  .checkbox:is([data-disabled], [data-readonly]) {
+    cursor: default;
+  }
+  @media (forced-colors: active) {
+    .indicator {
+      border-color: ButtonText;
+    }
+    .checkbox:is([data-selected], [data-indeterminate]) .indicator {
+      background: Highlight;
+      border-color: Highlight;
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
+  }
+}

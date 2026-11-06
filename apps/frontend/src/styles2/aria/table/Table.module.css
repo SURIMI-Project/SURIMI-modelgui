@@ -1,0 +1,76 @@
+@layer aria {
+  .container {
+    width: 100%;
+    overflow-x: auto;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+    background: var(--color-table);
+    outline: none;
+  }
+  .table :global(th) {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-table-header);
+    color: var(--color-text-muted);
+    text-align: start;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    outline: none;
+  }
+  .table :global(td) {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: var(--border-width) solid var(--color-border);
+    white-space: nowrap;
+    outline: none;
+  }
+  .table :global(tbody > tr) {
+    outline: none;
+  }
+  .table :global(tbody > tr[data-hovered]) {
+    background: var(--color-surface-hover);
+  }
+  .table :global(tbody > tr[data-selected]) {
+    background: var(--color-selected);
+  }
+  .table :global(tr[data-disabled]) {
+    opacity: 0.4;
+  }
+  .table :global(th[data-allows-sorting]),
+  .table :global(tr[data-selection-mode]) {
+    cursor: pointer;
+  }
+  .table[data-focus-visible],
+  .table :global([data-focus-visible]) {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  .table :global([data-align="start"]) {
+    text-align: start;
+  }
+  .table :global([data-align="center"]) {
+    text-align: center;
+  }
+  .table :global([data-align="end"]) {
+    text-align: end;
+  }
+  .table :global([data-sticky="end"]) {
+    position: sticky;
+    inset-inline-end: 0;
+    border-inline-start: var(--border-width) solid var(--color-border);
+  }
+  .table :global(th[data-sticky="end"]) {
+    z-index: 2;
+    background: var(--color-table-header);
+  }
+  .table :global(td[data-sticky="end"]) {
+    z-index: 1;
+    background: var(--color-table);
+  }
+}

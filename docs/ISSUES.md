@@ -10,6 +10,15 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ## This repo
 
+### Intermittent controller TLS/timeout failures affect scenario availability
+
+**Severity:** Medium — the authenticated catalogue can temporarily fail while sessions remain valid.
+**Evidence:** Read from local API logs, 2026-11-06: `GET /api/v1/scenarios` returned 502 `controller_error` during `GetScenarioNames` because the SSL connection could not be established (request `613cad74d15d44dda1586b955db9ead4`, 14:51:08 UTC); the subsequent request succeeded. Earlier 504 `controller_timeout` events also exist.
+**Owner:** backend/controller/EDITO connection owners. No backend changes authorized here.
+
+The frontend now retries this safe catalogue read twice for network/502/503/504 failures and retains explicit terminal/stale-data states. This improves recovery; it does not repair the upstream TLS/timeout condition. Identify which upstream TLS connection failed and inspect certificate/service availability with the backend/controller owners if it recurs.
+
+
 ### Denied SSO callback displays JSON instead of a frontend error page
 
 **Severity:** Low — access is denied correctly; recovery experience is incomplete.
@@ -33,7 +42,7 @@ The critical finding is MapLibre GL JS sanitizer bypass ([GHSA-jrc7-96c5-q579](h
 ### Lint fails with 18 errors and 5 warnings
 
 **Severity:** Low — CI runs lint in report-only mode until these are fixed
-**Evidence:** Verified 2026-11-05 with the current frontend; changed case-map files pass targeted lint.
+**Evidence:** Verified 2026-11-06 after the design-system migration; the same 18 errors and 5 warnings remain outside the new foundation.
 **Owner:** this repo
 **Where:** 11 files in `apps/frontend/src/`
 

@@ -1,0 +1,39 @@
+@layer aria {
+  .button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    min-height: 2.75rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-md);
+    background: var(--color-input);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  .button[data-hovered] {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  .button[data-selected] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  .button[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .button[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+  @media (forced-colors: active) {
+    .button[data-selected] {
+      outline: var(--focus-ring-width) solid Highlight;
+    }
+  }
+}

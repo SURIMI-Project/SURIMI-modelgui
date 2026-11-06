@@ -1,0 +1,8 @@
+@layer aria {
+  .input {
+    padding: var(--spacing-smd) var(--spacing-md);
+  }
+  .input::placeholder {
+    color: var(--color-text-subtle);
+  }
+}

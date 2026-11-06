@@ -1,13 +1,5 @@
-import {
-  Button,
-  Group,
-  Paper,
-  ScrollArea,
-  Select,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import Button from "../../../../components/ui/Button/Button";
+import Select from "../../../../components/ui/Select/Select";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import PrimaryModal from "../../../../components/PrimaryModal/PrimaryModal";
@@ -137,74 +129,45 @@ const ScenarioInputsFlow = ({
         overlayBlur={8}
         closeOnClickOutside={false}
       >
-        <Stack gap="sm" className={styles.flowRoot}>
+        <div
+          className={[styles.flowRoot, styles.stackLayout1]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <div className={styles.flowHeading}>
-            <Group
-              justify="space-between"
-              align="center"
-              gap="sm"
-              className={styles.headingRow}
+            <div
+              className={[styles.headingRow, styles.groupLayout2]
+                .filter(Boolean)
+                .join(" ")}
             >
-              <Group gap="xs" align="center" className={styles.titleCluster}>
-                <Title order={2} className={styles.flowTitle}>
-                  {activeStep.title}
-                </Title>
+              <div
+                className={[styles.titleCluster, styles.groupLayout3]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                <h2 className={styles.flowTitle}>{activeStep.title}</h2>
+              </div>
 
-                {/* {stepIndex === 0 ? (
-                  <Popover
-                    width={380}
-                    position="bottom-start"
-                    offset={12}
-                    shadow="lg"
-                    withinPortal={false}
-                    classNames={{ dropdown: styles.infoDropdown }}
-                  >
-                    <Popover.Target>
-                      <UnstyledButton
-                        type="button"
-                        className={styles.infoTrigger}
-                        aria-label={config.stepOneInfo.ariaLabel}
-                      >
-                        <FiInfo aria-hidden="true" />
-                      </UnstyledButton>
-                    </Popover.Target>
-
-                    <Popover.Dropdown>
-                      <div className={styles.infoPanel}>
-                        <Text className={styles.infoEyebrow}>
-                          {config.stepOneInfo.eyebrow}
-                        </Text>
-                        <Text className={styles.infoText}>
-                          {config.stepOneInfo.text}
-                        </Text>
-                      </div>
-                    </Popover.Dropdown>
-                  </Popover>
-                ) : null} */}
-              </Group>
-
-              <Group gap="xs">
+              <div className={styles.groupLayout4}>
                 {stepIndex === 0 ? (
                   <Select
                     className={styles.speciesSelect}
-                    data={selectData}
-                    value={activeSpeciesId}
-                    comboboxProps={{ withinPortal: true, zIndex: 6200 }}
-                    searchable
-                    nothingFoundMessage="No species found"
-                    onChange={(value) => {
+                    options={selectData}
+                    selectedKey={activeSpeciesId}
+                    label="Species"
+                    onSelectionChange={(value) => {
                       if (value) {
-                        setActiveSpeciesId(value);
+                        setActiveSpeciesId(String(value));
                       }
                     }}
                     aria-label="Select species"
-                    allowDeselect={false}
+                    isRequired
                   />
                 ) : null}
-              </Group>
-            </Group>
+              </div>
+            </div>
 
-            <Text className={styles.flowSubtitle}>{activeStep.subtitle}</Text>
+            <p className={styles.flowSubtitle}>{activeStep.subtitle}</p>
           </div>
 
           <div className={styles.stepViewport}>
@@ -236,27 +199,24 @@ const ScenarioInputsFlow = ({
                   transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                   className={styles.stepShell}
                 >
-                  <ScrollArea
-                    className={styles.stepScrollArea}
-                    type="auto"
-                    offsetScrollbars
-                    scrollbarSize={8}
-                    classNames={{ thumb: "thumb" }}
+                  <div
+                    className={[styles.stepScrollArea, styles.scrollAreaLayout5]
+                      .filter(Boolean)
+                      .join(" ")}
                   >
                     <div className={styles.stepContent}>
-                      <Paper className={styles.reviewPanel} withBorder>
-                        <Text className={styles.reviewTitle}>Run duration</Text>
+                      <div
+                        className={[styles.reviewPanel, styles.paperLayout6]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        <p className={styles.reviewTitle}>Run duration</p>
 
-                        <Text className={styles.finalText}>
+                        <p className={styles.finalText}>
                           Select one duration to continue.
-                        </Text>
+                        </p>
 
-                        <ScrollArea
-                          type="auto"
-                          h={420}
-                          offsetScrollbars
-                          scrollbarSize={8}
-                        >
+                        <div className={styles.scrollAreaLayout7}>
                           <SelectableCards
                             options={config.yearOptions}
                             selectedValue={null}
@@ -264,10 +224,10 @@ const ScenarioInputsFlow = ({
                             columns={2}
                             className={styles.yearCards}
                           />
-                        </ScrollArea>
-                      </Paper>
+                        </div>
+                      </div>
                     </div>
-                  </ScrollArea>
+                  </div>
                 </MotionDiv>
               ) : null}
 
@@ -291,21 +251,18 @@ const ScenarioInputsFlow = ({
                 >
                   <div>
                     <div className={styles.stepContent}>
-                      <Paper className={styles.finalPanel} withBorder>
-                        <Text className={styles.reviewTitle}>
-                          IPCC scenarios
-                        </Text>
+                      <div
+                        className={[styles.finalPanel, styles.paperLayout8]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        <p className={styles.reviewTitle}>IPCC scenarios</p>
 
-                        <Text className={styles.finalText}>
+                        <p className={styles.finalText}>
                           {config.ipccDescription}
-                        </Text>
+                        </p>
 
-                        <ScrollArea
-                          type="auto"
-                          h={420}
-                          offsetScrollbars
-                          scrollbarSize={8}
-                        >
+                        <div className={styles.scrollAreaLayout9}>
                           <SelectableCards
                             options={config.ipccOptions}
                             selectedValue={selectedIpccScenario}
@@ -313,8 +270,8 @@ const ScenarioInputsFlow = ({
                             columns={2}
                             className={styles.ipccCards}
                           />
-                        </ScrollArea>
-                      </Paper>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </MotionDiv>
@@ -322,22 +279,26 @@ const ScenarioInputsFlow = ({
             </AnimatePresence>
           </div>
 
-          <Group justify="space-between" className={styles.footerActions}>
-            <Button type="button" variant="primaryOutlined" onClick={goBack}>
+          <div
+            className={[styles.footerActions, styles.groupLayout10]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <Button type="button" variant="primary-outlined" onPress={goBack}>
               {stepIndex === 0 ? "Cancel" : "Previous"}
             </Button>
 
             {stepIndex === 0 ? (
-              <Button type="button" variant="primaryFilled" onClick={goNext}>
+              <Button type="button" variant="primary" onPress={goNext}>
                 Next
               </Button>
             ) : (
-              <Text className={styles.selectionHint}>
+              <p className={styles.selectionHint}>
                 Select one option to continue.
-              </Text>
+              </p>
             )}
-          </Group>
-        </Stack>
+          </div>
+        </div>
       </PrimaryModal>
     </div>
   );

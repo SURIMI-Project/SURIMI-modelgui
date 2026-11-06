@@ -1,4 +1,4 @@
-import { Pill, Text } from "@mantine/core";
+import Pill from "../../../../components/ui/Tag/Tag";
 import type { CSSProperties, ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
@@ -46,7 +46,11 @@ const DashboardOutputsHeader = ({
         <div className={styles.headerCard}>
           <div className={styles.headerCopy}>
             <div className={styles.titleRow}>
-              <Link to={backHref} className={styles.backLink} aria-label="Back to scenario runs">
+              <Link
+                to={backHref}
+                className={styles.backLink}
+                aria-label="Back to scenario runs"
+              >
                 <FiChevronLeft size={16} />
                 <span>Back</span>
               </Link>
@@ -63,7 +67,9 @@ const DashboardOutputsHeader = ({
                     className={styles.compareLegendSwatch}
                     style={{ "--legend-color": item.color } as CSSProperties}
                   />
-                  <span className={styles.compareLegendLabel}>{item.label}</span>
+                  <span className={styles.compareLegendLabel}>
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -115,9 +121,9 @@ const DashboardOutputsHeader = ({
                   ))}
                 </div>
               ) : (
-                <Text className={styles.selectedSpeciesEmpty}>
+                <p className={styles.selectedSpeciesEmpty}>
                   No species are currently selected.
-                </Text>
+                </p>
               )}
             </div>
           </div>

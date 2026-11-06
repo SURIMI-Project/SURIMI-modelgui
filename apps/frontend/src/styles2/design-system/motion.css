@@ -1,0 +1,5 @@
+@layer tokens {
+  :root {
+    --transition: 160ms ease;
+  }
+}

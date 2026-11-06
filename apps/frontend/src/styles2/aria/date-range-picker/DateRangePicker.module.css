@@ -1,0 +1,19 @@
+@layer aria {
+  .dates {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    flex: 1;
+    min-width: 0;
+  }
+  .dates .input {
+    flex-basis: calc(var(--spacing-2xl) * 3);
+  }
+  .separator {
+    color: var(--color-text-muted);
+  }
+  .dialog {
+    outline: none;
+  }
+}

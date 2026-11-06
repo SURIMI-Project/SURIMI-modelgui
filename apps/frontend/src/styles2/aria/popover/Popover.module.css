@@ -1,0 +1,52 @@
+@layer aria {
+  .popover {
+    z-index: 100;
+    width: min(
+      calc(var(--spacing-2xl) * 8),
+      calc(100vw - var(--spacing-xl) - var(--spacing-xs))
+    );
+    max-height: var(--available-height);
+    overflow: auto;
+    padding: var(--spacing-lg);
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    box-shadow: var(--shadow-overlay);
+    outline: none;
+  }
+  .popover[data-trigger="MenuTrigger"] {
+    width: max-content;
+    min-width: min(
+      calc(var(--spacing-2xl) * 3),
+      calc(100vw - var(--spacing-xl) - var(--spacing-xs))
+    );
+    max-width: min(
+      calc(var(--spacing-2xl) * 8),
+      calc(100vw - var(--spacing-xl) - var(--spacing-xs))
+    );
+    padding: var(--spacing-xs);
+  }
+  .popover > [role="dialog"] {
+    outline: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .popover[data-entering] {
+      animation: enter var(--transition);
+    }
+    .popover[data-exiting] {
+      animation: enter var(--transition) reverse;
+    }
+    @keyframes enter {
+      from {
+        opacity: 0;
+        transform: translateY(var(--spacing-xs));
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+}

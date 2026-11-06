@@ -1,0 +1,51 @@
+@layer aria {
+  .menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    max-height: calc(var(--spacing-2xl) * 8);
+    overflow: auto;
+    outline: none;
+    padding: var(--spacing-xs);
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    min-height: 2.75rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+    cursor: pointer;
+    outline: none;
+    text-decoration: none;
+  }
+  .item:is([data-focused], [data-hovered]) {
+    background: var(--color-surface-hover);
+  }
+  .item[data-selected] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+  }
+  .item[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  .item[data-tone="danger"] {
+    color: var(--color-danger);
+  }
+  .item[data-tone="danger"]:is([data-focused], [data-hovered]) {
+    background: var(--color-danger-surface);
+  }
+  .item[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+  @media (forced-colors: active) {
+    .item:is([data-focused], [data-selected]) {
+      outline: var(--focus-ring-width) solid Highlight;
+    }
+  }
+}

@@ -38,6 +38,8 @@ The protected route excludes `/test` and `/login`. It includes home, introductio
 
 Case selection has a user/sign-out control and real REST availability. Scientific reports remain the same fixed example, with no experiment submission or scientific-output API integration. SSO provider buttons are mounted on login; all provider exchange and callbacks are handled by the existing backend.
 
+Login presentation uses shared light AuthLayout/Card/Input/Button components; its REST and session behaviour is unchanged. [Design-system implementation](../frontend-design-system/README.md) records the 2026-11-06 migration and verification limits.
+
 ## Local verification setup
 
 Read all Bruno auth requests and backend schemas first. Start the API/database with existing Compose settings and run Vite on `http://localhost:5173`. API proxy target defaults to `http://127.0.0.1:18082`; the browser stays on `localhost:5173`.
@@ -50,7 +52,7 @@ The original Docker build is blocked by the GHCR `uv:0.10.4` image authorization
 - Login discovers `/auth/providers` and renders configured SSO buttons alongside local login. Buttons navigate to the backend-provided, same-origin SSO start path with a safe `next`. Backend/Keycloak handle all code/token exchange. Provider-list errors do not disable local login. Browser reload after the callback restores the same SURIMI session.
 - Keycloak runtime registration and ignored local `.env` use callback origin `http://localhost:5173`. No checked-in realm/Compose/backend edits. Fresh environments must register their chosen frontend origin as well.
 - **Existing backend limitation:** unsuccessful full-page SSO callbacks return backend JSON errors rather than redirecting to a frontend error page. Do not disguise this with a dev-only proxy behaviour or change backend code. Verify denial creates no session, document the limitation, and keep local login available after navigating back.
-- Home mounts `useScenarios`. Cards map API scenario identifiers to local case descriptions. Pending/error states show a dedicated loading/retry screen; the cards and intro animation mount only after a successful response, preventing a disabled-card flash. A successful empty list means none are available. Retrying is explicit. Scenario availability controls case-selection entry, not user authorization or scientific outputs. Direct static/demo routes remain authenticated; real submissions are still unimplemented.
+- Home mounts `useScenarios`. Cards map API scenario identifiers to local case descriptions. Pending/error states show a dedicated loading/retry screen; the cards and intro animation mount only after a successful response, preventing a disabled-card flash. A successful empty list means none are available. Temporary catalogue network/502/503/504 failures retry twice behind loading. Terminal errors retain explicit retry; a failed background check preserves the last-known map with a visible stale-availability notice. Scenario availability controls case-selection entry, not user authorization or scientific outputs. Direct static/demo routes remain authenticated; real submissions are still unimplemented.
 
 ## Reproduce local Vite SSO
 

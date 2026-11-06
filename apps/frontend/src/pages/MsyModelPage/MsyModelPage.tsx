@@ -1,15 +1,5 @@
 import { coreConcepts } from "../../../mock-data/content/cmsyIntroduction";
-import {
-  Badge,
-  Box,
-  Container,
-  Group,
-  Paper,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import Badge from "../../components/ui/Tag/Tag";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import CatchMsyChart from "./components/CatchMsyChart/CatchMsyChart";
@@ -155,8 +145,6 @@ const MsyModelPage = () => {
     },
   });
 
-
-
   const activeConceptIndex =
     introProgress < 0.16 || introProgress > 0.9
       ? -1
@@ -206,40 +194,40 @@ const MsyModelPage = () => {
             </div>
 
             <Logo className={styles["intro-logo"]} />
-            <Badge size="lg" className={styles["intro-kicker"]}>
+            <Badge className={styles["intro-kicker"]}>
               SURIMI digital twin experience
             </Badge>
-            <Title
-              className={styles["intro-title"]}
+            <h1
               style={{ opacity: introTitleOpacity }}
+              className={styles["intro-title"]}
             >
               Ocean intelligence, then stock diagnostics
-            </Title>
-            <Text
-              className={styles["intro-subtitle"]}
+            </h1>
+            <p
               style={{ opacity: introSubtitleOpacity }}
+              className={styles["intro-subtitle"]}
             >
               Scroll to view the fisheries decision dashboard.
-            </Text>
+            </p>
             <div className={styles["intro-progress-track"]}>
               <span
                 className={styles["intro-progress-fill"]}
                 style={{ transform: `scaleX(${introProgress})` }}
               />
             </div>
-            <Text className={styles["intro-progress-label"]}>
+            <p className={styles["intro-progress-label"]}>
               {introProgress < 0.98
                 ? `Loading dashboard ${Math.round(introProgress * 100)}%`
                 : "Dashboard unlocked. Keep scrolling."}
-            </Text>
+            </p>
           </div>
         </div>
       </section>
 
-      <Container
-        size="xl"
-        py={{ base: "md", md: "xl" }}
-        className={styles["landing-shell"]}
+      <div
+        className={[styles["landing-shell"], styles.containerLayout1]
+          .filter(Boolean)
+          .join(" ")}
       >
         <MotionDiv
           initial={{ opacity: 0, y: 24 }}
@@ -249,71 +237,80 @@ const MsyModelPage = () => {
           }}
           transition={{ duration: 0.45 }}
         >
-          <Stack gap={64}>
+          <div className={styles.stackLayout2}>
             <MotionDiv {...riseIn(0)}>
-              <Paper
-                className={styles["hero-panel"]}
-                radius="xl"
-                p={{ base: "md", md: "lg" }}
+              <div
+                className={[styles["hero-panel"], styles.paperLayout3]
+                  .filter(Boolean)
+                  .join(" ")}
               >
-                <Box className={styles["hero-layout"]}>
-                  <Stack gap="xs" className={styles["hero-left-column"]}>
+                <div className={styles["hero-layout"]}>
+                  <div
+                    className={[styles["hero-left-column"], styles.stackLayout4]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
                     <Logo className={styles["hero-logo"]} />
-                    <Badge size="lg" className={styles["hero-badge"]}>
+                    <Badge className={styles["hero-badge"]}>
                       SURIMI pilot stock
                     </Badge>
-                  </Stack>
+                  </div>
 
-                  <Box className={styles["hero-right-column"]}>
-                    <Group
-                      justify="flex-end"
-                      className={styles["hero-state-row"]}
+                  <div className={styles["hero-right-column"]}>
+                    <div
+                      className={[styles["hero-state-row"], styles.groupLayout5]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
-                      <Paper
-                        className={styles["hero-highlight"]}
-                        radius="lg"
-                        p="sm"
-                        withBorder
+                      <div
+                        className={[
+                          styles["hero-highlight"],
+                          styles.paperLayout6,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                       >
-                        <Text size="xs" fw={700} c="dimmed">
-                          Current state
-                        </Text>
-                        <Text className={styles["hero-highlight-value"]} mt={2}>
+                        <p className={styles.textLayout7}>Current state</p>
+                        <p
+                          className={[
+                            styles["hero-highlight-value"],
+                            styles.textLayout8,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
                           {quadrantLabel}
-                        </Text>
-                        <Text size="sm" mt={4}>
+                        </p>
+                        <p className={styles.textLayout9}>
                           B/BMSY {latestBRatio.toFixed(2)} · F/FMSY{" "}
                           {latestFRatio.toFixed(2)}
-                        </Text>
-                      </Paper>
-                    </Group>
+                        </p>
+                      </div>
+                    </div>
 
-                    <Title order={1} className={styles["hero-title"]}>
+                    <h1 className={styles["hero-title"]}>
                       {stock.name} dashboard
-                    </Title>
-                    <Text className={styles["hero-copy"]}>
+                    </h1>
+                    <p className={styles["hero-copy"]}>
                       {stock.sciName} · {stock.subregion} · {stock.region}
-                    </Text>
-                    <Text className={styles["hero-subcopy"]}>
+                    </p>
+                    <p className={styles["hero-subcopy"]}>
                       Combined indicators for catch, stock state, exploitation
                       pressure, and management quadrant trajectories.
-                    </Text>
-                  </Box>
-                </Box>
-              </Paper>
+                    </p>
+                  </div>
+                </div>
+              </div>
             </MotionDiv>
 
             <MotionDiv {...riseInOnView(0.14)}>
-              <Paper
-                className={styles["terms-explainer"]}
-                withBorder
-                radius="lg"
-                p="md"
+              <div
+                className={[styles["terms-explainer"], styles.paperLayout10]
+                  .filter(Boolean)
+                  .join(" ")}
               >
-                <Text className={styles["terms-title"]}>
-                  What these terms mean
-                </Text>
-                <Box component="ul" className={styles["terms-list"]}>
+                <p className={styles["terms-title"]}>What these terms mean</p>
+                <ul className={styles["terms-list"]}>
                   <li>
                     <strong>MSY</strong> is the estimated sustainable catch
                     level each year.
@@ -326,109 +323,98 @@ const MsyModelPage = () => {
                     <strong>F/FMSY</strong> compares fishing pressure to the
                     sustainable pressure level.
                   </li>
-                </Box>
-              </Paper>
+                </ul>
+              </div>
             </MotionDiv>
 
             <MotionDiv {...riseInOnView(0.28)}>
-              <SimpleGrid
-                cols={{ base: 1, sm: 2, lg: 4 }}
-                spacing="md"
-                id="indicator-metrics"
-              >
-                <Paper
-                  className={styles["metric-card"]}
-                  withBorder
-                  radius="lg"
-                  p="md"
+              <div id="indicator-metrics" className={styles.simpleGridLayout11}>
+                <div
+                  className={[styles["metric-card"], styles.paperLayout12]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  <Text className={styles["metric-label"]}>
+                  <p className={styles["metric-label"]}>
                     MSY (sustainable catch)
-                  </Text>
-                  <Text className={styles["metric-value"]}>
+                  </p>
+                  <p className={styles["metric-value"]}>
                     {stock.msyBsm.toFixed(2)}
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    1000 tonnes/year
-                  </Text>
-                </Paper>
-                <Paper
-                  className={styles["metric-card"]}
-                  withBorder
-                  radius="lg"
-                  p="md"
+                  </p>
+                  <p className={styles.textLayout13}>1000 tonnes/year</p>
+                </div>
+                <div
+                  className={[styles["metric-card"], styles.paperLayout14]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  <Text className={styles["metric-label"]}>MSY range</Text>
-                  <Text className={styles["metric-value"]}>
+                  <p className={styles["metric-label"]}>MSY range</p>
+                  <p className={styles["metric-value"]}>
                     {stock.lclMsyBsm.toFixed(2)} - {stock.uclMsyBsm.toFixed(2)}
-                  </Text>
-                  <Text size="sm" c="dimmed">
+                  </p>
+                  <p className={styles.textLayout15}>
                     Bayesian credible bounds
-                  </Text>
-                </Paper>
-                <Paper
-                  className={styles["metric-card"]}
-                  withBorder
-                  radius="lg"
-                  p="md"
+                  </p>
+                </div>
+                <div
+                  className={[styles["metric-card"], styles.paperLayout16]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  <Text className={styles["metric-label"]}>Catch coverage</Text>
-                  <Text className={styles["metric-value"]}>
+                  <p className={styles["metric-label"]}>Catch coverage</p>
+                  <p className={styles["metric-value"]}>
                     {firstObserved?.year}-{lastObserved?.year}
-                  </Text>
-                  <Text size="sm" c="dimmed">
+                  </p>
+                  <p className={styles.textLayout17}>
                     {observed.length} observed points
-                  </Text>
-                </Paper>
-                <Paper
-                  className={styles["metric-card"]}
-                  withBorder
-                  radius="lg"
-                  p="md"
+                  </p>
+                </div>
+                <div
+                  className={[styles["metric-card"], styles.paperLayout18]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  <Text className={styles["metric-label"]}>Catch/MSY</Text>
-                  <Text className={styles["metric-value"]}>
+                  <p className={styles["metric-label"]}>Catch/MSY</p>
+                  <p className={styles["metric-value"]}>
                     {catchToMsy.toFixed(2)}
-                  </Text>
-                  <Text size="sm" c="dimmed">
+                  </p>
+                  <p className={styles.textLayout19}>
                     {missingCount} missing future points
-                  </Text>
-                </Paper>
-              </SimpleGrid>
+                  </p>
+                </div>
+              </div>
             </MotionDiv>
 
             <MotionDiv {...riseInOnView(0.42)}>
-              <SimpleGrid
-                id="indicator-charts"
-                cols={{ base: 1, md: 2 }}
-                spacing="lg"
-                verticalSpacing="lg"
-              >
+              <div id="indicator-charts" className={styles.simpleGridLayout20}>
                 <CatchMsyChart stock={stock} />
                 <StockSizeChart stock={stock} />
                 <ExploitationChart stock={stock} />
                 <KobeChart stock={stock} />
-              </SimpleGrid>
+              </div>
             </MotionDiv>
-          </Stack>
+          </div>
         </MotionDiv>
-      </Container>
+      </div>
 
       <footer className={styles["site-footer"]}>
-        <Container size="xl" className={styles["site-footer-inner"]}>
-          <Group justify="space-between" align="center" gap="xl">
-            <Box className={styles["site-footer-brand"]}>
+        <div
+          className={[styles["site-footer-inner"], styles.containerLayout21]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <div className={styles.groupLayout22}>
+            <div className={styles["site-footer-brand"]}>
               <Logo className={styles["site-footer-logo"]} />
-              <Box>
-                <Text className={styles["site-footer-title"]}>
+              <div>
+                <p className={styles["site-footer-title"]}>
                   SURIMI Fisheries Dashboard
-                </Text>
-                <Text className={styles["site-footer-description"]}>
+                </p>
+                <p className={styles["site-footer-description"]}>
                   Decision-support views for catch, biomass, exploitation, and
                   management trajectories.
-                </Text>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
 
             <a
               href="https://www.surimi-project.eu/"
@@ -438,12 +424,12 @@ const MsyModelPage = () => {
             >
               Visit SURIMI main site
             </a>
-          </Group>
+          </div>
 
-          <Text className={styles["site-footer-bottom"]}>
+          <p className={styles["site-footer-bottom"]}>
             © {currentYear} SURIMI. Built for fisheries decision support.
-          </Text>
-        </Container>
+          </p>
+        </div>
       </footer>
     </>
   );

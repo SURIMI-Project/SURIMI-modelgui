@@ -1,4 +1,6 @@
-import { Popover, UnstyledButton } from "@mantine/core";
+import { DialogTrigger, Dialog } from "react-aria-components";
+import Popover from "../../../../components/ui/Popover/Popover";
+import Button from "../../../../components/ui/Button/Button";
 import { FiInfo } from "react-icons/fi";
 import InformationLegends, {
   type InformationLegendItem,
@@ -19,30 +21,22 @@ const InformationLegendsPopover = ({
   className,
 }: InformationLegendsPopoverProps) => {
   return (
-    <Popover
-      width={384}
-      position="bottom-end"
-      offset={10}
-      withinPortal={false}
-      shadow="md"
-      classNames={{ dropdown: styles.dropdown }}
-    >
-      <Popover.Target>
-        <UnstyledButton
-          className={[styles.trigger, className].filter(Boolean).join(" ")}
-          type="button"
-          aria-label="Open biomass graph legend"
-        >
-          <FiInfo aria-hidden="true" />
-          <span>{buttonLabel}</span>
-        </UnstyledButton>
-      </Popover.Target>
-
-      <Popover.Dropdown>
-        <InformationLegends title={legendsTitle} items={items} />
-      </Popover.Dropdown>
-    </Popover>
+    <DialogTrigger>
+      <Button
+        variant="primary-outlined"
+        size="sm"
+        className={[styles.trigger, className].filter(Boolean).join(" ")}
+        aria-label="Open biomass graph legend"
+      >
+        <FiInfo aria-hidden="true" />
+        <span>{buttonLabel}</span>
+      </Button>
+      <Popover placement="bottom end" className={styles.dropdown}>
+        <Dialog aria-label={legendsTitle ?? "Graph legend"}>
+          <InformationLegends title={legendsTitle} items={items} />
+        </Dialog>
+      </Popover>
+    </DialogTrigger>
   );
 };
-
 export default InformationLegendsPopover;

@@ -21,6 +21,37 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-06
 
+### Fix — Map framing, Northwestern boundaries and Anchovy illustration
+
+Removed country labels, widened the overview, equalized selector widths and moved the Anchovy inset to the bottom right. Northwestern selection shows official GSA 06 + 07 polygons. The complete Anchovy illustration fits upright over visible animated water; pause/resume and reduced motion remain available. See [case-study map](features/case-study-map/CHANGELOG.md).
+
+> **Deploying this:** frontend rebuild only; includes the new local boundary asset. No backend or configuration change.
+
+### Design — Compact glass case selector and fixed map navigation
+
+The landing page now uses the reusable UseCaseSelector with compact names-only glass styling. The map frames both seas and accepts case-selection flights only; manual drag/zoom and top-right map controls are removed. Removed the extra perspectives heading and location disclaimer. Water pause remains in the footer.
+
+### Fix — Recover temporary catalogue failures on refresh
+
+A live backend log showed a controller SSL failure (502) followed by a successful request. The frontend now retries temporary catalogue reads twice behind loading, preserves honest terminal failures, and keeps last-known map data with a visible notice on background failure. The upstream connection issue remains open; no backend change was made. See [case-study map](features/case-study-map/CHANGELOG.md).
+
+### Design — Light case selection with animated water
+
+The signed-in case-selection page now uses the shared light theme, reusable case options and React Aria actions across all previews. The geographic map has procedural animated waves/reflections with pause/resume, live reduced-motion support and a static fallback; official study boundaries and camera/navigation behaviour remain connected. Water is a decorative effect, not satellite or scientific ocean data. See [case-study map](features/case-study-map/CHANGELOG.md).
+
+> **Deploying this:** frontend rebuild only. No new dependency, tile service, backend or deployment change.
+
+### Feature — Light design system and shared React Aria controls
+
+Added protected `/design-system` with Theme, UI components and actual report compositions, without a props playground. Login now uses the shared light fields, buttons, card and AuthLayout. Mantine consumers/provider/theme adapter and all three packages are removed; searchable controls, table and help dialogs use React Aria, while report trend cards share the new ChartCard composition. No dark theme was implemented. See [design system](features/frontend-design-system/README.md) and [ADR 0018](decisions/0018-frontend-css-tokens-and-react-aria.md).
+
+> **Deploying this:** run `npm ci` for the changed frontend dependencies and rebuild frontend assets. Backend/protocol/CI/deployment files and authentication contracts are unchanged.
+
+### Design — Immersive Aegean selection
+
+The selected Aegean view now gives the map more space with closer full-area framing, a faint coral outline glow and lighter fill. The floating study marker and large heading give way to a small identity label, compact actions and case switcher. Other cases retain their existing presentation. See [case-study map](features/case-study-map/CHANGELOG.md).
+
+
 ### Feature — Official Aegean study-area boundary overlay
 
 Selecting Aegean Sea now highlights the user-confirmed GSA 22 (Aegean Sea) and GSA 23 (Crete) using the official FAO/GFCM source geometry. The camera fits both areas; the overlay is hidden on the overview and other cases. The boundary asset loads from the frontend only on first selection. Provenance and verification are recorded in [case-study map](features/case-study-map/CHANGELOG.md).

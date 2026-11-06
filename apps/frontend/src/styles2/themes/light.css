@@ -1,0 +1,89 @@
+@layer tokens {
+  :root[data-theme="light"] {
+    --color-public-background: var(--colors-white);
+    --color-public-text: var(--colors-light-text);
+
+    color-scheme: light;
+
+    /* Layout */
+    --color-background: var(--colors-light-background);
+    --color-shell: var(--colors-light-shell);
+    --color-content: var(--color-surface);
+    --color-sidebar: var(--color-shell);
+    --color-header: var(--color-shell);
+
+    /* Surfaces */
+    --color-surface: var(--colors-white);
+    --color-surface-hover: var(--colors-light-surface-hover);
+    --color-input: var(--colors-white);
+
+    /* Typography */
+    --color-text: var(--colors-light-text);
+    --color-text-muted: var(--colors-light-text-muted);
+    --color-text-subtle: var(--colors-light-text-subtle);
+
+    /* Borders */
+    --color-border: var(--colors-light-border);
+    --color-input-border: var(--colors-light-input-border);
+
+    /* Primary and actions */
+    --color-primary: var(--colors-light-primary);
+    --color-primary-hover: var(--colors-light-primary-hover);
+    --color-primary-border: var(--colors-light-primary-border);
+    --color-action: var(--colors-light-action);
+    --color-on-action: var(--colors-white);
+    --color-on-primary: var(--colors-white);
+
+    /* Tables */
+    --color-table: var(--colors-white);
+    --color-table-header: var(--colors-light-table-header);
+
+    /* Semantic states */
+    --color-warning: var(--colors-light-warning);
+    --color-warning-surface: var(--colors-light-warning-surface);
+    --color-info: var(--colors-light-info);
+    --color-info-surface: var(--colors-light-info-surface);
+    --color-success: var(--colors-light-success);
+    --color-success-surface: var(--colors-light-success-surface);
+    --color-danger: var(--colors-light-danger);
+    --color-danger-surface: var(--colors-light-danger-surface);
+
+    /* Interaction */
+    --color-focus: var(--colors-light-primary);
+    --color-accent: var(--colors-light-primary);
+    --color-selected: var(--colors-light-selected);
+
+    /* Navigation */
+    --color-nav-active-start: var(--colors-light-primary);
+    --color-nav-active-end: var(--colors-light-nav-active-end);
+    --color-nav-active-highlight: var(--colors-light-nav-active-highlight);
+
+    /* Branding */
+    --color-avatar-start: var(--colors-light-nav-active-end);
+    --color-avatar-end: var(--colors-light-primary);
+    --color-brand-mark: var(--colors-light-brand-mark);
+    --color-notification: var(--colors-light-action);
+
+    /* Effects */
+    --color-overlay: var(--colors-light-overlay);
+    --color-shadow: var(--colors-light-shadow);
+    --color-highlight: var(--colors-neon-purple);
+    --color-positive-highlight: var(--colors-neon-green);
+    --color-glass-positive: color-mix(
+      in srgb,
+      var(--colors-deep-purple) 68%,
+      var(--colors-neon-green) 8%
+    );
+    --color-glass-purple: color-mix(
+      in srgb,
+      var(--colors-purple-base) 85%,
+      transparent
+    );
+    --color-glass-pink: color-mix(
+      in srgb,
+      var(--colors-deep-purple) 65%,
+      var(--colors-neon-pink) 35%
+    );
+    --color-on-glass: var(--colors-white);
+  }
+}

@@ -1,0 +1,79 @@
+@layer aria {
+  .dropZone {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border: var(--border-width) dashed var(--color-input-border);
+    border-radius: var(--radius-md);
+    background: var(--color-input);
+    color: var(--color-text-muted);
+  }
+  .dropZone p {
+    margin: 0;
+  }
+  .dropZone[data-drop-target] {
+    border-color: var(--color-accent);
+    background: var(--color-selected);
+  }
+  .dropZone[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .preview {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 calc(var(--spacing-2xl) * 4);
+    min-width: 0;
+    overflow: hidden;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .imageButton {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .imageButton[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  .image {
+    width: 100%;
+    height: calc(var(--spacing-2xl) * 2.5);
+    object-fit: cover;
+  }
+  .imageInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+    padding-inline-start: var(--spacing-sm);
+  }
+  .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .cover {
+    padding: var(--spacing-sm);
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    text-align: center;
+  }
+}

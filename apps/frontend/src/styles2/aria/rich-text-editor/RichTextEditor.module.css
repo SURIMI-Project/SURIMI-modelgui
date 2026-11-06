@@ -1,0 +1,56 @@
+@layer aria {
+  .control {
+    overflow: hidden;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-bottom: var(--border-width) solid var(--color-border);
+    background: var(--color-surface-hover);
+  }
+  .toolbar > button {
+    min-height: calc(var(--spacing-xl) + var(--spacing-xs));
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-color: var(--color-border);
+  }
+  .editor {
+    min-height: calc(var(--spacing-2xl) * 4);
+    max-height: calc(var(--spacing-2xl) * 8);
+    overflow: auto;
+    padding: var(--spacing-md);
+    color: var(--color-text);
+    outline: none;
+    overflow-wrap: anywhere;
+  }
+  .editor h2,
+  .editor h3 {
+    margin: var(--spacing-md) 0 var(--spacing-sm);
+    font-weight: 650;
+    line-height: var(--line-height-body);
+  }
+  .editor h2 {
+    font-size: var(--font-size-lg);
+  }
+  .editor h3 {
+    font-size: var(--font-size-md);
+  }
+  .editor :first-child {
+    margin-top: 0;
+  }
+  .editor p {
+    margin: 0 0 var(--spacing-sm);
+  }
+  .editor p:last-child {
+    margin-bottom: 0;
+  }
+  .editor ul,
+  .editor ol {
+    margin: var(--spacing-sm) 0;
+    padding-inline-start: var(--spacing-xl);
+  }
+  .description {
+    margin: 0;
+  }
+}

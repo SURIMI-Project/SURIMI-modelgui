@@ -1,0 +1,13 @@
+@layer tokens {
+  :root {
+    --shadow-sm: 0 2px 6px rgb(52 46 42 / 0.04);
+    --shadow-md: 0 12px 40px rgb(52 46 42 / 0.07);
+    --shadow-lg: 0 24px 80px rgb(52 46 42 / 0.1);
+    --shadow-default: var(--shadow-sm);
+    --shadow-hover: var(--shadow-md);
+    --shadow-layer: var(--shadow-lg);
+    --shadow-letter: none;
+    --shadow-landingTitle: 0 12px 30px rgb(2 10 18 / 0.55);
+    --shadow-tableHeader: var(--shadow-sm);
+  }
+}

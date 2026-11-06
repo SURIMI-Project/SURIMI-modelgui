@@ -22,3 +22,9 @@ Natural Earth data is public domain: https://www.naturalearthdata.com/about/term
 - Verified: converted geometry JSON equals the corresponding source geometry for both records. GSA22 contains 108,482 source points; GSA23 contains 15,972.
 
 The frontend credits FAO/GFCM on selection. Natural Earth's public-domain statement above applies to the basemap, not this separate FAO/GFCM dataset. Published fisheries subareas are the chosen representation of this study area; no additional model-grid precision is asserted. Small differences from the Natural Earth coastline may occur because the datasets have different detail levels.
+
+## Northwestern Mediterranean study-area boundaries
+
+`northwestern-gsa-06-07.geojson` contains GSA 06 (Northern Spain) and GSA 07 (Gulf of Lion), matching the existing case metadata. Added 2026-11-06 following the user's request to fix this case's boundaries. Publisher, catalogue, archive, retrieval date, SHA-256, WGS 84 CRS and temporary pyshp conversion are the same as the Aegean dataset above; select `SECT_COD` values `GSA06` and `GSA07`.
+
+**Verified:** both converted geometries match their original shapefile geometries exactly. Retained 20,575 points for GSA06 and 20,780 for GSA07, including holes and their shared division. No rounding, simplification, smoothing, clipping or union. The camera bounds are rounded outward for framing only; geometry remains unchanged. The FAO/GFCM credit appears when this case is selected. Project approval of these published fisheries areas as the final model domain remains separate from faithful extraction.

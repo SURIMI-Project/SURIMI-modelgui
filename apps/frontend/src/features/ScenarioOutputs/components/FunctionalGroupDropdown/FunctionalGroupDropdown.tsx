@@ -1,41 +1,27 @@
-import { Select } from "@mantine/core";
+import ComboBox from "../../../../components/ui/ComboBox/ComboBox";
 import type { SpeciesOption } from "../../types";
 import styles from "../SpeciesDropdown/SpeciesDropdown.module.css";
-
-type FunctionalGroupDropdownProps = {
+type Props = {
   options: SpeciesOption[];
   value: string;
   onChange: (next: string) => void;
 };
-
-const FunctionalGroupDropdown = ({
+export default function FunctionalGroupDropdown({
   options,
   value,
   onChange,
-}: FunctionalGroupDropdownProps) => {
+}: Props) {
   return (
     <div className={styles.container}>
-      <label className={styles.label} htmlFor="functional-group-selector">
-        Functional Group
-      </label>
-      <Select
-        id="functional-group-selector"
-        data={options}
-        value={value}
-        onChange={(next) => {
-          if (next) {
-            onChange(next);
-          }
+      <ComboBox
+        label="Functional group"
+        options={options}
+        selectedKey={value}
+        onSelectionChange={(key) => {
+          if (key !== null) onChange(String(key));
         }}
         placeholder="Select functional group"
-        searchable
-        limit={200}
-        size="md"
-        className={styles.select}
-        comboboxProps={{ withinPortal: true, zIndex: 500 }}
       />
     </div>
   );
-};
-
-export default FunctionalGroupDropdown;
+}

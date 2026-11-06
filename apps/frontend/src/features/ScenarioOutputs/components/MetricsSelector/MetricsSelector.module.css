@@ -1,85 +1,14 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  max-width: 400px;
-}
-
-.label {
-  color: #f2fbff;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-.metricStack {
-  display: grid;
-  gap: 10px;
-}
-
-.metricTag {
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  min-height: 90px;
-
-  align-content: center;
-  padding: 12px 16px;
-  border: 1px solid rgba(126, 207, 255, 0.24);
-  border-radius: 16px;
-  background:
-    linear-gradient(180deg, rgba(11, 42, 70, 0.62), rgba(6, 24, 41, 0.42)),
-    rgba(6, 29, 53, 0.58);
-  color: #eef8ff;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform 150ms ease,
-    border-color 150ms ease,
-    background-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.metricTag:hover,
-.metricTag:focus-visible {
-  transform: translateY(-1px);
-  border-color: rgba(129, 214, 255, 0.42);
-  box-shadow: 0 14px 28px -22px rgba(0, 6, 18, 0.88);
-}
-
-.metricTag:focus-visible {
-  outline: 2px solid rgba(116, 220, 255, 0.72);
-  outline-offset: 3px;
-}
-
-.metricTagActive {
-  border-color: rgba(123, 218, 255, 0.52);
-  background:
-    radial-gradient(
-      circle at 12% 18%,
-      rgba(120, 222, 255, 0.28),
-      transparent 40%
-    ),
-    linear-gradient(145deg, rgba(64, 161, 223, 0.92), rgba(21, 78, 129, 0.94));
-  box-shadow:
-    0 18px 32px -24px rgba(0, 0, 0, 0.86),
-    inset 0 0 0 1px rgba(217, 244, 255, 0.18);
-}
-
-.metricTagTitle {
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 720;
-  line-height: 1.15;
-}
-
-.metricTagDescription {
-  color: rgba(225, 243, 255, 0.82);
-  font-size: 0.8rem;
-  line-height: 1.35;
-}
-
-.metricTagActive .metricTagDescription {
-  color: rgba(244, 251, 255, 0.92);
+@layer components {
+  .container {
+    min-width: 0;
+    max-width: 25rem;
+  }
+  .title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+  .description {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
 }

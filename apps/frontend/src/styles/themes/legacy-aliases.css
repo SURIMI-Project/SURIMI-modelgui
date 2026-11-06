@@ -1,0 +1,65 @@
+/* Migration aliases for existing screens. New controls consume kebab-case semantics. */
+@layer tokens {
+  :root {
+    --color-brandRed: var(--color-primary);
+    --color-brandRedDeep: var(--color-primary-hover);
+    --color-brandCoral: var(--color-secondary);
+    --color-brandOrange: var(--color-secondary);
+    --color-brandBlue: #6173b0;
+    --color-brandInk: var(--color-text);
+    --color-brandPaper: var(--color-surface);
+    --color-primaryHover: var(--color-primary-hover);
+    --color-primarySoft: var(--color-primary-surface);
+    --color-accent: var(--color-primary);
+    --color-accentHover: var(--color-primary-hover);
+    --color-brandSignature: var(--color-primary);
+    --color-brandSignatureHover: var(--color-primary-hover);
+    --color-surfaceBase: var(--color-surface);
+    --color-surfaceMuted: var(--color-surface-muted);
+    --color-surfaceSubtle: var(--color-surface-muted);
+    --color-surfaceInverse: var(--color-text);
+    --color-surfaceInverseHover: #334155;
+    --color-textPrimary: var(--color-text);
+    --color-textSecondary: var(--color-text-muted);
+    --color-textMuted: var(--color-text-muted);
+    --color-textInverse: var(--color-on-primary);
+    --color-borderSubtle: var(--color-border);
+    --color-borderDefault: var(--color-border);
+    --color-borderStrong: var(--color-input-border);
+    --color-disabledBg: var(--color-disabled);
+    --color-disabledFg: var(--color-disabled-text);
+    --color-dangerHover: var(--color-danger);
+    --color-dangerSoft: var(--color-danger-surface);
+    --color-successHover: var(--color-success);
+    --color-warningStrong: var(--color-warning);
+    --color-warningHover: var(--color-warning);
+    --color-transparent: transparent;
+    --color-landingBackground: #020b18;
+    --color-landingGlowPrimary: rgba(82, 169, 232, 0.17);
+    --color-landingGlowSecondary: rgba(54, 107, 183, 0.22);
+    --color-landingTextPrimary: #f4fbff;
+    --color-landingTextMuted: rgba(231, 243, 250, 0.95);
+    --color-landingTextSoft: rgba(224, 239, 251, 0.88);
+    --color-landingKickerText: rgba(219, 239, 255, 0.8);
+    --color-landingLinkText: #dcefff;
+    --color-landingLinkBorder: rgba(220, 239, 255, 0.42);
+    --color-landingLinkBorderHover: rgba(220, 239, 255, 0.9);
+    --color-landingLinkSurface: rgba(6, 29, 59, 0.52);
+    --color-landingLinkSurfaceHover: rgba(6, 29, 59, 0.78);
+    --color-landingPanelDivider: rgba(235, 247, 255, 0.2);
+    --color-landingOverlayShadeStart: rgba(2, 8, 19, 0.26);
+    --color-landingOverlayShadeEnd: rgba(2, 8, 19, 0.4);
+    --color-landingWestOverlayStart: rgba(191, 121, 58, 0.42);
+    --color-landingWestOverlayEnd: rgba(8, 26, 52, 0.72);
+    --color-landingAegeanOverlayStart: rgba(45, 178, 193, 0.36);
+    --color-landingAegeanOverlayEnd: rgba(5, 39, 74, 0.68);
+    --color-landingAnchovyOverlayStart: rgba(45, 80, 138, 0.38);
+    --color-landingAnchovyOverlayEnd: rgba(4, 17, 40, 0.74);
+    --color-landingSecondaryActionText: #edf7ff;
+    --color-landingSecondaryActionBorder: rgba(229, 243, 255, 0.74);
+    --color-landingSecondaryActionBorderHover: rgba(229, 243, 255, 1);
+    --color-landingSecondaryActionBg: rgba(11, 35, 67, 0.45);
+    --color-landingSecondaryActionBgHover: rgba(11, 35, 67, 0.65);
+    --app-font-family: var(--font-sans);
+  }
+}

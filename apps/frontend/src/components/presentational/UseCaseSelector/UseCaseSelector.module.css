@@ -1,0 +1,84 @@
+@layer components {
+  .selector {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    width: 100%;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+    max-width: 100%;
+    padding: var(--spacing-xs);
+    border: 1px solid
+      color-mix(in srgb, var(--color-surface) 90%, var(--color-border));
+    border-radius: var(--radius-pill);
+    background: var(--color-glass-surface);
+    backdrop-filter: blur(24px) saturate(1.25);
+    -webkit-backdrop-filter: blur(24px) saturate(1.25);
+    box-shadow: var(--shadow-md);
+  }
+  .option {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 0;
+    gap: var(--spacing-sm);
+    min-height: 2.75rem;
+    padding: var(--spacing-smd) var(--spacing-md);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    box-shadow: none;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+    text-align: center;
+  }
+  .option[data-hovered] {
+    background: var(--color-glass-hover);
+    color: var(--color-text);
+  }
+  .option[aria-pressed="true"] {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+  .option[data-disabled] {
+    background: transparent;
+    color: var(--color-disabled-text);
+    opacity: 0.65;
+  }
+  .option[data-focus-visible] {
+    outline-offset: -3px;
+  }
+  .dot {
+    display: none;
+    width: 0.3125rem;
+    height: 0.3125rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-roundedFull);
+    background: currentColor;
+  }
+  .option[aria-pressed="true"] .dot {
+    display: block;
+  }
+  @media (max-width: 47.4375rem) {
+    .selector {
+      width: 100%;
+      border-radius: var(--radius-lg);
+    }
+    .option {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: var(--spacing-smd) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      font-size: 0.625rem;
+      overflow-wrap: anywhere;
+    }
+    .dot {
+      display: none;
+    }
+    .option[aria-pressed="true"] .dot {
+      display: none;
+    }
+  }
+}

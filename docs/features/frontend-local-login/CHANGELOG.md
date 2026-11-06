@@ -1,5 +1,9 @@
 # Frontend local login — changelog
 
+## 2026-11-06 — Shared light login presentation
+
+Login now composes the project-owned AuthLayout, Card, React Aria Input and Button components from the light design-system foundation. SSO entry uses the same outlined button. Auth services, cookies, safe return paths, validation and error normalization are unchanged. Controlled browser responses verified pending/error handling, request payload, protected return destination, SSO start navigation and desktop/mobile presentation; no new live Keycloak exchange was performed. See [design system](../frontend-design-system/README.md).
+
 ## 2026-11-05 — Prevent disabled-card flash before availability loads
 
 **Cause read from source:** the home page mounted cards while the initial REST query was pending and applied disabled styling to every non-available state, including unknown/loading. It was new REST availability presentation, not leftover gRPC integration.

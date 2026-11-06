@@ -1,0 +1,22 @@
+@layer tokens {
+  :root {
+    --font-sans: "Sora", "Segoe UI", sans-serif;
+    --font-display: "Sora", "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, monospace;
+    --font-size-xs: 0.6875rem;
+    --font-size-sm: 0.8125rem;
+    --font-size-md: 0.875rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.75rem;
+    --font-size-3xl: 2.5rem;
+    --font-size-hero: clamp(2.5rem, 5vw, 4rem);
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.2;
+    --line-height-body: 1.6;
+    --letter-spacing-eyebrow: 0.13em;
+  }
+}

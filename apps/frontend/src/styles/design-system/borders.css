@@ -1,0 +1,9 @@
+@layer tokens {
+  :root {
+    --border-width: 1px;
+    --focus-width: 2px;
+    --focus-offset: 3px;
+    --border-default: var(--border-width) solid var(--color-border);
+    --focus-ring: var(--focus-width) solid var(--color-focus);
+  }
+}

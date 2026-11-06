@@ -1,128 +1,122 @@
-.wrapper {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 10px;
-  margin: -10px;
-}
+@layer components {
+  .wrapper {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 10px;
+    margin: -10px;
+  }
 
-.wheel {
-  position: relative;
-  width: min(76vw, 320px);
-  height: min(76vw, 320px);
-  border-radius: 50%;
-  touch-action: none;
-  user-select: none;
-  overflow: visible;
-  cursor: grab;
-}
+  .wheel {
+    position: relative;
+    width: min(76vw, 320px);
+    height: min(76vw, 320px);
+    border-radius: 50%;
+    touch-action: none;
+    user-select: none;
+    overflow: visible;
+    cursor: grab;
+  }
 
-.wheel:active {
-  cursor: grabbing;
-}
+  .wheel:active {
+    cursor: grabbing;
+  }
 
-.wheelSvg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
-}
+  .wheelSvg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
 
-.outerHalo {
-  fill: rgba(44, 148, 212, 0.08);
-  stroke: rgba(112, 206, 255, 0.2);
-  stroke-width: 1;
-}
+  .outerHalo {
+    fill: var(--color-primary-surface);
+    stroke: var(--color-border);
+    stroke-width: 1;
+  }
 
-.outerRing {
-  fill: rgba(8, 34, 57, 0.56);
-  stroke: rgba(133, 213, 255, 0.42);
-  stroke-width: 1.2;
-}
+  .outerRing {
+    fill: var(--color-surface-muted);
+    stroke: var(--color-input-border);
+    stroke-width: 1.2;
+  }
 
-.innerRing {
-  fill: rgba(3, 20, 38, 0.92);
-  stroke: rgba(114, 202, 255, 0.3);
-  stroke-width: 1;
-}
+  .innerRing {
+    fill: var(--color-surface);
+    stroke: var(--color-border);
+    stroke-width: 1;
+  }
 
-.tick {
-  stroke: rgba(151, 214, 248, 0.38);
-  stroke-width: 1;
-}
+  .tick {
+    stroke: var(--color-input-border);
+    stroke-width: 1;
+  }
 
-.tickMajor {
-  stroke: rgba(191, 234, 255, 0.66);
-  stroke-width: 1.5;
-}
+  .tickMajor {
+    stroke: var(--color-text-muted);
+    stroke-width: 1.5;
+  }
 
-.tickActive {
-  stroke: #8fedff;
-  stroke-width: 2.3;
-}
+  .tickActive {
+    stroke: var(--color-primary);
+    stroke-width: 2.3;
+  }
 
-.yearLabel {
-  fill: #f4fbff;
-  stroke: rgba(1, 12, 24, 0.98);
-  stroke-width: 2.4px;
-  paint-order: stroke;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
+  .yearLabel {
+    fill: var(--color-text);
+    stroke: var(--color-surface);
+    stroke-width: 2.4px;
+    paint-order: stroke;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
 
-.yearNeedle {
-  stroke: rgba(141, 232, 255, 0.7);
-  stroke-width: 1.4;
-}
+  .yearNeedle {
+    stroke: var(--color-primary);
+    stroke-width: 1.4;
+  }
 
-.yearMarker {
-  fill: #b1f3ff;
-  stroke: #0c5376;
-  stroke-width: 1.2;
-}
+  .yearMarker {
+    fill: var(--color-primary);
+    stroke: var(--color-surface);
+    stroke-width: 1.2;
+  }
 
-.centerHub {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%);
-  width: 108px;
-  height: 108px;
-  border-radius: 50%;
-  border: 1px solid rgba(131, 214, 255, 0.48);
-  background:
-    radial-gradient(circle at 30% 25%, rgba(154, 224, 255, 0.28), rgba(154, 224, 255, 0) 46%),
-    linear-gradient(150deg, rgba(16, 62, 96, 0.94), rgba(3, 24, 47, 0.94));
-  color: #ffffff;
-  display: grid;
-  place-items: center;
-  gap: 0;
-  cursor: pointer;
-  box-shadow:
-    0 16px 28px -22px rgba(0, 0, 0, 0.88),
-    inset 0 0 0 1px rgba(149, 225, 255, 0.18);
-}
+  .centerHub {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    width: 6.75rem;
+    height: 6.75rem;
+    border-radius: var(--radius-roundedFull);
+    border: var(--border-default);
+    background: var(--color-surface);
+    color: var(--color-text);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+  }
 
-.hubIcon {
-  display: inline-flex;
-  color: #c7f3ff;
-}
+  .hubIcon {
+    display: inline-flex;
+    color: var(--color-primary);
+  }
 
-.hubYear {
-  position: relative;
-  top: -2px;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  color: #ffffff;
-  text-shadow:
-    0 1px 0 rgba(2, 14, 26, 0.92),
-    0 0 12px rgba(105, 212, 255, 0.18);
-}
+  .hubYear {
+    position: relative;
+    top: -2px;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    color: var(--color-text);
+  }
 
-.hint {
-  margin: 0;
-  font-size: 0.76rem;
-  color: rgba(200, 232, 250, 0.78);
-  letter-spacing: 0.03em;
+  .hint {
+    margin: 0;
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.03em;
+  }
 }

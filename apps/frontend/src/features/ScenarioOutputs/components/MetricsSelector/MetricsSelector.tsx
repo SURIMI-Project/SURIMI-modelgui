@@ -1,63 +1,34 @@
+import RadioGroup, {
+  Radio,
+} from "../../../../components/ui/RadioGroup/RadioGroup";
 import type { ScenarioOutputMetric } from "../../types";
 import styles from "./MetricsSelector.module.css";
-
-type MetricsSelectorProps = {
+type Props = {
   value: ScenarioOutputMetric;
   onChange: (value: ScenarioOutputMetric) => void;
 };
-
-const MetricsSelector = ({ value, onChange }: MetricsSelectorProps) => {
+export default function MetricsSelector({ value, onChange }: Props) {
   return (
-    <div className={styles.container}>
-      <label className={styles.label} htmlFor="metrics-selector">
-        Select Metric
-      </label>
-      <div
-        id="metrics-selector"
-        className={styles.metricStack}
-        role="radiogroup"
-        aria-label="Metric selector"
-      >
-        {[
-          {
-            title: "Biomass",
-            value: "biomass" as const,
-            description: "Track stock biomass over time.",
-          },
-          {
-            title: "Landings & Discards",
-            value: "landings" as const,
-            description: "Compare landings and discard pressure.",
-          },
-        ].map((option) => {
-          const isActive = option.value === value;
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={isActive}
-              className={[
-                styles.metricTag,
-                isActive ? styles.metricTagActive : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onClick={() => {
-                onChange(option.value);
-              }}
-            >
-              <span className={styles.metricTagTitle}>{option.title}</span>
-              <span className={styles.metricTagDescription}>
-                {option.description}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <RadioGroup
+      label="Select metric"
+      value={value}
+      onChange={(next) => {
+        if (next === "biomass" || next === "landings") onChange(next);
+      }}
+      className={styles.container}
+    >
+      <Radio value="biomass">
+        <span className={styles.title}>Biomass</span>
+        <span className={styles.description}>
+          Track stock biomass over time.
+        </span>
+      </Radio>
+      <Radio value="landings">
+        <span className={styles.title}>Landings & Discards</span>
+        <span className={styles.description}>
+          Compare landings and discard pressure.
+        </span>
+      </Radio>
+    </RadioGroup>
   );
-};
-
-export default MetricsSelector;
+}

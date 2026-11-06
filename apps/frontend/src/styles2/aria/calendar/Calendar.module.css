@@ -1,0 +1,100 @@
+@layer aria {
+  .calendar {
+    outline: none;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+  .heading {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 650;
+  }
+  .navigation {
+    display: grid;
+    place-items: center;
+    width: calc(var(--spacing-xl) + var(--spacing-xs));
+    height: calc(var(--spacing-xl) + var(--spacing-xs));
+    padding: 0;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-input);
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+  .navigation[data-hovered] {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  .grid {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .grid td {
+    padding: calc(var(--spacing-xs) / 2) 0;
+  }
+  .weekday {
+    padding-bottom: var(--spacing-sm);
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-align: center;
+  }
+  .cell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: calc(var(--spacing-xl) + var(--spacing-sm));
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: var(--font-size-xs);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    outline: none;
+  }
+  .cell[data-hovered] {
+    background: var(--color-surface-hover);
+  }
+  .cell[data-outside-month] {
+    color: var(--color-text-subtle);
+  }
+  .cell[data-selected] {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: 650;
+  }
+  .cell[data-today]::after {
+    content: "";
+    position: absolute;
+    bottom: var(--spacing-xs);
+    width: calc(var(--border-width) * 3);
+    height: calc(var(--border-width) * 3);
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .cell[data-unavailable],
+  .cell[data-invalid] {
+    color: var(--color-danger);
+    text-decoration: line-through;
+    cursor: default;
+  }
+  .calendar[data-readonly] .cell {
+    cursor: default;
+  }
+  .navigation[data-disabled],
+  .cell[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .navigation[data-focus-visible],
+  .cell[data-focus-visible] {
+    z-index: 1;
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

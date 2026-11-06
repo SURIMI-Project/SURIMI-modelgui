@@ -1,4 +1,3 @@
-import { ScrollArea } from "@mantine/core";
 import type { SimulationCaseId } from "../../data/simulationCases";
 import PrimaryModal from "../PrimaryModal/PrimaryModal";
 import ScenarioModelFlowGraph from "./ScenarioModelFlowGraph";
@@ -31,23 +30,17 @@ const ScenarioInfoModal = ({
       closeOnClickOutside
       bodyClassName={styles.modalBody}
     >
-      <ScrollArea
-        className={styles.modalScrollArea}
-        type="auto"
-        offsetScrollbars
-        scrollbarSize={8}
-        classNames={{
-          viewport: styles.modalScrollViewport,
-          scrollbar: styles.modalScrollScrollbar,
-          thumb: styles.modalScrollThumb,
-        }}
+      <div
+        className={[styles.modalScrollArea, styles.scrollAreaLayout1]
+          .filter(Boolean)
+          .join(" ")}
       >
         <div className={styles.shell}>
           <section className={styles.graphPanel}>
             <ScenarioModelFlowGraph caseId={caseId} />
           </section>
         </div>
-      </ScrollArea>
+      </div>
     </PrimaryModal>
   );
 };

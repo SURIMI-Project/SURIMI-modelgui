@@ -5,6 +5,7 @@ All case-study flows show **the same example simulation/report**. Completing an 
 | File/folder | Contains |
 | --- | --- |
 | `caseMap.ts` | Map presentation copy, case colours and illustrative camera/label locations; not scientific boundary data |
+| `designSystem.ts` | Auth presentation copy and fixed design-system examples |
 | `caseStudies.ts` | Case names, descriptions, video sources and REST scenario identifiers |
 | `simulation.ts` | The one fixed example simulation shown in the library |
 | `inputs.ts` | Prototype HCR values, duration/IPCC choices and explanations |

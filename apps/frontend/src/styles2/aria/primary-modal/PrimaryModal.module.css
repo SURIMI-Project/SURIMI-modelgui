@@ -1,0 +1,150 @@
+@layer aria {
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    background: var(--color-overlay);
+  }
+  .modal {
+    width: min(100%, calc(var(--spacing-2xl) * 16));
+    max-height: calc(100dvh - var(--spacing-xl) * 2);
+    overflow: hidden;
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-overlay);
+  }
+  .modal[data-size="small"] {
+    width: min(100%, calc(var(--spacing-2xl) * 12));
+  }
+  .modal[data-size="large"] {
+    width: min(100%, calc(var(--spacing-2xl) * 22));
+  }
+  .modal[data-size="extra-large"] {
+    width: min(100%, 72rem);
+  }
+  .modal[data-size="wide"] {
+    width: min(100%, 96rem);
+  }
+  .modal[data-variant="wizard"] {
+    height: calc(100dvh - var(--spacing-xl) * 2);
+  }
+  .modal[data-variant="wizard"] .dialog {
+    height: 100%;
+  }
+  .modal[data-variant="wizard"] .content {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+  }
+  .modal[data-variant="wizard"] .title {
+    font-size: var(--font-size-xl);
+  }
+  .overlay[data-variant="bare"] {
+    background: transparent;
+  }
+  .modal[data-variant="bare"] {
+    width: max-content;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .modal[data-variant="bare"] .content {
+    overflow: visible;
+    padding: 0;
+  }
+  .dialog {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+    outline: none;
+  }
+  .header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+  .heading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    min-width: 0;
+  }
+  .title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 650;
+  }
+  .content {
+    min-height: 0;
+    overflow: auto;
+    padding: var(--spacing-xl);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+  }
+  .footer {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+  @media (max-width: 40rem) {
+    .overlay {
+      padding: var(--spacing-md);
+    }
+    .modal {
+      max-height: calc(100dvh - var(--spacing-md) * 2);
+    }
+    .header,
+    .content,
+    .footer {
+      padding: var(--spacing-lg);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .overlay[data-entering] {
+      animation: fade var(--transition) both;
+    }
+    .overlay[data-exiting] {
+      animation: fade var(--transition) reverse both;
+    }
+    .modal[data-entering] {
+      animation: enter var(--transition) both;
+    }
+    .modal[data-exiting] {
+      animation: enter var(--transition) reverse both;
+    }
+    @keyframes enter {
+      from {
+        opacity: 0;
+        transform: translateY(var(--spacing-lg)) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    @keyframes fade {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+}

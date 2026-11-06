@@ -1,0 +1,31 @@
+@layer components {
+  .session {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--spacing-sm);
+  }
+  .sessionActions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+  .userName {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sessionError {
+    color: var(--color-danger);
+    font-size: var(--font-size-xs);
+    max-width: 16rem;
+  }
+  @media (max-width: 34rem) {
+    .userName {
+      display: none;
+    }
+  }
+}

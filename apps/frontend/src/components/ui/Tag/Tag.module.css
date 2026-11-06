@@ -1,0 +1,31 @@
+@layer components {
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-smd);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+  .tag[data-tone="primary"] {
+    color: var(--color-primary);
+    background: var(--color-primary-surface);
+  }
+  .tag[data-tone="secondary"] {
+    color: var(--color-secondary-ink);
+    background: var(--color-secondary-surface);
+  }
+  .tag[data-tone="success"] {
+    color: var(--color-success);
+    background: var(--color-success-surface);
+  }
+  .tag[data-tone="danger"] {
+    color: var(--color-danger);
+    background: var(--color-danger-surface);
+  }
+}

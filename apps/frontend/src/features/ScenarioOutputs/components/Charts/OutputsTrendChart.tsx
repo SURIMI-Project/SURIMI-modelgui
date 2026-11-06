@@ -1,3 +1,4 @@
+import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   type ActiveElement,
   CategoryScale,
@@ -192,6 +193,7 @@ const OutputsTrendChart = ({
   onSelectIndex,
   compact = false,
 }: OutputsTrendChartProps) => {
+  const chartTheme = readChartTheme();
   const hasSplitSeries =
     historicalLabels !== undefined &&
     historicalValues !== undefined &&
@@ -519,17 +521,18 @@ const OutputsTrendChart = ({
           const nextVisibility = !chart.isDatasetVisible(datasetIndex);
 
           chart.data.datasets.forEach(
-            (
-              dataset: { label?: string | undefined },
-              index: number,
-            ) => {
+            (dataset: { label?: string | undefined }, index: number) => {
               const label = dataset.label ?? "";
               const isMatchingBound =
                 label === `__bound__${datasetLabel} lower` ||
                 label === `__bound__${datasetLabel} upper`;
               const isMatchingPoints = label === `__points__${datasetLabel}`;
 
-              if (index === datasetIndex || isMatchingBound || isMatchingPoints) {
+              if (
+                index === datasetIndex ||
+                isMatchingBound ||
+                isMatchingPoints
+              ) {
                 chart.setDatasetVisibility(index, nextVisibility);
               }
             },
@@ -613,7 +616,7 @@ const OutputsTrendChart = ({
     scales: {
       x: {
         ticks: {
-          color: "rgba(205, 233, 251, 0.7)",
+          color: chartTheme.muted,
           autoSkip: true,
           maxRotation: 0,
           maxTicksLimit: hasSplitSeries ? 8 : 10,
@@ -622,18 +625,18 @@ const OutputsTrendChart = ({
           },
         },
         grid: {
-          color: "rgba(144, 202, 238, 0.14)",
+          color: chartTheme.grid,
         },
       },
       y: {
         ticks: {
-          color: "rgba(205, 233, 251, 0.7)",
+          color: chartTheme.muted,
           font: {
             size: compact ? 10 : 12,
           },
         },
         grid: {
-          color: "rgba(144, 202, 238, 0.12)",
+          color: chartTheme.grid,
         },
       },
     },

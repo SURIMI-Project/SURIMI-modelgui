@@ -1,5 +1,9 @@
 # Frontend REST foundation — changelog
 
+## 2026-11-06 — Targeted catalogue read recovery
+
+`serverState/scenarios/scenarioListOptions.ts` adds at most two retries with 1s/2s backoff for network/502/503/504 failures on the scenario catalogue GET. Global defaults, auth transport retry and writes are unchanged. Read options are shared by useScenarios and regression tests. Initial retries remain loading; terminal errors and failed background refreshes are presented explicitly by the case-selection page. All 26 network tests pass, with three new catalogue retry regressions. Local API logs exposed an upstream SSL error, recorded in ISSUES rather than claimed fixed in the backend.
+
 ## 2026-11-05 — Notify mounted session observers
 
 Live local-login testing exposed a cache-replacement issue: removing the observed `auth/me` query detached route guards from updates. Session replacement now cancels requests, removes other queries, and updates the existing user query. Added a mounted QueryObserver regression test. See [local login changelog](../frontend-local-login/CHANGELOG.md) for live verification.

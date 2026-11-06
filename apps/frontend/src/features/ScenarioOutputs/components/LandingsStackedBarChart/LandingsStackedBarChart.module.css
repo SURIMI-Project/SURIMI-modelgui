@@ -1,86 +1,76 @@
-.panel {
-  min-height: 0;
-  min-width: 0;
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-  border: 1px solid rgba(126, 206, 255, 0.22);
-  border-radius: 24px;
-  background:
-    linear-gradient(160deg, rgba(7, 31, 53, 0.8), rgba(4, 20, 37, 0.74)),
-    rgba(5, 18, 30, 0.64);
-  backdrop-filter: blur(12px);
-  overflow: hidden;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.kicker {
-  margin: 0;
-  color: rgba(182, 226, 251, 0.8);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-weight: 680;
-}
-
-.title {
-  margin: 7px 0 0;
-  color: #f2fbff;
-  font-size: clamp(0.96rem, 1.2vw, 1.16rem);
-  line-height: 1.28;
-}
-
-.valueBlock {
-  flex: 0 0 auto;
-  display: grid;
-  gap: 4px;
-  justify-items: end;
-}
-
-.valueBlock span {
-  color: rgba(189, 226, 248, 0.72);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.valueBlock strong {
-  color: #f6fcff;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.valueBlock small {
-  color: rgba(214, 236, 249, 0.7);
-  font-size: 0.78rem;
-}
-
-.chartWrap {
-  min-height: clamp(320px, 34vw, 420px);
-}
-
-@media (max-width: 780px) {
-  .header {
-    display: grid;
-  }
-
-  .valueBlock {
-    justify-items: start;
-  }
-}
-
-@media (max-width: 560px) {
+@layer components {
   .panel {
-    padding: 14px;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border: var(--border-default);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
   }
-
+  .header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .kicker {
+    margin: 0;
+    color: var(--color-primary);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 680;
+  }
+  .title {
+    margin: 7px 0 0;
+    color: var(--color-text);
+    font-size: clamp(0.96rem, 1.2vw, 1.16rem);
+    line-height: 1.28;
+  }
+  .valueBlock {
+    flex: 0 0 auto;
+    display: grid;
+    gap: 4px;
+    justify-items: end;
+  }
+  .valueBlock span {
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .valueBlock strong {
+    color: var(--color-text);
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .valueBlock small {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+  }
   .chartWrap {
-    min-height: 280px;
+    min-height: clamp(320px, 34vw, 420px);
+  }
+  @media (max-width: 780px) {
+    .header {
+      display: grid;
+    }
+
+    .valueBlock {
+      justify-items: start;
+    }
+  }
+  @media (max-width: 560px) {
+    .panel {
+      padding: var(--spacing-lg);
+    }
+
+    .chartWrap {
+      min-height: 280px;
+    }
   }
 }

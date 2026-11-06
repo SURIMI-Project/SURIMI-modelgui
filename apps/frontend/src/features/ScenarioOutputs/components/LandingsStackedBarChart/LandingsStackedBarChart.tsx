@@ -1,3 +1,4 @@
+import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   BarElement,
   CategoryScale,
@@ -8,10 +9,7 @@ import {
   type TooltipItem,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import {
-  SCENARIO_COMPARE_COLORS,
-  withAlpha,
-} from "../../scenarioCompare";
+import { SCENARIO_COMPARE_COLORS, withAlpha } from "../../scenarioCompare";
 import styles from "./LandingsStackedBarChart.module.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -35,9 +33,15 @@ type LandingsStackedBarChartProps = {
   className?: string;
 };
 
-const LANDINGS_COLOR = withAlpha(SCENARIO_COMPARE_COLORS.scenarioOne.stroke, 0.68);
+const LANDINGS_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+  0.68,
+);
 const LANDINGS_ACTIVE_COLOR = SCENARIO_COMPARE_COLORS.scenarioOne.stroke;
-const DISCARDS_COLOR = withAlpha(SCENARIO_COMPARE_COLORS.scenarioOne.stroke, 0.32);
+const DISCARDS_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+  0.32,
+);
 const DISCARDS_ACTIVE_COLOR = withAlpha(
   SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
   0.54,
@@ -71,6 +75,7 @@ const LandingsStackedBarChart = ({
   yAxisLabel = "",
   className,
 }: LandingsStackedBarChartProps) => {
+  const chartTheme = readChartTheme();
   const currentLandingsValue = landingsValues[selectedIndex] ?? 0;
   const currentDiscardsValue = discardsValues[selectedIndex] ?? 0;
   const currentComparisonLandingsValue =
@@ -99,7 +104,8 @@ const LandingsStackedBarChart = ({
           {comparison ? (
             <small>
               {comparison.label}: {currentComparisonLandingsValue.toFixed(2)}
-              {valueSuffix} · discards {currentComparisonDiscardsValue.toFixed(2)}
+              {valueSuffix} · discards{" "}
+              {currentComparisonDiscardsValue.toFixed(2)}
               {valueSuffix}
             </small>
           ) : null}
@@ -116,7 +122,9 @@ const LandingsStackedBarChart = ({
                 data: landingsValues,
                 stack: "primary",
                 backgroundColor: landingsValues.map((_, index) =>
-                  index === selectedIndex ? LANDINGS_ACTIVE_COLOR : LANDINGS_COLOR,
+                  index === selectedIndex
+                    ? LANDINGS_ACTIVE_COLOR
+                    : LANDINGS_COLOR,
                 ),
                 borderRadius: {
                   topLeft: 0,
@@ -133,7 +141,9 @@ const LandingsStackedBarChart = ({
                 data: discardsValues,
                 stack: "primary",
                 backgroundColor: discardsValues.map((_, index) =>
-                  index === selectedIndex ? DISCARDS_ACTIVE_COLOR : DISCARDS_COLOR,
+                  index === selectedIndex
+                    ? DISCARDS_ACTIVE_COLOR
+                    : DISCARDS_COLOR,
                 ),
                 borderRadius: {
                   topLeft: 2,
@@ -151,10 +161,11 @@ const LandingsStackedBarChart = ({
                       label: `${comparison.label} landings`,
                       data: comparison.landingsValues,
                       stack: "comparison",
-                      backgroundColor: comparison.landingsValues.map((_, index) =>
-                        index === selectedIndex
-                          ? COMPARISON_LANDINGS_ACTIVE_COLOR
-                          : COMPARISON_LANDINGS_COLOR,
+                      backgroundColor: comparison.landingsValues.map(
+                        (_, index) =>
+                          index === selectedIndex
+                            ? COMPARISON_LANDINGS_ACTIVE_COLOR
+                            : COMPARISON_LANDINGS_COLOR,
                       ),
                       borderRadius: {
                         topLeft: 0,
@@ -170,10 +181,11 @@ const LandingsStackedBarChart = ({
                       label: `${comparison.label} discards`,
                       data: comparison.discardsValues,
                       stack: "comparison",
-                      backgroundColor: comparison.discardsValues.map((_, index) =>
-                        index === selectedIndex
-                          ? COMPARISON_DISCARDS_ACTIVE_COLOR
-                          : COMPARISON_DISCARDS_COLOR,
+                      backgroundColor: comparison.discardsValues.map(
+                        (_, index) =>
+                          index === selectedIndex
+                            ? COMPARISON_DISCARDS_ACTIVE_COLOR
+                            : COMPARISON_DISCARDS_COLOR,
                       ),
                       borderRadius: {
                         topLeft: 2,
@@ -209,7 +221,7 @@ const LandingsStackedBarChart = ({
               legend: {
                 position: "bottom",
                 labels: {
-                  color: "rgba(224, 243, 255, 0.84)",
+                  color: chartTheme.muted,
                   boxWidth: 10,
                   boxHeight: 10,
                   padding: 18,
@@ -218,7 +230,7 @@ const LandingsStackedBarChart = ({
                 },
               },
               tooltip: {
-                backgroundColor: "rgba(4, 18, 33, 0.94)",
+                backgroundColor: chartTheme.surface,
                 borderColor: "rgba(121, 214, 255, 0.3)",
                 borderWidth: 1,
                 callbacks: {
@@ -243,7 +255,7 @@ const LandingsStackedBarChart = ({
                 },
                 ticks: {
                   autoSkip: true,
-                  color: "rgba(214, 236, 249, 0.78)",
+                  color: chartTheme.muted,
                   maxRotation: 0,
                 },
               },
@@ -251,16 +263,16 @@ const LandingsStackedBarChart = ({
                 stacked: true,
                 beginAtZero: true,
                 grid: {
-                  color: "rgba(143, 214, 248, 0.12)",
+                  color: chartTheme.grid,
                 },
                 ticks: {
-                  color: "rgba(214, 236, 249, 0.78)",
+                  color: chartTheme.muted,
                 },
                 title: yAxisLabel
                   ? {
                       display: true,
                       text: yAxisLabel,
-                      color: "rgba(214, 236, 249, 0.78)",
+                      color: chartTheme.muted,
                       font: {
                         size: 12,
                         weight: 600,

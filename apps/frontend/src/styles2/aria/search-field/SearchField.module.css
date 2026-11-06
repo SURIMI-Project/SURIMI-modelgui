@@ -1,0 +1,51 @@
+@layer aria {
+  .group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-md);
+    color: var(--color-text-muted);
+  }
+  .group > svg {
+    flex-shrink: 0;
+  }
+  .input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+  }
+  .input::-webkit-search-cancel-button,
+  .input::-webkit-search-decoration {
+    appearance: none;
+  }
+  .clear {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+  .clear[data-hovered] {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  .clear[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .field[data-empty] .clear {
+    visibility: hidden;
+  }
+}

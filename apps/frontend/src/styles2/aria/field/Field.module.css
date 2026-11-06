@@ -1,0 +1,78 @@
+@layer aria {
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    min-width: 0;
+    font-family: var(--font-sans);
+  }
+  .label {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    line-height: var(--line-height-body);
+  }
+  .hiddenLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .control {
+    min-width: 0;
+    min-height: 2.75rem;
+    border: var(--border-width) solid var(--color-input-border);
+    border-radius: var(--radius-md);
+    outline: none;
+    background: var(--color-input);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+  }
+  :where(.field:not([data-disabled]):not([data-readonly]))
+    .control:is(:hover, [data-hovered]) {
+    border-color: var(--color-accent);
+  }
+  .control:is(:focus-within, [data-focused], [data-focus-within]) {
+    border-color: var(--color-focus);
+    box-shadow: inset 0 0 0 var(--border-width) var(--color-focus);
+  }
+  .field[data-invalid] .control {
+    border-color: var(--color-danger);
+  }
+  .field[data-invalid]
+    .control:is(:focus-within, [data-focused], [data-focus-within]) {
+    box-shadow: inset 0 0 0 var(--border-width) var(--color-danger);
+  }
+  .field[data-disabled] {
+    opacity: 0.4;
+  }
+  .control::placeholder,
+  .control input::placeholder {
+    color: var(--color-text-subtle);
+    opacity: 1;
+  }
+  .description,
+  .error {
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-body);
+  }
+  .description {
+    color: var(--color-text-muted);
+  }
+  .error {
+    color: var(--color-danger);
+  }
+  .error:empty {
+    display: none;
+  }
+  @media (forced-colors: active) {
+    .control:is(:focus-within, [data-focused], [data-focus-within]) {
+      outline: var(--focus-ring-width) solid Highlight;
+      outline-offset: calc(-1 * var(--focus-ring-width));
+    }
+  }
+}

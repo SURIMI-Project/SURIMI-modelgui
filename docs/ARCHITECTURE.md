@@ -157,7 +157,7 @@ flowchart TB
 | Container | Technology | Does | Decision |
 | --- | --- | --- | --- |
 | nginx | nginx 1.27 | Serves the built SPA; proxies `/api/` to the API with buffering off for SSE; one origin so cookies need no CORS | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
-| frontend | React 19, Vite, Mantine, TanStack Query, client generated from OpenAPI | UI; no tokens in JavaScript | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
+| frontend | React 19, Vite, React Aria Components, CSS tokens, TanStack Query, Axios/Zod REST services | UI; no tokens in JavaScript | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
 | backend API | Python 3.13, FastAPI, SQLAlchemy 2 async, grpcio `aio` | REST API, auth, RBAC, SSE | [0002](decisions/0002-backend-python-fastapi.md) |
 | backend worker | Same image, `surimi-worker` entrypoint, Procrastinate | Polls the controller, dispatches the experiment queue, indexes finished outputs, detects stalls, purges by retention | [0007](decisions/0007-scheduler-worker-postgres-queue.md), [0015](decisions/0015-experiment-admission-queue.md) |
 | PostgreSQL | PostgreSQL 17, database `surimi_modelgui_db` | Users, sessions, experiments and their queue, simulations, events, jobs, output metadata (chunk index, quality report). No output values | [0003](decisions/0003-postgresql-sqlalchemy-alembic.md), [0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |

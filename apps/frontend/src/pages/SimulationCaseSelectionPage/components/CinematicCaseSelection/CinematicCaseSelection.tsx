@@ -1,7 +1,7 @@
 import type { ScenariosResponse } from "../../../../network/services/scenarios/scenarioSchemas";
 import { getScenarioAvailability } from "../../../../features/scenarios/scenarioAvailability";
 import SessionMenu from "../../../../features/auth/SessionMenu";
-import { Button } from "@mantine/core";
+import Button from "../../../../components/ui/Button/Button";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -409,28 +409,14 @@ const CinematicCaseSelection = ({
               </div>
 
               <div className={styles.centerActions}>
-                <Button
-                  type="button"
-                  variant="primaryFilled"
-                  className={styles.actionButton}
-                  onClick={(event) => {
-                    event.stopPropagation();
+                <Button type="button" variant="primary" className={styles.actionButton} onPress={() => {
                     beginWorldEntry(caseStudy.id);
-                  }}
-                  disabled={isInteractionLocked || !isAvailable}
-                >
+                  }} isDisabled={isInteractionLocked || !isAvailable}>
                   Explore Scenario
                 </Button>
-                <Button
-                  type="button"
-                  variant="primaryOutlined"
-                  className={styles.actionButton}
-                  onClick={(event) => {
-                    event.stopPropagation();
+                <Button type="button" variant="primary-outlined" className={styles.actionButton} onPress={() => {
                     viewExistingScenarios(caseStudy.id);
-                  }}
-                  disabled={isInteractionLocked || !isAvailable}
-                >
+                  }} isDisabled={isInteractionLocked || !isAvailable}>
                   Compare Scenarios
                 </Button>
               </div>

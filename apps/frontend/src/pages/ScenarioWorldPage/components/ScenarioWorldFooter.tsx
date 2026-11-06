@@ -1,4 +1,4 @@
-import { Button } from "@mantine/core";
+import Button from "../../../components/ui/Button/Button";
 import { motion } from "framer-motion";
 import { FiArrowLeft } from "react-icons/fi";
 import styles from "../ScenarioWorldPage.module.css";
@@ -33,29 +33,30 @@ const ScenarioWorldFooter = ({
       }}
     >
       <Button
-        variant="primaryOutlined"
+        variant="primary-outlined"
         className={styles.backButton}
-        leftSection={<FiArrowLeft size={16} />}
-        onClick={onBackToOceans}
-        loading={isReturningToHome}
-        disabled={isReturningToHome}
+        onPress={onBackToOceans}
+        isPending={isReturningToHome}
+        isDisabled={isReturningToHome}
       >
+        {" "}
+        <FiArrowLeft size={16} />
         Back To Case Studies
       </Button>
       <Button
-        variant="primaryFilled"
+        variant="primary"
         className={styles.startButton}
-        onClick={onStartScenario}
-        disabled={isReturningToHome}
+        onPress={onStartScenario}
+        isDisabled={isReturningToHome}
       >
         Set Up Scenario
       </Button>
       {showStockStatusButton ? (
         <Button
-          variant="primaryOutlined"
+          variant="primary-outlined"
           className={styles.stockStatusButton}
-          onClick={onOpenStockStatus}
-          disabled={isReturningToHome}
+          onPress={onOpenStockStatus}
+          isDisabled={isReturningToHome}
         >
           STOCK STATUS &amp; MSY MODEL
         </Button>

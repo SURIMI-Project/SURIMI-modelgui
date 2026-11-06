@@ -1,0 +1,38 @@
+@layer aria {
+  .tabs {
+    min-width: 0;
+  }
+  .list {
+    display: flex;
+    gap: var(--spacing-xl);
+    border-bottom: var(--border-default);
+    overflow-x: auto;
+  }
+  .tab {
+    flex-shrink: 0;
+    padding: var(--spacing-md) 0;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    outline: none;
+  }
+  .tab[data-selected] {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+  }
+  .tab[data-focus-visible] {
+    outline: var(--focus-ring);
+    outline-offset: -3px;
+    border-radius: var(--radius-xs);
+  }
+  .panel {
+    padding-top: var(--spacing-2xl);
+    outline: none;
+  }
+  .panel[data-focus-visible] {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+}

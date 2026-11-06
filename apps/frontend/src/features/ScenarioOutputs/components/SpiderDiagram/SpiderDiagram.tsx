@@ -1,3 +1,4 @@
+import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   Chart as ChartJS,
   Filler,
@@ -10,13 +11,7 @@ import {
 import { Radar } from "react-chartjs-2";
 import styles from "./SpiderDiagram.module.css";
 
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-);
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export type SpiderDiagramDatum = {
   id: string;
@@ -50,15 +45,17 @@ const SpiderDiagram = ({
   valueSuffix = "",
   className,
 }: SpiderDiagramProps) => {
+  const chartTheme = readChartTheme();
   const baseDataset = datasets[0];
   const labels = baseDataset?.data.map((entry) => entry.label) ?? [];
-  const tooltipLabels = baseDataset?.data.map((entry) => {
-    if (entry.tooltipLabel) {
-      return entry.tooltipLabel;
-    }
+  const tooltipLabels =
+    baseDataset?.data.map((entry) => {
+      if (entry.tooltipLabel) {
+        return entry.tooltipLabel;
+      }
 
-    return Array.isArray(entry.label) ? entry.label.join(" ") : entry.label;
-  }) ?? [];
+      return Array.isArray(entry.label) ? entry.label.join(" ") : entry.label;
+    }) ?? [];
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -99,7 +96,7 @@ const SpiderDiagram = ({
                 position: "left",
                 align: "center",
                 labels: {
-                  color: "rgba(224, 243, 255, 0.84)",
+                  color: chartTheme.muted,
                   boxWidth: 12,
                   boxHeight: 12,
                   padding: 16,
@@ -108,7 +105,7 @@ const SpiderDiagram = ({
                 },
               },
               tooltip: {
-                backgroundColor: "rgba(4, 18, 33, 0.94)",
+                backgroundColor: chartTheme.surface,
                 borderColor: "rgba(121, 214, 255, 0.3)",
                 borderWidth: 1,
                 callbacks: {
@@ -132,13 +129,13 @@ const SpiderDiagram = ({
                   stepSize: maxValue / 5,
                 },
                 angleLines: {
-                  color: "rgba(143, 214, 248, 0.16)",
+                  color: chartTheme.muted,
                 },
                 grid: {
-                  color: "rgba(143, 214, 248, 0.18)",
+                  color: chartTheme.grid,
                 },
                 pointLabels: {
-                  color: "rgba(228, 244, 255, 0.88)",
+                  color: chartTheme.muted,
                   font: {
                     size: 12,
                     weight: 600,

@@ -1,0 +1,7 @@
+@layer tokens {
+  :root {
+    --motion-fast: 140ms;
+    --motion-normal: 240ms;
+    --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}

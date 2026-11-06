@@ -1,150 +1,140 @@
-.panel {
-  display: grid;
-  gap: 12px;
-  min-height: 0;
-}
-
-.panelCompact {
-  gap: 0;
-}
-
-.header {
-  display: grid;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.headerWithCenter {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-}
-
-.headerWithoutCenter {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.headerCopy {
-  max-width: 30ch;
-  justify-self: start;
-}
-
-.headerCenter {
-  align-self: start;
-  justify-self: center;
-}
-
-.headerLegend {
-  align-self: start;
-  justify-self: end;
-}
-
-.compareToggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px;
-  border-radius: 999px;
-  border: 1px solid rgba(126, 206, 255, 0.24);
-  background:
-    linear-gradient(180deg, rgba(18, 58, 90, 0.78), rgba(6, 26, 45, 0.9)),
-    rgba(5, 18, 30, 0.76);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 18px 34px -26px rgba(0, 0, 0, 0.72);
-}
-
-.compareToggleButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(214, 238, 252, 0.72);
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-
-.compareToggleButton:hover,
-.compareToggleButton:focus-visible {
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.compareToggleButton:focus-visible {
-  outline: 2px solid rgba(182, 226, 251, 0.54);
-  outline-offset: 2px;
-}
-
-.compareToggleButtonActive {
-  background: color-mix(in srgb, var(--toggle-color) 22%, rgba(255, 255, 255, 0.08));
-  color: #ffffff;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--toggle-color) 72%, rgba(255, 255, 255, 0.14)),
-    0 14px 26px -20px color-mix(in srgb, var(--toggle-color) 82%, transparent);
-}
-
-.compareToggleSwatch {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--toggle-color);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--toggle-color) 20%, transparent);
-}
-
-.kicker {
-  margin: 0;
-  color: rgba(173, 225, 255, 0.84);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.title {
-  margin: 6px 0 0;
-  color: #f3fbff;
-  font-size: clamp(1.05rem, 1.5vw, 1.4rem);
-  line-height: 1.12;
-}
-
-.subtitle {
-  margin: 8px 0 0;
-  color: rgba(212, 236, 251, 0.84);
-  font-size: 0.84rem;
-  line-height: 1.45;
-  max-width: 30ch;
-}
-
-.panelCompact :global(.mapWrap) {
-  min-height: 100%;
-}
-
-@media (max-width: 780px) {
-  .header {
-    grid-template-columns: 1fr;
+@layer components {
+  .panel {
+    display: grid;
+    gap: var(--spacing-md);
+    min-height: 0;
   }
-
-  .headerCenter,
-  .headerLegend {
+  .panelCompact {
+    gap: 0;
+  }
+  .header {
+    display: grid;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .headerWithCenter {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .headerWithoutCenter {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .headerCopy {
+    max-width: 30ch;
     justify-self: start;
   }
-
-  .compareToggle {
-    width: 100%;
-    justify-content: space-between;
+  .headerCenter {
+    align-self: start;
+    justify-self: center;
   }
-
+  .headerLegend {
+    align-self: start;
+    justify-self: end;
+  }
+  .compareToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px;
+    border-radius: 999px;
+    border: 1px solid rgba(126, 206, 255, 0.24);
+    background:
+      linear-gradient(180deg, rgba(18, 58, 90, 0.78), rgba(6, 26, 45, 0.9)),
+      rgba(5, 18, 30, 0.76);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 18px 34px -26px rgba(0, 0, 0, 0.72);
+  }
   .compareToggleButton {
-    flex: 1 1 0;
-    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(214, 238, 252, 0.72);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+  .compareToggleButton:hover,
+  .compareToggleButton:focus-visible {
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+  .compareToggleButton:focus-visible {
+    outline: 2px solid rgba(182, 226, 251, 0.54);
+    outline-offset: 2px;
+  }
+  .compareToggleButtonActive {
+    background: color-mix(
+      in srgb,
+      var(--toggle-color) 22%,
+      rgba(255, 255, 255, 0.08)
+    );
+    color: #ffffff;
+    box-shadow:
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--toggle-color) 72%, rgba(255, 255, 255, 0.14)),
+      0 14px 26px -20px color-mix(in srgb, var(--toggle-color) 82%, transparent);
+  }
+  .compareToggleSwatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--toggle-color);
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--toggle-color) 20%, transparent);
+  }
+  .kicker {
+    margin: 0;
+    color: var(--color-primary);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .title {
+    margin: 6px 0 0;
+    color: var(--color-text);
+    font-size: clamp(1.05rem, 1.5vw, 1.4rem);
+    line-height: 1.12;
+  }
+  .subtitle {
+    margin: 8px 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.84rem;
+    line-height: 1.45;
+    max-width: 30ch;
+  }
+  .panelCompact :global(.mapWrap) {
+    min-height: 100%;
+  }
+  @media (max-width: 780px) {
+    .header {
+      grid-template-columns: 1fr;
+    }
+
+    .headerCenter,
+    .headerLegend {
+      justify-self: start;
+    }
+
+    .compareToggle {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .compareToggleButton {
+      flex: 1 1 0;
+      justify-content: center;
+    }
   }
 }

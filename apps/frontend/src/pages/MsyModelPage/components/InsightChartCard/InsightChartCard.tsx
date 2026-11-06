@@ -1,4 +1,6 @@
-import { Badge, Box, Group, HoverCard, Paper, Text } from "@mantine/core";
+import Button from "../../../../components/ui/Button/Button";
+import { DialogTrigger, Dialog } from "react-aria-components";
+import Popover from "../../../../components/ui/Popover/Popover";
 import type { ReactNode } from "react";
 import styles from "./InsightChartCard.module.css";
 
@@ -18,37 +20,43 @@ const InsightChartCard = ({
   height = 340,
 }: InsightChartCardProps) => {
   return (
-    <Paper withBorder p="md" radius="lg" className={styles["chart-card"]}>
-      <Group justify="space-between" align="flex-start" mb="xs" gap="xs">
-        <Box>
-          <Text fw={700} className={styles["chart-title"]}>
+    <div
+      className={[styles["chart-card"], styles.paperLayout1]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <div className={styles.groupLayout2}>
+        <div>
+          <p
+            className={[styles["chart-title"], styles.textLayout3]
+              .filter(Boolean)
+              .join(" ")}
+          >
             {title}
-          </Text>
-          <Text className={styles["chart-subtitle"]}>{subtitle}</Text>
-        </Box>
+          </p>
+          <p className={styles["chart-subtitle"]}>{subtitle}</p>
+        </div>
 
-        <HoverCard width={290} shadow="lg" openDelay={120}>
-          <HoverCard.Target>
-            <Badge variant="light" className={styles["chart-help-pill"]}>
-              How to read
-            </Badge>
-          </HoverCard.Target>
-          <HoverCard.Dropdown className={styles["chart-help-dropdown"]}>
-            <Box component="ul" className={styles["chart-help-list"]}>
-              {hints.map((hint, index) => (
-                <li key={`${title}-${index}`}>
-                  <Text size="sm">{hint}</Text>
-                </li>
-              ))}
-            </Box>
-          </HoverCard.Dropdown>
-        </HoverCard>
-      </Group>
+        <DialogTrigger>
+          <Button variant="primary-outlined" size="sm">
+            How to read
+          </Button>
+          <Popover>
+            <Dialog aria-label={`How to read ${title}`}>
+              <ul className={styles["chart-help-list"]}>
+                {hints.map((hint, index) => (
+                  <li key={index}>{hint}</li>
+                ))}
+              </ul>
+            </Dialog>
+          </Popover>
+        </DialogTrigger>
+      </div>
 
-      <Box h={height} className={styles["chart-stage"]}>
+      <div className={styles["chart-stage"]} style={{ height }}>
         {children}
-      </Box>
-    </Paper>
+      </div>
+    </div>
   );
 };
 

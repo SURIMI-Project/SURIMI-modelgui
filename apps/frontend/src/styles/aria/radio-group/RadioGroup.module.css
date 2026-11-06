@@ -1,0 +1,25 @@
+@layer aria {
+  .radio {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+  }
+  .radio[data-hovered] {
+    background: var(--color-surface-hover);
+  }
+  .radio[data-selected] {
+    background: var(--color-selected);
+    border-color: var(--color-primary);
+  }
+  .radio[data-focus-visible] {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+}

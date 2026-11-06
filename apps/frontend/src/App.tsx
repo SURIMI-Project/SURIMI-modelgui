@@ -9,7 +9,13 @@ import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
 import ScenarioWorldPage from "./pages/ScenarioWorldPage/ScenarioWorldPage";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
 
-const NetcdfLabPage = lazy(() => import("../../../experiments/netcdf-lab/NetcdfLabPage"));
+const DesignSystemPage = lazy(
+  () => import("./pages/DesignSystemPage/DesignSystemPage"),
+);
+
+const NetcdfLabPage = lazy(
+  () => import("../../../experiments/netcdf-lab/NetcdfLabPage"),
+);
 
 const App = () => (
   <Routes>
@@ -17,6 +23,14 @@ const App = () => (
     <Route path="/change-password" element={<PasswordChangePage />} />
     <Route path="/test" element={<MsyModelPage />} />
     <Route element={<RequireSession />}>
+      <Route
+        path="/design-system"
+        element={
+          <Suspense fallback={<p>Loading design system…</p>}>
+            <DesignSystemPage />
+          </Suspense>
+        }
+      />
       <Route path="/" element={<SimulationCaseSelectionPage />} />
       <Route path="/scenario/:caseId" element={<ScenarioWorldPage />} />
       <Route
@@ -24,8 +38,14 @@ const App = () => (
         element={<Navigate to="/scenario-runs/anchovy-bay" replace />}
       />
       <Route path="/scenario-runs/:caseId" element={<ScenarioRunsPage />} />
-      <Route path="/scenario-runs/:caseId/:runId" element={<ScenarioRunsPage />} />
-      <Route path="/scenario-outputs/:scenario" element={<ScenarioOutputsPage />} />
+      <Route
+        path="/scenario-runs/:caseId/:runId"
+        element={<ScenarioRunsPage />}
+      />
+      <Route
+        path="/scenario-outputs/:scenario"
+        element={<ScenarioOutputsPage />}
+      />
       <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
       <Route
         path="/netcdf-lab"

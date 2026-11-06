@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import OutputsTrendChart, {
   type OutputsTrendChartSeries,
 } from "../Charts/OutputsTrendChart";
-import styles from "./OutputsTrendPanel.module.css";
+import ChartCard from "../../../../components/presentational/ChartCard/ChartCard";
 
 type OutputsTrendPanelProps = {
   title: string;
@@ -50,50 +50,36 @@ const OutputsTrendPanel = ({
   compact = false,
 }: OutputsTrendPanelProps) => {
   return (
-    <section
-      className={[styles.panel, compact ? styles.panelCompact : "", className]
-        .filter(Boolean)
-        .join(" ")}
+    <ChartCard
+      title={title}
+      description={subtitle}
+      metricLabel={metricLabel}
+      valueLabel={currentValueLabel}
+      aside={headerAside}
+      footer={
+        !compact
+          ? (selectionCopy ?? `Selected year value: ${currentValue.toFixed(2)}`)
+          : undefined
+      }
+      className={className}
+      compact={compact}
     >
-      <div className={styles.header}>
-        <div>
-          <p className={styles.kicker}>{title}</p>
-          <h3 className={styles.title}>{subtitle}</h3>
-        </div>
-        {headerAside ? (
-          <div className={styles.headerAside}>{headerAside}</div>
-        ) : (
-          <div className={styles.valueBlock}>
-            <span>{metricLabel}</span>
-            <strong>{currentValueLabel}</strong>
-          </div>
-        )}
-      </div>
-
-      <div className={styles.chartWrap}>
-        <OutputsTrendChart
-          labels={labels}
-          values={values}
-          historicalLabels={historicalLabels}
-          historicalValues={historicalValues}
-          simulatedHistoricalValues={simulatedHistoricalValues}
-          futureLabels={futureLabels}
-          futureValues={futureValues}
-          series={series}
-          metricLabel={metricLabel}
-          lineColor={lineColor}
-          selectedIndex={selectedIndex}
-          onSelectIndex={onSelectIndex}
-          compact={compact}
-        />
-      </div>
-
-      {!compact ? (
-        <p className={styles.selectionCopy}>
-          {selectionCopy ?? `Selected year value: ${currentValue.toFixed(2)}`}
-        </p>
-      ) : null}
-    </section>
+      <OutputsTrendChart
+        labels={labels}
+        values={values}
+        historicalLabels={historicalLabels}
+        historicalValues={historicalValues}
+        simulatedHistoricalValues={simulatedHistoricalValues}
+        futureLabels={futureLabels}
+        futureValues={futureValues}
+        series={series}
+        metricLabel={metricLabel}
+        lineColor={lineColor}
+        selectedIndex={selectedIndex}
+        onSelectIndex={onSelectIndex}
+        compact={compact}
+      />
+    </ChartCard>
   );
 };
 

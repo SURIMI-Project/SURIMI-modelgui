@@ -356,3 +356,35 @@ test("availability distinguishes unknown/error from a successful unavailable res
   assert.equal(getScenarioAvailability("aegean_sea", list, false), "unavailable");
   assert.equal(getScenarioAvailability("anchovy_bay", { scenarios: [] }, false), "unavailable");
 });
+
+test("catalogue reads recover from a transient upstream failure", async () => {
+ const { scenarioListOptions } = await import("../src/serverState/scenarios/scenarioListOptions");
+ const client = createQueryClient(); let calls = 0;
+ try {
+  const result = await client.fetchQuery({ ...scenarioListOptions(user.id), retryDelay: 0,
+   queryFn: async () => { calls++; if (calls === 1) throw new AppError({ kind: "server", status: 502, code: "controller_error", message: "upstream failed" }); return { scenarios: [{ name: "aegean_sea" }] }; },
+  });
+  assert.equal(calls, 2); assert.equal(result.scenarios[0].name, "aegean_sea");
+ } finally { client.clear(); }
+});
+
+test("catalogue retry stops after three attempts when the upstream stays down", async () => {
+ const { scenarioListOptions } = await import("../src/serverState/scenarios/scenarioListOptions");
+ const client = createQueryClient(); let calls = 0;
+ const failure = new AppError({ kind: "server", status: 504, code: "controller_timeout", message: "upstream timeout" });
+ try {
+  await assert.rejects(client.fetchQuery({ ...scenarioListOptions(user.id), retryDelay: 0, queryFn: async () => { calls++; throw failure; } }), error => error === failure);
+  assert.equal(calls, 3);
+ } finally { client.clear(); }
+});
+
+test("catalogue authorization and response-contract failures are never replayed", async () => {
+ const { scenarioListOptions } = await import("../src/serverState/scenarios/scenarioListOptions");
+ for (const failure of [new AppError({ kind: "forbidden", status: 403, message: "forbidden" }), new AppError({ kind: "invalidResponse", status: 200, message: "invalid contract" })]) {
+  const client = createQueryClient(); let calls = 0;
+  try {
+   await assert.rejects(client.fetchQuery({ ...scenarioListOptions(user.id), retryDelay: 0, queryFn: async () => { calls++; throw failure; } }), error => error === failure);
+   assert.equal(calls, 1);
+  } finally { client.clear(); }
+ }
+});

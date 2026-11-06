@@ -1,0 +1,15 @@
+@layer aria {
+  .separator {
+    margin: 0;
+    border: 0;
+    background: var(--color-border);
+    inline-size: 100%;
+    block-size: var(--border-width);
+    align-self: stretch;
+    flex-shrink: 0;
+  }
+  .separator[aria-orientation="vertical"] {
+    inline-size: var(--border-width);
+    block-size: auto;
+  }
+}

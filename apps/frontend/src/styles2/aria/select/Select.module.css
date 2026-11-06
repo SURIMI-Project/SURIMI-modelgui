@@ -1,0 +1,65 @@
+@layer aria {
+  .trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: start;
+    cursor: pointer;
+  }
+  .trigger[data-disabled] {
+    cursor: default;
+  }
+  .trigger > svg {
+    flex-shrink: 0;
+  }
+  .value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .value[data-placeholder] {
+    color: var(--color-text-subtle);
+  }
+  .list {
+    outline: none;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 2.75rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    outline: none;
+  }
+  .option:is([data-focused], [data-hovered]) {
+    background: var(--color-surface-hover);
+  }
+  .option[data-selected] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+  }
+  .option[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .option[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+  .empty {
+    display: block;
+    padding: var(--spacing-lg);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    text-align: center;
+  }
+}

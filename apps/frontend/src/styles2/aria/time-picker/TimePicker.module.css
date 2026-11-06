@@ -1,0 +1,28 @@
+@layer aria {
+  .list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-xs);
+    max-height: calc(var(--spacing-2xl) * 6);
+    overflow: auto;
+    outline: none;
+  }
+  .option {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+  }
+  .option:is([data-focused], [data-selected]) {
+    background: var(--color-selected);
+    color: var(--color-accent);
+  }
+  .option[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+}

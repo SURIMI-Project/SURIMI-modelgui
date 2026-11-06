@@ -1,0 +1,16 @@
+@layer tokens {
+  :root {
+    /* 4px at a 16px root font size */
+    --spacing-xs: 0.25rem;
+    /* 8px at a 16px root font size */
+    --spacing-sm: 0.5rem;
+    /* 12px at a 16px root font size */
+    --spacing-md: 0.75rem;
+    /* 20px at a 16px root font size */
+    --spacing-lg: 1.25rem;
+    /* 28px at a 16px root font size */
+    --spacing-xl: 1.75rem;
+    /* 40px at a 16px root font size */
+    --spacing-2xl: 2.5rem;
+  }
+}

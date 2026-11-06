@@ -1,0 +1,15 @@
+@layer aria {
+  .group[data-disabled] .options :global([data-disabled]) {
+    opacity: 1;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  .options[data-orientation="horizontal"] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+  }
+}

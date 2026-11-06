@@ -1,0 +1,131 @@
+@layer aria {
+  .button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    min-height: calc(var(--spacing-2xl) + var(--spacing-md));
+    padding: 0 calc(var(--spacing-lg) + var(--spacing-xs));
+    border: var(--border-width) solid var(--color-primary-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-on-primary);
+    background: linear-gradient(
+      115deg,
+      var(--color-nav-active-start),
+      var(--color-primary)
+    );
+    box-shadow: inset 0 var(--border-width) var(--radius-sm)
+      var(--color-nav-active-highlight);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition),
+      filter var(--transition);
+  }
+  .content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+  }
+  .content[data-loading] {
+    opacity: 0;
+  }
+  .spinner {
+    display: flex;
+    position: absolute;
+    animation: spin 900ms linear infinite;
+  }
+  .button[data-pending] {
+    cursor: progress;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner {
+      animation: none;
+    }
+  }
+  .button[data-hovered] {
+    filter: brightness(1.12);
+  }
+  .button[data-variant="primary"][data-hovered] {
+    background: var(--color-primary-hover);
+    filter: none;
+  }
+  .button[data-variant="primary"][data-pressed] {
+    background: var(--color-primary);
+    filter: none;
+  }
+  .button[data-pressed] {
+    filter: brightness(0.95);
+  }
+  .button[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  .button[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .button[data-variant="secondary"] {
+    background: var(--color-input);
+    color: var(--color-text);
+    border-color: var(--color-input-border);
+    box-shadow: none;
+  }
+  .button[data-variant="ghost"] {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-muted);
+    box-shadow: none;
+  }
+  .button[data-variant="danger"] {
+    background: var(--color-danger-surface);
+    border-color: transparent;
+    color: var(--color-danger);
+    box-shadow: none;
+  }
+  .button[data-size="small"] {
+    min-height: calc(var(--spacing-xl) + var(--spacing-sm));
+    padding-inline: var(--spacing-md);
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-md);
+  }
+  .button[data-icon-only] {
+    width: calc(var(--spacing-2xl) + var(--spacing-md));
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .button[data-icon-only][data-size="small"] {
+    width: calc(var(--spacing-xl) + var(--spacing-sm));
+  }
+  :global(:root[data-theme="light"]) .button {
+    box-shadow: none;
+  }
+  :global(:root[data-theme="light"]) .button[data-hovered],
+  :global(:root[data-theme="light"]) .button[data-pressed] {
+    filter: none;
+  }
+  :global(:root[data-theme="light"]) .button[data-variant="primary"] {
+    background: var(--color-primary);
+  }
+  :global(:root[data-theme="light"])
+    .button[data-variant="primary"][data-hovered] {
+    background: var(--color-primary-hover);
+  }
+  :global(:root[data-theme="light"])
+    .button[data-variant="primary"][data-pressed] {
+    background: var(--color-primary);
+  }
+  :global(:root[data-theme="light"])
+    .button[data-variant="secondary"][data-hovered],
+  :global(:root[data-theme="light"])
+    .button[data-variant="ghost"][data-hovered] {
+    background: var(--color-surface-hover);
+  }
+}

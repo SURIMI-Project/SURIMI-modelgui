@@ -1,40 +1,23 @@
-import { Select } from "@mantine/core";
+import ComboBox from "../../../../components/ui/ComboBox/ComboBox";
 import type { SpeciesOption } from "../../types";
 import styles from "./SpeciesDropdown.module.css";
-
-type SpeciesDropdownProps = {
+type Props = {
   options: SpeciesOption[];
   value: string;
   onChange: (next: string) => void;
 };
-
-const SpeciesDropdown = ({
-  options,
-  value,
-  onChange,
-}: SpeciesDropdownProps) => {
+export default function SpeciesDropdown({ options, value, onChange }: Props) {
   return (
     <div className={styles.container}>
-      <label className={styles.label} htmlFor="species-selector">
-        Species
-      </label>
-      <Select
-        id="species-selector"
-        data={options}
-        value={value}
-        onChange={(next) => {
-          if (next) {
-            onChange(next);
-          }
+      <ComboBox
+        label="Species"
+        options={options}
+        selectedKey={value}
+        onSelectionChange={(key) => {
+          if (key !== null) onChange(String(key));
         }}
         placeholder="Select species"
-        searchable
-        size="md"
-        className={styles.select}
-        comboboxProps={{ withinPortal: true, zIndex: 500 }}
       />
     </div>
   );
-};
-
-export default SpeciesDropdown;
+}

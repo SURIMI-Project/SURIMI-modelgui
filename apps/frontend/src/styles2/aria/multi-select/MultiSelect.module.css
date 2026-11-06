@@ -1,0 +1,42 @@
+@layer aria {
+  .list {
+    max-height: calc(var(--spacing-2xl) * 6);
+    overflow: auto;
+    outline: none;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    max-height: calc(var(--spacing-2xl) * 2);
+    overflow: auto;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    outline: none;
+  }
+  .remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xs);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .tag[data-focus-visible],
+  .remove[data-focus-visible] {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-ring-width));
+  }
+}

@@ -1,26 +1,51 @@
+import Button from "../../components/ui/Button/Button";
 import { useEffect, useState } from "react";
 import { useAuthProviders } from "../../serverState/auth/useAuthProviders";
 import { getSsoLoginPath } from "./ssoLoginPath";
 import styles from "./AuthScreen.module.css";
 
-type Props = { next: string; disabled: boolean; onRedirectingChange: (starting: boolean) => void };
+type Props = {
+  next: string;
+  disabled: boolean;
+  onRedirectingChange: (starting: boolean) => void;
+};
 const SsoSignIn = ({ next, disabled, onRedirectingChange }: Props) => {
   const providers = useAuthProviders();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     // Browser Back may restore this page from bfcache after leaving for SSO.
-    const reset = () => { setIsRedirecting(false); onRedirectingChange(false); };
+    const reset = () => {
+      setIsRedirecting(false);
+      onRedirectingChange(false);
+    };
     window.addEventListener("pageshow", reset);
     return () => window.removeEventListener("pageshow", reset);
   }, [onRedirectingChange]);
-  if (providers.isPending) return <p className={styles.providerNote} role="status">Checking single sign-on options…</p>;
+  if (providers.isPending)
+    return (
+      <p className={styles.providerNote} role="status">
+        Checking single sign-on options…
+      </p>
+    );
   if (providers.isError) {
     return (
       <div className={styles.providerNote} role="status">
-        <p>Single sign-on options could not be loaded. You can still use your local account.</p>
-        <button type="button" className={styles.sessionButton} disabled={providers.isFetching || disabled}
-          onClick={() => { void providers.refetch(); }}>Try SSO options again</button>
+        <p>
+          Single sign-on options could not be loaded. You can still use your
+          local account.
+        </p>
+        <Button
+          type="button"
+          variant="primary-outlined"
+          size="sm"
+          isDisabled={providers.isFetching || disabled}
+          onPress={() => {
+            void providers.refetch();
+          }}
+        >
+          Try SSO options again
+        </Button>
       </div>
     );
   }
@@ -29,9 +54,12 @@ const SsoSignIn = ({ next, disabled, onRedirectingChange }: Props) => {
     <section className={styles.sso} aria-label="Single sign-on">
       <p className={styles.divider}>or use single sign-on</p>
       {providers.data.map((provider) => (
-        <button key={provider.key} type="button" className={styles.providerButton}
-          disabled={disabled || isRedirecting}
-          onClick={() => {
+        <Button
+          key={provider.key}
+          type="button"
+          variant="primary-outlined"
+          isDisabled={disabled || isRedirecting}
+          onPress={() => {
             try {
               const path = getSsoLoginPath(provider.login_url, next);
               setIsRedirecting(true);
@@ -41,13 +69,22 @@ const SsoSignIn = ({ next, disabled, onRedirectingChange }: Props) => {
             } catch {
               setIsRedirecting(false);
               onRedirectingChange(false);
-              setError("This sign-in provider is not available. Please try again.");
+              setError(
+                "This sign-in provider is not available. Please try again.",
+              );
             }
-          }}>
-          {isRedirecting ? "Opening sign-in…" : `Sign in with ${provider.display_name}`}
-        </button>
+          }}
+        >
+          {isRedirecting
+            ? "Opening sign-in…"
+            : `Sign in with ${provider.display_name}`}
+        </Button>
       ))}
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
     </section>
   );
 };

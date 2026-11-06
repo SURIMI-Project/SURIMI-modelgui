@@ -18,13 +18,21 @@
 - [x] Reuse MapLibre with locally bundled Natural Earth geographic context; no new dependency or map-service key.
 - [x] Centralize presentation content and illustrative camera positions in `apps/frontend/mock-data/caseMap.ts`.
 - [x] Support mobile, reduced motion and a case-list fallback for WebGL failure.
+- [x] Apply shared light theme to the active case selector and add user-confirmed animated water with pause/reduced-motion/static fallback.
+- [x] User-approved Aegean refinement (2026-11-06): closer framing, no large title/floating marker, lighter boundary fill with faint glow, small label, compact actions and case switcher. Preserve both official GSA areas.
+
+- [x] Replace large cards with the names-only glass UseCaseSelector; remove extra copy, lock manual map navigation and frame both seas.
+- [x] Investigate refresh error and add bounded catalogue-read recovery; upstream SSL issue remains with connection owners.
+
+- [x] Remove country labels, widen the overview, make selector options equal-width and place the Anchovy inset bottom-right.
+- [x] Add official Northwestern GSA 06 + 07 geometry, fit its complete extent, and contain the full upright Anchovy illustration over animated water.
 
 ## Still needs agreement
 
 1. Does the PM approve this visual direction and preview-before-navigation behaviour?
-2. Who provides and approves the Northwestern Mediterranean boundary polygons? Aegean is confirmed as official GFCM GSA 22 + 23.
+2. Final scientific acceptance of the Northwestern GSA 06 + 07 overlay matching the current case metadata. Published FAO/GFCM geometry is now displayed; extra model-grid precision is not asserted.
 
-Overview markers show **illustrative locations**. The user confirmed the official GFCM GSA 22 + 23 dataset for the selected Aegean study-area overlay on 2026-11-06. Northwestern Mediterranean still has no boundary overlay; its GSA06/GSA07 description alone does not constitute approved polygon data. The supplied Anchovy SVG wraps a bitmap: it is used unchanged as an illustration. Its inclusion here does not complete the separate T04 introduction redesign.
+Overview markers show **illustrative locations**. The user confirmed the official GFCM GSA 22 + 23 dataset for the selected Aegean study-area overlay on 2026-11-06. Following the user-requested boundary fix on 2026-11-06, Northwestern Mediterranean displays the official GFCM GSA 06 + 07 polygons matching its case description; the project team retains final scientific approval. The supplied Anchovy SVG wraps a bitmap: it is used unchanged as an illustration. Its inclusion here does not complete the separate T04 introduction redesign.
 
 ## Files
 

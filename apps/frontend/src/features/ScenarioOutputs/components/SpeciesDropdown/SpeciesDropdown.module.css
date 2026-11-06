@@ -1,23 +1,14 @@
-.container {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.label {
-  color: rgba(204, 234, 252, 0.86);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 650;
-}
-
-.select :global(.mantine-InputWrapper-root) {
-  width: 100%;
-}
-
-.select :global(.mantine-Input-input) {
-  border: 1px solid rgba(126, 207, 255, 0.34);
-  background: rgba(6, 29, 53, 0.64);
-  color: #ecf8ff;
+@layer components {
+  .container {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .label {
+    color: rgba(204, 234, 252, 0.86);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 650;
+  }
 }
