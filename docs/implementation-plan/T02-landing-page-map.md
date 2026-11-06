@@ -1,63 +1,40 @@
-# T02 — Change landing page to a map visualisation showing the areas of the case studies
+# T02 — Signed-in case selection with a cinematic map
 
-**Planning update — 2026-11-05:** This is the signed-in case-selection page, not a public landing page. The user wants to explore two design approaches and will describe them in the ticket discussion. Neither approach is defined or approved yet; the original map request remains reference context. Later work, after T05 and T06; exact priority pending.
+**Updated 2026-11-05:** User approved implementation of the large-map concept. First frontend version implemented; visual review remains pending. On 2026-11-06 the user confirmed GSA 22 + 23 for the Aegean overlay.
 
-**Status:** Initial analysis; clarification needed. No implementation approved or started.
+## Agreed experience
 
-## Original PM request
+- Preserve the previous video/cards view as an unused `CinematicCaseSelection` component.
+- Show the Mediterranean with labelled, gently pulsing entrances for Northwestern Mediterranean and Aegean Sea.
+- Show Anchovy Bay separately as an educational inset using the supplied illustration; do not invent a geographic location.
+- Selecting a case opens a personalized preview with a cinematic camera transition. Explicit buttons open its introduction or example runs. Back returns to the overview.
+- Keep matching case buttons for keyboard/mobile access and when the map cannot render.
+- Retain login and real REST scenario availability. Wait for the first response before displaying cases; keep loading/error/retry states.
 
-**Title:** Change landing page to a map visualisation showing the areas of the case studies
+## Implemented
 
-**Description:** Feedback from co-creation workshop May '26
+- [x] Preserve the original view independently of the active route.
+- [x] Build overview, three previews, back navigation and existing destination links.
+- [x] Reuse MapLibre with locally bundled Natural Earth geographic context; no new dependency or map-service key.
+- [x] Centralize presentation content and illustrative camera positions in `apps/frontend/mock-data/caseMap.ts`.
+- [x] Support mobile, reduced motion and a case-list fallback for WebGL failure.
 
-## Our understanding
+## Still needs agreement
 
-Likely change the home page (`/`) so users can see where the case studies are located and select them geographically. The title asks for a map showing case-study areas; it does not define interactions or how much of the current landing design should be replaced.
+1. Does the PM approve this visual direction and preview-before-navigation behaviour?
+2. Who provides and approves the Northwestern Mediterranean boundary polygons? Aegean is confirmed as official GFCM GSA 22 + 23.
 
-Current cases:
+Overview markers show **illustrative locations**. The user confirmed the official GFCM GSA 22 + 23 dataset for the selected Aegean study-area overlay on 2026-11-06. Northwestern Mediterranean still has no boundary overlay; its GSA06/GSA07 description alone does not constitute approved polygon data. The supplied Anchovy SVG wraps a bitmap: it is used unchanged as an illustration. Its inclusion here does not complete the separate T04 introduction redesign.
 
-- Northwestern Mediterranean — UI description mentions GSA06 and GSA07.
-- Aegean Sea — UI description mentions GSA22 and GSA23.
-- Anchovy Bay — labelled an educational case study; geographic placement needs confirmation.
-
-Those GSA references are existing UI text, not approved map boundary data.
-
-## Suggested concept — not yet approved
-
-- Start with a Mediterranean map showing labelled case-study areas.
-- Select an area to reveal a short description and an **Explore case study** button.
-- Keep a matching list of cases for keyboard access and mobile use.
-- Agree a separate treatment for Anchovy Bay if it has no real geographic location.
-
-## Defining questions
-
-1. What are the two design approaches you want to try, and what existing content should each preserve?
-2. How should the real case-study areas and Anchovy Bay appear, and who approves any geographic boundaries?
-3. What should selecting a case do: show a preview, open its introduction, or open its runs?
-
-## Existing project locations
-
-Paths are relative to the repository root.
+## Files
 
 | Area | Location |
 | --- | --- |
-| Current home page | `apps/frontend/src/pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage.tsx` |
-| Case names, descriptions, backend-name mapping | `apps/frontend/src/data/simulationCases.ts` |
-| Backend availability check | Removed in T05; current case entries come from `apps/frontend/mock-data/caseStudies.ts` |
-| Existing map implementation to review | `apps/frontend/src/features/ScenarioOutputs/components/HeatMap/HeatMap.tsx` |
-| Routes | `apps/frontend/src/App.tsx` |
+| Shared REST loading/error boundary | `apps/frontend/src/pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage.tsx` |
+| Active map view | `apps/frontend/src/pages/SimulationCaseSelectionPage/components/CaseStudyMap/` |
+| Preserved original view | `apps/frontend/src/pages/SimulationCaseSelectionPage/components/CinematicCaseSelection/` |
+| Presentation content | `apps/frontend/mock-data/caseMap.ts` |
+| Geographic asset and provenance | `apps/frontend/public/maps/` |
+| Detailed design and verification | `docs/features/case-study-map/` |
 
-MapLibre is already a project dependency. It is a possible reuse option, not a requirement from this ticket.
-
-## Tasks — not started
-
-- [ ] Get PM answers and any workshop references.
-- [ ] Agree the map's scope, area representation, Anchovy Bay treatment, and click destination.
-- [ ] Obtain approved geographic data if boundaries are required.
-- [ ] Agree desktop/mobile layouts, keyboard selection, and availability/error states.
-- [ ] After user approval, implement the agreed map and case-study navigation.
-- [ ] Verify labels, geographic placement, navigation, and usable mobile/keyboard access.
-
-## Done when
-
-The landing page shows the agreed case-study areas on a map and lets users reach the intended case-study page. Final acceptance details depend on the answers above.
+No backend, protocol, deployment or API changes. Reports remain the existing fixed example.

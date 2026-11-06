@@ -1,6 +1,6 @@
 # Frontend implementation plan
 
-**Updated:** 2026-11-05. T05 implemented; T06 authentication and scenario availability verified; callback-denial presentation remains a follow-up.
+**Updated:** 2026-11-05. T05 implemented; T06 authentication and scenario availability verified; callback-denial presentation remains a follow-up. T02 map entrance implemented for visual review.
 
 ## Confirmed direction
 
@@ -9,7 +9,7 @@ Confirmed by the user after discussion with the PM, 2026-11-05:
 - Users must sign in before accessing SURIMI. There is no public case-selection/content page for now; authentication entry and callback routes remain accessible as needed.
 - First remove frontend gRPC integration and make the existing UI navigable with clearly labelled fixed demonstration results. Do not create mock runs, even in memory. Consolidate mock datasets and hardcoded informational content under `apps/frontend/mock-data/`; ordinary UI labels stay in components. All three cases show one shared example report.
 - Second integrate the existing backend authentication, using a shared REST request layer, services, and TanStack Query for server state.
-- The current “landing page” becomes the signed-in case-selection page. Explore two design approaches; their details are still to be discussed.
+- The current “landing page” becomes the signed-in case-selection page. Preserve the previous cinematic cards as an unused component. The user approved a large map with cinematic case previews; first version implemented for review.
 - Further work concerns user-input and dashboard design changes and backend integration. Existing PM notes remain references until each ticket is clarified.
 
 ## Work order
@@ -20,12 +20,12 @@ Ticket IDs are stable local references, not execution order or PM tracker IDs.
 | --- | --- | --- |
 | 1 — confirmed | [T05 — Remove frontend gRPC](T05-remove-frontend-grpc.md) | Implemented; build/route-render checks passed; browser review pending |
 | 2 — confirmed | [T06 — Authentication and REST foundation](T06-authentication-and-rest-foundation.md) | Local/SSO login, password completion, sessions and real availability verified; callback-denial UX follow-up |
-| Later — order pending | [T02 — Signed-in case selection](T02-landing-page-map.md) | Explore two design approaches; discuss concepts first |
+| 3 — user authorized | [T02 — Signed-in case selection](T02-landing-page-map.md) | Map entrance implemented; Aegean GSA 22 + 23 confirmed; visual approval and Northwestern boundary data pending |
 | Later — order pending | [T03 — Harvest Control inputs](T03-harvest-control-page.md) | Latest input requirements/design still needed |
 | Later — order pending | [T04 — Anchovy Bay introduction](T04-anchovy-bay-intro-screen.md) | Confirm asset placement and screen changes |
 | Later — order pending | [T01 — Output dashboard charts](T01-output-dashboard-charts.md) | Two charts identified; clarify scope and data |
 
-No priority between the four later tickets has been agreed. Additional input/dashboard changes should become separate tickets once described, rather than being assumed part of these four.
+No priority between the three remaining design tickets has been agreed. Additional input/dashboard changes should become separate tickets once described, rather than being assumed part of these four.
 
 ## How we refine each ticket
 

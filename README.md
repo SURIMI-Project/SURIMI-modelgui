@@ -42,7 +42,7 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
   routes such as `/scenario/...` survive a refresh.
 - Settings go in `deployments/.env` (copy `deployments/.env.example`). For a
   one-off change: `SURIMI_PORT=19090 docker compose -f deployments/compose.yml up --build -d`.
-- The frontend is currently a local-data demo. It does not contact the backend or controller. The backend can still use native gRPC independently.
+- The frontend uses the backend REST API for authentication and scenario availability. Scientific inputs/results remain a fixed demo. Only the backend contacts the controller through native gRPC.
 
 ### Sign in to the API
 
@@ -114,7 +114,7 @@ remain in components. The isolated `/netcdf-lab` file reader is retained.
 
 The Axios/Zod request, typed services and TanStack foundation are implemented under
 `apps/frontend/src/network/` and `src/serverState/`. Existing pages still use
-fixtures for scenarios/results; local login, session restoration, protected
+fixtures for descriptive content/results; local login, session restoration, protected
 routes and sign-out are connected to the existing backend. `/test` remains public.
 Vite proxies `/api/v1` to `http://127.0.0.1:18082` by default. The local backend
 uses the admin configured in git-ignored `deployments/.env`. Required password changes, configured SSO entry and real scenario availability
@@ -129,3 +129,7 @@ the local-only workaround for the blocked GHCR build dependency.
 
 The Buf CLI remains a root development dependency for Python protocol generation;
 there are no frontend gRPC runtime or code-generation dependencies.
+
+The signed-in case-selection page uses a cinematic geographic map with separate
+case previews. Its previous video/cards view is preserved as an unused component.
+See [T02 design and remaining boundary requirements](docs/features/case-study-map/README.md).

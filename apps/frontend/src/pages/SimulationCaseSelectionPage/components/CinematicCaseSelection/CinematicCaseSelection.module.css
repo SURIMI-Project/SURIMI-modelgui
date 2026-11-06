@@ -515,15 +515,4 @@
   gap: 12px;
   font-size: 13px;
 }
-.availabilityStatus button {
-  background: transparent;
-  border: 1px solid #b6ddd8;
-  border-radius: 7px;
-  padding: 6px 12px;
-  color: #d9fffa;
-  font: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.availabilityStatus button:disabled { opacity: .6; cursor: wait; }
 @media (max-width: 540px) { .availabilityStatus { top: 88px; align-items: flex-start; } }

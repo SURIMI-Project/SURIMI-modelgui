@@ -1,5 +1,15 @@
 # Frontend local login — changelog
 
+## 2026-11-05 — Prevent disabled-card flash before availability loads
+
+**Cause read from source:** the home page mounted cards while the initial REST query was pending and applied disabled styling to every non-available state, including unknown/loading. It was new REST availability presentation, not leftover gRPC integration.
+
+**Fix:** split the availability boundary from the animated case-selection content. Initial loading shows a loading screen; a failed check shows a retry screen. Cards and intro timers mount only after a successful response. Only cases absent from that response are disabled. Successful empty responses still show genuinely unavailable cases. Removed obsolete per-card loading/error labels and banner-button styles.
+
+**Files:** case-selection page and its CSS module; feature design and project changelog.
+
+**Verified:** real browser login with the first catalogue response deliberately held: loading screen contained zero case cards and no unavailable labels. Releasing the response rendered cards with actual backend availability. A controlled 502 showed a retry screen with zero cards; retrying with a subset disabled only the two absent cases. No browser JavaScript errors. Production TypeScript/Vite build, targeted page ESLint and diff whitespace checks passed. Backend/protocol/deployment/CI files unchanged. No commit created.
+
 ## 2026-11-05 — Password completion, Keycloak SSO and real availability
 
 **User authorized all three follow-ups.** Added `/change-password` with current/new/confirmation validation, backend error display and current-user refetch before returning to the requested page. Confirmation is never sent to the API. Login now discovers SSO providers and navigates through the backend; no Keycloak SDK, code exchange or token storage in React. Home reads the authenticated REST catalogue, mapping scenario names onto local case content; it distinguishes loading, failed checks, and successful unavailable/empty results, with retry. Reports and experiment setup/submission remain demo data.

@@ -7,6 +7,7 @@ first, and is created with the first code change. Start a new feature with
 
 | Folder | What it covers | Phase | Status |
 | --- | --- | --- | --- |
+| [case-study-map/](case-study-map/README.md) | Signed-in geographic overview, cinematic case previews and preserved previous cards | T02 | Implemented for visual review; Aegean GSA 22 + 23 confirmed 2026-11-06; Northwestern boundaries pending |
 | [frontend-local-login/](frontend-local-login/README.md) | Local/SSO login, password completion, session protection and real availability through existing API | T06 local integration | Implemented and browser-tested 2026-11-05; callback-denial presentation follow-up |
 | [frontend-network/](frontend-network/README.md) | Centralized Axios/Zod request, auth/scenario services and TanStack hooks | T06 foundation | Implemented 2026-11-05; local/SSO auth and catalogue verified |
 | [Frontend gRPC cleanup](../implementation-plan/T05-remove-frontend-grpc.md) | T05 browser gRPC removal; centralized fixtures; one shared demo report, no run creation | Frontend cleanup | Implemented 2026-11-05; auth/REST next |

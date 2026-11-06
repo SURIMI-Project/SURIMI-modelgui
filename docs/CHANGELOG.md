@@ -19,7 +19,25 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-06
+
+### Feature — Official Aegean study-area boundary overlay
+
+Selecting Aegean Sea now highlights the user-confirmed GSA 22 (Aegean Sea) and GSA 23 (Crete) using the official FAO/GFCM source geometry. The camera fits both areas; the overlay is hidden on the overview and other cases. The boundary asset loads from the frontend only on first selection. Provenance and verification are recorded in [case-study map](features/case-study-map/CHANGELOG.md).
+
+> **Deploying this:** rebuild frontend assets, including `maps/aegean-gsa-22-23.geojson`. No new runtime dependency, API key, backend or deployment configuration change.
+
 ## 2026-11-05
+
+### Feature — Cinematic case-study map entrance
+
+Signed-in users now select cases through a geographic overview and personalized previews. The previous video/cards implementation is preserved as an unused component. Anchovy Bay uses the supplied illustration as a separate educational entrance; geographic markers are illustrative until approved scientific boundaries are supplied. See [case-study map](features/case-study-map/README.md). Backend availability, loading/retry and existing navigation remain connected.
+
+> **Deploying this:** rebuild the frontend, including the local geographic and illustration assets. No new dependency, map-service key, backend or deployment configuration change.
+
+### Fix — Case cards no longer flash disabled after sign-in
+
+The case-selection page now waits for the initial REST availability result before mounting cards and intro animation. Loading and failed requests have dedicated states; only genuinely unavailable cases from a successful response receive disabled styling. Verified with a delayed first-login response and error/retry browser checks. Frontend-only change.
 
 ### Feature — Password completion, Keycloak SSO and real case availability
 
