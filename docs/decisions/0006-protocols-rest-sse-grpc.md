@@ -4,6 +4,8 @@
 **Date:** 2026-11-03
 **Related:** [ARCHITECTURE.md](../ARCHITECTURE.md#protocols), [0008](0008-notifications-sse.md), [0011](0011-controller-stubs-from-buf-registry.md)
 
+**Implementation update, 2026-11-05:** the user authorized removing browser gRPC first, using fixed local fixtures. Envoy, `/api/controller`, frontend stubs and Connect dependencies have now been removed. REST/auth and TanStack integration are still pending; OpenAPI client tooling remains proposed. The context below describes the pre-cleanup architecture.
+
 ## Context
 
 - Today the browser speaks gRPC-Web to Envoy, which forwards native gRPC to the

@@ -1,3 +1,5 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./serverState/queryClient";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { MantineProvider } from "@mantine/core";
@@ -37,9 +39,11 @@ createRoot(document.getElementById("root")!).render(
       theme={theme}
       cssVariablesResolver={resolver}
     >
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
     </MantineProvider>
   </StrictMode>,
 );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { SimulationCaseId } from "../../data/simulationCases";
 import ScenarioFlowHoverCard from "./ScenarioFlowHoverCard";
-import { getScenarioFlowGraph } from "./scenarioModelFlowGraphData";
+import { getScenarioFlowGraph } from "../../../mock-data/content/modelFlowGraphs";
 import styles from "./ScenarioInfoModal.module.css";
 
 const renderNodeTitle = (title: string, centerX: number, centerY: number) => {

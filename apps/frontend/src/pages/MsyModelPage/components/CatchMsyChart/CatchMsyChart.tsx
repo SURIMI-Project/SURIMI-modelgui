@@ -1,3 +1,4 @@
+import { catchMsyChartHints } from "../../../../../mock-data/content/chartDescriptions";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -9,7 +10,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import type { StockMockData } from "../../../../data/mockData";
+import type { StockMockData } from "../../../../../mock-data/cmsy";
 import InsightChartCard from "../InsightChartCard/InsightChartCard";
 
 ChartJS.register(
@@ -93,12 +94,7 @@ const CatchMsyChart = ({ stock }: CatchMsyChartProps) => {
     <InsightChartCard
       title="Catch vs MSY"
       subtitle={`${stock.name} · ${stock.subregion}`}
-      hints={[
-        "Red line is annual catch in thousand tonnes.",
-        "Blue dashed line is estimated sustainable catch (MSY).",
-        "Blue band is the uncertainty range around MSY.",
-        "Hover any year to see whether catch is above or below MSY.",
-      ]}
+      hints={catchMsyChartHints}
     >
       <Line
         data={data}

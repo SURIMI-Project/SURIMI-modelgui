@@ -1,3 +1,4 @@
+import { coreConcepts } from "../../../mock-data/content/cmsyIntroduction";
 import {
   Badge,
   Box,
@@ -16,7 +17,7 @@ import ExploitationChart from "./components/ExploitationChart/ExploitationChart"
 import Intro3DScene from "./components/Intro3DScene/Intro3DScene";
 import KobeChart from "./components/KobeChart/KobeChart";
 import StockSizeChart from "./components/StockSizeChart/StockSizeChart";
-import { europeanHakeWestMediterraneanNorthSpain } from "../../data/mockData";
+import { europeanHakeWestMediterraneanNorthSpain } from "../../../mock-data/cmsy";
 import Logo from "../../components/Logo/Logo";
 import styles from "./MsyModelPage.module.css";
 
@@ -154,11 +155,7 @@ const MsyModelPage = () => {
     },
   });
 
-  const coreConcepts = [
-    "Sustainable catch intelligence",
-    "Stock health monitoring",
-    "Management-ready decisions",
-  ];
+
 
   const activeConceptIndex =
     introProgress < 0.16 || introProgress > 0.9

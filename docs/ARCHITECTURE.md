@@ -1,47 +1,42 @@
 # Architecture
 
-How the SURIMI model GUI fits together, as of 2026-11-03. Part 1 is what runs
-today. Part 2 is the target of the
-[monorepo and backend plan](plans/2026-11-03-monorepo-and-backend.md) and is
-**Proposed** until that plan is accepted. Diagram conventions:
-[DIAGRAMS.md](DIAGRAMS.md).
+Current frontend cleanup: 2026-11-05. The frontend uses real local authentication and fixed fixtures for
+report data. Authentication and scenario availability use REST; real experiment/output integration remains next. Part 2 describes the wider
+backend target. Diagram conventions: [DIAGRAMS.md](DIAGRAMS.md).
 
----
-
-## Part 1 — Today
+## Part 1 — Current source
 
 ```mermaid
 flowchart LR
-    user(("User"))
-    subgraph web [This repo]
-        nginx["nginx: SPA and /api/controller proxy"]
-        envoy["Envoy grpc-proxy"]
-    end
-    subgraph edito [EDITO datalab, owned by the controller team]
-        ctrl["SURIMI controller: surimi.v1.ControllerService"]
-        models["Ecopath, market, fisheries authority, stock assessment, output creator"]
-        s3[("S3 bucket project-surimi")]
-    end
-    user -->|HTTPS| nginx
-    nginx -->|"gRPC-Web over HTTP/1.1"| envoy
-    envoy -->|"gRPC over HTTP/2, TLS"| ctrl
-    ctrl -->|gRPC| models
-    models -->|"writes .nc and .bin"| s3
-    style edito stroke-dasharray: 5 5
+    user(("User")) --> spa["React frontend: fixed demo"]
+    fixtures["apps/frontend/mock-data"] --> spa
+    spa -->|"Auth and catalogue REST via nginx or Vite proxy"| api
+    nginx["nginx: SPA and /api/v1 REST proxy"] --> spa
+    nginx --> api["FastAPI backend"]
+    api --> postgres[("PostgreSQL")]
+    api -->|"native gRPC"| ctrl["SURIMI controller"]
+    ctrl --> models["Model services"]
+    models --> s3[("S3 outputs")]
 ```
 
-The browser calls the controller directly through Envoy. There are no users,
-no database and no server-side state: the runs page lists every experiment on
-the controller, and the output dashboards show mock data
-(`apps/frontend/src/features/ScenarioOutputs/MockData/`). **Read from source.**
+**Verified with local Docker API and Chrome, 2026-11-05:** the frontend calls our
+backend for local/SSO login, password changes, session/refresh/logout and scenario
+availability. It makes no direct controller requests. All case studies use one example report. Setup only navigates to the
+example library; no mock run is created or persisted. Fixtures and descriptive
+content are centralized in `apps/frontend/mock-data/`; ordinary UI labels stay
+in components. Envoy, browser gRPC clients/stubs and `/api/controller/` have been
+removed. The native Python gRPC client and protocol package are retained. Buf
+is a root npm development dependency for Python stub-generation CI.
 
-On branch `develop` (not merged into `main`), the first part of
-Part 2 runs beside this in compose: `api` (FastAPI), `postgres`, the
-`db-bootstrap` and `migrate` jobs, and `keycloak` (profile `keycloak`) for SSO.
-The API serves sign-in (password and OIDC), sessions, user administration
-and the scenario catalogue from the controller; nginx routes `/api/v1/` to
-it. The frontend does not call it yet (phase 10). **Verified** on the compose
-stack, 2026-11-03.
+The API implements password/OIDC authentication, users and scenario catalogue
+endpoints; nginx retains `/api/v1/`. The FE request/services/TanStack foundation is implemented under
+`apps/frontend/src/{network,serverState}` (ADR 0017). Local login, protected routes
+and session restoration are implemented and browser-tested; Vite proxies
+`/api/v1` to localhost:18082. SSO entry and required password completion are also browser-tested against the
+existing backend. Home uses the real catalogue response; experiment/output API
+integration and contract-driven inputs remain pending. See [local verification](features/frontend-local-login/CHANGELOG.md)
+for the temporary uv/PyPI build workaround. The portable NetCDF lab is independent,
+requires login and may download a file when explicitly used.
 
 ### Controller API
 
@@ -50,13 +45,13 @@ unary. **Read from source**, exported 2026-11-03.
 
 | RPC | Request | Response | Used by the frontend today |
 | --- | --- | --- | --- |
-| `SubmitExperiment` | `scenario_name`, `experiment_id`, `end_date_time`, `is_mse_run`, `regulations_definitions_summary`, `climate_scenario` | `experiment_id` | Mock only |
-| `RemoveExperiment` | `experiment_id` | `experiment_id` | Mock only |
-| `GetSimulationStatuses` | `experiment_ids[]` | `simulation_statuses[]` | No; not in `apps/frontend/proto/surimi.binpb` |
-| `GetAllSimulationStatuses` | — | `simulation_statuses[]` | Yes |
-| `GetSimulationContract` | `scenario_name` | `simulation` (geography, standards, items) | Yes |
+| `SubmitExperiment` | `scenario_name`, `experiment_id`, `end_date_time`, `is_mse_run`, `regulations_definitions_summary`, `climate_scenario` | `experiment_id` | No |
+| `RemoveExperiment` | `experiment_id` | `experiment_id` | No |
+| `GetSimulationStatuses` | `experiment_ids[]` | `simulation_statuses[]` | No |
+| `GetAllSimulationStatuses` | — | `simulation_statuses[]` | No |
+| `GetSimulationContract` | `scenario_name` | `simulation` (geography, standards, items) | No |
 | `GetProtocolVersion` | — | version | No |
-| `GetScenarioNames` | — | `scenario_names[]` | Yes |
+| `GetScenarioNames` | — | `scenario_names[]` | No |
 
 `SimulationStatus` carries `simulation_id`, `experiment_id`, `scenario_name`,
 `start_date_time`, `end_date_time`, `status` (free string), `simulation_started`,

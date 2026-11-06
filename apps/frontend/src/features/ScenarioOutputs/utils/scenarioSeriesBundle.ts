@@ -1,4 +1,5 @@
-import { getScenarioRunById } from "../../ScenarioRuns/mockScenarioRuns";
+import { buildPriceSeriesFromAverages, buildSalesSeriesFromAverages } from "../../../../mock-data/outputs/chartSeries";
+import { exampleSimulation } from "../../../../mock-data/simulation";
 import type { SimulationCaseId } from "../../../data/simulationCases";
 import {
   SCENARIO_ONE_LABEL,
@@ -9,9 +10,7 @@ import {
   aggregateSpeciesOutput,
   buildAnnualMetricAverages,
   buildPricePerTonneBySpecies,
-  buildPriceSeriesFromAverages,
   buildSalesQuantityBySpecies,
-  buildSalesSeriesFromAverages,
 } from "./dashboardData";
 import type { ScenarioOutputsDataset } from "../types";
 import type { ScenarioDashboardState } from "../hooks/useScenarioDashboardState";
@@ -50,7 +49,6 @@ export type ScenarioSeriesBundle = {
 };
 
 export const buildScenarioSeriesBundle = ({
-  caseId,
   primaryDataset,
   comparisonDataset,
   state,
@@ -126,12 +124,11 @@ export const buildScenarioSeriesBundle = ({
   );
 
   const primaryRunLabel =
-    (primaryDataset && getScenarioRunById(caseId, primaryDataset.runId)?.title) ??
+    (primaryDataset ? exampleSimulation.title : undefined) ??
     primaryDataset?.runId ??
     SCENARIO_ONE_LABEL;
   const comparisonRunLabel =
-    (comparisonDataset &&
-      getScenarioRunById(caseId, comparisonDataset.runId)?.title) ??
+
     comparisonDataset?.runId ??
     SCENARIO_TWO_LABEL;
 

@@ -23,3 +23,4 @@ One file per decision. A decision is `Proposed` until the user accepts it, then
 | [0014](0014-postgresql-in-repo-bundled-or-external.md) | PostgreSQL in the repo; Helm bundled or external; database `surimi_modelgui_db`, one application user | Proposed 2026-11-03 |
 | [0015](0015-experiment-admission-queue.md) | Experiments wait in a fair queue in our database until enough Ecopath pods are free | Proposed 2026-11-03 |
 | [0016](0016-separate-sso-and-local-accounts.md) | SSO and local users are separate accounts, never linked; unique verified e-mail; the provider owns an SSO user's e-mail and names | Accepted 2026-11-04 |
+| [0017](0017-frontend-axios-zod-and-query-layers.md) | Frontend Axios request + Zod contracts, services and TanStack hooks; defer OpenAPI client generation | Accepted 2026-11-05 |

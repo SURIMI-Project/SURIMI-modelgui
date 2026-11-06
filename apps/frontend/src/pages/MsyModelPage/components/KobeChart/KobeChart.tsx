@@ -1,3 +1,4 @@
+import { kobeChartHints } from "../../../../../mock-data/content/chartDescriptions";
 import {
   Chart as ChartJS,
   Filler,
@@ -8,7 +9,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Scatter } from "react-chartjs-2";
-import type { StockMockData } from "../../../../data/mockData";
+import type { StockMockData } from "../../../../../mock-data/cmsy";
 import InsightChartCard from "../InsightChartCard/InsightChartCard";
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
@@ -270,12 +271,7 @@ const KobeChart = ({ stock }: KobeChartProps) => {
     <InsightChartCard
       title="Kobe Plot (State vs Pressure)"
       subtitle="Combined stock health and fishing pressure trajectory"
-      hints={[
-        "X axis is F/FMSY and Y axis is B/BMSY.",
-        "Dashed cross at 1 and 1 splits the four management quadrants.",
-        "Square is first year, circle is 2005, triangle is latest year.",
-        "Hover points to see quadrant interpretation for that position.",
-      ]}
+      hints={kobeChartHints}
       height={360}
     >
       <Scatter

@@ -30,8 +30,8 @@ const DashboardOutputsHeader = ({
   compareLegendItems,
   children,
 }: DashboardOutputsHeaderProps) => {
-  const { scenario } = useParams();
-  const backHref = `/scenario-runs/${scenario ?? "anchovy-bay"}`;
+  const { scenario, caseId } = useParams();
+  const backHref = `/scenario-runs/${scenario ?? caseId ?? "anchovy-bay"}`;
 
   return (
     <DashboardLayout

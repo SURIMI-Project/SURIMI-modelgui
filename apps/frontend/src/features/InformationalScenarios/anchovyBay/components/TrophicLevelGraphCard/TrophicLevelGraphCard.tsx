@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { flowLinks, flowNodes, trophicLevels } from "../../consts";
+import { flowLinks, flowNodes, trophicLevels } from "../../../../../../mock-data/content/anchovyModel";
 import type { FlowLink, FlowNode } from "../../types";
 import styles from "./TrophicLevelGraphCard.module.css";
 

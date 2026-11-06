@@ -1,4 +1,4 @@
-import { aegeanPlaceholderContent } from "../../consts";
+import { aegeanPlaceholderContent } from "../../../../../../mock-data/content/aegeanIntroduction";
 import styles from "./AegeanSeaPlaceholderCard.module.css";
 
 type AegeanSeaPlaceholderCardProps = {

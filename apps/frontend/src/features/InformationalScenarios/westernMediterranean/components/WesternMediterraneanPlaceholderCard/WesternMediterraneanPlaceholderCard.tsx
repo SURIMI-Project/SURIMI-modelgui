@@ -1,4 +1,4 @@
-import { westernPlaceholderContent } from "../../consts";
+import { westernPlaceholderContent } from "../../../../../../mock-data/content/mediterraneanIntroduction";
 import styles from "./WesternMediterraneanPlaceholderCard.module.css";
 
 type WesternMediterraneanPlaceholderCardProps = {

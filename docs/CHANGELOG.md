@@ -19,6 +19,50 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-06
+
+### Feature — Official Aegean study-area boundary overlay
+
+Selecting Aegean Sea now highlights the user-confirmed GSA 22 (Aegean Sea) and GSA 23 (Crete) using the official FAO/GFCM source geometry. The camera fits both areas; the overlay is hidden on the overview and other cases. The boundary asset loads from the frontend only on first selection. Provenance and verification are recorded in [case-study map](features/case-study-map/CHANGELOG.md).
+
+> **Deploying this:** rebuild frontend assets, including `maps/aegean-gsa-22-23.geojson`. No new runtime dependency, API key, backend or deployment configuration change.
+
+## 2026-11-05
+
+### Feature — Cinematic case-study map entrance
+
+Signed-in users now select cases through a geographic overview and personalized previews. The previous video/cards implementation is preserved as an unused component. Anchovy Bay uses the supplied illustration as a separate educational entrance; geographic markers are illustrative until approved scientific boundaries are supplied. See [case-study map](features/case-study-map/README.md). Backend availability, loading/retry and existing navigation remain connected.
+
+> **Deploying this:** rebuild the frontend, including the local geographic and illustration assets. No new dependency, map-service key, backend or deployment configuration change.
+
+### Fix — Case cards no longer flash disabled after sign-in
+
+The case-selection page now waits for the initial REST availability result before mounting cards and intro animation. Loading and failed requests have dedicated states; only genuinely unavailable cases from a successful response receive disabled styling. Verified with a delayed first-login response and error/retry browser checks. Frontend-only change.
+
+### Feature — Password completion, Keycloak SSO and real case availability
+
+Users with temporary passwords can now complete the required change and enter their requested page. Login offers configured SSO providers; Keycloak code/token exchange stays in the backend. Case selection uses the authenticated REST catalogue with distinct loading/error/unavailable states and retry. Live password/SSO/catalogue and controlled error states were browser-tested. Scientific reports and experiment submission remain demo implementations.
+
+> **Local SSO:** ignored local settings use `PUBLIC_BASE_URL=http://localhost:5173`; the same callback must be registered on the local Keycloak client. Tracked backend/protocol/CI/deployment files are unchanged. Callback denials still display backend JSON; see ISSUES. Setup and verification are in the frontend-local-login feature.
+
+### Feature — Local frontend login and protected access
+
+Local username/email/password login now uses the existing backend cookie session. Session restoration, deep-link return, protected content and sign-out are connected. `/test` remains public; `/netcdf-lab` requires login. Existing scientific/demo data is unchanged. SSO, password-change completion and scenario availability remain deferred. See [local login](features/frontend-local-login/README.md).
+
+> **Local development:** start the existing API/database and Vite. Vite proxies `/api/v1` to `127.0.0.1:18082`. Backend/protocol/deployment files are unchanged. The GHCR uv image denial required a temporary local-only build workaround; details and live verification are in the feature changelog.
+
+### Change — Frontend REST request and server-state foundation
+
+Added centralized Axios/Zod transport, typed auth/catalogue services, and TanStack query/mutation hooks. Removed copied examples from another project. Existing demo pages still make no API requests; login UI and live integration remain pending. See [frontend network](features/frontend-network/README.md) and ADR 0017. Backend/protocol/CI/deployment files are unchanged.
+
+> **Developing this:** install updated frontend dependencies with `npm ci`; run `npm --workspace apps/frontend run test:network` for focused tests.
+
+### Change — Frontend uses one shared demo report without browser gRPC
+
+All three case studies are navigable and show the same labelled example simulation/report. Setup creates no run and stores nothing; fake execution delay and output variants were removed. Fixtures, species references and descriptive content are centralized under `apps/frontend/mock-data/`. Browser protocol files/dependencies and Envoy were removed; native backend gRPC is retained, with Buf tooling moved to the root npm package. Auth/REST integration is next, not part of this change. See [frontend cleanup](implementation-plan/T05-remove-frontend-grpc.md).
+
+> **Deploying this:** rebuild the frontend image. Remove the old `grpc-proxy` service/container when updating an existing stack; `MOCK`, `CONTROLLER_BASE_URL`, `GRPC_PROXY_PORT`, and `CORS_ALLOWED_ORIGINS` are obsolete frontend/proxy settings. Keep backend `CONTROLLER_MODE` and `CONTROLLER_GRPC_URL`. This intermediate frontend is for development review; authentication is not yet connected.
+
 ## 2026-11-04
 
 ### Change — SSO role from the `groups` claim
