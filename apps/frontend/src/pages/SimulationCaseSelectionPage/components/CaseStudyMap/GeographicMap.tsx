@@ -21,11 +21,16 @@ type Props = {
   onSelect: (id: SimulationCaseId) => void;
 };
 
-const themeColour = (token: string) =>
-  getComputedStyle(document.documentElement).getPropertyValue(token).trim();
-const rgbColour = (token: string): [number, number, number] => {
+const themeColour = (
+  token: string,
+  scope: HTMLElement = document.documentElement,
+) => getComputedStyle(scope).getPropertyValue(token).trim();
+const rgbColour = (
+  token: string,
+  scope: HTMLElement,
+): [number, number, number] => {
   const probe = document.createElement("span");
-  probe.style.color = themeColour(token);
+  probe.style.color = themeColour(token, scope);
   document.body.append(probe);
   const values = getComputedStyle(probe).color.match(/[\d.]+/g);
   probe.remove();
@@ -35,6 +40,34 @@ const rgbColour = (token: string): [number, number, number] => {
     Number(values[1]) / 255,
     Number(values[2]) / 255,
   ];
+};
+
+const sceneTransitionDuration = 1700;
+
+const waterColours = (scope: HTMLElement) => ({
+  deep: rgbColour("--color-map-water-deep", scope),
+  shallow: rgbColour("--color-map-water-shallow", scope),
+  reflection: rgbColour("--color-map-water-reflection", scope),
+});
+
+const updateMapAppearance = (
+  map: LibreMap,
+  water: AnimatedWaterLayer | null,
+  reducedMotion: boolean,
+) => {
+  if (!map.getLayer("water")) return;
+  const scope = map.getContainer();
+  const duration = reducedMotion ? 0 : sceneTransitionDuration;
+  map.setPaintProperty("water", "background-color-transition", {
+    duration,
+    delay: 0,
+  });
+  map.setPaintProperty(
+    "water",
+    "background-color",
+    themeColour("--color-map-water", scope),
+  );
+  water?.setColours(waterColours(scope), duration);
 };
 
 const graticule: FeatureCollection<LineString> = {
@@ -73,7 +106,7 @@ const moveCamera = (
   const width = map.getContainer().clientWidth;
   const mobile = width < 760;
   const place = selected ? caseMapPlaces[selected] : null;
-  const duration = animate ? 1700 : 0;
+  const duration = animate ? sceneTransitionDuration : 0;
   if (!place?.location) {
     map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     map.fitBounds(overviewBounds, {
@@ -164,7 +197,7 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
     const visible = selected === caseId;
     const source = `${prefix}-study-area`;
     if (visible && !map.getSource(source)) {
-      const colour = themeColour(caseMapPlaces[caseId].colourToken);
+      const colour = themeColour("--color-map-study-boundary");
       map.addSource(source, { type: "geojson", data: area.asset });
       map.addLayer(
         {
@@ -239,6 +272,7 @@ const GeographicMap = (props: Props) => {
     }
     if (mapRef.current) {
       updateStudyArea(mapRef.current, selected);
+      updateMapAppearance(mapRef.current, water.current, reducedMotion);
       moveCamera(mapRef.current, selected, !reducedMotion);
     }
   }, [selected, available, reducedMotion, onSelect]);
@@ -274,7 +308,12 @@ const GeographicMap = (props: Props) => {
               {
                 id: "water",
                 type: "background",
-                paint: { "background-color": themeColour("--color-map-water") },
+                paint: {
+                  "background-color": themeColour(
+                    "--color-map-water",
+                    container.current,
+                  ),
+                },
               },
               {
                 id: "grid",
@@ -318,11 +357,7 @@ const GeographicMap = (props: Props) => {
             try {
               if (!map.getLayer("animated-water")) {
                 const waterLayer = new AnimatedWaterLayer(
-                  {
-                    deep: rgbColour("--color-map-water-deep"),
-                    shallow: rgbColour("--color-map-water-shallow"),
-                    reflection: rgbColour("--color-map-water-reflection"),
-                  },
+                  waterColours(map.getContainer()),
                   (available) => {
                     if (!disposed) setWaterReady(available);
                   },
@@ -335,6 +370,11 @@ const GeographicMap = (props: Props) => {
               setWaterReady(false);
             }
             updateStudyArea(map, current.current.selected);
+            updateMapAppearance(
+              map,
+              water.current,
+              current.current.reducedMotion,
+            );
             setReady(true);
             setFailed(false);
           }

@@ -11,6 +11,20 @@
   }
   .page[data-selected="aegean-sea"] {
     --case-accent: var(--color-secondary-ink);
+    --color-map-water: var(--color-sea-aegean-background);
+    --color-map-water-deep: var(--color-sea-aegean-deep);
+    --color-map-water-shallow: var(--color-sea-aegean-secondary);
+    --color-map-water-reflection: var(--color-sea-aegean-accent);
+  }
+  .page[data-selected="northwestern-mediterranean"] {
+    --color-map-water: var(--color-sea-nw-background);
+    --color-map-water-deep: var(--color-sea-nw-deep);
+    --color-map-water-shallow: var(--color-sea-nw-secondary);
+    --color-map-water-reflection: var(--color-sea-nw-accent);
+  }
+  .page[data-selected="aegean-sea"] .mapGlow,
+  .page[data-selected="northwestern-mediterranean"] .mapGlow {
+    background: none;
   }
   .page[data-selected="anchovy-bay"] {
     --case-accent: var(--color-brand-pink);

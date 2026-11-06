@@ -19,13 +19,15 @@
 - [x] Centralize presentation content and illustrative camera positions in `apps/frontend/mock-data/caseMap.ts`.
 - [x] Support mobile, reduced motion and a case-list fallback for WebGL failure.
 - [x] Apply shared light theme to the active case selector and add user-confirmed animated water with pause/reduced-motion/static fallback.
-- [x] User-approved Aegean refinement (2026-11-06): closer framing, no large title/floating marker, lighter boundary fill with faint glow, small label, compact actions and case switcher. Preserve both official GSA areas.
+- [x] User-approved Aegean refinement (2026-11-06): closer framing, no large title/floating marker, lighter boundary fill with the shared Aegean-orange outline and faint glow (confirmed for all study boundaries following sea-theme review), small label, compact actions and case switcher. Preserve both official GSA areas.
 
 - [x] Replace large cards with the names-only glass UseCaseSelector; remove extra copy, lock manual map navigation and frame both seas.
 - [x] Investigate refresh error and add bounded catalogue-read recovery; upstream SSL issue remains with connection owners.
 
 - [x] Remove country labels, widen the overview, make selector options equal-width and place the Anchovy inset bottom-right.
 - [x] Add official Northwestern GSA 06 + 07 geometry, fit its complete extent, and contain the full upright Anchovy illustration over animated water.
+
+- [x] Apply supplied distinct sea palettes through shared semantic tokens, retain light readable surfaces, and verify existing camera/water interactions across responsive layouts.
 
 ## Still needs agreement
 

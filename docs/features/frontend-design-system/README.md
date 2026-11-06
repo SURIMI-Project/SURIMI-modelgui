@@ -43,3 +43,7 @@ Read from source: no new REST endpoint, session mechanism, backend table or cros
 ## Review and remaining work
 
 Verified implementation and test details are in [CHANGELOG.md](CHANGELOG.md). Review `/login` and `/design-system`, then refine the palette and each real component. Legacy aliases are a migration boundary, not a second palette; remove them as their remaining consumers are converted. Existing scientific series colours, case-map atmosphere and historical screen-specific styling are not automatically recoloured by every shared-token change.
+
+## Sea background tokens — 2026-11-06
+
+User-supplied Northwestern and Aegean palettes extend the existing raw palette and light semantic roles (`--color-sea-nw-*`, `--color-sea-aegean-*`, `--color-sea-on-background`). The selected case-map scene aliases these roles to its existing water tokens. Northwestern uses restrained deep marine blue; Aegean uses brighter azure with turquoise in its secondary/reflection colours. The overview, educational Bay, brand actions, light card surfaces and typography retain their existing styling. No dark theme, new dependency, component, gradient or layout change. GPU water reads the same scoped CSS tokens as the static MapLibre background. The dedicated map feature documents rendering/verification.

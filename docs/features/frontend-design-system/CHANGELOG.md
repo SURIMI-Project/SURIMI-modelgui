@@ -1,5 +1,11 @@
 # Frontend design-system changelog
 
+## 2026-11-06 — Scoped sea-background identities
+
+- `styles/design-system/colors.css`: eight supplied Northwestern/Aegean raw palette values, defined once.
+- `styles/themes/light.css`: reusable background/deep/secondary/accent and on-sea semantic roles. Existing global light/brand tokens remain unchanged.
+- Map consumers alias the semantic roles locally; neutral surfaces and typography are preserved. No new dependencies, gradients or UI components. See [case-study map verification](../case-study-map/CHANGELOG.md).
+
 ## 2026-11-06 — UseCaseSelector control
 
 Added the real compact glass UseCaseSelector composition to the Presentational components tab and the landing page. Replaced the former CaseStudyOption cards, introduced shared glass-surface tokens and removed number/category labels from the selector. The control accepts display-ready options and selection state; it has no fetching/domain logic or preview-only copy. See [case-study map verification](../case-study-map/CHANGELOG.md).

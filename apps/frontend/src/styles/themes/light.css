@@ -2,6 +2,15 @@
   :root,
   :root[data-theme="light"] {
     color-scheme: light;
+    --color-sea-nw-background: var(--palette-sea-nw-primary);
+    --color-sea-nw-deep: var(--palette-sea-nw-deep);
+    --color-sea-nw-secondary: var(--palette-sea-nw-secondary);
+    --color-sea-nw-accent: var(--palette-sea-nw-accent);
+    --color-sea-aegean-background: var(--palette-sea-aegean-primary);
+    --color-sea-aegean-deep: var(--palette-sea-aegean-deep);
+    --color-sea-aegean-secondary: var(--palette-sea-aegean-secondary);
+    --color-sea-aegean-accent: var(--palette-sea-aegean-accent);
+    --color-sea-on-background: var(--palette-neutral-0);
     --color-glass-surface: color-mix(
       in srgb,
       var(--palette-neutral-0) 64%,
@@ -20,6 +29,7 @@
     --color-map-coast: var(--palette-neutral-300);
     --color-map-grid: var(--palette-sea-800);
     --color-map-label: var(--palette-neutral-600);
+    --color-map-study-boundary: var(--color-secondary-ink);
     --color-background: var(--palette-neutral-50);
     --color-surface: var(--palette-neutral-0);
     --color-surface-muted: var(--palette-neutral-100);

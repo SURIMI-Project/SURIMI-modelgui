@@ -1,5 +1,31 @@
 # Case-study map changelog
 
+## 2026-11-06 — One orange for all study boundaries
+
+User confirmed every study boundary should use the Aegean orange. Added shared light semantic token `--color-map-study-boundary` (alias of `--color-secondary-ink`) and use it for all overlay outlines, glows and fills. Case marker accents and distinct sea backgrounds remain unchanged. Updated feature README, T02 and platform changelog.
+
+**Verified:** browser checks confirm both boundary outlines resolve to the same `#9e4919`, original glow remains, and both new water colours remain intact. Build passes; full lint retains 18 existing errors/5 warnings. No backend or dependency changes.
+
+## 2026-11-06 — Restore preferred warm boundaries
+
+User preferred the original orange/coral boundaries over white outlines. Restored original case accents and faint glow in `GeographicMap.tsx`; removed obsolete study-line/casing aliases from the map stylesheet. New marine/azure water palettes are unchanged.
+
+**Verified:** build passes; browser checks confirm Aegean orange (`--color-secondary-ink`), Northwestern coral/red (`--color-primary`), original glow and both new water backgrounds. Full lint retains 18 existing errors/5 warnings. No geometry, layout, backend or dependency changes. Updated feature README, platform changelog and T02.
+
+## 2026-11-06 — Distinct Northwestern and Aegean background palettes
+
+**User requested:** styling-only sea identities, using the supplied marine/azure colours and the existing token architecture. Preserve layout, content, typography and functionality; no dependencies or new ornaments.
+
+- Palette/light semantic files centralize both sea identities. `CaseStudyMap.module.css` scopes them to the two selected sea scenes; overview and Anchovy inherit their original palette. Removed the selected-sea ambient wash.
+- `GeographicMap.tsx` resolves scoped CSS colours for the existing GPU surface and static fallback. Boundary geometry is unchanged; an unblurred thin white line with dark casing replaces the decorative glow for contrast against water and land.
+- `water/AnimatedWaterLayer.ts` updates colours in place and blends during the existing 1.7-second camera transition. It reuses the capped scheduler, settles even when wave motion is paused, and applies colours immediately for reduced motion. No renderer, shader, perpetual loop, texture or dependency added. Scene dimensions, controls and destinations are unchanged.
+
+**Verified:** TypeScript/production build passes; all 26 network tests pass. Full lint remains at the existing 18 errors/5 warnings with no new errors in changed files. Controlled Chrome checks at desktop 1440×1000, tablet 1024×900 and mobile 390×844 confirm semantic colours, actual Northwestern water darker than Aegean, existing text readability, case switching, palette settling while paused, Resume, reduced motion, static fallback, overview/Bay restoration and no uncaught browser errors. Direct WebGL reads exclude the independent existing marker pulse from pause comparisons. Token contrast checks: heading on light surface 15.73:1, body 6.75:1, primary-button text 5.95:1, white outline against its dark casing 11.37:1 (Northwestern) and 5.42:1 (Aegean).
+
+**Limits:** no across-device performance benchmark or live simulation test; final colour acceptance remains with the user. No backend/protocol/deployment/CI/dependency changes; nothing committed. Updated both feature READMEs/changelogs, T02 and the platform changelog.
+
+**Deploy:** frontend rebuild only.
+
 ## 2026-11-06 — Wider overview, official Northwestern boundaries and full Bay illustration
 
 - `mock-data/caseMap.ts`, `GeographicMap.tsx`: removed country-name data/markers; widened overview bounds; load official GSA 06 + 07 on first Northwestern selection and fit the complete extent. Shared overlay handling hides each unselected case's geometry. Existing GSA 22 + 23 remains unchanged.

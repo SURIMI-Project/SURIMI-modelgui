@@ -31,7 +31,12 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     this.previousTime = performance.now();
     if (!document.hidden) this.map?.triggerRepaint();
   };
-  private readonly colours: Colours;
+  private colours: Colours;
+  private colourTransition?: {
+    from: Colours;
+    started: number;
+    duration: number;
+  };
   private readonly onAvailable: (available: boolean) => void;
   constructor(colours: Colours, onAvailable: (available: boolean) => void) {
     this.colours = colours;
@@ -44,6 +49,49 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     if (this.timer !== undefined) clearTimeout(this.timer);
     this.timer = undefined;
     this.map?.triggerRepaint();
+  }
+
+  setColours(colours: Colours, duration = 0) {
+    const keys = ["deep", "shallow", "reflection"] as const;
+    const unchanged = keys.every((key) =>
+      colours[key].every(
+        (channel, index) => channel === this.colours[key][index],
+      ),
+    );
+    if (unchanged && duration > 0) return;
+    const started = performance.now();
+    const from = this.sampleColours(started);
+    this.colours = colours;
+    this.colourTransition =
+      duration > 0 ? { from, started, duration } : undefined;
+    this.map?.triggerRepaint();
+  }
+
+  private sampleColours(now: number): Colours {
+    const transition = this.colourTransition;
+    if (!transition) return this.colours;
+    const progress = Math.min(
+      (now - transition.started) / transition.duration,
+      1,
+    );
+    if (progress === 1) {
+      this.colourTransition = undefined;
+      return this.colours;
+    }
+    const mix = (key: keyof Colours): [number, number, number] => {
+      const from = transition.from[key];
+      const target = this.colours[key];
+      return [
+        from[0] + (target[0] - from[0]) * progress,
+        from[1] + (target[1] - from[1]) * progress,
+        from[2] + (target[2] - from[2]) * progress,
+      ];
+    };
+    return {
+      deep: mix("deep"),
+      shallow: mix("shallow"),
+      reflection: mix("reflection"),
+    };
   }
 
   onAdd(map: LibreMap, context: GL) {
@@ -126,6 +174,7 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     if (!this.program || !this.vao || !this.map || !this.gl) return;
     const gl = context as WebGL2RenderingContext;
     const now = performance.now();
+    const colours = this.sampleColours(now);
     if (this.enabled && !document.hidden)
       this.elapsed += Math.min(now - this.previousTime, 100) / 1000;
     this.previousTime = now;
@@ -139,9 +188,9 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
       args.defaultProjectionData.mainMatrix,
     );
     gl.uniform1f(this.uniforms.u_time, this.elapsed);
-    gl.uniform3fv(this.uniforms.u_deep, this.colours.deep);
-    gl.uniform3fv(this.uniforms.u_shallow, this.colours.shallow);
-    gl.uniform3fv(this.uniforms.u_reflection, this.colours.reflection);
+    gl.uniform3fv(this.uniforms.u_deep, colours.deep);
+    gl.uniform3fv(this.uniforms.u_shallow, colours.shallow);
+    gl.uniform3fv(this.uniforms.u_reflection, colours.reflection);
     const pitch = (this.map.getPitch() * Math.PI) / 180;
     const bearing = (this.map.getBearing() * Math.PI) / 180;
     gl.uniform3f(
@@ -153,7 +202,11 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindVertexArray(previousVao);
     gl.useProgram(previousProgram);
-    if (this.enabled && !document.hidden && this.timer === undefined) {
+    if (
+      (this.enabled || this.colourTransition) &&
+      !document.hidden &&
+      this.timer === undefined
+    ) {
       this.timer = setTimeout(() => {
         this.timer = undefined;
         this.map?.triggerRepaint();

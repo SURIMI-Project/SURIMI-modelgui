@@ -1,5 +1,13 @@
 @layer tokens {
   :root {
+    --palette-sea-nw-primary: #1e5b84;
+    --palette-sea-nw-deep: #123d5c;
+    --palette-sea-nw-secondary: #2e6f97;
+    --palette-sea-nw-accent: #83b8d0;
+    --palette-sea-aegean-primary: #2e86b7;
+    --palette-sea-aegean-deep: #1f6fa5;
+    --palette-sea-aegean-secondary: #6ec4d6;
+    --palette-sea-aegean-accent: #b0e3e9;
     --palette-sea-100: #c5e4e5;
     --palette-sea-400: #79b6c3;
     --palette-sea-600: #448b9f;

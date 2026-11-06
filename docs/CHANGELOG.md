@@ -21,6 +21,12 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-06
 
+### Design — Distinct sea background identities
+
+Selected Northwestern Mediterranean now uses muted deep marine blue; Aegean uses brighter azure with restrained turquoise. Reusable palette/semantic tokens drive both the existing animated water and its static fallback. All study boundaries share the user-preferred Aegean orange and subtle glow; light cards, typography, layout, controls, overview and Anchovy remain intact. See [case-study map](features/case-study-map/CHANGELOG.md).
+
+> **Deploying this:** frontend rebuild only. No new dependency or configuration.
+
 ### Fix — Map framing, Northwestern boundaries and Anchovy illustration
 
 Removed country labels, widened the overview, equalized selector widths and moved the Anchovy inset to the bottom right. Northwestern selection shows official GSA 06 + 07 polygons. The complete Anchovy illustration fits upright over visible animated water; pause/resume and reduced motion remain available. See [case-study map](features/case-study-map/CHANGELOG.md).
