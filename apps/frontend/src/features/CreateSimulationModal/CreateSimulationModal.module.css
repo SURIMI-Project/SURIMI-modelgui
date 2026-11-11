@@ -1,0 +1,24 @@
+@layer components {
+.root { display: grid; gap: 24px; color: var(--color-text); }
+.progress { display: flex; padding: 0; margin: 0; list-style: none; gap: 24px; border-bottom: 1px solid var(--color-border); padding-bottom: 20px; }
+.progress li { display: flex; align-items: center; gap: 8px; color: var(--color-text-muted); font-size: 13px; }
+.progress li[aria-current] { color: var(--color-primary); font-weight: 600; }
+.progress span { display: grid; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; width: 28px; height: 28px; }
+.progress li[aria-current] span { background: var(--color-primary-surface); border-color: var(--color-primary); }
+.heading h2 { margin: 6px 0 8px; font-size: 24px; }
+.heading p { margin: 0; color: var(--color-text-muted); }
+.heading .eyebrow { font-size: 12px; font-weight: 600; color: var(--color-primary); }
+.settings { display: grid; gap: 28px; }
+.settings small { display: block; color: var(--color-text-muted); margin-top: 4px; }
+.review { margin: 0; display: grid; gap: 0; }
+.review div { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--color-border); }
+.review dt { color: var(--color-text-muted); }
+.review dd { margin: 0; font-weight: 600; }
+.notice { padding: 14px 16px; background: var(--color-surface-muted); border-radius: 8px; font-size: 13px; margin: 0; color: var(--color-text-muted); }
+.footer { display: flex; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px solid var(--color-border); }
+.inputs, .editorBody, .inputsEditor { min-width: 0; }
+.stepContent { display: grid; gap: 20px; }
+.chartPanel, .tablePanel { min-width: 0; border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; background: var(--color-surface); }
+.chartSurface { height: 300px; }
+@media (max-width: 600px) { .progress { gap: 12px; } .progress li { font-size: 11px; flex-direction: column; align-items: start; } .review div { grid-template-columns: 1fr; gap: 6px; } .chartSurface { height: 240px; } }
+}

@@ -61,6 +61,12 @@ export const overviewBounds: [[number, number], [number, number]] = [
   [32, 46.5],
 ];
 
+// Fixed desktop overview matching the broader Mediterranean composition.
+export const overviewDesktopBounds: [[number, number], [number, number]] = [
+  [-14, 28],
+  [40, 50],
+];
+
 // Official FAO/GFCM source geometry lives in public/maps; this is presentation configuration.
 export const aegeanStudyArea = {
   asset: "/maps/aegean-gsa-22-23.geojson",

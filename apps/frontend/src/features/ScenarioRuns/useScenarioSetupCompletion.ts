@@ -14,7 +14,7 @@ export const useScenarioSetupCompletion = ({
   const navigate = useNavigate();
   const completeScenarioSetup = () => {
     onSetupStarted?.();
-    navigate(`/scenario-runs/${caseId}`);
+    navigate(`/scenario-runs?case=${caseId}`);
   };
   return { completeScenarioSetup };
 };

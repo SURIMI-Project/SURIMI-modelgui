@@ -1,9 +1,11 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { FiX } from "react-icons/fi";
 import { createPortal } from "react-dom";
+import Modal from "../ui/Modal/Modal";
 import styles from "./PrimaryModal.module.css";
 
 type PrimaryModalProps = {
+  appearance?: "legacy" | "theme";
   opened: boolean;
   onClose: () => void;
   title?: ReactNode;
@@ -21,7 +23,7 @@ type PrimaryModalProps = {
   bodyClassName?: string;
 };
 
-const PrimaryModal = ({
+const LegacyPrimaryModal = ({
   opened,
   onClose,
   title,
@@ -163,5 +165,9 @@ const PrimaryModal = ({
 
   return modalNode;
 };
+
+// Explicit theme migration keeps existing case/setup screens compatible while they are refactored.
+const PrimaryModal = ({ appearance = "legacy", ...props }: PrimaryModalProps) =>
+  appearance === "theme" ? <Modal {...props} /> : <LegacyPrimaryModal {...props} />;
 
 export default PrimaryModal;

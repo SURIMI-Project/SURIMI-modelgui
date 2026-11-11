@@ -3,6 +3,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiArrowUpRight, FiPlus } from "react-icons/fi";
 import Logo from "../../components/Logo/Logo";
+import { SheetTrigger } from "react-aria-components/Sheet";
+import Sheet from "../../components/ui/Sheet/Sheet";
+import Modal from "../../components/ui/Modal/Modal";
+import FloatingActionButton from "../../components/ui/FloatingActionButton/FloatingActionButton";
 import Button from "../../components/ui/Button/Button";
 import Input from "../../components/ui/Input/Input";
 import Select from "../../components/ui/Select/Select";
@@ -141,9 +145,19 @@ function ThemePreview() {
   );
 }
 function UiPreview() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [floatingVisible, setFloatingVisible] = useState(false);
   const [selected, setSelected] = useState<string>("aegean");
   return (
     <div className={styles.sections}>
+      <section>
+        <div className={styles.sectionHeading}><h2>Dialogs and floating actions</h2><p>Theme tokens, keyboard focus management and a persistent primary action.</p></div>
+        <Card><Button onPress={() => setDialogOpen(true)}>Open themed dialog</Button> <SheetTrigger isOpen={sheetOpen} onOpenChange={setSheetOpen}><Button variant="primary-outlined">Open bottom sheet</Button><Sheet onClose={() => setSheetOpen(false)} title="A SURIMI bottom sheet"><p>Swipe down, press Escape, or use the close button to dismiss this wide, accessible sheet.</p></Sheet></SheetTrigger> <Button variant="primary-outlined" onPress={() => setFloatingVisible(value => !value)}>{floatingVisible ? "Hide" : "Preview"} floating action</Button></Card>
+        {floatingVisible ? <FloatingActionButton icon={<FiPlus aria-hidden="true" />} onPress={() => setDialogOpen(true)}>Set up scenario</FloatingActionButton> : null}
+        <Modal opened={dialogOpen} onClose={() => setDialogOpen(false)} title="A themed dialog" size="min(640px, 94vw)"><p>Dialogs use shared SURIMI surfaces, type, spacing and buttons. Tab stays inside the dialog; Escape closes it and returns focus to the trigger.</p><Button onPress={() => setDialogOpen(false)}>Done</Button></Modal>
+      </section>
+
       <section>
         <div className={styles.sectionHeading}>
           <span>01</span>

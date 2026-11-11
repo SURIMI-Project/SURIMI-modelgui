@@ -1,10 +1,12 @@
+import { SheetTrigger } from "react-aria-components/Sheet";
 import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
+import FloatingActionButton from "../../../../components/ui/FloatingActionButton/FloatingActionButton";
 import Button from "../../../../components/ui/Button/Button";
 import UseCaseSelector from "../../../../components/presentational/UseCaseSelector/UseCaseSelector";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, useNavigate, useMatch, useSearchParams } from "react-router-dom";
-import { FiArrowLeft, FiArrowRight, FiCompass, FiGrid, FiBookOpen, FiLayers, FiList, FiPlay } from "react-icons/fi";
+import { Link, Outlet, useLocation, useNavigate, useMatch, useSearchParams } from "react-router-dom";
+import { FiArrowRight, FiCompass, FiGrid, FiBookOpen, FiLayers, FiList, FiPlay } from "react-icons/fi";
 import {
   aegeanStudyArea,
   northwesternStudyArea,
@@ -21,8 +23,7 @@ import type { ScenariosResponse } from "../../../../network/services/scenarios/s
 import { normalizeSimulationCaseId } from "../../../../data/simulationCases";
 import { getScenarioWorldConfig } from "../../../../constants/scenarioWorldConfig";
 import ScenarioInfoModal from "../../../../components/ScenarioInfoModal/ScenarioInfoModal";
-import ScenarioModelFlowGraph from "../../../../components/ScenarioInfoModal/ScenarioModelFlowGraph";
-import { aegeanPlaceholderContent } from "../../../../../mock-data/content/aegeanIntroduction";
+import AegeanModelsSheet from "./models/AegeanModelsSheet";
 import GeographicMap from "./GeographicMap";
 import { scenarioWorldContent } from "../../../../../mock-data/content/caseIntroductions";
 import styles from "./CaseStudyMap.module.css";
@@ -37,14 +38,17 @@ export type AvailabilityState = {
 type Props = { scenarios: ScenariosResponse; status?: ReactNode; availability?: AvailabilityState };
 const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
   const navigate = useNavigate();
+  const listView = useLocation().pathname.startsWith("/scenario-runs");
   const preview = useRef<HTMLElement>(null);
   const selector = useRef<HTMLElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const match = useMatch("/scenario/:caseId");
   const selection = normalizeSimulationCaseId(match?.params.caseId);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterCase = normalizeSimulationCaseId(searchParams.get("case"));
   const modelsView = searchParams.get("view") === "models";
   const [setupOpen, setSetupOpen] = useState(false);
+  const [hovered, setHovered] = useState<SimulationCaseId | null>(null);
   const available = useMemo(
     () =>
       new Set(
@@ -60,13 +64,17 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
   );
   const selected = selection;
   const worldConfig = getScenarioWorldConfig(selected ?? "aegean-sea");
-  const InputsFlow = worldConfig.InputsFlowComponent;
+  const InputsFlow = worldConfig.CreateSimulationModalComponent;
   const place = selected ? caseMapPlaces[selected] : null;
   const select = useCallback(
     (id: SimulationCaseId) => {
-      if (available.has(id)) navigate(`/scenario/${id}`);
+      if (listView) {
+        const next = new URLSearchParams(searchParams);
+        next.set("case", id);
+        setSearchParams(next);
+      } else if (available.has(id)) navigate(`/scenario/${id}`);
     },
-    [available, navigate],
+    [available, navigate, listView, searchParams, setSearchParams],
   );
   const transition = {
     duration: reducedMotion ? 0 : 0.65,
@@ -79,21 +87,21 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
       : selected === "northwestern-mediterranean"
         ? northwesternStudyArea
         : null;
-  const backToOverview = () => {
-    navigate("/scenarios");
-    selector.current
-      ?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')
-      ?.focus({ preventScroll: true });
-  };
+
 
   return (
     <main
       className={styles.page}
       data-selected={selected ?? "overview"}
+      data-list={listView || undefined}
       data-bay={selected === "anchovy-bay"}
+      data-hovered={hovered ?? undefined}
     >
       <div className={styles.sceneContent} data-loading={availability?.pending || undefined} inert={Boolean(availability)} aria-hidden={availability ? true : undefined} aria-busy={availability?.pending || undefined}>
       <GeographicMap
+        backgroundOnly={listView}
+        hovered={listView ? null : hovered}
+        onHover={setHovered}
         selected={selected}
         available={available}
         onSelect={select}
@@ -110,14 +118,17 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
       <div className={styles.scrim} aria-hidden="true" />
 
       <header className={styles.header}>
-        <div className={styles.brand}>
+        <Link to="/scenarios" className={styles.brand} aria-label="SURIMI Model Explorer · All scenarios">
           <Logo className={styles.logo} />
           <div>
             <span>SURIMI</span>
             <small>MODEL EXPLORER</small>
           </div>
-        </div>
+        </Link>
         <div className={styles.headerActions}>
+          <Link to="/scenario-runs" aria-current={listView ? "page" : undefined}>
+            <FiList aria-hidden="true" /><span>Scenario runs</span>
+          </Link>
           <Link to="/design-system" aria-label="Open design system">
             <FiGrid />
             <span>Design system</span>
@@ -126,7 +137,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
         </div>
       </header>
 
-      <AnimatePresence mode="wait">
+      {listView ? <motion.div className={styles.runsWorkspace} initial={{ opacity: 0, y: reducedMotion ? 0 : 16 }} animate={{ opacity: 1, y: 0 }} transition={transition}><Outlet /></motion.div> : <AnimatePresence mode="wait">
         {!selected ? (
           <motion.section
             key="overview"
@@ -171,31 +182,29 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             exit={{ opacity: 0, x: -12 }}
             transition={transition}
           >
-            <AnimatePresence mode="wait" initial={false}>
-            {selected === "aegean-sea" && modelsView ? (
-              <motion.section key="models" className={styles.modelsPanel} aria-labelledby="selected-case-title" initial={{ opacity: 0, x: reducedMotion ? 0 : -48 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reducedMotion ? 0 : -24 }} transition={transition}>
-                <div className={styles.modelsIllustration}>
-                  <p className={styles.eyebrow}>Aegean Sea · Modelling framework</p>
-                  <h1 id="selected-case-title">{aegeanPlaceholderContent.title}</h1>
-                  <p>{aegeanPlaceholderContent.subtitle}</p>
-                  <img src={aegeanPlaceholderContent.imageSrc} alt={aegeanPlaceholderContent.imageAlt} />
-                </div>
-                <div className={styles.modelsGraph}>
-                  <h2>About the models behind</h2>
-                  <p>Select a model to explore its role and connections.</p>
-                  <ScenarioModelFlowGraph caseId="aegean-sea" />
-                </div>
-              </motion.section>
-            ) : (
+            {selected === "aegean-sea" ? <>
+              <section className={styles.caseInformation} aria-labelledby="selected-case-title">
+                <p className={styles.eyebrow}>Marine case study · GSA 22 + 23</p>
+                <h1 id="selected-case-title">{scenarioWorldContent["aegean-sea"].worldTitle}</h1>
+                <h2>{scenarioWorldContent["aegean-sea"].aboutTitle}</h2>
+                {scenarioWorldContent["aegean-sea"].description.map(paragraph => <p key={paragraph} className={styles.caseParagraph}>{paragraph}</p>)}
+              </section>
+              <nav className={styles.aegeanQuickActions} aria-label="Aegean Sea actions">
+                <SheetTrigger isOpen={modelsView && !availability} onOpenChange={open => navigate(`/scenario/${selected}${open ? "?view=models" : ""}`, { replace: !open })}>
+                  <Button variant="primary-outlined" size="sm"><FiLayers aria-hidden="true" />About the models</Button>
+                  <AegeanModelsSheet onClose={() => navigate(`/scenario/${selected}`, { replace: true })} />
+                </SheetTrigger>
+                <Button variant="primary-outlined" size="sm" onPress={() => navigate(`/scenario-runs?case=${selected}`)}><FiList aria-hidden="true" />Scenario list</Button>
+              </nav>
+            </> : (
             <motion.section key="case-study" initial={{ opacity: 0, x: reducedMotion ? 0 : -32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reducedMotion ? 0 : -24 }} transition={transition} className={styles.caseInformation} aria-labelledby="selected-case-title">
-              <p className={styles.eyebrow}>{selected === "anchovy-bay" ? "Fictional educational case study" : selected === "aegean-sea" ? "Marine case study · GSA 22 + 23" : "Marine case study · GSA 06 + 07"}</p>
+              <p className={styles.eyebrow}>{selected === "anchovy-bay" ? "Fictional educational case study" : "Marine case study · GSA 06 + 07"}</p>
               <h1 id="selected-case-title">{scenarioWorldContent[selected!].worldTitle}</h1>
               <h2>{scenarioWorldContent[selected!].aboutTitle}</h2>
               {scenarioWorldContent[selected!].description.map((paragraph) => <p key={paragraph} className={styles.caseParagraph}>{paragraph}</p>)}
             </motion.section>
             )}
-            </AnimatePresence>
-            {immersive ? (
+            {immersive && selected !== "aegean-sea" ? (
               <motion.nav
                 className={styles.seaActions}
                 aria-label={`${place.title} actions`}
@@ -209,7 +218,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
                 {[
                   { title: "About the case study", icon: FiBookOpen, path: `/scenario/${selected}`, action: "study" },
                   { title: "About the models", icon: FiLayers, path: `/scenario/${selected}`, action: "models" },
-                  { title: "Scenario list", icon: FiList, path: `/scenario-runs/${selected}`, action: undefined },
+                  { title: "Scenario list", icon: FiList, path: `/scenario-runs?case=${selected}`, action: undefined },
                   { title: "Set up scenario", icon: FiPlay, path: `/scenario/${selected}`, action: "setup" },
                 ].map((action) => (
                   <motion.div key={action.title} variants={{ hidden: { opacity: 0, x: reducedMotion ? 0 : 64 }, visible: { opacity: 1, x: 0 } }} transition={transition}>
@@ -228,42 +237,44 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             ) : null}
           </motion.section>
         ) : null}
-      </AnimatePresence>
+      </AnimatePresence>}
 
-      {!selected ? (
+      {!listView && !selected ? (
         <Button
           variant="secondary-outlined"
           className={styles.bayInset}
           aria-label="Preview Anchovy Bay"
           isDisabled={!available.has("anchovy-bay")}
+          onHoverStart={() => setHovered("anchovy-bay")}
+          onHoverEnd={() => setHovered(null)}
+          onFocus={() => setHovered("anchovy-bay")}
+          onBlur={() => setHovered(null)}
           onPress={() => select("anchovy-bay")}
         >
-          <img
-            src={caseMapContent.bayImage}
-            alt="Illustration of the educational Anchovy Bay"
-          />
+          <img src={caseMapContent.bayImage} alt="Illustration of the educational Anchovy Bay" />
           <span className={styles.insetCategory}>EDUCATIONAL WATERS</span>
-          <span className={styles.insetTitle}>
-            <span className={styles.insetDot} />
-            Anchovy Bay
-            <FiArrowRight />
-          </span>
+          <span className={styles.insetTitle}><span className={styles.insetDot} />Anchovy Bay</span>
         </Button>
       ) : null}
 
       <div className={styles.selectorPosition}>
-        {selected ? <Button variant="primary-outlined" size="sm" className={styles.overviewReturn} onPress={backToOverview}><FiArrowLeft /> Back to overview</Button> : null}
         <UseCaseSelector
           ref={selector}
-          options={simulationCaseStudies.map((item) => ({
+          actionLabel={listView ? "Filter by" : "Preview"}
+          options={[...(listView ? [{ id: "all", title: "All use cases", available: true }] : []), ...simulationCaseStudies.map((item) => ({
             id: item.id,
             title: caseMapPlaces[item.id].title,
-            available: available.has(item.id),
-          }))}
-          selectedId={selected}
-          onSelect={select}
+            available: listView || available.has(item.id),
+          }))]}
+          selectedId={listView ? filterCase ?? "all" : selected}
+          onSelect={id => {
+            if (id === "all") { const next = new URLSearchParams(searchParams); next.delete("case"); setSearchParams(next); }
+            else { const normalized = normalizeSimulationCaseId(id); if (normalized) select(normalized); }
+          }}
+          hoveredId={hovered}
+          onHover={id => setHovered(normalizeSimulationCaseId(id))}
         />
-        {!availability && available.size === 0 ? (
+        {!listView && !availability && available.size === 0 ? (
           <p className={styles.empty} role="status">
             No case studies are currently available.
           </p>
@@ -290,7 +301,8 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
         ) : null}
       </footer>
       </div>
-      {selected && InputsFlow ? <InputsFlow key={selected} isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => { setSetupOpen(false); navigate(`/scenario-runs/${selected}`); }} /> : null}
+      {selected === "aegean-sea" ? <FloatingActionButton icon={<FiPlay aria-hidden="true" />} isDisabled={Boolean(availability) || !available.has(selected)} onPress={() => setSetupOpen(true)}>Set up scenario</FloatingActionButton> : null}
+      {selected && InputsFlow ? <InputsFlow key={selected} isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => { setSetupOpen(false); navigate(`/scenario-runs?case=${selected}`); }} /> : null}
       {selected && selected !== "aegean-sea" ? <ScenarioInfoModal opened={modelsView} onClose={() => navigate(`/scenario/${selected}`)} caseId={selected} title={worldConfig.infoModalTitle} /> : null}
       <AnimatePresence>
         {availability ? (

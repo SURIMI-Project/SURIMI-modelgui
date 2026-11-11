@@ -1,15 +1,15 @@
 import type { ComponentType } from "react";
-import type { SelectableCardOption } from "../../../../components/SelectableCards/SelectableCards";
-import type { ScenarioRunInputDraft } from "../../../ScenarioRuns/types";
-import type { SpeciesInputPreset } from "../../anchovyBay/components/AnchovyInputsFlow/types";
+import type { SelectableCardOption } from "../../components/SelectableCards/SelectableCards";
+import type { ScenarioRunInputDraft } from "../ScenarioRuns/types";
+import type { SpeciesInputPreset } from "./components/HarvestControlInputs/types";
 
-export type ScenarioInputsFlowProps = {
+export type CreateSimulationModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onComplete?: (draft: ScenarioRunInputDraft) => void;
 };
 
-export type ScenarioInputsFlowStep = {
+export type CreateSimulationModalStep = {
   key: string;
   title: string;
   subtitle: string;
@@ -28,12 +28,12 @@ export type ScenarioInputsStepOneComponentProps = {
   speciesInputs: readonly SpeciesInputPreset[];
 };
 
-export type ScenarioInputsFlowConfig = {
+export type CreateSimulationModalConfig = {
   modalTitle: string;
   steps: readonly [
-    ScenarioInputsFlowStep,
-    ScenarioInputsFlowStep,
-    ScenarioInputsFlowStep,
+    CreateSimulationModalStep,
+    CreateSimulationModalStep,
+    CreateSimulationModalStep,
   ];
   speciesInputs: readonly SpeciesInputPreset[];
   stepOneInfo: ScenarioInputsInfoContent;

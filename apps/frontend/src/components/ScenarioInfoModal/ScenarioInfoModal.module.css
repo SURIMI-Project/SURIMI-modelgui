@@ -439,3 +439,76 @@
     scrollbar-width: thin;
   }
 }
+@layer components {
+  .graphFrameTheme { background:var(--color-surface-muted); border:var(--border-default); border-radius:var(--radius-lg); padding:var(--spacing-md); }
+  .graphFrameTheme .edge { stroke:var(--color-text-muted); }
+  .graphFrameTheme .arrowHead { fill:var(--color-text-muted); }
+  .graphFrameTheme .edgeLabel, .graphFrameTheme .edgeLabelMuted { fill:var(--color-text-muted); text-shadow:none; }
+}
+@layer components {
+  .graphFrameTheme .hoverCard { background:var(--color-surface); border:var(--border-default); color:var(--color-text); box-shadow:var(--shadow-lg); }
+  .graphFrameTheme .hoverCardTitle, .graphFrameTheme .hoverCardText, .graphFrameTheme .hoverCardReferenceTitle { color:var(--color-text); text-shadow:none; }
+  .graphFrameTheme .hoverCardReferences { color:var(--color-text-muted); }
+  .graphFrameTheme .hoverCardReferenceLink { color:var(--color-primary); }
+  .graphFrameTheme .hoverCardClose { color:var(--color-text); border:var(--border-default); background:var(--color-surface-muted); }
+}
+@layer components {
+  .graphFrameTheme .edgeLabel, .graphFrameTheme .edgeLabelMuted { filter:none; }
+  .graphFrameTheme .nodeGroup:focus-visible .nodeRect, .graphFrameTheme .nodeRectActive { stroke:var(--color-primary); filter:none; }
+  .graphFrameTheme .hoverCard { position:relative; inset:auto; max-height:none; overflow:visible; margin-top:var(--spacing-lg); backdrop-filter:none; animation:none; }
+  .graphFrameTheme .hoverCard::before { display:none; }
+  .graphFrameTheme .hoverCardKicker { color:var(--color-primary); }
+  .graphFrameTheme .hoverCardClose:hover, .graphFrameTheme .hoverCardClose:focus-visible { background:var(--color-surface-hover); color:var(--color-text); border-color:var(--color-primary); }
+  @media(prefers-reduced-motion:reduce) { .graphFrameTheme .nodeRect { transition:none; } }
+}
+@layer components {
+  .graphFrameTheme .nodeTitle, .graphFrameTheme .nodeSubtitle { fill:var(--color-text); filter:none; }
+  .graphFrameTheme .nodeShadow { fill:rgb(0 0 0 / 8%); transform:translateY(2px); }
+}
+@layer components {
+  .graphFrameSide { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr); gap:var(--spacing-xl); align-items:start; background:var(--color-surface); border:0; padding:0; overflow:visible; }
+  .graphFrameSide .graphSvg { background:var(--color-surface-muted); border:var(--border-default); border-radius:var(--radius-md); padding:var(--spacing-sm); }
+  .graphFrameSide .hoverCard { position:relative; inset:auto; margin:0; max-height:none; overflow:visible; animation:none; }
+  .graphDetailPlaceholder { border:var(--border-default); border-radius:var(--radius-md); padding:var(--spacing-lg); color:var(--color-text-muted); min-height:12rem; }
+  .graphDetailPlaceholder h3 { color:var(--color-text); font-size:var(--font-size-lg); margin-bottom:var(--spacing-md); }
+  .graphDetailPlaceholder p { line-height:1.7; }
+  @media(max-width:47.4375rem) { .graphFrameSide { grid-template-columns:1fr; } }
+}
+@layer components {
+  .graphFrameSide { width:100%; }
+  .graphFrameSide .graphSvg { position:sticky; top:4rem; }
+  @media(max-width:47.4375rem) { .graphFrameSide .graphSvg { position:static; } }
+}
+@layer components {
+  .graphFrameSide { grid-template-columns:minmax(0, 2fr) minmax(300px, 1fr); gap:var(--spacing-lg); }
+  .graphFrameSide .nodeTitle { font-size:21px; }
+  .graphFrameSide .nodeSubtitle { font-size:12.5px; }
+  .graphFrameSide .edgeLabel, .graphFrameSide .edgeLabelMuted { font-size:14px; }
+  .graphFrameSide .graphSvg { top:4rem; }
+  .graphDetailPlaceholder { min-height:20rem; background:var(--color-surface-muted); }
+  @media(max-width:47.4375rem) { .graphFrameSide { grid-template-columns:1fr; } .graphDetailPlaceholder { min-height:10rem; } }
+}
+@layer components {
+  .graphFrameSide .graphDetailPlaceholder { align-self:stretch; display:flex; flex-direction:column; justify-content:center; }
+  .graphFrameTheme .hoverCardReferences li { color:var(--color-text-muted); }
+}
+@layer components {
+  .graphFrameSide { height:100%; min-height:0; align-items:stretch; overflow:hidden; }
+  .graphFrameSide .graphSvg { position:static; width:100%; height:100%; min-height:0; max-height:100%; align-self:stretch; }
+  .graphFrameSide .hoverCard { height:100%; min-height:0; max-height:100%; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; }
+  .graphFrameSide .graphDetailPlaceholder { min-height:0; overflow:auto; }
+  @media(max-width:47.4375rem) {
+    .graphFrameSide { grid-template-rows:minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  }
+}
+@layer components {
+  .graphFrameSide { grid-template-columns:minmax(0, 1fr) minmax(0, 0fr); column-gap:0; transition:grid-template-columns 280ms ease, column-gap 280ms ease; }
+  .graphFrameSide[data-has-detail="true"] { grid-template-columns:minmax(0, 2fr) minmax(0, 1fr); column-gap:var(--spacing-lg); }
+  .graphFrameSide .hoverCard { min-width:0; animation:modelDetailReveal 260ms ease both; }
+  @keyframes modelDetailReveal { from { opacity:0; transform:translateX(2rem); } to { opacity:1; transform:translateX(0); } }
+  @media(max-width:47.4375rem) {
+    .graphFrameSide { grid-template-columns:minmax(0, 1fr); grid-template-rows:minmax(0, 1fr); }
+    .graphFrameSide[data-has-detail="true"] { grid-template-columns:minmax(0, 1fr); grid-template-rows:minmax(0, 0.9fr) minmax(0, 1.1fr); row-gap:var(--spacing-md); column-gap:0; }
+  }
+  @media(prefers-reduced-motion:reduce) { .graphFrameSide { transition:none; } .graphFrameSide .hoverCard { animation:none; } }
+}

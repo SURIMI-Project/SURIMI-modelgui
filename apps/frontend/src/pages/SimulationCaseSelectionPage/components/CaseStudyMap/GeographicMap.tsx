@@ -1,3 +1,6 @@
+import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
+import MarineCaseIdentity from "./MarineCaseIdentity";
 import AnimatedWaterLayer from "./water/AnimatedWaterLayer";
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map as LibreMap } from "maplibre-gl";
@@ -8,15 +11,19 @@ import {
   caseMapPlaces,
   northwesternStudyArea,
   overviewBounds,
+  overviewDesktopBounds,
 } from "../../../../../mock-data/caseMap";
 import type { SimulationCaseId } from "../../../../data/simulationCases";
 import styles from "./CaseStudyMap.module.css";
 
 type Props = {
+  backgroundOnly?: boolean;
   selected: SimulationCaseId | null;
   available: ReadonlySet<SimulationCaseId>;
   reducedMotion: boolean;
   onSelect: (id: SimulationCaseId) => void;
+  hovered: SimulationCaseId | null;
+  onHover: (id: SimulationCaseId | null) => void;
 };
 
 const themeColour = (
@@ -115,7 +122,7 @@ const moveCamera = (
   if (selected === "anchovy-bay") return;
   if (!place?.location) {
     map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
-    map.fitBounds(overviewBounds, {
+    map.fitBounds(mobile ? overviewBounds : overviewDesktopBounds, {
       duration,
       pitch: 0,
       bearing: 0,
@@ -124,7 +131,7 @@ const moveCamera = (
         : {
             top: 130,
             bottom: 150,
-            left: Math.min(width * 0.22, 300),
+            left: Math.min(width * 0.15, 160),
             right: 110,
           },
     });
@@ -205,6 +212,21 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
         },
         "land",
       );
+      // A decorative elevated surface provides depth without scaling the source geometry.
+      map.addLayer({
+        id: `${prefix}-study-lift`,
+        type: "fill-extrusion",
+        source,
+        paint: {
+          "fill-extrusion-color": "#ffc778",
+          "fill-extrusion-height": 0,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-opacity": 0,
+          "fill-extrusion-height-transition": { duration: 220 },
+          "fill-extrusion-opacity-transition": { duration: 220 },
+          "fill-extrusion-vertical-gradient": true,
+        },
+      });
       map.addLayer({
         id: `${prefix}-study-glow`,
         type: "line",
@@ -227,7 +249,7 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
         },
       });
     }
-    for (const suffix of ["fill", "glow", "outline"]) {
+    for (const suffix of ["fill", "lift", "glow", "outline"]) {
       const id = `${prefix}-study-${suffix}`;
       if (map.getLayer(id))
         map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
@@ -248,12 +270,12 @@ const GeographicMap = (props: Props) => {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const { selected, available, reducedMotion, onSelect } = props;
+  const { selected, available, reducedMotion, onSelect, hovered, onHover, backgroundOnly } = props;
   useEffect(() => {
-    current.current = { selected, available, reducedMotion, onSelect };
+    current.current = { ...current.current, selected, available, reducedMotion, onSelect, onHover, backgroundOnly };
     for (const [id, button] of buttons.current) {
       const dimmed = Boolean(selected && selected !== id);
-      button.hidden = selected !== null;
+      button.hidden = Boolean(backgroundOnly) || selected !== null;
       button.disabled = !available.has(id) || selected === "anchovy-bay";
       button.tabIndex = dimmed || button.disabled ? -1 : 0;
       button.dataset.dimmed = String(dimmed);
@@ -307,11 +329,30 @@ const GeographicMap = (props: Props) => {
       fadeIn?.cancel();
       switchingScene.current = false;
     };
-  }, [selected, available, reducedMotion, onSelect]);
+  }, [selected, available, reducedMotion, onSelect, onHover, backgroundOnly]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    for (const [id, button] of buttons.current) button.setAttribute("data-hovered", String(hovered === id));
+    if (!map || !ready) return;
+    for (const { caseId, prefix } of studyAreas) {
+      const active = !selected && hovered === caseId;
+      if (map.getLayer(`${prefix}-study-fill`)) map.setPaintProperty(`${prefix}-study-fill`, "fill-opacity", active ? 0.2 : 0.065);
+      if (map.getLayer(`${prefix}-study-lift`)) {
+        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-height-transition", { duration: reducedMotion ? 0 : 220 });
+        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-opacity-transition", { duration: reducedMotion ? 0 : 220 });
+        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-height", active && !reducedMotion ? 45000 : 0);
+        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-opacity", active && !reducedMotion ? 0.16 : 0);
+      }
+      if (map.getLayer(`${prefix}-study-glow`)) map.setPaintProperty(`${prefix}-study-glow`, "line-opacity", active ? 0.58 : caseId === "aegean-sea" ? 0.32 : 0.48);
+      if (map.getLayer(`${prefix}-study-outline`)) map.setPaintProperty(`${prefix}-study-outline`, "line-width", active ? 2.8 : caseId === "aegean-sea" ? 1.8 : 2.4);
+    }
+  }, [hovered, selected, ready, reducedMotion]);
 
   useEffect(() => {
     let disposed = false;
     const markers: maplibregl.Marker[] = [];
+    const cardRoots: Root[] = [];
     let observer: ResizeObserver | undefined;
     // Give React's surrounding UI its first paint before initializing WebGL.
     const frame = requestAnimationFrame(() => {
@@ -324,6 +365,12 @@ const GeographicMap = (props: Props) => {
           minZoom: 2,
           maxZoom: 8,
           interactive: true,
+          dragPan: false,
+          scrollZoom: false,
+          boxZoom: false,
+          doubleClickZoom: false,
+          keyboard: false,
+          touchZoomRotate: false,
           dragRotate: false,
           pitchWithRotate: false,
           touchPitch: false,
@@ -448,7 +495,7 @@ const GeographicMap = (props: Props) => {
           const dimmed = Boolean(
             current.current.selected && current.current.selected !== caseId,
           );
-          button.hidden = current.current.selected !== null;
+          button.hidden = Boolean(current.current.backgroundOnly) || current.current.selected !== null;
           button.disabled =
             !current.current.available.has(caseId) ||
             current.current.selected === "anchovy-bay";
@@ -457,18 +504,21 @@ const GeographicMap = (props: Props) => {
           button.dataset.selected = String(current.current.selected === caseId);
           const label = document.createElement("span");
           label.className = styles.markerLabel;
-          const title = document.createElement("strong");
-          title.textContent = place.title;
-          const subareas = document.createElement("small");
-          subareas.textContent = caseId === "aegean-sea" ? "GSA 22 + 23" : "GSA 06 + 07";
-          label.append(title, subareas);
+          const cardRoot = createRoot(label);
+          cardRoots.push(cardRoot);
+          cardRoot.render(createElement(MarineCaseIdentity, { caseId }));
+          button.addEventListener("mouseenter", () => current.current.onHover(caseId));
+          button.addEventListener("mouseleave", () => current.current.onHover(null));
+          button.addEventListener("focus", () => current.current.onHover(caseId));
+          button.addEventListener("blur", () => current.current.onHover(null));
           const dot = document.createElement("span");
           dot.className = styles.markerDot;
           dot.setAttribute("aria-hidden", "true");
           button.append(label, dot);
-          button.addEventListener("click", () =>
-            current.current.onSelect(caseId),
-          );
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            current.current.onSelect(caseId);
+          });
           buttons.current.set(caseId, button);
           markers.push(
             new maplibregl.Marker({
@@ -495,6 +545,7 @@ const GeographicMap = (props: Props) => {
       disposed = true;
       cancelAnimationFrame(frame);
       observer?.disconnect();
+      cardRoots.forEach(root => root.unmount());
       markers.forEach((marker) => marker.remove());
       markerButtons.clear();
       mapRef.current?.remove();
@@ -508,7 +559,7 @@ const GeographicMap = (props: Props) => {
       <div
         className={styles.mapLayer}
         data-map-ready={ready}
-        aria-hidden={selected === "anchovy-bay" || undefined}
+        aria-hidden={backgroundOnly || selected === "anchovy-bay" || undefined}
         data-water-state={
           waterReady
             ? selected === "anchovy-bay" ? "still" : "animated"

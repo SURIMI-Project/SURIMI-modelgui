@@ -1,9 +1,9 @@
-import ScenarioInputsFlow from "../../../shared/ScenarioInputsFlow/ScenarioInputsFlow";
+import CreateSimulationModal from "../CreateSimulationModal";
 import type {
-  ScenarioInputsFlowConfig,
-  ScenarioInputsFlowProps,
-} from "../../../shared/ScenarioInputsFlow/types";
-import AnchovyInputsStepOne from "../../../anchovyBay/components/AnchovyInputsFlow/AnchovyInputsStepOne";
+  CreateSimulationModalConfig,
+  CreateSimulationModalProps,
+} from "../types";
+import AnchovyInputsStepOne from "../components/HarvestControlInputs/AnchovyInputsStepOne";
 import {
   DEFAULT_SPECIES_INPUTS,
   HARVEST_CONTROL_INPUT_INFO,
@@ -11,9 +11,9 @@ import {
   IPCC_OPTIONS,
   IPCC_SCENARIO_DESCRIPTION,
   YEAR_OPTIONS,
-} from "../../../../../../mock-data/inputs";
+} from "../../../../mock-data/inputs";
 
-const westernMediterraneanInputsFlowConfig: ScenarioInputsFlowConfig = {
+const westernMediterraneanInputsFlowConfig: CreateSimulationModalConfig = {
   modalTitle: "Northwestern Mediterranean · Scenario definition",
   steps: INPUT_FLOW_STEPS,
   speciesInputs: DEFAULT_SPECIES_INPUTS,
@@ -28,13 +28,13 @@ const westernMediterraneanInputsFlowConfig: ScenarioInputsFlowConfig = {
   StepOneComponent: AnchovyInputsStepOne,
 };
 
-const WesternMediterraneanInputsFlow = (props: ScenarioInputsFlowProps) => {
+const WesternMediterraneanCreateSimulationModal = (props: CreateSimulationModalProps) => {
   return (
-    <ScenarioInputsFlow
+    <CreateSimulationModal
       {...props}
       config={westernMediterraneanInputsFlowConfig}
     />
   );
 };
 
-export default WesternMediterraneanInputsFlow;
+export default WesternMediterraneanCreateSimulationModal;

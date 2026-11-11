@@ -1118,15 +1118,6 @@
   }
   .caseParagraph { font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.875rem; }
   .caseInformation h2 { margin-top: 1rem; }
-  .overviewReturn {
-    position: absolute;
-    right: calc(100% + 1rem);
-    top: 50%;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    border-radius: var(--radius-pill);
-    background: rgb(255 255 255 / 95%);
-  }
   @media (max-width: 75rem), (max-height: 52rem) {
     .page:not([data-selected="overview"]) { height: auto; min-height: 100svh; overflow: visible; }
     .page:not([data-selected="overview"]) .sceneContent { position: relative; min-height: 100svh; padding: 6rem 1.5rem 10rem; }
@@ -1137,39 +1128,231 @@
     .page:not([data-selected="overview"]) .sceneContent { padding: 5.5rem 1rem 11rem; }
     .caseInformation { width: 100%; padding: 1.25rem; }
     .page:not([data-selected="overview"]) .seaActions { position: relative; inset: auto; width: 100%; margin-top: 1rem; }
-    .overviewReturn { right: auto; left: 50%; top: -3rem; transform: translateX(-50%); }
   }
 }
 
 @layer components {
-  .modelsPanel {
-    position: absolute;
-    top: 6rem;
-    left: var(--spacing-2xl);
-    width: calc(100% - 26rem);
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: 1.5rem;
-    padding: 1.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 1rem;
-    background: rgb(255 255 255 / 97%);
-    box-shadow: var(--shadow-md);
-    pointer-events: auto;
-  }
-  .modelsPanel h1 { font-size: clamp(1.25rem, 1.6vw, 1.75rem); line-height: 1.25; margin-bottom: 0.75rem; }
-  .modelsPanel h2 { font-size: 1.25rem; margin-bottom: 0.75rem; }
-  .modelsPanel p { font-size: 0.875rem; line-height: 1.6; color: var(--color-text-muted); }
-  .modelsPanel img { width: 100%; height: auto; margin-top: 1.5rem; border-radius: 0.5rem; }
-  .modelsGraph { min-width: 0; }
   .seaAction[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary-surface); }
-  @media (max-width: 75rem), (max-height: 52rem) {
-    .modelsPanel { position: relative; inset: auto; width: calc(100% - 22rem); grid-template-columns: 1fr; }
+}
+
+@layer components {
+  .marineIdentity { display:block; width:290px; border-radius:0.875rem; overflow:hidden; background:white; box-shadow:0 5px 18px rgb(2 30 48 / 20%); text-align:left; transition:box-shadow 200ms, transform 200ms; }
+  .marineIdentityTop { display:flex; align-items:center; position:relative; min-height:88px; padding:1rem; gap:0.75rem; background:linear-gradient(110deg,#05384b,#087186); color:white; overflow:hidden; }
+  .marineIdentityTop img { position:absolute; inset:0 0 0 auto; width:65%; height:100%; object-fit:cover; opacity:0.8; mask-image:linear-gradient(90deg,transparent,black 60%); transition:transform 200ms; }
+  .marineIdentityTop > svg { position:relative; width:1.5rem; height:1.5rem; flex-shrink:0; }
+  .marineIdentityTop strong { position:relative; max-width:205px; font-size:1.0625rem; font-weight:650; line-height:1.15; white-space:normal; text-shadow:0 1px 8px #013246; }
+  .marineIdentityBottom { display:flex; align-items:center; justify-content:space-between; min-height:40px; padding:0.5rem 1rem; color:#34434c; font-size:0.8125rem; }
+  .marineIdentityBottom svg { transition:transform 200ms; }
+  .markerLabel { padding:0; border:0; background:none; box-shadow:none; left:-145px; bottom:100px; }
+  .markerLabel strong { white-space:normal; }
+  .mapMarker[data-hovered="true"] .marineIdentity, .bayInset:hover .marineIdentity, .bayInset:focus-visible .marineIdentity, .page[data-hovered="anchovy-bay"] .bayInset .marineIdentity { transform:translateY(-4px); box-shadow:0 9px 24px rgb(2 30 48 / 35%); }
+  .mapMarker[data-hovered="true"] .marineIdentityTop img, .bayInset:hover .marineIdentityTop img { transform:scale(1.04); }
+  .mapMarker[data-hovered="true"] .marineIdentityBottom svg, .page[data-hovered="anchovy-bay"] .bayInset .marineIdentityBottom svg { transform:translateX(4px); }
+  .mapMarker[data-hovered="true"] .markerDot { box-shadow:0 0 0 7px rgb(255 255 255 / 28%); }
+  .bayInset { width:290px; height:auto; overflow:visible; background:none; border:0; box-shadow:none; border-radius:0.875rem; }
+  .bayInset::after { display:none; }
+  .bayInset .marineIdentityTop { background:linear-gradient(110deg,#184d57,#44898d); }
+  .bayInset .marineIdentityTop img { object-position:75% center; }
+  .page[data-selected="aegean-sea"] .caseInformation { top:10rem; }
+  @media(max-width:75rem), (max-height:52rem) {
+    .page[data-selected="aegean-sea"] .caseInformation { top:auto; }
   }
-  @media (max-width: 47.4375rem) {
-    .modelsPanel { width: 100%; padding: 1.25rem; }
+  @media(max-width:47.4375rem) {
+    .marineIdentity { width:210px; }
+    .marineIdentityTop { min-height:64px; padding:0.625rem; }
+    .marineIdentityTop strong { font-size:0.875rem; }
+    .marineIdentityTop svg { width:1rem; height:1rem; }
+    .marineIdentityBottom { min-height:32px; padding:0.375rem 0.625rem; font-size:0.6875rem; }
+    .markerLabel { left:-105px; bottom:90px; }
+    .bayInset { width:170px; bottom:7.5rem; }
+    .bayInset .marineIdentity { width:170px; }
+  }
+  @media(prefers-reduced-motion:reduce) {
+    .marineIdentity, .marineIdentityTop img, .marineIdentityBottom svg { transition:none; transform:none !important; }
   }
 }
 @layer components {
-  .modelsGraph > div { margin-top: 1rem; padding: 0.5rem; border-radius: 0.75rem; background: #102b40; }
+  .page[data-hovered] .mapMarker:not([data-hovered="true"]) .marineIdentity { opacity:0.75; }
+  .page[data-hovered]:not([data-hovered="anchovy-bay"]) .bayInset .marineIdentity { opacity:0.75; }
+  .marineIdentity { transition:opacity 200ms, box-shadow 200ms, transform 200ms; }
+  @media(max-width:75rem), (max-height:52rem) {
+    .page:not([data-selected="overview"]) .immersivePreview { position:relative; inset:auto; }
+  }
+}
+@layer components {
+  .mapMarker:focus-visible .marineIdentity { outline:var(--focus-ring); outline-offset:3px; }
+}
+@layer components {
+  @media(max-width:47.4375rem) {
+    .mapMarker .markerLabel { bottom:36px; left:-72px; }
+    .mapMarker .marineIdentity { width:145px; }
+    .mapMarker .marineIdentityTop { min-height:38px; padding:0.5rem 0.625rem; }
+    .mapMarker .marineIdentityTop strong { font-size:0.75rem; }
+    .mapMarker .marineIdentityTop img, .mapMarker .marineIdentityTop svg, .mapMarker .marineIdentityBottom { display:none; }
+    .mapMarker .markerDot::before { height:24px; }
+  }
+}
+@layer components {
+  .marineIdentity { background:white; box-shadow:0 10px 24px rgb(0 25 42 / 30%), 0 2px 6px rgb(0 25 42 / 18%); outline:1px solid rgb(255 255 255 / 65%); }
+  .mapMarker[data-hovered="true"] .marineIdentity { box-shadow:0 15px 32px rgb(0 25 42 / 40%), 0 3px 8px rgb(0 25 42 / 20%); }
+  .bayInset { width:13rem; height:12rem; overflow:hidden; border:var(--border-default); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-md); }
+  .bayInset::after { display:block; }
+  .bayInset img { width:100%; height:100%; object-fit:cover; }
+  .page[data-hovered="anchovy-bay"] .bayInset { box-shadow:0 10px 28px rgb(0 25 42 / 32%); }
+  @media (min-width:47.5rem) and (max-width:65.625rem) { .bayInset { width:11rem; height:10.5rem; } }
+  @media (max-width:47.4375rem) { .bayInset { width:8.5rem; height:7.5rem; bottom:8rem; } }
+}
+@layer components {
+  .mapMarker .marineIdentity { width:250px; }
+  .mapMarker .markerLabel { left:-125px; }
+  .mapMarker .marineIdentityTop { justify-content:center; padding:0.875rem; }
+  .mapMarker .marineIdentityTop strong { max-width:none; width:100%; text-align:center; font-size:1.25rem; line-height:1.15; }
+  .mapMarker[data-hovered="true"] .marineIdentity {
+    outline:2px solid var(--color-primary);
+    box-shadow:0 15px 32px rgb(0 25 42 / 42%), 0 3px 8px rgb(0 25 42 / 20%);
+  }
+  .mapMarker[data-hovered="true"] .marineIdentityBottom { background:var(--color-primary-surface); color:var(--color-primary); }
+  @media(max-width:47.4375rem) {
+    .mapMarker .marineIdentity { width:145px; }
+    .mapMarker .markerLabel { left:-72px; }
+    .mapMarker .marineIdentityTop strong { font-size:0.875rem; }
+  }
+}
+@layer components {
+  .mapMarker .marineIdentity { width:220px; }
+  .mapMarker .markerLabel { left:-110px; }
+  .mapMarker .marineIdentityTop { min-height:66px; padding:0.75rem; gap:0.5rem; }
+  .mapMarker .marineIdentityTop > svg { display:block; width:1.125rem; height:1.125rem; }
+  .mapMarker .marineIdentityTop strong { width:auto; flex:1; font-size:1.0625rem; }
+  .mapMarker .marineIdentityBottom { min-height:32px; padding:0.375rem 0.75rem; font-size:0.75rem; }
+  .mapMarker[data-hovered="true"] .marineIdentity { outline:1px solid rgb(255 255 255 / 85%); transform:translateY(-2px); box-shadow:0 12px 24px rgb(0 25 42 / 32%); }
+  .mapMarker[data-hovered="true"] .marineIdentityBottom { background:#f2f7f8; color:#34434c; }
+  .mapMarker[data-hovered="true"] .markerDot { box-shadow:0 0 0 3px rgb(255 255 255 / 20%); }
+  .bayInset { width:15rem; height:14rem; transition:opacity 180ms, box-shadow 180ms; }
+  .page[data-hovered]:not([data-hovered="anchovy-bay"]) .bayInset { opacity:0.65; }
+  .page[data-hovered="anchovy-bay"] .bayInset { opacity:1; }
+  @media (min-width:47.5rem) and (max-width:65.625rem) { .bayInset { width:13rem; height:12rem; } }
+  @media(max-width:47.4375rem) {
+    .mapMarker .marineIdentity { width:145px; }
+    .mapMarker .markerLabel { left:-72px; }
+    .mapMarker .marineIdentityTop { min-height:38px; padding:0.5rem 0.625rem; }
+    .mapMarker .marineIdentityTop strong { font-size:0.8125rem; }
+    .mapMarker .marineIdentityTop > svg, .mapMarker .marineIdentityBottom { display:none; }
+    .bayInset { width:10rem; height:9rem; }
+  }
+  @media(prefers-reduced-motion:reduce) { .bayInset { transition:none; } }
+}
+@layer components {
+  .mapMarker .marineIdentity { height:104px; }
+  .mapMarker .marineIdentityTop { height:72px; min-height:72px; box-sizing:border-box; }
+  .mapMarker .marineIdentityBottom { height:32px; min-height:32px; box-sizing:border-box; }
+  .mapMarker .marineIdentityTop img { opacity:0.55; }
+  .mapMarker .marineIdentityTop strong {
+    color:#fff;
+    font-weight:700;
+    text-shadow:0 1px 2px #002b3d, 0 2px 6px rgb(0 20 35 / 95%), 0 0 14px rgb(0 20 35 / 75%);
+  }
+  @media(max-width:47.4375rem) {
+    .mapMarker .marineIdentity { height:48px; }
+    .mapMarker .marineIdentityTop { height:48px; min-height:48px; }
+  }
+}
+@layer components {
+  .mapMarker[data-hovered="true"] .marineIdentity { transform:translateY(-5px) scale(1.045); box-shadow:0 16px 28px rgb(0 25 42 / 35%); }
+  @media(prefers-reduced-motion:reduce) {
+    .mapMarker[data-hovered="true"] .marineIdentity { transform:none; }
+  }
+}
+@layer components {
+  /* Keep the Aegean map/camera viewport invariant when changing information tabs. */
+  .page[data-selected="aegean-sea"] { height:100svh; min-height:0; overflow:hidden; }
+  .page[data-selected="aegean-sea"] .sceneContent { position:absolute; inset:0; min-height:0; padding:0; }
+  .page[data-selected="aegean-sea"] .immersivePreview { position:absolute; inset:0; }
+  .page[data-selected="aegean-sea"] .caseInformation { position:absolute; top:10rem; bottom:auto; left:var(--spacing-2xl); width:min(36rem, calc(100% - 6rem)); max-height:calc(100% - 18rem); overflow:auto; overscroll-behavior:contain; }
+  .page[data-selected="aegean-sea"] .selectorPosition { bottom:var(--spacing-2xl); }
+  @media(max-width:47.4375rem) {
+    .page[data-selected="aegean-sea"] .caseInformation { top:8.5rem; bottom:11rem; left:1rem; right:1rem; width:auto; max-height:none; margin:0; }
+    .page[data-selected="aegean-sea"] .selectorPosition { bottom:2rem; }
+    .page[data-selected="aegean-sea"] .footer { display:none; }
+  }
+}
+@layer components {
+}
+@layer components {
+  .brand { color:inherit; text-decoration:none; border-radius:0.25rem; }
+  .brand:hover { opacity:0.85; }
+  .selectedSeaHeading { position:absolute; top:6.5rem; left:var(--spacing-2xl); }
+  .selectedSeaHeading h1 { font-size:clamp(1.5rem,2.5vw,2.5rem); font-weight:var(--font-weight-medium); text-shadow:0 1px 8px white, 0 1px 3px white; }
+  .selectedSeaHeading .eyebrow { margin-bottom:0.5rem; }
+  .aegeanQuickActions { position:absolute; top:6.5rem; right:var(--spacing-2xl); display:grid; gap:0.625rem; pointer-events:auto; }
+  .aegeanQuickActions button { padding:0.75rem 1rem; min-width:11rem; justify-content:flex-start; border:var(--border-default); background:var(--color-surface); color:var(--color-text); box-shadow:var(--shadow-sm); border-radius:var(--radius-md); }
+  .aegeanQuickActions svg { color:var(--color-primary); }
+  .modelsSheetIntro { margin:0 0 1.75rem; max-width:64rem; font-size:1rem; line-height:1.7; color:var(--color-text-muted); }
+  .modelsSheetGrid { display:grid; grid-template-columns:minmax(0, 0.9fr) minmax(0, 1.1fr); gap:2rem; align-items:start; }
+  .modelsSheetGrid h2 { margin:0 0 1rem; font-size:1.125rem; font-weight:var(--font-weight-semibold); }
+  .modelsSheetIllustration { margin:0; }
+  .modelsSheetIllustration img { width:100%; height:auto; border-radius:var(--radius-md); }
+  .modelsSheetIllustration figcaption { margin-top:1rem; font-size:0.8125rem; line-height:1.6; color:var(--color-text-muted); }
+  .modelsSheetGraph { min-width:0; }
+  .modelsSheetGraph > p { color:var(--color-text-muted); margin-bottom:1rem; font-size:0.875rem; }
+  @media(max-width:60rem) { .modelsSheetGrid { grid-template-columns:1fr; } }
+  @media(max-width:47.4375rem) {
+    .selectedSeaHeading { top:5rem; left:1rem; }
+    .aegeanQuickActions { top:10rem; right:1rem; }
+    .modelsSheetIntro { font-size:0.875rem; }
+  }
+}
+@layer components {
+  .page[data-selected="aegean-sea"] .caseInformation { top:6rem; max-height:calc(100% - 14rem); }
+  .modelsSheetTabPanel { padding-top:var(--spacing-lg); }
+  .largeEcosystemIllustration { margin:0; text-align:center; }
+  .largeEcosystemIllustration img { display:block; width:auto; height:auto; max-width:100%; max-height:calc(88svh - 15rem); margin:0 auto; border-radius:var(--radius-md); }
+  .largeEcosystemIllustration figcaption { margin-top:var(--spacing-md); color:var(--color-text-muted); font-size:0.8125rem; line-height:1.6; }
+  @media(max-width:47.4375rem) {
+    .page[data-selected="aegean-sea"] .caseInformation { top:5rem; bottom:15rem; max-height:none; }
+    .aegeanQuickActions { top:auto; bottom:11rem; left:1rem; right:1rem; display:flex; gap:0.5rem; }
+    .aegeanQuickActions button { min-width:0; flex:1; justify-content:center; padding:0.625rem; font-size:0.75rem; }
+    .modelsSheetTabs [role="tablist"] { gap:1rem; }
+    .modelsSheetTabs [role="tab"] { font-size:0.75rem; }
+    .largeEcosystemIllustration img { width:100%; max-height:none; }
+  }
+}
+@layer components {
+  .modelsHeaderTabs { gap:2rem; border:0; }
+  .modelsHeaderTabs [role="tab"] { padding:0.75rem 0; font-size:0.75rem; letter-spacing:0.06em; }
+  .modelsSheetTabPanel { padding-top:0; }
+  .largeEcosystemIllustration img { max-height:calc(88svh - 8.5rem); }
+  @media(max-width:47.4375rem) {
+    .modelsHeaderTabs { gap:0.875rem; }
+    .modelsHeaderTabs [role="tab"] { font-size:0.625rem; letter-spacing:0; white-space:normal; flex:1; }
+    .largeEcosystemIllustration img { max-height:none; }
+  }
+}
+@layer components {
+  .modelsSheetTabPanel { flex:1; min-height:0; height:100%; overflow:hidden; display:flex; flex-direction:column; }
+  .largeEcosystemIllustration { flex:1; min-height:0; display:flex; flex-direction:column; }
+  .largeEcosystemIllustration img { flex:1; min-height:0; width:100%; height:0; max-width:100%; max-height:none; object-fit:contain; }
+  .largeEcosystemIllustration figcaption { flex-shrink:0; margin-top:var(--spacing-md); padding-bottom:var(--spacing-lg); }
+  .modelsHeaderTabs { justify-content:center; }
+}
+
+@layer components {
+  .runsWorkspace { position: relative; z-index: 5; width: min(1360px, calc(100% - 6rem)); margin: 0 auto; height: 100svh; min-height: 36rem; box-sizing: border-box; padding: 5rem 0 8rem; display: flex; flex-direction: column; }
+  .page[data-list="true"] { height: auto; min-height: 100svh; overflow: clip; }
+  .page[data-list="true"] .sceneContent { position: relative; min-height: 100svh; }
+  .page[data-list="true"] .mapLayer { position: fixed; pointer-events: none; }
+  .page[data-list="true"] .scrim { position: fixed; background: linear-gradient(180deg, rgb(2 40 61 / 12%), rgb(2 40 61 / 28%)); }
+  .page[data-list="true"] .selectorPosition { position: fixed; z-index: 8; bottom: 2rem; }
+  .headerActions > a[aria-current="page"] { color: var(--color-primary); font-weight: 600; }
+  @media (max-width: 700px) {
+    .runsWorkspace { width: calc(100% - 2rem); padding-top: 5rem; padding-bottom: 8rem; }
+    .page[data-list="true"] .selectorPosition { width: calc(100% - 2rem); bottom: 1.5rem; }
+    .headerActions { gap: 12px; }
+  }
+}
+@layer components {
+  .imageSheetBody { padding:0; background:#e7f4f5; }
+  .imageSheetBody .modelsSheetTabPanel, .imageSheetBody .largeEcosystemIllustration { width:100%; height:100%; margin:0; padding:0; }
+  .imageSheetBody .largeEcosystemIllustration img { width:100%; height:100%; flex:1; object-fit:contain; border-radius:0; }
+  .imageCaptionAccessible { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); margin:0 !important; padding:0 !important; white-space:nowrap; }
 }

@@ -31,7 +31,7 @@ const DashboardOutputsHeader = ({
   children,
 }: DashboardOutputsHeaderProps) => {
   const { scenario, caseId } = useParams();
-  const backHref = `/scenario-runs/${scenario ?? caseId ?? "anchovy-bay"}`;
+  const backHref = `/scenario-runs?case=${scenario ?? caseId ?? "anchovy-bay"}`;
 
   return (
     <DashboardLayout

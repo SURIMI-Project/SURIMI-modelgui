@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 import AnchovyInputGraph from "./AnchovyInputGraph";
 import AnchovyInputsTable from "./AnchovyInputsTable";
-import styles from "../../../shared/ScenarioInputsFlow/ScenarioInputsFlow.module.css";
+import styles from "../../CreateSimulationModal.module.css";
 import type { GraphPoint, SpeciesInputPreset, SpeciesInputRow } from "./types";
 
 type AnchovyInputsStepOneProps = {
@@ -203,18 +203,14 @@ const AnchovyInputsStepOne = ({
         filter: "blur(3px)",
       }}
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-      className={styles.stepShell}
+      className={styles.inputsEditor}
     >
       <div
-        className={[styles.stepScrollArea, styles.scrollAreaLayout1]
-          .filter(Boolean)
-          .join(" ")}
+        className={styles.editorBody}
       >
         <div className={styles.stepContent}>
           <div
-            className={[styles.chartPanel, styles.paperLayout2]
-              .filter(Boolean)
-              .join(" ")}
+            className={styles.chartPanel}
           >
             <div className={styles.chartSurface}>
               <AnchovyInputGraph
@@ -230,9 +226,7 @@ const AnchovyInputsStepOne = ({
           </div>
 
           <div
-            className={[styles.tablePanel, styles.paperLayout3]
-              .filter(Boolean)
-              .join(" ")}
+            className={styles.tablePanel}
           >
             <AnchovyInputsTable
               tableData={rows}

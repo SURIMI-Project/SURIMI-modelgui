@@ -2,12 +2,12 @@ import { scenarioWorldContent } from "../../mock-data/content/caseIntroductions"
 import type { ComponentType } from "react";
 import type { SimulationCaseId } from "../data/simulationCases";
 import AegeanSeaFeature from "../features/InformationalScenarios/aegeanSea/AegeanSeaFeature";
-import AegeanSeaInputsFlow from "../features/InformationalScenarios/aegeanSea/components/AegeanSeaInputsFlow/AegeanSeaInputsFlow";
+import AegeanSeaCreateSimulationModal from "../features/CreateSimulationModal/cases/AegeanSeaCreateSimulationModal";
 import AnchovyBayFeature from "../features/InformationalScenarios/anchovyBay/AnchovyBayFeature";
-import AnchovyInputsFlow from "../features/InformationalScenarios/anchovyBay/components/AnchovyInputsFlow/AnchovyInputsFlow";
-import type { ScenarioInputsFlowProps } from "../features/InformationalScenarios/shared/ScenarioInputsFlow/types";
+import AnchovyCreateSimulationModal from "../features/CreateSimulationModal/cases/AnchovyCreateSimulationModal";
+import type { CreateSimulationModalProps } from "../features/CreateSimulationModal/types";
 import WesternMediterraneanFeature from "../features/InformationalScenarios/westernMediterranean/WesternMediterraneanFeature";
-import WesternMediterraneanInputsFlow from "../features/InformationalScenarios/westernMediterranean/components/WesternMediterraneanInputsFlow/WesternMediterraneanInputsFlow";
+import WesternMediterraneanCreateSimulationModal from "../features/CreateSimulationModal/cases/WesternMediterraneanCreateSimulationModal";
 
 export type ScenarioWorldConfig = {
   worldTitle: string;
@@ -28,24 +28,24 @@ export type ScenarioWorldConfig = {
   FeatureComponent: ComponentType<{
     onOpenInfoModal?: () => void;
   }>;
-  InputsFlowComponent?: ComponentType<ScenarioInputsFlowProps>;
+  CreateSimulationModalComponent?: ComponentType<CreateSimulationModalProps>;
 };
 
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   "northwestern-mediterranean": {
     ...scenarioWorldContent["northwestern-mediterranean"],
     FeatureComponent: WesternMediterraneanFeature,
-    InputsFlowComponent: WesternMediterraneanInputsFlow,
+    CreateSimulationModalComponent: WesternMediterraneanCreateSimulationModal,
   },
   "aegean-sea": {
     ...scenarioWorldContent["aegean-sea"],
     FeatureComponent: AegeanSeaFeature,
-    InputsFlowComponent: AegeanSeaInputsFlow,
+    CreateSimulationModalComponent: AegeanSeaCreateSimulationModal,
   },
   "anchovy-bay": {
     ...scenarioWorldContent["anchovy-bay"],
     FeatureComponent: AnchovyBayFeature,
-    InputsFlowComponent: AnchovyInputsFlow,
+    CreateSimulationModalComponent: AnchovyCreateSimulationModal,
   },
 };
 

@@ -1,9 +1,9 @@
-import ScenarioInputsFlow from "../../../shared/ScenarioInputsFlow/ScenarioInputsFlow";
+import CreateSimulationModal from "../CreateSimulationModal";
 import type {
-  ScenarioInputsFlowConfig,
-  ScenarioInputsFlowProps,
-} from "../../../shared/ScenarioInputsFlow/types";
-import AnchovyInputsStepOne from "../../../anchovyBay/components/AnchovyInputsFlow/AnchovyInputsStepOne";
+  CreateSimulationModalConfig,
+  CreateSimulationModalProps,
+} from "../types";
+import AnchovyInputsStepOne from "../components/HarvestControlInputs/AnchovyInputsStepOne";
 import {
   DEFAULT_SPECIES_INPUTS,
   HARVEST_CONTROL_INPUT_INFO,
@@ -11,9 +11,9 @@ import {
   IPCC_OPTIONS,
   IPCC_SCENARIO_DESCRIPTION,
   YEAR_OPTIONS,
-} from "../../../../../../mock-data/inputs";
+} from "../../../../mock-data/inputs";
 
-const aegeanSeaInputsFlowConfig: ScenarioInputsFlowConfig = {
+const aegeanSeaInputsFlowConfig: CreateSimulationModalConfig = {
   modalTitle: "Aegean Sea · Scenario definition",
   steps: INPUT_FLOW_STEPS,
   speciesInputs: DEFAULT_SPECIES_INPUTS,
@@ -28,8 +28,8 @@ const aegeanSeaInputsFlowConfig: ScenarioInputsFlowConfig = {
   StepOneComponent: AnchovyInputsStepOne,
 };
 
-const AegeanSeaInputsFlow = (props: ScenarioInputsFlowProps) => {
-  return <ScenarioInputsFlow {...props} config={aegeanSeaInputsFlowConfig} />;
+const AegeanSeaCreateSimulationModal = (props: CreateSimulationModalProps) => {
+  return <CreateSimulationModal {...props} config={aegeanSeaInputsFlowConfig} />;
 };
 
-export default AegeanSeaInputsFlow;
+export default AegeanSeaCreateSimulationModal;

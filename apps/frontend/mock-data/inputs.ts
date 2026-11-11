@@ -1,5 +1,5 @@
 import type { SelectableCardOption } from "../src/components/SelectableCards/SelectableCards";
-import type { SpeciesInputPreset } from "../src/features/InformationalScenarios/anchovyBay/components/AnchovyInputsFlow/types";
+import type { SpeciesInputPreset } from "../src/features/CreateSimulationModal/components/HarvestControlInputs/types";
 
 export const YEAR_OPTIONS: SelectableCardOption[] = [
   { value: "5", title: "5 years", description: "Short calibration window." },

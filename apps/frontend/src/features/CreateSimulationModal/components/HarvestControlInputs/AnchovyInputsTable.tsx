@@ -4,7 +4,7 @@ import Table, {
   TableBody,
   Row,
   Cell,
-} from "../../../../../components/ui/Table/Table";
+} from "../../../../components/ui/Table/Table";
 import type { SpeciesInputRow } from "./types";
 type Props = {
   tableData: SpeciesInputRow[];

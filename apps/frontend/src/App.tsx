@@ -34,6 +34,16 @@ const App = () => (
     <Route element={<SimulationCaseSelectionPage />}>
       <Route path="/scenarios" />
       <Route path="/scenario/:caseId" />
+      <Route
+        path="/scenario-runs"
+        element={<ScenarioRunsPage />}
+      />
+      <Route path="/scenario-runs/:caseId" element={<ScenarioRunsPage />} />
+      <Route
+        path="/scenario-runs/:caseId/:runId"
+        element={<ScenarioRunsPage />}
+      />
+
     </Route>
     <Route element={<RequireSession />}>
       <Route
@@ -43,15 +53,6 @@ const App = () => (
             <DesignSystemPage />
           </Suspense>
         }
-      />
-      <Route
-        path="/scenario-runs"
-        element={<Navigate to="/scenario-runs/anchovy-bay" replace />}
-      />
-      <Route path="/scenario-runs/:caseId" element={<ScenarioRunsPage />} />
-      <Route
-        path="/scenario-runs/:caseId/:runId"
-        element={<ScenarioRunsPage />}
       />
       <Route
         path="/scenario-outputs/:scenario"

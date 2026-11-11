@@ -70,7 +70,7 @@ const ScenarioWorldPage = () => {
     "--world-bg-bottom": worldConfig.backgroundBottomColor,
     "--world-bg-highlight": worldConfig.backgroundHighlightColor,
   } as CSSProperties;
-  const InputsFlowComponent = worldConfig.InputsFlowComponent;
+  const CreateSimulationModalComponent = worldConfig.CreateSimulationModalComponent;
 
   return (
     <main className={styles.page} style={worldVariables}>
@@ -143,7 +143,7 @@ const ScenarioWorldPage = () => {
             return;
           }
 
-          if (InputsFlowComponent) {
+          if (CreateSimulationModalComponent) {
             setIsScenarioInputsOpen(true);
           }
         }}
@@ -152,8 +152,8 @@ const ScenarioWorldPage = () => {
           navigate("/test");
         }}
       />
-      {InputsFlowComponent ? (
-        <InputsFlowComponent
+      {CreateSimulationModalComponent ? (
+        <CreateSimulationModalComponent
           isOpen={isScenarioInputsOpen}
           onClose={() => {
             setIsScenarioInputsOpen(false);

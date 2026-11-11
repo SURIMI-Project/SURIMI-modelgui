@@ -6,13 +6,12 @@ import {
   LineElement,
   LinearScale,
   PointElement,
-  type ScriptableLineSegmentContext,
   Tooltip,
   type ChartOptions,
 } from "chart.js";
 import dragDataPlugin from "chartjs-plugin-dragdata";
 import { Line } from "react-chartjs-2";
-import { CHART_POINT_LABELS } from "../../../../../../mock-data/inputs";
+import { CHART_POINT_LABELS } from "../../../../../mock-data/inputs";
 import type { GraphPoint, SpeciesInputRow } from "./types";
 
 ChartJS.register(
@@ -45,6 +44,12 @@ const AnchovyInputGraph = ({
   onDrag,
   onDragEnd,
 }: AnchovyInputGraphProps) => {
+  const theme = getComputedStyle(document.documentElement);
+  const token = (name: string) => theme.getPropertyValue(name).trim();
+  const text = token("--color-text-muted");
+  const border = token("--color-border");
+  const primary = token("--color-primary");
+  const surface = token("--color-surface");
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -72,16 +77,16 @@ const AnchovyInputGraph = ({
         min: 0,
         max: xMax,
         ticks: {
-          color: "rgba(233, 244, 255, 0.88)",
+          color: text,
           callback: (value) => formatDisplayValue(Number(value)),
         },
         grid: {
-          color: "rgba(218, 234, 250, 0.12)",
+          color: border,
         },
         title: {
           display: true,
           text: "Biomass",
-          color: "rgba(240, 248, 255, 0.92)",
+          color: text,
           font: { size: 14, weight: 600 },
         },
       },
@@ -89,16 +94,16 @@ const AnchovyInputGraph = ({
         min: 0,
         max: 1,
         ticks: {
-          color: "rgba(233, 244, 255, 0.88)",
+          color: text,
           callback: (value) => formatDisplayValue(Number(value)),
         },
         grid: {
-          color: "rgba(218, 234, 250, 0.12)",
+          color: border,
         },
         title: {
           display: true,
           text: "Fishing mortality (catch/biomass)",
-          color: "rgba(240, 248, 255, 0.92)",
+          color: text,
           font: { size: 14, weight: 600 },
         },
       },
@@ -106,7 +111,7 @@ const AnchovyInputGraph = ({
     plugins: {
       legend: {
         labels: {
-          color: "rgba(241, 248, 255, 0.95)",
+          color: text,
         },
       },
       tooltip: {
@@ -166,8 +171,8 @@ const AnchovyInputGraph = ({
         label: activeRow.label,
         data: graphPoints,
         parsing: false as const,
-        borderColor: "#E84D48",
-        backgroundColor: "#E84D48",
+        borderColor: primary,
+        backgroundColor: primary,
         borderWidth: 3,
         clip: false as const,
         pointRadius: [0, 8, 8, 0],
@@ -175,15 +180,15 @@ const AnchovyInputGraph = ({
         pointHitRadius: [0, 20, 20, 0],
         pointBackgroundColor: [
           "transparent",
-          "#7ad6ff",
-          "#f6fbff",
+          primary,
+          surface,
           "transparent",
         ],
-        pointBorderColor: "#E84D48",
+        pointBorderColor: primary,
         pointBorderWidth: [0, 3, 3, 0],
         tension: 0,
         segment: {
-          borderColor: (_context: ScriptableLineSegmentContext) => "#E84D48",
+          borderColor: () => primary,
         },
       },
     ],

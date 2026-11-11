@@ -240,7 +240,7 @@ const CinematicCaseSelection = ({
       return;
     }
 
-    navigate(`/scenario-runs/${caseId}`);
+    navigate(`/scenario-runs?case=${caseId}`);
   };
 
   return (
