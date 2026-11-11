@@ -16,6 +16,8 @@ uniform vec3 u_deep;
 uniform vec3 u_shallow;
 uniform vec3 u_reflection;
 uniform vec3 u_view;
+uniform float u_regional_palette;
+uniform vec3 u_scene; // wave scale, speed, highlight strength (identity for real seas)
 out vec4 fragment;
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 345.45));
@@ -30,7 +32,7 @@ float noise(vec2 p) {
     mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
 float height(vec2 p) {
-  vec2 drift = vec2(u_time * 0.24, -u_time * 0.14);
+  vec2 drift = vec2(u_time * 0.24, -u_time * 0.14) * u_scene.y;
   vec2 warp = vec2(noise(p * 0.23 + drift * 0.3), noise(p * 0.19 - drift * 0.4)) * 2.8;
   vec2 q = p + warp;
   return noise(q + drift) * 0.70
@@ -38,15 +40,20 @@ float height(vec2 p) {
     + noise(q * 5.3 + drift * 0.8) * 0.08;
 }
 void main() {
-  vec2 p = v_world * 0.11;
+  vec2 p = v_world * 0.11 * u_scene.x;
   float h = height(p);
   vec2 slope = vec2(height(p + vec2(0.08, 0.0)) - h, height(p + vec2(0.0, 0.08)) - h) / 0.08;
-  vec3 normal = normalize(vec3(-slope * 0.48, 1.0));
+  vec3 normal = normalize(vec3(-slope * 0.32, 1.0));
   vec3 light = normalize(vec3(0.26, 0.32, 0.91));
   float sunlight = clamp(dot(normal, light), 0.0, 1.0);
   float reflection = pow(max(dot(reflect(-light, normal), u_view), 0.0), 32.0);
   float current = noise(p * 0.055);
   vec3 colour = mix(u_deep, u_shallow, clamp(0.14 + current * 0.28 + sunlight * 0.14 + (h - 0.5) * 0.24, 0.0, 1.0));
-  colour = mix(colour, u_reflection, reflection * 0.55);
+  colour = mix(colour, u_reflection, reflection * 0.32 * u_scene.z);
+  // Decorative west/east palette, anchored to longitude rather than the viewport.
+  float longitude = (v_world.x / 4200.0) * 360.0 - 180.0;
+  float east = smoothstep(-12.0, 42.0, longitude);
+  vec3 regionalColour = mix(colour * 0.84, colour * vec3(1.10, 1.23, 1.28), east);
+  colour = mix(colour, regionalColour, u_regional_palette);
   fragment = vec4(colour, 1.0);
 }`;

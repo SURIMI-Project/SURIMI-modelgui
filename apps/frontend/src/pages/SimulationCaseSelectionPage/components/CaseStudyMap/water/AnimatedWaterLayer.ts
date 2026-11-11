@@ -25,6 +25,8 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
   private timer?: ReturnType<typeof setTimeout>;
   private enabled = true;
+  private regionalPalette = false;
+  private fictionalScene = false;
   private elapsed = 0;
   private previousTime = performance.now();
   private readonly onVisibility = () => {
@@ -48,6 +50,16 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     this.previousTime = performance.now();
     if (this.timer !== undefined) clearTimeout(this.timer);
     this.timer = undefined;
+    this.map?.triggerRepaint();
+  }
+
+  setScenePreset(fictional: boolean) {
+    this.fictionalScene = fictional;
+    this.map?.triggerRepaint();
+  }
+
+  setRegionalPalette(enabled: boolean) {
+    this.regionalPalette = enabled;
     this.map?.triggerRepaint();
   }
 
@@ -161,6 +173,8 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
         "u_shallow",
         "u_reflection",
         "u_view",
+        "u_regional_palette",
+        "u_scene",
       ])
         this.uniforms[name] = gl.getUniformLocation(this.program!, name);
       this.onAvailable(true);
@@ -188,6 +202,8 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
       args.defaultProjectionData.mainMatrix,
     );
     gl.uniform1f(this.uniforms.u_time, this.elapsed);
+    gl.uniform3f(this.uniforms.u_scene, this.fictionalScene ? 4 : 1, this.fictionalScene ? 0.55 : 1, this.fictionalScene ? 0.65 : 1);
+    gl.uniform1f(this.uniforms.u_regional_palette, this.regionalPalette ? 1 : 0);
     gl.uniform3fv(this.uniforms.u_deep, colours.deep);
     gl.uniform3fv(this.uniforms.u_shallow, colours.shallow);
     gl.uniform3fv(this.uniforms.u_reflection, colours.reflection);

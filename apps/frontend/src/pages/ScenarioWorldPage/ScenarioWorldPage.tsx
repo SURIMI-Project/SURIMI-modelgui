@@ -15,10 +15,10 @@ const RETURN_TO_OCEANS_DURATION_MS = 560;
 const ScenarioWorldPage = () => {
   const navigate = useNavigate();
   const { caseId } = useParams<{ caseId?: string }>();
-  const { caseStudy, worldConfig, fromLanding } = useScenarioWorldRoute();
+  const { caseStudy, worldConfig, fromLanding, initialAction } = useScenarioWorldRoute();
   const [isReturningToHome, setIsReturningToHome] = useState(false);
-  const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
-  const [isScenarioInfoOpen, setIsScenarioInfoOpen] = useState(false);
+  const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(initialAction === "setup");
+  const [isScenarioInfoOpen, setIsScenarioInfoOpen] = useState(initialAction === "models");
   const setupCaseId = caseStudy?.id ?? "anchovy-bay";
   const { completeScenarioSetup } =
     useScenarioSetupCompletion({

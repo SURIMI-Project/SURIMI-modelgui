@@ -4,6 +4,7 @@ import { getScenarioWorldConfig } from "../../../constants/scenarioWorldConfig";
 
 type ScenarioWorldRouteState = {
   fromLanding?: boolean;
+  action?: "models" | "setup";
 };
 
 const useScenarioWorldRoute = () => {
@@ -19,6 +20,7 @@ const useScenarioWorldRoute = () => {
     caseStudy,
     worldConfig,
     fromLanding,
+    initialAction: (location.state as ScenarioWorldRouteState | null)?.action,
   };
 };
 

@@ -6,7 +6,8 @@ import LoginPage from "./pages/LoginPage/LoginPage";
 import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
 import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage";
 import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
-import ScenarioWorldPage from "./pages/ScenarioWorldPage/ScenarioWorldPage";
+import { useCurrentUser } from "./serverState/auth/useCurrentUser";
+import SessionGate from "./features/auth/SessionGate";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
 
 const DesignSystemPage = lazy(
@@ -17,11 +18,23 @@ const NetcdfLabPage = lazy(
   () => import("../../../experiments/netcdf-lab/NetcdfLabPage"),
 );
 
+const HomeRedirect = () => {
+  const session = useCurrentUser();
+  if (session.isPending) return null;
+  if (session.isError) return <SessionGate><span /></SessionGate>;
+  return <Navigate to={session.data ? "/scenarios" : "/login"} replace />;
+};
+
 const App = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route path="/change-password" element={<PasswordChangePage />} />
     <Route path="/test" element={<MsyModelPage />} />
+    <Route path="/" element={<HomeRedirect />} />
+    <Route element={<SimulationCaseSelectionPage />}>
+      <Route path="/scenarios" />
+      <Route path="/scenario/:caseId" />
+    </Route>
     <Route element={<RequireSession />}>
       <Route
         path="/design-system"
@@ -31,8 +44,6 @@ const App = () => (
           </Suspense>
         }
       />
-      <Route path="/" element={<SimulationCaseSelectionPage />} />
-      <Route path="/scenario/:caseId" element={<ScenarioWorldPage />} />
       <Route
         path="/scenario-runs"
         element={<Navigate to="/scenario-runs/anchovy-bay" replace />}

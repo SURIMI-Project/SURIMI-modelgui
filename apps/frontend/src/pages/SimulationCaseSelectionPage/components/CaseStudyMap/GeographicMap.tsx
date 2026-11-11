@@ -1,10 +1,8 @@
-import Button from "../../../../components/ui/Button/Button";
 import AnimatedWaterLayer from "./water/AnimatedWaterLayer";
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map as LibreMap } from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { FiPause, FiPlay } from "react-icons/fi";
 import {
   aegeanStudyArea,
   caseMapPlaces,
@@ -68,6 +66,13 @@ const updateMapAppearance = (
     themeColour("--color-map-water", scope),
   );
   water?.setColours(waterColours(scope), duration);
+  const fictional = scope.closest("[data-selected]")?.getAttribute("data-selected") === "anchovy-bay";
+  water?.setScenePreset(fictional);
+  // The opaque Anchovy background needs no hidden water repaint loop.
+  water?.setAnimationEnabled(!fictional);
+  water?.setRegionalPalette(
+    scope.closest("[data-selected]")?.getAttribute("data-selected") === "overview",
+  );
 };
 
 const graticule: FeatureCollection<LineString> = {
@@ -107,6 +112,7 @@ const moveCamera = (
   const mobile = width < 760;
   const place = selected ? caseMapPlaces[selected] : null;
   const duration = animate ? sceneTransitionDuration : 0;
+  if (selected === "anchovy-bay") return;
   if (!place?.location) {
     map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     map.fitBounds(overviewBounds, {
@@ -118,8 +124,8 @@ const moveCamera = (
         : {
             top: 130,
             bottom: 150,
-            left: Math.min(width * 0.31, 430),
-            right: 72,
+            left: Math.min(width * 0.22, 300),
+            right: 110,
           },
     });
     return;
@@ -132,20 +138,8 @@ const moveCamera = (
     const camera = map.cameraForBounds(area.bounds, {
       bearing: place.bearing,
       padding: mobile
-        ? {
-            top: 150,
-            bottom: selected === "aegean-sea" ? 370 : 440,
-            left: 30,
-            right: 30,
-          }
-        : selected === "aegean-sea"
-          ? { top: 115, bottom: 135, left: 70, right: 70 }
-          : {
-              top: 120,
-              bottom: 145,
-              left: Math.min(width * 0.38, 490),
-              right: 70,
-            },
+        ? { top: 185, bottom: 290, left: 30, right: 30 }
+        : { top: 165, bottom: 145, left: Math.min(width * 0.4, 640), right: Math.min(width * 0.27, 390) },
       maxZoom: place.zoom,
     });
     if (camera?.zoom !== undefined) {
@@ -173,7 +167,7 @@ const moveCamera = (
   else map.jumpTo(options);
 };
 
-// Official geometry is loaded on first selection and reused thereafter.
+// Official geometry is loaded when first shown (including the overview) and reused.
 const studyAreas = [
   { caseId: "aegean-sea", prefix: "aegean", area: aegeanStudyArea },
   {
@@ -185,7 +179,7 @@ const studyAreas = [
 
 const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
   if (!map.getLayer("coasts")) return;
-  // The educational illustration has no real-world location: show only decorative water.
+  // Fictional geography replaces the real basemap, within the same MapLibre instance.
   for (const id of ["land", "coasts", "grid"]) {
     map.setLayoutProperty(
       id,
@@ -194,10 +188,13 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
     );
   }
   for (const { caseId, prefix, area } of studyAreas) {
-    const visible = selected === caseId;
+    const visible = selected === null || selected === caseId;
     const source = `${prefix}-study-area`;
     if (visible && !map.getSource(source)) {
-      const colour = themeColour("--color-map-study-boundary");
+      const northwestern = caseId === "northwestern-mediterranean";
+      const colour = northwestern
+        ? "#ffad52"
+        : themeColour("--color-map-study-boundary");
       map.addSource(source, { type: "geojson", data: area.asset });
       map.addLayer(
         {
@@ -214,9 +211,9 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
         source,
         paint: {
           "line-color": colour,
-          "line-width": 7,
+          "line-width": northwestern ? 8 : 7,
           "line-blur": 4,
-          "line-opacity": 0.32,
+          "line-opacity": northwestern ? 0.48 : 0.32,
         },
       });
       map.addLayer({
@@ -225,8 +222,8 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
         source,
         paint: {
           "line-color": colour,
-          "line-width": 1.8,
-          "line-opacity": 0.95,
+          "line-width": northwestern ? 2.4 : 1.8,
+          "line-opacity": northwestern ? 1 : 0.95,
         },
       });
     }
@@ -240,41 +237,76 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
 
 const GeographicMap = (props: Props) => {
   const container = useRef<HTMLDivElement>(null);
+  const curtain = useRef<HTMLDivElement>(null);
+  const lastScene = useRef<SimulationCaseId | null>(props.selected);
+  const switchingScene = useRef(false);
   const mapRef = useRef<LibreMap | null>(null);
   const buttons = useRef(new Map<SimulationCaseId, HTMLButtonElement>());
   const current = useRef(props);
   const water = useRef<AnimatedWaterLayer | null>(null);
-  const waterMotion = useRef(false);
   const [waterReady, setWaterReady] = useState(false);
-  const [waterPaused, setWaterPaused] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
   const { selected, available, reducedMotion, onSelect } = props;
   useEffect(() => {
-    waterMotion.current = !reducedMotion && !waterPaused;
-    water.current?.setAnimationEnabled(waterMotion.current);
-  }, [reducedMotion, waterPaused]);
-
-  useEffect(() => {
     current.current = { selected, available, reducedMotion, onSelect };
     for (const [id, button] of buttons.current) {
       const dimmed = Boolean(selected && selected !== id);
-      button.hidden = selected === "aegean-sea" || selected === "anchovy-bay";
-      button.disabled =
-        selected === "aegean-sea" ||
-        !available.has(id) ||
-        selected === "anchovy-bay";
+      button.hidden = selected !== null;
+      button.disabled = !available.has(id) || selected === "anchovy-bay";
       button.tabIndex = dimmed || button.disabled ? -1 : 0;
       button.dataset.dimmed = String(dimmed);
       button.dataset.selected = String(selected === id);
       button.setAttribute("aria-pressed", String(selected === id));
     }
-    if (mapRef.current) {
-      updateStudyArea(mapRef.current, selected);
-      updateMapAppearance(mapRef.current, water.current, reducedMotion);
-      moveCamera(mapRef.current, selected, !reducedMotion);
+    const map = mapRef.current;
+    if (!map) return;
+    const fictional = selected === "anchovy-bay";
+    const crossesScene = fictional !== (lastScene.current === "anchovy-bay");
+    lastScene.current = selected;
+    const applyScene = () => {
+      map.stop();
+      map.setMaxBounds(null);
+      map.setMinZoom(2);
+      map.setMaxZoom(8);
+      updateStudyArea(map, selected);
+      updateMapAppearance(map, water.current, reducedMotion);
+      map.getCanvas().setAttribute("aria-label", fictional ? "Fictional Anchovy Bay educational map" : "Mediterranean geographic context");
+      moveCamera(map, selected, !crossesScene && !reducedMotion);
+    };
+    if (!crossesScene || reducedMotion || !curtain.current) {
+      applyScene();
+      return;
     }
+    switchingScene.current = true;
+    const overlay = curtain.current;
+    const fadeOut = overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, fill: "forwards" });
+    let fadeIn: Animation | undefined;
+    const timer = window.setTimeout(() => {
+      applyScene();
+      // Hold the curtain until locally loaded geometry is ready, with a bounded fallback.
+      map.once("idle", reveal);
+      fallback = window.setTimeout(reveal, 1800);
+    }, 180);
+    let fallback: number | undefined;
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      window.clearTimeout(fallback);
+      map.off("idle", reveal);
+      fadeIn = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, fill: "forwards" });
+      switchingScene.current = false;
+    };
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(fallback);
+      map.off("idle", reveal);
+      fadeOut.cancel();
+      fadeIn?.cancel();
+      switchingScene.current = false;
+    };
   }, [selected, available, reducedMotion, onSelect]);
 
   useEffect(() => {
@@ -291,7 +323,10 @@ const GeographicMap = (props: Props) => {
           zoom: 4,
           minZoom: 2,
           maxZoom: 8,
-          interactive: false,
+          interactive: true,
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
           attributionControl: false,
           renderWorldCopies: false,
           pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
@@ -362,7 +397,6 @@ const GeographicMap = (props: Props) => {
                     if (!disposed) setWaterReady(available);
                   },
                 );
-                waterLayer.setAnimationEnabled(waterMotion.current);
                 water.current = waterLayer;
                 map.addLayer(waterLayer, "grid");
               }
@@ -414,11 +448,8 @@ const GeographicMap = (props: Props) => {
           const dimmed = Boolean(
             current.current.selected && current.current.selected !== caseId,
           );
-          button.hidden =
-            current.current.selected === "aegean-sea" ||
-            current.current.selected === "anchovy-bay";
+          button.hidden = current.current.selected !== null;
           button.disabled =
-            current.current.selected === "aegean-sea" ||
             !current.current.available.has(caseId) ||
             current.current.selected === "anchovy-bay";
           button.tabIndex = dimmed || button.disabled ? -1 : 0;
@@ -426,7 +457,11 @@ const GeographicMap = (props: Props) => {
           button.dataset.selected = String(current.current.selected === caseId);
           const label = document.createElement("span");
           label.className = styles.markerLabel;
-          label.textContent = place.title;
+          const title = document.createElement("strong");
+          title.textContent = place.title;
+          const subareas = document.createElement("small");
+          subareas.textContent = caseId === "aegean-sea" ? "GSA 22 + 23" : "GSA 06 + 07";
+          label.append(title, subareas);
           const dot = document.createElement("span");
           dot.className = styles.markerDot;
           dot.setAttribute("aria-hidden", "true");
@@ -439,7 +474,7 @@ const GeographicMap = (props: Props) => {
             new maplibregl.Marker({
               element: button,
               anchor: "bottom",
-              offset: [0, 14],
+              offset: [0, 0],
             })
               .setLngLat(place.location)
               .addTo(map),
@@ -448,7 +483,7 @@ const GeographicMap = (props: Props) => {
         moveCamera(map, current.current.selected, false);
         observer = new ResizeObserver(() => {
           map.resize();
-          moveCamera(map, current.current.selected, false);
+          if (!switchingScene.current) moveCamera(map, current.current.selected, false);
         });
         observer.observe(container.current);
       } catch {
@@ -472,41 +507,23 @@ const GeographicMap = (props: Props) => {
     <>
       <div
         className={styles.mapLayer}
+        data-map-ready={ready}
+        aria-hidden={selected === "anchovy-bay" || undefined}
         data-water-state={
           waterReady
-            ? reducedMotion
-              ? "still"
-              : waterPaused
-                ? "paused"
-                : "animated"
+            ? selected === "anchovy-bay" ? "still" : "animated"
             : ready
               ? "fallback"
               : "loading"
         }
-        aria-hidden={props.selected === "anchovy-bay" || undefined}
       >
         <div ref={container} className={styles.mapCanvas} />
       </div>
-      {props.selected !== "anchovy-bay" && (failed || !ready) ? (
+      <div ref={curtain} className={styles.sceneCurtain} aria-hidden="true" />
+      {failed ? (
         <p className={styles.mapStatus} role="status">
-          {failed
-            ? "Map preview unavailable. Choose a case below to continue."
-            : "Preparing the map…"}
+          Map preview unavailable. Choose a case below to continue.
         </p>
-      ) : null}
-      {ready && waterReady && !reducedMotion ? (
-        <Button
-          variant="primary-outlined"
-          size="sm"
-          className={styles.waterPlayback}
-          aria-label={
-            waterPaused ? "Resume water animation" : "Pause water animation"
-          }
-          onPress={() => setWaterPaused((value) => !value)}
-        >
-          {waterPaused ? <FiPlay /> : <FiPause />}
-          {waterPaused ? "Resume water" : "Pause water"}
-        </Button>
       ) : null}
     </>
   );
