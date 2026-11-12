@@ -57,14 +57,14 @@ export const caseMapPlaces: Record<SimulationCaseId, CaseMapPlace> = {
 };
 
 export const overviewBounds: [[number, number], [number, number]] = [
-  [-6, 31],
-  [32, 46.5],
+  [-8, 30],
+  [34, 47.5],
 ];
 
 // Fixed desktop overview matching the broader Mediterranean composition.
 export const overviewDesktopBounds: [[number, number], [number, number]] = [
-  [-14, 28],
-  [40, 50],
+  [-17, 27],
+  [43, 51],
 ];
 
 // Official FAO/GFCM source geometry lives in public/maps; this is presentation configuration.

@@ -512,3 +512,38 @@
   }
   @media(prefers-reduced-motion:reduce) { .graphFrameSide { transition:none; } .graphFrameSide .hoverCard { animation:none; } }
 }
+
+@layer components {
+  .graphFrameMarine {
+    padding:clamp(12px, 1.5vw, 24px);
+    border:1px solid rgb(172 215 238 / 28%);
+    border-radius:var(--radius-lg);
+    background:
+      radial-gradient(ellipse at 5% 0%, rgb(88 179 211 / 24%), transparent 55%),
+      radial-gradient(ellipse at 100% 100%, rgb(164 99 133 / 19%), transparent 55%),
+      linear-gradient(145deg, #153b51, #091b30 65%);
+    box-shadow:inset 0 1px 0 rgb(255 255 255 / 9%), 0 12px 32px rgb(0 16 30 / 16%);
+  }
+  .graphFrameMarine .graphSvg {
+    background:transparent;
+    border:0;
+    padding:clamp(8px, 2vw, 28px);
+  }
+  .graphFrameMarine .nodeTitle { font-size:19px; }
+  .graphFrameMarine .nodeSubtitle { font-size:12px; }
+  .graphFrameMarine .edgeLabel, .graphFrameMarine .edgeLabelMuted { font-size:11px; }
+  .graphFrameMarine .hoverCard {
+    padding:1.25rem;
+    background:
+      radial-gradient(ellipse at top right, color-mix(in srgb, var(--hover-accent) 22%, transparent), transparent 65%),
+      linear-gradient(155deg, rgb(18 40 57 / 96%), rgb(5 19 34 / 96%));
+    border-color:color-mix(in srgb, var(--hover-accent) 70%, white 15%);
+    backdrop-filter:blur(16px);
+  }
+  .graphFrameMarine .hoverCardTitle { font-size:1.15rem; line-height:1.4; }
+  .graphFrameMarine .hoverCardText { font-size:0.875rem; line-height:1.65; }
+  .graphFrameMarine[data-has-detail="true"] { grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); }
+  @media(max-width:47.4375rem) {
+    .graphFrameMarine[data-has-detail="true"] { grid-template-columns:minmax(0, 1fr); }
+  }
+}

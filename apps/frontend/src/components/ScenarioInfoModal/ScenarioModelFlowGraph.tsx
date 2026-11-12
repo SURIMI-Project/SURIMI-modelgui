@@ -55,7 +55,7 @@ const renderNodeTitle = (title: string, centerX: number, centerY: number) => {
 
 type ScenarioModelFlowGraphProps = {
   caseId: SimulationCaseId;
-  appearance?: "legacy" | "theme";
+  appearance?: "legacy" | "theme" | "marine";
   detailPlacement?: "overlay" | "side";
 };
 
@@ -67,10 +67,10 @@ const ScenarioModelFlowGraphContent = ({ caseId, appearance = "legacy", detailPl
   const activeNode = nodes.find((node) => node.id === activeNodeId) ?? null;
 
   return (
-    <div data-has-detail={Boolean(activeNode)} className={`${styles.graphFrame} ${appearance === "theme" ? styles.graphFrameTheme : ""} ${detailPlacement === "side" ? styles.graphFrameSide : ""}`}>
+    <div data-has-detail={Boolean(activeNode)} className={`${styles.graphFrame} ${appearance === "theme" ? styles.graphFrameTheme : appearance === "marine" ? styles.graphFrameMarine : ""} ${detailPlacement === "side" ? styles.graphFrameSide : ""}`}>
       <svg
         className={styles.graphSvg}
-        viewBox={expanded ? "-20 20 900 680" : appearance === "theme" && caseId === "aegean-sea" ? "0 150 860 300" : "0 0 860 530"}
+        viewBox={expanded ? "-20 20 900 680" : (appearance === "theme" || appearance === "marine") && caseId === "aegean-sea" ? "0 150 860 300" : "0 0 860 530"}
         role="img"
         aria-label={ariaLabel}
       >

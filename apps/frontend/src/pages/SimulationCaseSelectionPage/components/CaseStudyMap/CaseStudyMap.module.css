@@ -1079,17 +1079,34 @@
     overscroll-behavior: contain;
     scrollbar-width: thin;
     padding: 1.5rem;
-    border: 1px solid rgb(255 255 255 / 85%);
-    border-radius: 1rem;
-    background: rgb(255 255 255 / 97%);
-    box-shadow: 0 8px 32px rgb(2 30 48 / 14%);
+    border: var(--border-default);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
     pointer-events: auto;
   }
-  .caseInformation .eyebrow { font-size: 0.625rem; margin-bottom: 0.75rem; }
-  .caseInformation h1 { font-size: clamp(1.5rem, 2vw, 2.125rem); line-height: 1.15; letter-spacing: -0.035em; }
+  .caseInformation .eyebrow { color: var(--color-secondary-ink); font-size: 0.625rem; margin-bottom: 0.75rem; }
+  .caseInformation h1 { font-size: clamp(1.75rem, 2vw, 2.125rem); font-weight: var(--font-weight-semibold); line-height: 1.15; letter-spacing: -0.035em; }
   .caseInformation h2 { margin: 1.5rem 0 0.75rem; font-size: 1rem; font-weight: var(--font-weight-semibold); }
   .caseParagraph { margin: 0 0 1rem; font-size: 0.9375rem; line-height: 1.75; color: var(--color-text-muted); }
   .caseParagraph:last-child { margin-bottom: 0; }
+  .caseInformation h2 + .caseParagraph {
+    position: relative;
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-smd);
+    background: var(--color-secondary-surface);
+    color: var(--color-text);
+  }
+  .caseInformation h2 + .caseParagraph::before {
+    content: "";
+    position: absolute;
+    top: var(--spacing-md);
+    bottom: var(--spacing-md);
+    left: 0;
+    width: 3px;
+    border-radius: var(--radius-pill);
+    background: var(--color-secondary-ink);
+  }
   .caseInformation:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
   @media (max-width: 47.4375rem) {
     .markerLabel { max-width: none; left: -95px; }
@@ -1113,10 +1130,10 @@
     width: min(36rem, 38vw);
     max-height: none;
     overflow: visible;
-    padding: 1.5rem 1.75rem;
+    padding: 1.25rem;
     top: 6rem;
   }
-  .caseParagraph { font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.875rem; }
+  .caseParagraph { font-size: 0.8125rem; line-height: 1.5; margin-bottom: 0.875rem; }
   .caseInformation h2 { margin-top: 1rem; }
   @media (max-width: 75rem), (max-height: 52rem) {
     .page:not([data-selected="overview"]) { height: auto; min-height: 100svh; overflow: visible; }
@@ -1228,29 +1245,52 @@
   .mapMarker[data-hovered="true"] .marineIdentity { outline:1px solid rgb(255 255 255 / 85%); transform:translateY(-2px); box-shadow:0 12px 24px rgb(0 25 42 / 32%); }
   .mapMarker[data-hovered="true"] .marineIdentityBottom { background:#f2f7f8; color:#34434c; }
   .mapMarker[data-hovered="true"] .markerDot { box-shadow:0 0 0 3px rgb(255 255 255 / 20%); }
-  .bayInset { width:15rem; height:14rem; transition:opacity 180ms, box-shadow 180ms; }
+  .bayInset { width:17rem; height:16rem; transition:opacity 180ms, box-shadow 180ms; }
+  .bayInset .insetTitle {
+    top:50%; bottom:auto; left:50%; right:auto; transform:translate(-50%, -50%);
+    width:max-content; max-width:calc(100% - 1.5rem); justify-content:center;
+    flex-direction:column; gap:0.375rem;
+    padding:0; color:white;
+    font-size:1.125rem; font-weight:var(--font-weight-semibold);
+    text-align:center;
+    text-shadow:0 1px 2px #002b3d, 0 2px 6px rgb(0 20 35 / 95%), 0 0 14px rgb(0 20 35 / 85%);
+  }
+  .bayInset .insetTitle .insetCategory {
+    position:static; padding:0; background:none; border-radius:0;
+    color:white; font-size:0.8125rem; line-height:1.4;
+    font-weight:var(--font-weight-medium); letter-spacing:0.03em;
+    text-shadow:inherit;
+  }
   .page[data-hovered]:not([data-hovered="anchovy-bay"]) .bayInset { opacity:0.65; }
   .page[data-hovered="anchovy-bay"] .bayInset { opacity:1; }
-  @media (min-width:47.5rem) and (max-width:65.625rem) { .bayInset { width:13rem; height:12rem; } }
+  @media (min-width:47.5rem) and (max-width:65.625rem) { .bayInset { width:15rem; height:14rem; } }
   @media(max-width:47.4375rem) {
     .mapMarker .marineIdentity { width:145px; }
     .mapMarker .markerLabel { left:-72px; }
     .mapMarker .marineIdentityTop { min-height:38px; padding:0.5rem 0.625rem; }
     .mapMarker .marineIdentityTop strong { font-size:0.8125rem; }
     .mapMarker .marineIdentityTop > svg, .mapMarker .marineIdentityBottom { display:none; }
-    .bayInset { width:10rem; height:9rem; }
+    .bayInset { width:11rem; height:10rem; }
+    .bayInset .insetTitle { font-size:0.9375rem; }
   }
   @media(prefers-reduced-motion:reduce) { .bayInset { transition:none; } }
 }
 @layer components {
-  .mapMarker .marineIdentity { height:104px; }
-  .mapMarker .marineIdentityTop { height:72px; min-height:72px; box-sizing:border-box; }
-  .mapMarker .marineIdentityBottom { height:32px; min-height:32px; box-sizing:border-box; }
+  .mapMarker .marineIdentity { height:92px; }
+  .mapMarker .marineIdentityTop { height:62px; min-height:62px; box-sizing:border-box; }
+  .mapMarker .marineIdentityBottom { height:30px; min-height:30px; box-sizing:border-box; }
   .mapMarker .marineIdentityTop img { opacity:0.55; }
   .mapMarker .marineIdentityTop strong {
     color:#fff;
     font-weight:700;
     text-shadow:0 1px 2px #002b3d, 0 2px 6px rgb(0 20 35 / 95%), 0 0 14px rgb(0 20 35 / 75%);
+  }
+  @media(min-width:47.5rem) {
+    .mapMarker .marineIdentity { width:200px; }
+    .mapMarker .markerLabel { left:-100px; }
+    .mapMarker .marineIdentityTop { padding:0.625rem; }
+    .mapMarker .marineIdentityTop strong { font-size:1rem; }
+    .mapMarker .marineIdentityBottom { padding:0.375rem 0.625rem; font-size:0.6875rem; }
   }
   @media(max-width:47.4375rem) {
     .mapMarker .marineIdentity { height:48px; }
@@ -1268,7 +1308,7 @@
   .page[data-selected="aegean-sea"] { height:100svh; min-height:0; overflow:hidden; }
   .page[data-selected="aegean-sea"] .sceneContent { position:absolute; inset:0; min-height:0; padding:0; }
   .page[data-selected="aegean-sea"] .immersivePreview { position:absolute; inset:0; }
-  .page[data-selected="aegean-sea"] .caseInformation { position:absolute; top:10rem; bottom:auto; left:var(--spacing-2xl); width:min(36rem, calc(100% - 6rem)); max-height:calc(100% - 18rem); overflow:auto; overscroll-behavior:contain; }
+  .page[data-selected="aegean-sea"] .caseInformation { position:absolute; top:10rem; bottom:auto; left:var(--spacing-2xl); width:min(28rem, calc(100% - 6rem)); max-height:calc(100% - 18rem); overflow:auto; overscroll-behavior:contain; }
   .page[data-selected="aegean-sea"] .selectorPosition { bottom:var(--spacing-2xl); }
   @media(max-width:47.4375rem) {
     .page[data-selected="aegean-sea"] .caseInformation { top:8.5rem; bottom:11rem; left:1rem; right:1rem; width:auto; max-height:none; margin:0; }
@@ -1355,4 +1395,68 @@
   .imageSheetBody .modelsSheetTabPanel, .imageSheetBody .largeEcosystemIllustration { width:100%; height:100%; margin:0; padding:0; }
   .imageSheetBody .largeEcosystemIllustration img { width:100%; height:100%; flex:1; object-fit:contain; border-radius:0; }
   .imageCaptionAccessible { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); margin:0 !important; padding:0 !important; white-space:nowrap; }
+}
+
+@layer components {
+  .imageSheetBody .largeEcosystemIllustration {
+    position:relative;
+    isolation:isolate;
+    background-size:cover;
+    background-position:center;
+    overflow:hidden;
+    padding-bottom:3.25rem;
+  }
+  .imageSheetBody .largeEcosystemIllustration::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    backdrop-filter:blur(24px);
+    background:rgb(9 48 64 / 30%);
+  }
+  .imageSheetBody .largeEcosystemIllustration img { height:0; flex:1; }
+  .imageSheetBody .ecosystemCaption {
+    position:absolute;
+    inset:auto 0 0;
+    margin:0;
+    padding:0.875rem 1.5rem;
+    background:rgb(247 252 253 / 94%);
+    color:#244858;
+    font-size:0.8125rem;
+    line-height:1.5;
+    backdrop-filter:blur(12px);
+  }
+}
+
+@layer components {
+  /* A shared case layout keeps the information panel stable between selections. */
+  .page:not([data-selected="overview"]):not([data-list="true"]) { height:100svh; min-height:0; overflow:hidden; }
+  .page:not([data-selected="overview"]):not([data-list="true"]) .sceneContent { position:absolute; inset:0; min-height:0; padding:0; }
+  .page:not([data-selected="overview"]) .immersivePreview { position:absolute; inset:0; }
+  .page:not([data-selected="overview"]) .caseInformation {
+    position:absolute; top:6rem; bottom:auto; left:var(--spacing-2xl); right:auto;
+    width:min(36rem, 38vw); max-height:calc(100% - 14rem); overflow:auto;
+    overscroll-behavior:contain;
+  }
+  .aegeanQuickActions button {
+    min-width:15rem; min-height:3.25rem; padding:0.875rem 1.25rem;
+    font-size:0.8125rem; letter-spacing:0.045em; border-radius:var(--radius-sm);
+  }
+  .aegeanQuickActions svg { width:1.125rem; height:1.125rem; flex-shrink:0; }
+  @media(max-width:47.4375rem) {
+    .page:not([data-selected="overview"]) .caseInformation {
+      top:5rem; bottom:15rem; left:1rem; right:1rem; width:auto; max-height:none;
+    }
+    .aegeanQuickActions button { min-width:0; min-height:3rem; font-size:0.6875rem; padding:0.625rem; }
+  }
+}
+
+@layer components {
+  .caseSimulationSummary { padding:1rem; margin-top:1rem; background:var(--color-secondary-surface); border-radius:var(--radius-sm); }
+  .caseInformation .caseSimulationSummary h2 { margin:0 0 0.5rem; font-size:0.875rem; }
+  .caseSimulationSummary p { margin:0; font-size:0.8125rem; line-height:1.6; color:var(--color-text-muted); }
+  .headerActions .headerSetup { gap:var(--spacing-sm); }
+  @media(max-width:47.4375rem) {
+    .headerActions .headerSetup { font-size:0.6875rem; padding:0.5rem; }
+  }
 }
