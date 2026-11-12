@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import CmsyInputPage from "./pages/cmsy/input/CmsyInputPage";
+import CmsyOutputPage from "./pages/cmsy/output/CmsyOutputPage";
 import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
 import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage";
 import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
@@ -22,6 +24,8 @@ const App = () => {
       <Route path="/scenario-outputs/:scenario" element={<ScenarioOutputsPage />} />
       <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
       <Route path="/test" element={<MsyModelPage />} />
+      <Route path="/cmsy-input" element={<CmsyInputPage />} />
+      <Route path="/cmsy-output" element={<CmsyOutputPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
