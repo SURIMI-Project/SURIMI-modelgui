@@ -189,3 +189,9 @@
     }
   }
 }
+
+@layer components {
+  .page { width: 100vw; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .mockBanner, .header { flex-shrink: 0; }
+  .content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+}

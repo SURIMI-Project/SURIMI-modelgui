@@ -9,7 +9,7 @@ export default function AuthLayout({ title, description, children }: Props) {
     <main className={styles.page}>
       <div className={styles.brand}>
         <Logo className={styles.logo} />
-        <span>SURIMI</span>
+        <span>MODEL USER INTERFACE</span>
       </div>
       <div className={styles.layout}>
         <section className={styles.story} aria-label="About SURIMI">
@@ -19,12 +19,6 @@ export default function AuthLayout({ title, description, children }: Props) {
             <span>{authPresentation.headingAccent}</span>
           </h2>
           <p className={styles.storyCopy}>{authPresentation.description}</p>
-          <div className={styles.art} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-            <i />
-          </div>
           <p className={styles.caption}>{authPresentation.caption}</p>
         </section>
         <Card className={styles.card}>

@@ -19,6 +19,39 @@ What changed and why. Link to the feature folder.
 
 ---
 
+
+## 2026-11-16
+
+### Fix — Model-detail scrollbar containment
+
+Inset model-detail scrolling within the rounded card, keep heading/controls visible, and remove the outer model-connections container border/inset outline while retaining the detail-card border. Build and focused lint pass; browser layout review remains outstanding. Frontend rebuild only.
+
+### Design — Dark login and single input focus treatment
+
+Refreshed the login layout for the dark theme. Inputs have one inset focus indicator; primary outlined buttons and modal close controls again use theme-owned white surfaces. Local/SSO authentication, redirects, errors and pending behavior are unchanged. See [design-system](features/frontend-design-system/CHANGELOG.md) and [authentication](features/auth-and-users/CHANGELOG.md) entries.
+
+**Verified:** production build, 26 network tests, focused lint and structural control-style checks pass. Browser visual/keyboard/autofill review remains outstanding.
+
+> **Deploying this:** frontend rebuild only.
+
+### Refactor — Single dark theme and active style tree
+
+Consolidated application colors into `styles/themes/theme.css`, the only theme file. Kept React Aria and design-system styles, removed the obsolete reference/utility styles and redundant font entry, and retained white logo/avatar/coverage roles explicitly. Portal controls inherit the same dark theme without a separate theme module. See [ADR 0019](decisions/0019-single-dark-application-theme.md).
+
+**Verified:** build, 26 network tests, focused lint and structural theme checks pass; final browser visual checks remain outstanding.
+
+> **Deploying this:** frontend rebuild only; no dependency or backend changes.
+
+### Design — Dark case-study explorer and streamlined case workflows
+
+Refined the dark map, compact illustrated cards, case preview modal, account controls and user-approved fixed map/card layout. Detail pages retain right-side model/comparison actions so the map stays visible; the models sheet contains separate ecosystem-illustration and connections tabs. Runs have compact case-specific navigation, and scenario setup keeps three separate screens without numbered steps or a case picker. Pages remain within the viewport with internal content scrolling and smoother resize scheduling.
+
+Removed 76 verified unused frontend files and stale map styles/fixture metadata, preserving the explicitly protected output/reference code, tests, shared controls and dependencies. The completed cleanup proposal was removed. See [case-study map](features/case-study-map/CHANGELOG.md) and [design system](features/frontend-design-system/CHANGELOG.md).
+
+**Verified:** build and 26 network tests pass; existing lint debt is 16 errors/five warnings. Final browser verification remains outstanding.
+
+> **Deploying this:** frontend rebuild only. No migrations, dependency, backend or configuration changes.
+
 ## 2026-11-06
 
 ### Design — Distinct sea background identities

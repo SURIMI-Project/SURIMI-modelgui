@@ -6,6 +6,7 @@ import Button from "../Button/Button";
 import styles from "./Sheet.module.css";
 
 type Props = {
+  appearance?: "default" | "marine";
   opened?: boolean;
   onClose: () => void;
   title: ReactNode;
@@ -17,7 +18,7 @@ type Props = {
   wrapContent?: (content: ReactNode) => ReactNode;
 };
 
-export default function Sheet({ opened, onClose, title, children, closeLabel = "Close sheet", headerContent, wrapContent, preventDismissal = false, bodyClassName }: Props) {
+export default function Sheet({ appearance = "default", opened, onClose, title, children, closeLabel = "Close sheet", headerContent, wrapContent, preventDismissal = false, bodyClassName }: Props) {
   const content = <>
     <header className={styles.header}>
       <div className={styles.headerContent}>{headerContent ?? <Heading slot="title" className={styles.title}>{title}</Heading>}</div>
@@ -27,7 +28,7 @@ export default function Sheet({ opened, onClose, title, children, closeLabel = "
   </>;
   return <SheetOverlay isOpen={opened} onOpenChange={open => { if (!open) onClose(); }} position="bottom" preventDismissal={preventDismissal} className={styles.overlay}>
     <SheetBackdrop className={styles.backdrop} />
-    <AriaSheet className={styles.sheet}>
+    <AriaSheet className={`${styles.sheet} ${appearance === "marine" ? styles.marine : ""}`}>
       <SheetContent className={styles.content} aria-label={headerContent && typeof title === "string" ? title : undefined}>
         {wrapContent ? wrapContent(content) : content}
       </SheetContent>

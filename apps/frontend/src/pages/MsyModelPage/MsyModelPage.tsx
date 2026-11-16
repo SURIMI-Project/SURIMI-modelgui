@@ -31,6 +31,7 @@ const normalizeExploitationValue = (raw: number) => {
 
 const MsyModelPage = () => {
   const stock = europeanHakeWestMediterraneanNorthSpain;
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const introRef = useRef<HTMLElement | null>(null);
   const [introProgress, setIntroProgress] = useState(0);
   const currentYear = new Date().getFullYear();
@@ -88,6 +89,7 @@ const MsyModelPage = () => {
           : "Overfished and overfishing";
 
   useEffect(() => {
+    const scrollContainer = contentRef.current;
     const updateProgress = () => {
       const section = introRef.current;
       if (!section) {
@@ -95,7 +97,7 @@ const MsyModelPage = () => {
       }
 
       const totalScrollable = Math.max(
-        section.offsetHeight - window.innerHeight,
+        section.offsetHeight - (scrollContainer?.clientHeight ?? window.innerHeight),
         1,
       );
 
@@ -106,11 +108,11 @@ const MsyModelPage = () => {
     };
 
     updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
+    scrollContainer?.addEventListener("scroll", updateProgress, { passive: true });
     window.addEventListener("resize", updateProgress);
 
     return () => {
-      window.removeEventListener("scroll", updateProgress);
+      scrollContainer?.removeEventListener("scroll", updateProgress);
       window.removeEventListener("resize", updateProgress);
     };
   }, []);
@@ -158,7 +160,7 @@ const MsyModelPage = () => {
     activeConceptIndex >= 0 ? coreConcepts[activeConceptIndex] : null;
 
   return (
-    <>
+    <div className={styles.viewport}><div ref={contentRef} className={styles.viewportContent}>
       <section
         ref={introRef}
         className={styles["intro-scroll-section"]}
@@ -431,7 +433,7 @@ const MsyModelPage = () => {
           </p>
         </div>
       </footer>
-    </>
+    </div></div>
   );
 };
 

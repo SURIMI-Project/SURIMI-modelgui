@@ -46,10 +46,10 @@ const AnchovyInputGraph = ({
 }: AnchovyInputGraphProps) => {
   const theme = getComputedStyle(document.documentElement);
   const token = (name: string) => theme.getPropertyValue(name).trim();
-  const text = token("--color-text-muted");
-  const border = token("--color-border");
+  const text = token("--color-map-detail-text");
+  const border = token("--color-map-card-border");
   const primary = token("--color-primary");
-  const surface = token("--color-surface");
+  const surface = token("--color-setup-panel");
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,

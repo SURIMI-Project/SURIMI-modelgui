@@ -5,6 +5,7 @@ import Button from "../Button/Button";
 import styles from "./Modal.module.css";
 
 type Props = {
+  appearance?: "default" | "marine";
   opened: boolean;
   onClose: () => void;
   title?: ReactNode;
@@ -18,9 +19,9 @@ type Props = {
   bodyClassName?: string;
 };
 
-export default function Modal({ opened, onClose, title, children, size = "min(1100px, 94vw)", zIndex = 5000, closeOnClickOutside = true, closeOnEscape = true, withCloseButton = true, fullScreen = false, bodyClassName }: Props) {
+export default function Modal({ appearance = "default", opened, onClose, title, children, size = "min(1100px, 94vw)", zIndex = 5000, closeOnClickOutside = true, closeOnEscape = true, withCloseButton = true, fullScreen = false, bodyClassName }: Props) {
   return <ModalOverlay isOpen={opened} onOpenChange={open => { if (!open) onClose(); }} isDismissable={closeOnClickOutside} isKeyboardDismissDisabled={!closeOnEscape} className={styles.overlay} style={{ zIndex }}>
-    <AriaModal className={`${styles.modal} ${fullScreen ? styles.fullScreen : ""}`} style={{ "--modal-width": typeof size === "number" ? `${size}px` : size } as CSSProperties}>
+    <AriaModal className={`${styles.modal} ${fullScreen ? styles.fullScreen : ""} ${appearance === "marine" ? styles.marine : ""}`} style={{ "--modal-width": typeof size === "number" ? `${size}px` : size } as CSSProperties}>
       <Dialog className={styles.dialog} aria-label={title ? undefined : "Dialog"}>
         <header className={styles.header}>
           {title ? <Heading slot="title" className={styles.title}>{title}</Heading> : <span />}

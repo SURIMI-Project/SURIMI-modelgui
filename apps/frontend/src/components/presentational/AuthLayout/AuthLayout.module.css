@@ -1,146 +1,45 @@
 @layer components {
   .page {
-    min-height: 100svh;
-    background: var(--color-background);
-    color: var(--color-text);
-    padding: var(--spacing-xl) clamp(var(--spacing-lg), 6vw, var(--spacing-4xl));
+    position: relative;
+    isolation: isolate;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    padding: 1.5rem clamp(1.25rem, 5vw, 5rem);
+    color: var(--color-text);
+    background:
+      radial-gradient(ellipse at 8% 38%, color-mix(in srgb, var(--color-login-glow) 60%, transparent), transparent 65%),
+      radial-gradient(ellipse at 95% 100%, color-mix(in srgb, var(--color-login-glow) 25%, transparent), transparent 60%),
+      var(--color-login-background);
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-smd);
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: var(--letter-spacing-eyebrow);
-  }
-  .logo {
-    width: 3rem;
-  }
-  .layout {
-    width: 100%;
-    max-width: 72rem;
-    margin: auto;
-    padding-block: var(--spacing-3xl);
-    display: grid;
-    grid-template-columns: 1fr 26rem;
-    gap: clamp(var(--spacing-xl), 7vw, var(--spacing-5xl));
-    align-items: center;
-  }
-  .eyebrow,
-  .cardEyebrow {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-primary);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-eyebrow);
-    margin-bottom: var(--spacing-lg);
-  }
-  .story h2 {
-    font-size: var(--font-size-hero);
-    max-width: 10ch;
-    line-height: 1.12;
-    letter-spacing: -0.055em;
-    font-weight: var(--font-weight-medium);
-  }
-  .story h2 span {
-    display: block;
-    color: var(--color-primary);
-  }
-  .storyCopy {
-    margin-top: var(--spacing-lg);
-    max-width: 24rem;
-    font-size: var(--font-size-md);
-    color: var(--color-text-muted);
-    line-height: 1.9;
-  }
-  .art {
-    height: 8rem;
-    width: 19rem;
-    position: relative;
-    margin-top: var(--spacing-xl);
-    overflow: hidden;
-  }
-  .art span {
-    position: absolute;
-    width: 7rem;
-    height: 7rem;
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-roundedFull);
-    left: 0;
-    top: var(--spacing-sm);
-    opacity: 0.7;
-  }
-  .art span:nth-child(2) {
-    left: 4rem;
-    border-color: var(--color-secondary-hover);
-  }
-  .art span:nth-child(3) {
-    left: 8rem;
-    border-color: var(--color-brand-pink);
-  }
-  .art i {
-    position: absolute;
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: var(--radius-roundedFull);
-    background: var(--color-primary);
-    left: 7rem;
-    top: 3.75rem;
-  }
-  .caption {
-    color: var(--color-text-subtle);
-    font-size: var(--font-size-xs);
-    margin-top: var(--spacing-smd);
-  }
-  .card {
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
-  }
-  .cardEyebrow {
-    margin-bottom: var(--spacing-sm);
-  }
-  .title {
-    font-size: var(--font-size-2xl);
-    margin-bottom: var(--spacing-smd);
-  }
-  .description {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-    margin-bottom: var(--spacing-xl);
-    line-height: 1.8;
-  }
-  .footer {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--spacing-md);
-    color: var(--color-text-subtle);
-    font-size: var(--font-size-xs);
-  }
-  .footer a {
-    color: var(--color-text-muted);
-    text-decoration: none;
-  }
+  .page::before { content: ""; position: absolute; z-index: -1; width: 55vw; height: 55vw; border: 1px solid color-mix(in srgb, var(--color-login-accent) 10%, transparent); border-radius: 50%; left: -24vw; top: 8vh; box-shadow: 0 0 0 5rem color-mix(in srgb, var(--color-login-accent) 3%, transparent); pointer-events: none; }
+  .brand { display: flex; align-items: center; gap: 0.875rem; flex-shrink: 0; }
+  .brand > span { color: var(--color-login-accent); font-size: 0.6875rem; font-weight: var(--font-weight-semibold); letter-spacing: 0.16em; }
+  .logo { width: 3.5rem; height: 3.5rem; padding: 0.375rem; border-radius: var(--radius-md); background: var(--color-floating-control-surface); }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem); align-items: center; gap: clamp(3rem, 7vw, 7rem); flex: 1; min-height: 0; width: 100%; max-width: 76rem; margin-inline: auto; padding: 2rem 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .story { padding-block: 1.5rem; }
+  .eyebrow, .cardEyebrow { margin: 0 0 1.5rem; color: var(--color-login-accent); font-size: 0.6875rem; font-weight: var(--font-weight-semibold); text-transform: uppercase; letter-spacing: 0.16em; }
+  .story h2 { max-width: 14ch; font-size: clamp(2.75rem, 4.5vw, 4.75rem); font-weight: var(--font-weight-medium); line-height: 1.08; letter-spacing: -0.055em; }
+  .story h2 span { display: block; color: var(--color-login-accent); }
+  .storyCopy { max-width: 29rem; margin-top: 1.75rem; color: var(--color-text-muted); font-size: 1rem; line-height: 1.85; }
+  .caption { max-width: 26rem; margin: 2rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--color-map-card-border); color: var(--color-login-accent); font-size: 0.75rem; letter-spacing: 0.06em; }
+  .card { position: relative; padding: clamp(1.5rem, 3vw, 2.5rem); border: 1px solid var(--color-map-card-border); border-radius: var(--radius-xl); background: var(--color-login-card); box-shadow: 0 1.5rem 4rem color-mix(in srgb, var(--color-login-background) 65%, transparent); }
+  .cardEyebrow { margin-bottom: 0.875rem; }
+  .title { margin-bottom: 0.875rem; font-size: 1.75rem; line-height: 1.2; }
+  .description { margin-bottom: 1.75rem; color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.7; }
+  .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; flex-shrink: 0; padding-top: 0.75rem; color: var(--color-text-subtle); font-size: 0.6875rem; }
+  .footer a { color: var(--color-login-accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
   @media (max-width: 50rem) {
-    .layout {
-      grid-template-columns: 1fr;
-      max-width: 30rem;
-      padding-block: var(--spacing-xl);
-      gap: var(--spacing-xl);
-    }
-    .story {
-      display: none;
-    }
-    .brand {
-      margin-bottom: var(--spacing-lg);
-    }
-    .card {
-      padding: var(--spacing-lg);
-    }
-    .footer {
-      flex-wrap: wrap;
-    }
+    .page { padding: 1rem; }
+    .layout { grid-template-columns: minmax(0, 1fr); max-width: 28rem; gap: 0; padding-block: 1.5rem; }
+    .story { display: none; }
+    .card { padding: 1.5rem; }
+    .title { font-size: 1.5rem; }
+    .brand > span { font-size: 0.5625rem; }
   }
 }

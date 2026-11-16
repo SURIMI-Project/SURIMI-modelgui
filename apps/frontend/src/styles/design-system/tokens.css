@@ -6,5 +6,4 @@
 @import "./borders.css";
 @import "./shadows.css";
 @import "./motion.css";
-@import "../themes/light.css";
-@import "../themes/legacy-aliases.css";
+@import "../themes/theme.css";

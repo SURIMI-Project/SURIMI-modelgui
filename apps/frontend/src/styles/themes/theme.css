@@ -1,0 +1,102 @@
+/* Single dark application theme. Shared scales remain in design-system/. */
+@layer tokens {
+  :root {
+    color-scheme: dark;
+    --color-sea-nw-background: var(--palette-sea-nw-primary);
+    --color-sea-nw-deep: var(--palette-sea-nw-deep);
+    --color-sea-nw-secondary: var(--palette-sea-nw-secondary);
+    --color-sea-nw-accent: var(--palette-sea-nw-accent);
+    --color-sea-aegean-background: var(--palette-sea-aegean-primary);
+    --color-sea-aegean-deep: var(--palette-sea-aegean-deep);
+    --color-sea-aegean-secondary: var(--palette-sea-aegean-secondary);
+    --color-sea-aegean-accent: var(--palette-sea-aegean-accent);
+    --color-sea-on-background: var(--palette-neutral-0);
+    --color-glass-surface: color-mix(in srgb, var(--color-setup-surface) 88%, transparent);
+    --color-glass-hover: color-mix(in srgb, var(--color-setup-panel) 94%, transparent);
+    --color-map-coverage-surface: var(--palette-neutral-0);
+    --color-map-coverage-text: var(--palette-neutral-800);
+    --color-floating-control-surface: var(--palette-neutral-0);
+    --color-floating-control-hover: var(--palette-neutral-50);
+    --color-setup-surface: #062b3b;
+    --color-setup-panel: #0a3547;
+    --color-setup-hover: #12485c;
+    --color-map-detail-text: #e5f0f3;
+    --color-map-card-image-overlay: rgb(3 42 59 / 55%);
+    --color-map-card-surface: rgb(3 42 59 / 90%);
+    --color-map-card-border: rgb(197 228 229 / 32%);
+    --color-map-card-muted: #c5e4e5;
+    --color-map-water: #075675;
+    --color-map-water-deep: #033b56;
+    --color-map-water-shallow: #087d9b;
+    --color-map-water-reflection: #8ed9e7;
+    --color-map-land: #183849;
+    --color-map-coast: #52788a;
+    --color-map-grid: #8ab7c8;
+    --color-map-label: #c5e4e5;
+    --color-map-study-boundary: #f5ad72;
+    --color-map-study-northwestern: #ffad52;
+    --color-map-study-lift: #ffc778;
+    --color-map-bay-water: #095773;
+    --color-map-bay-deep: #063c59;
+    --color-map-bay-shallow: #157f95;
+    --color-map-bay-reflection: #9cdee1;
+    --color-map-overview-scrim: #02283d;
+    --color-map-overview-glow: #26a7c5;
+    --color-background: var(--color-map-water-deep);
+    --color-surface: var(--color-setup-surface);
+    --color-surface-muted: var(--color-setup-panel);
+    --color-surface-hover: var(--color-setup-hover);
+    --color-text: var(--color-sea-on-background);
+    --color-text-muted: var(--color-map-detail-text);
+    --color-text-subtle: var(--color-map-card-muted);
+    --color-border: var(--color-map-card-border);
+    --color-input: var(--color-setup-panel);
+    --color-input-border: var(--color-map-card-border);
+    --color-login-background: #031e2d;
+    --color-login-glow: #0e5a70;
+    --color-login-accent: #8bd8de;
+    --color-login-card: #082e3f;
+    --color-primary-outlined-surface: var(--palette-neutral-0);
+    --color-primary-outlined-hover: var(--palette-red-50);
+    --color-primary-outlined-text: var(--palette-red-600);
+    --color-modal-close-surface: var(--palette-neutral-0);
+    --color-modal-close-hover: var(--palette-red-50);
+    --color-modal-close-text: var(--palette-red-600);
+    --color-primary-ink: #ff8b96;
+    --color-primary: var(--palette-red-600);
+    --color-primary-hover: var(--palette-red-700);
+    --color-on-primary: var(--palette-neutral-0);
+    --color-primary-surface: color-mix(in srgb, var(--color-primary) 20%, var(--color-setup-panel));
+    --color-secondary: var(--palette-orange-400);
+    --color-secondary-hover: var(--palette-orange-500);
+    --color-on-secondary: var(--palette-neutral-900);
+    --color-secondary-ink: var(--palette-orange-400);
+    --color-secondary-surface: color-mix(in srgb, var(--color-secondary) 15%, var(--color-setup-panel));
+    --color-danger: var(--palette-red-500);
+    --color-danger-surface: color-mix(in srgb, var(--color-danger) 15%, var(--color-setup-panel));
+    --color-success: #82d5a5;
+    --color-success-surface: color-mix(in srgb, var(--color-success) 15%, var(--color-setup-panel));
+    --color-info: #8fbfff;
+    --color-info-surface: color-mix(in srgb, var(--color-info) 15%, var(--color-setup-panel));
+    --color-warning: var(--palette-orange-400);
+    --color-warning-surface: color-mix(in srgb, var(--color-warning) 15%, var(--color-setup-panel));
+    --color-focus: var(--palette-orange-400);
+    --color-selected: color-mix(in srgb, var(--color-primary) 20%, var(--color-setup-panel));
+    --color-disabled: var(--color-setup-panel);
+    --color-disabled-text: var(--color-map-card-muted);
+    --color-overlay: rgb(0 15 28 / 65%);
+    --color-brand-pink: var(--palette-pink-500);
+    --color-brand-pink-surface: color-mix(in srgb, var(--color-brand-pink) 15%, var(--color-setup-panel));
+    --color-brand-gradient: linear-gradient(
+      135deg,
+      var(--palette-red-600),
+      var(--palette-orange-500)
+    );
+    --color-brandRedDeep: var(--color-primary-hover);
+    --color-brandBlue: #6173b0;
+    --color-brandInk: var(--palette-neutral-900);
+    --color-brandPaper: var(--palette-neutral-0);
+    --app-font-family: var(--font-sans);
+  }
+}
+

@@ -28,13 +28,18 @@
     border-color: var(--color-text-muted);
   }
   .control[data-focused],
+  .control:focus-visible,
   .control:focus-within {
     outline: var(--focus-ring);
-    outline-offset: var(--focus-offset);
+    outline-offset: calc(-1 * var(--focus-width));
     border-color: var(--color-focus);
+    box-shadow: none;
   }
   .field[data-invalid] .control {
     border-color: var(--color-danger);
+  }
+  .field[data-invalid] .control:focus-within {
+    outline-color: var(--color-danger);
   }
   .field[data-disabled] .control {
     background: var(--color-disabled);

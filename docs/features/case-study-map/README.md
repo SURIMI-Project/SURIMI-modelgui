@@ -1,23 +1,30 @@
 # Case-study map entrance — T02
 
-**Authorized by the user, 2026-11-05:** preserve the current cinematic cards as an unused component and build a large map with three study entrances. Selecting a case zooms into a personalized preview; explicit actions then open its introduction or example runs. No backend/deployment changes.
+**Current scope, user authorized 2026-11-16:** dark case-study explorer, compact case cards, preview modal, case-specific detail/setup/runs views and cleanup of the superseded cinematic screens. The earlier requirement to retain the unused cinematic implementation is superseded by the approved cleanup. No backend/deployment changes.
 
 | Decision | Why | Source |
 | --- | --- | --- |
-| Preserve `CinematicCaseSelection` | User must not lose the existing videos/intro/layout | User, 2026-11-05 |
+| Remove superseded cinematic/standalone introduction screens | The approved explorer and detail views replace these unreachable implementations | User cleanup request, 2026-11-16 |
 | Shared page owns REST loading/error boundary | Prevent the disabled-card flash and keep views independent of fetching | Existing T06 flow |
 | Reuse MapLibre, with local Natural Earth context | Real geographic context and camera movement without new dependencies, API keys or tile-service coupling | This feature |
 | Aegean selection shows official GFCM GSA 22 + 23 | User confirmed these two subareas define the requested Aegean study-area overlay; retain source geometry rather than drawing an approximate outline | User, 2026-11-06 |
 | Northwestern selection shows official GFCM GSA 06 + 07 | Existing case metadata lists these areas; use the same published dataset as Aegean, with source coordinates preserved | User-requested boundary fix, 2026-11-06; case metadata |
 | Anchovy Bay is an educational inset | Its illustration has no supplied geographic coordinates; do not invent a real-world location | User asset and case metadata |
-| Preview before navigation | The first click is a reversible camera/identity transition | User-approved concept |
+| Preview before navigation | Clicking a card or sea boundary opens a case modal; Explore starts the existing map transition | User-approved redesign, 2026-11-16 |
 | Reduced motion + equivalent case buttons | Selection must work without pulses/camera animation or mouse-only interaction | This feature |
 
 ## Experience
 
-Mediterranean overview → select a labelled pulsing study marker or case button → camera flies to the geographic location, or transitions to the educational bay illustration → personalized title/copy/colour/actions. Back to overview reverses the view. REST availability controls both map and list entrances. Geographic loading/WebGL failures do not prevent selection through the case list.
+Mediterranean overview → select a compact sea card, boundary or Anchovy Bay inset → case preview modal → Explore scenario (camera flight and detail view) or Compare scenarios (case-filtered runs). The detail view keeps the area-of-interest map visible, with About the models and Compare scenarios buttons on the right. About the models opens a sheet with SURIMI MODELS (ecosystem illustration) and ABOUT THE MODELS BEHIND (connections graph) tabs. The model-detail card keeps its heading/controls visible and scrolls description/references inside an inset region. Its border is retained; the outer model-connections container has no outline border. Back clears selection. Setup is available only with a known case and retains separate harvest-input, duration and IPCC screens without numbered progress indicators. Runs of 5/10 years use SSP2-4.5; longer runs require a climate choice. Setup remains demo-only and does not submit or persist experiments.
 
+The final user-supplied overview is centered at `[16.248039215126823, 40.361647344601096]`, zoom `4.503757540851962`, for 1920×935. Card positions are stored as viewport fractions. Manual map/card placement is disabled through `enablePlacementTools={false}`; the temporary developer controls/logging remain available behind that prop. Hover directly highlights the corresponding study boundary and dims the other cases without React hover state. Pages stay within the viewport and use internal content scrollers; resize work is frame-batched and camera reframing waits 160 ms after resizing stops.
+
+REST availability still gates access. Current React Aria controls and design-system previews remain. The original selector is retained as a commented reference per the earlier explicit user request. The duplicate reference stylesheet tree, unused case-picker/selector, standalone introduction, cinematic UI and listed unused assets have been removed. Explicitly protected output components, reference species data, videos and marine images remain.
 Country/coastline geometry provides basemap context, not model-domain boundaries. Overview markers are illustrative locations documented here, without the removed footer notice; selected sea views show the official GSA 22 + 23 or 06 + 07 boundary overlay with a FAO/GFCM credit. The supplied SVG contains an embedded PNG; it is copied unchanged and used as an illustration, not treated as editable boundary data. Adding it here does not implement the separate T04 introduction redesign.
+
+## Historical refinements (2026-11-06)
+
+These earlier implementation notes are retained as history; the current experience above supersedes conflicting layout/interaction details.
 
 ## Data and files
 

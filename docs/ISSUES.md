@@ -39,16 +39,16 @@ The critical finding is MapLibre GL JS sanitizer bypass ([GHSA-jrc7-96c5-q579](h
 
 **Next action:** review affected usage and plan dependency updates with map/chart/build regression checks. Do not run broad `npm audit fix --force` as part of request-layer work. No unrelated upgrades were attempted in this increment.
 
-### Lint fails with 18 errors and 5 warnings
+### Lint fails with 16 errors and 5 warnings
 
 **Severity:** Low — CI runs lint in report-only mode until these are fixed
-**Evidence:** Verified 2026-11-06 after the design-system migration; the same 18 errors and 5 warnings remain outside the new foundation.
+**Evidence:** Verified 2026-11-16 after the frontend redesign/cleanup: 16 errors and five warnings remain in preserved chart/output/video code. The redesign callback/ref findings were fixed.
 **Owner:** this repo
-**Where:** 11 files in `apps/frontend/src/`
+**Where:** nine files in `apps/frontend/src/`
 
-`npm run lint`: 14 × `@typescript-eslint/no-explicit-any`, 2 ×
-`react-hooks/set-state-in-effect`, 1 × `@typescript-eslint/no-unused-vars`,
-1 × `react-hooks/immutability` (errors); 5 × `react-hooks/exhaustive-deps`
+`npm run lint`: 14 × `@typescript-eslint/no-explicit-any`, 1 ×
+`react-hooks/set-state-in-effect`, 1 × `react-hooks/immutability` (errors);
+5 × `react-hooks/exhaustive-deps`
 (warnings).
 
 **Fix:** fix them in their own change, then remove `continue-on-error` from

@@ -25,6 +25,9 @@ const HomeRedirect = () => {
   return <Navigate to={session.data ? "/scenarios" : "/login"} replace />;
 };
 
+// The shared map layout renders these scenes directly; the leaf has no outlet content.
+const MapSceneRoute = () => null;
+
 const App = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
@@ -32,8 +35,8 @@ const App = () => (
     <Route path="/test" element={<MsyModelPage />} />
     <Route path="/" element={<HomeRedirect />} />
     <Route element={<SimulationCaseSelectionPage />}>
-      <Route path="/scenarios" />
-      <Route path="/scenario/:caseId" />
+      <Route path="/scenarios" Component={MapSceneRoute} />
+      <Route path="/scenario/:caseId" Component={MapSceneRoute} />
       <Route
         path="/scenario-runs"
         element={<ScenarioRunsPage />}

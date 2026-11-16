@@ -1,5 +1,33 @@
 # Frontend design-system changelog
 
+## 2026-11-16 — Dark login composition and corrected control surfaces
+
+- Redesigned AuthLayout as a viewport-contained navy/teal sign-in page with a compact white logo tile, clear project copy and dark form card. Smaller screens keep the form in an internal scroll area.
+- Replaced the separated input border/focus outline with a single inset focus indicator; invalid focused fields use the error color. Keyboard focus remains visible.
+- Added semantic white surfaces/red ink for primary outlined buttons and modal/sheet close controls in the sole theme file. Removed setup/runs overrides that forced those controls dark; disabled controls retain their disabled treatment.
+- Login, SSO, return paths, error handling and pending states are unchanged.
+
+**Verified:** production build, all 26 network tests, focused lint and structural checks for white control surfaces/single focus indicator pass. No browser screenshot, keyboard or autofill verification in this increment.
+
+## 2026-11-16 — One dark theme, one active style tree
+
+**User requested:** remove the obsolete style tree, retain the active React Aria/design-system structure and keep exactly one file under themes.
+
+- Consolidated semantic dark values and five required compatibility names into `styles/themes/theme.css`. Removed the light theme, alias file and marine-surface CSS module. The single root theme now reaches portal dropdowns without per-select theme props.
+- Removed the empty reference-style directory and unused global utility stylesheet. Moved the font import into the design-system globals and removed the redundant entry stylesheet/imports.
+- Preserved explicit white logo/avatar and map coverage-strip roles. Improved outlined-control ink contrast on dark surfaces; retained shared scales, React Aria styles, and prototype text contrast.
+- Recorded the theme-scope update in ADR 0019; no backend, dependency, authentication or simulation behavior changes.
+
+**Verified:** build and all 26 network tests pass; one theme file remains, no old theme imports remain, and changed TypeScript files pass focused lint. No new browser verification of final dark surfaces/contrast; full-app lint debt remains tracked separately.
+
+## 2026-11-16 — Scoped dark marine surfaces and reference-style cleanup
+
+- Added theme-owned dark marine surfaces for case previews, setup forms, controls and portal dropdowns; preserved the light foundation and actual design-system controls.
+- Case/model sheets and illustrated detail panels share marine borders, readable text and equal-width actions. Removed the unused reference stylesheet tree, as authorized by the user cleanup request.
+- Pages fit the viewport with internal scrolling for long content. The case map batches canvas resizes and defers camera reframing to avoid repeated resets while dragging the window.
+
+**Verified:** production build and 26 network tests pass. Lint retains 16 existing errors/five warnings outside the changed map/setup components. No new browser checks; see the [case-study map entry](../case-study-map/CHANGELOG.md) for scope and limitations.
+
 ## 2026-11-06 — Scoped sea-background identities
 
 - `styles/design-system/colors.css`: eight supplied Northwestern/Aegean raw palette values, defined once.

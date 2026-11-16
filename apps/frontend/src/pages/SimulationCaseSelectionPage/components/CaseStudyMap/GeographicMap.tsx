@@ -16,14 +16,13 @@ import type { SimulationCaseId } from "../../../../data/simulationCases";
 import styles from "./CaseStudyMap.module.css";
 
 type Props = {
+  /** Temporary developer placement controls; disabled by default. */
+  enablePlacementTools?: boolean;
   backgroundOnly?: boolean;
-  expandedCase: SimulationCaseId | null;
   selected: SimulationCaseId | null;
   available: ReadonlySet<SimulationCaseId>;
   reducedMotion: boolean;
   onSelect: (id: SimulationCaseId) => void;
-  hovered: SimulationCaseId | null;
-  onHover: (id: SimulationCaseId | null) => void;
 };
 
 const themeColour = (
@@ -125,7 +124,7 @@ const moveCamera = (
     if (!mobile) {
       // Match the approved 1920 × 935 overview, scaling to fit smaller viewports.
       const scale = Math.min(width / 1920, map.getContainer().clientHeight / 935);
-      const camera = { center: [6.164721861770346, 38.48192946871973] as [number, number], zoom: 4.259597210796989 + Math.log2(scale), pitch: 0, bearing: 0 };
+      const camera = { center: [16.248039215126823, 40.361647344601096] as [number, number], zoom: 4.503757540851962 + Math.log2(scale), pitch: 0, bearing: 0 };
       if (animate) map.flyTo({ ...camera, duration });
       else map.jumpTo(camera);
       return;
@@ -271,6 +270,7 @@ const GeographicMap = (props: Props) => {
   const lastScene = useRef<SimulationCaseId | null>(props.selected);
   const switchingScene = useRef(false);
   const mapRef = useRef<LibreMap | null>(null);
+  const resetHover = useRef<() => void>(() => {});
   const markerRoots = useRef(new Map<SimulationCaseId, Root>());
   const buttons = useRef(new Map<SimulationCaseId, HTMLDivElement>());
   const current = useRef(props);
@@ -279,9 +279,9 @@ const GeographicMap = (props: Props) => {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const { selected, available, reducedMotion, onSelect, hovered, onHover, backgroundOnly } = props;
+  const { selected, available, reducedMotion, onSelect, backgroundOnly } = props;
   useEffect(() => {
-    current.current = { ...current.current, selected, available, reducedMotion, onSelect, onHover, backgroundOnly };
+    current.current = { ...current.current, selected, available, reducedMotion, onSelect, backgroundOnly };
     for (const [id, button] of buttons.current) {
       const dimmed = Boolean(selected && selected !== id);
       button.hidden = Boolean(backgroundOnly) || selected !== null;
@@ -293,6 +293,7 @@ const GeographicMap = (props: Props) => {
     const map = mapRef.current;
     if (!map) return;
     const selectionChanged = selected !== lastScene.current;
+    if (selectionChanged) resetHover.current();
     const fictional = selected === "anchovy-bay";
     const crossesScene = fictional !== (lastScene.current === "anchovy-bay");
     lastScene.current = selected;
@@ -338,62 +339,47 @@ const GeographicMap = (props: Props) => {
       fadeIn?.cancel();
       switchingScene.current = false;
     };
-  }, [selected, available, reducedMotion, onSelect, onHover, backgroundOnly]);
+  }, [selected, available, reducedMotion, onSelect, backgroundOnly]);
 
   useEffect(() => {
-    current.current = props;
     for (const [caseId, root] of markerRoots.current) {
-      const marker = buttons.current.get(caseId);
-      if (marker) marker.dataset.expanded = String(props.expandedCase === caseId);
       root.render(createElement(MarineCaseIdentity, {
-        caseId, expanded: props.expandedCase === caseId,
-        disabled: !props.available.has(caseId),
+        caseId,
+        disabled: !available.has(caseId),
         onSelect: () => current.current.onSelect(caseId),
       }));
     }
-  }, [props, ready]);
+  }, [available, onSelect, ready]);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    for (const [id, button] of buttons.current) button.setAttribute("data-hovered", String(hovered === id));
-    if (!map || !ready) return;
-    for (const { caseId, prefix } of studyAreas) {
-      const active = !selected && hovered === caseId;
-      if (map.getLayer(`${prefix}-study-fill`)) map.setPaintProperty(`${prefix}-study-fill`, "fill-opacity", active ? 0.2 : 0.065);
-      if (map.getLayer(`${prefix}-study-lift`)) {
-        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-height-transition", { duration: reducedMotion ? 0 : 220 });
-        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-opacity-transition", { duration: reducedMotion ? 0 : 220 });
-        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-height", active && !reducedMotion ? 45000 : 0);
-        map.setPaintProperty(`${prefix}-study-lift`, "fill-extrusion-opacity", active && !reducedMotion ? 0.16 : 0);
-      }
-      if (map.getLayer(`${prefix}-study-glow`)) map.setPaintProperty(`${prefix}-study-glow`, "line-opacity", active ? 0.58 : caseId === "aegean-sea" ? 0.32 : 0.48);
-      if (map.getLayer(`${prefix}-study-outline`)) map.setPaintProperty(`${prefix}-study-outline`, "line-width", active ? 2.8 : caseId === "aegean-sea" ? 1.8 : 2.4);
-    }
-  }, [hovered, selected, ready, reducedMotion]);
+  useEffect(() => { current.current = props; }, [props]);
 
   useEffect(() => {
     let disposed = false;
     const markers: maplibregl.Marker[] = [];
     const cardRoots: Root[] = [];
     let observer: ResizeObserver | undefined;
+    let resizeFrame = 0;
+    let reframeTimer: number | undefined;
     let cardObserver: ResizeObserver | undefined;
+    let cleanupHover: (() => void) | undefined;
     // Give React's surrounding UI its first paint before initializing WebGL.
     const frame = requestAnimationFrame(() => {
       if (!container.current || disposed) return;
       try {
         const map = new maplibregl.Map({
           container: container.current,
+          trackResize: false,
           center: [13, 38],
           zoom: 4,
           minZoom: 2,
           maxZoom: 8,
           interactive: true,
-          dragPan: true,
-          scrollZoom: true,
+          dragPan: Boolean(import.meta.env.DEV && current.current.enablePlacementTools),
+          scrollZoom: Boolean(import.meta.env.DEV && current.current.enablePlacementTools),
           boxZoom: false,
-          doubleClickZoom: true,
-          keyboard: true,
-          touchZoomRotate: true,
+          doubleClickZoom: Boolean(import.meta.env.DEV && current.current.enablePlacementTools),
+          keyboard: Boolean(import.meta.env.DEV && current.current.enablePlacementTools),
+          touchZoomRotate: Boolean(import.meta.env.DEV && current.current.enablePlacementTools),
           dragRotate: false,
           pitchWithRotate: false,
           touchPitch: false,
@@ -453,7 +439,7 @@ const GeographicMap = (props: Props) => {
           },
         });
         mapRef.current = map;
-        map.getCanvas().tabIndex = 0;
+        map.getCanvas().tabIndex = current.current.enablePlacementTools ? 0 : -1;
         map
           .getCanvas()
           .setAttribute("aria-label", "Mediterranean geographic context");
@@ -503,6 +489,8 @@ const GeographicMap = (props: Props) => {
           if (!disposed) setFailed(true);
         });
 
+        // Temporary dev-only placement controls. Positions are viewport fractions.
+        const cardPositions = new Map<SimulationCaseId, { x: number; y: number }>();
         for (const [id, place] of Object.entries(caseMapPlaces)) {
           if (!place.location) continue;
           const caseId = id as SimulationCaseId;
@@ -519,21 +507,71 @@ const GeographicMap = (props: Props) => {
           button.tabIndex = -1;
           button.dataset.dimmed = String(Boolean(current.current.selected && current.current.selected !== caseId));
           button.dataset.selected = String(current.current.selected === caseId);
-          button.dataset.expanded = String(current.current.expandedCase === caseId);
           const label = document.createElement("span");
           label.className = styles.markerLabel;
-          const cardRoot = createRoot(label);
+          const content = document.createElement("div");
+          if (import.meta.env.DEV && current.current.enablePlacementTools) {
+            const handle = document.createElement("button");
+            handle.type = "button";
+            handle.className = styles.cardDragHandle;
+            handle.textContent = "⠿ Drag to position";
+            handle.setAttribute("aria-label", `Move ${place.title} card. Drag or use arrow keys.`);
+            let drag: { pointer: number; x: number; y: number; left: number; top: number } | null = null;
+            const placeCard = (left: number, top: number) => {
+              const viewport = map.getContainer();
+              const x = Math.max(8, Math.min(left, viewport.clientWidth - label.offsetWidth - 8));
+              const y = Math.max(8, Math.min(top, viewport.clientHeight - label.offsetHeight - 8));
+              cardPositions.set(caseId, { x: x / viewport.clientWidth, y: y / viewport.clientHeight });
+              updateCardSpace();
+              updateConnectors();
+            };
+            handle.addEventListener("mousedown", event => event.stopPropagation());
+            handle.addEventListener("dblclick", event => event.stopPropagation());
+            handle.addEventListener("pointerdown", event => {
+              if (event.button !== 0) return;
+              event.preventDefault();
+              event.stopPropagation();
+              const box = label.getBoundingClientRect();
+              const viewport = map.getContainer().getBoundingClientRect();
+              drag = { pointer: event.pointerId, x: event.clientX, y: event.clientY, left: box.left - viewport.left, top: box.top - viewport.top };
+              handle.setPointerCapture(event.pointerId);
+            });
+            handle.addEventListener("pointermove", event => {
+              if (!drag || drag.pointer !== event.pointerId) return;
+              event.preventDefault();
+              event.stopPropagation();
+              placeCard(drag.left + event.clientX - drag.x, drag.top + event.clientY - drag.y);
+            });
+            const finishDrag = (event: PointerEvent) => {
+              if (!drag || drag.pointer !== event.pointerId) return;
+              event.stopPropagation();
+              drag = null;
+              logLayout();
+            };
+            handle.addEventListener("pointerup", finishDrag);
+            handle.addEventListener("pointercancel", finishDrag);
+            handle.addEventListener("lostpointercapture", () => { drag = null; });
+            handle.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); });
+            handle.addEventListener("keydown", event => {
+              if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+              event.preventDefault(); event.stopPropagation();
+              const box = label.getBoundingClientRect();
+              const viewport = map.getContainer().getBoundingClientRect();
+              const step = event.shiftKey ? 10 : 2;
+              placeCard(box.left - viewport.left + (event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0), box.top - viewport.top + (event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0));
+              logLayout();
+            });
+            label.append(handle);
+          }
+          label.append(content);
+          const cardRoot = createRoot(content);
           cardRoots.push(cardRoot);
           markerRoots.current.set(caseId, cardRoot);
           cardRoot.render(createElement(MarineCaseIdentity, {
-            caseId, expanded: current.current.expandedCase === caseId,
+            caseId,
             disabled: !current.current.available.has(caseId),
             onSelect: () => current.current.onSelect(caseId),
           }));
-          button.addEventListener("mouseenter", () => current.current.onHover(caseId));
-          button.addEventListener("mouseleave", () => current.current.onHover(null));
-          button.addEventListener("focus", () => current.current.onHover(caseId));
-          button.addEventListener("blur", () => current.current.onHover(null));
           const dot = document.createElement("span");
           dot.className = styles.markerDot;
           dot.setAttribute("aria-hidden", "true");
@@ -581,7 +619,7 @@ const GeographicMap = (props: Props) => {
           if (label) cardObserver.observe(label);
         }
         const logCamera = () => {
-          if (!import.meta.env.DEV) return;
+          if (!import.meta.env.DEV || !current.current.enablePlacementTools) return;
           const center = map.getCenter();
           console.info("SURIMI_MAP_CAMERA " + JSON.stringify({
             scene: current.current.selected ?? "overview",
@@ -591,18 +629,120 @@ const GeographicMap = (props: Props) => {
             bounds: map.getBounds().toArray(),
           }));
         };
+        const logLayout = () => {
+          if (!import.meta.env.DEV || !current.current.enablePlacementTools || current.current.selected) return;
+          const viewport = map.getContainer();
+          const bounds = viewport.getBoundingClientRect();
+          const center = map.getCenter();
+          const cards = Object.fromEntries([...buttons.current].map(([id, element]) => {
+            const label = element.querySelector(`.${styles.markerLabel}`)!;
+            // Record the card itself, excluding the temporary drag handle.
+            const card = (label.lastElementChild ?? label).getBoundingClientRect();
+            return [id, { left: card.left - bounds.left, top: card.top - bounds.top, width: card.width, height: card.height, x: (card.left - bounds.left) / viewport.clientWidth, y: (card.top - bounds.top) / viewport.clientHeight }];
+          }));
+          console.info("SURIMI_LAYOUT " + JSON.stringify({ camera: { center: [center.lng, center.lat], zoom: map.getZoom(), bearing: map.getBearing(), pitch: map.getPitch(), padding: map.getPadding() }, viewport: { width: viewport.clientWidth, height: viewport.clientHeight }, cards }));
+        };
+        const hoveredStudy = (point: maplibregl.Point) => {
+          const layers = studyAreas.flatMap(({ prefix }) => [`${prefix}-study-fill`]).filter(id => map.getLayer(id));
+          if (!layers.length) return null;
+          const feature = map.queryRenderedFeatures([[point.x - 3, point.y - 3], [point.x + 3, point.y + 3]], { layers })[0];
+          return studyAreas.find(({ prefix }) => feature?.layer.id.startsWith(`${prefix}-study-`))?.caseId ?? null;
+        };
+        // Update hover directly: no React rerenders, delayed leave timers or geometry changes.
+        const page = map.getContainer().closest("main");
+        let activeHover: SimulationCaseId | null = null;
+        let hoverFrame = 0;
+        const applyHover = (id: SimulationCaseId | null) => {
+          if (id === activeHover) return;
+          activeHover = id;
+          if (page) {
+            if (id) page.dataset.mapHovered = id;
+            else delete page.dataset.mapHovered;
+          }
+          for (const [caseId, element] of buttons.current) element.dataset.hoverActive = String(id === caseId);
+          const duration = current.current.reducedMotion ? 0 : 100;
+          for (const { caseId, prefix } of studyAreas) {
+            const active = id === caseId;
+            const dimmed = id !== null && !active;
+            for (const [suffix, property, value] of [
+              ["fill", "fill-opacity", active ? 0.18 : dimmed ? 0.025 : 0.065],
+              ["glow", "line-opacity", active ? 0.65 : dimmed ? 0.1 : caseId === "aegean-sea" ? 0.32 : 0.48],
+              ["outline", "line-opacity", dimmed ? 0.3 : 1],
+              ["outline", "line-width", active ? 3 : caseId === "aegean-sea" ? 1.8 : 2.4],
+            ] as const) {
+              const layer = `${prefix}-study-${suffix}`;
+              if (!map.getLayer(layer)) continue;
+              map.setPaintProperty(layer, `${property}-transition`, { duration });
+              map.setPaintProperty(layer, property, value);
+            }
+          }
+        };
+        const setHover = (id: SimulationCaseId | null) => {
+          cancelAnimationFrame(hoverFrame);
+          // Coalesce canvas/card pointer handoff within one frame, without a leave delay.
+          if (id) applyHover(id);
+          else hoverFrame = requestAnimationFrame(() => applyHover(null));
+        };
+        resetHover.current = () => { cancelAnimationFrame(hoverFrame); applyHover(null); };
+        const cardAt = (target: EventTarget | null) => {
+          if (!(target instanceof Element)) return null;
+          const card = target.closest<HTMLElement>(`[data-case-study], .${styles.bayCard}`);
+          if (!card) return null;
+          return (card.dataset.caseStudy ?? "anchovy-bay") as SimulationCaseId;
+        };
+        const enterCard = (event: Event) => {
+          if (current.current.selected || current.current.backgroundOnly) return;
+          const id = cardAt(event.target);
+          if (id) setHover(id);
+        };
+        const leaveCard = (event: Event) => {
+          if (!cardAt(event.target)) return;
+          const next = cardAt((event as MouseEvent | FocusEvent).relatedTarget);
+          setHover(next);
+        };
+        page?.addEventListener("pointerover", enterCard);
+        page?.addEventListener("pointerout", leaveCard);
+        page?.addEventListener("focusin", enterCard);
+        page?.addEventListener("focusout", leaveCard);
+        map.on("mousemove", event => {
+          if (current.current.selected || current.current.backgroundOnly || event.originalEvent.target !== map.getCanvas()) return;
+          const id = hoveredStudy(event.point);
+          setHover(id);
+          map.getCanvas().style.cursor = id ? "pointer" : "";
+        });
+        const leavePage = () => setHover(null);
+        page?.addEventListener("pointerleave", leavePage);
+        cleanupHover = () => {
+          resetHover.current();
+          page?.removeEventListener("pointerover", enterCard);
+          page?.removeEventListener("pointerout", leaveCard);
+          page?.removeEventListener("focusin", enterCard);
+          page?.removeEventListener("focusout", leaveCard);
+          page?.removeEventListener("pointerleave", leavePage);
+          resetHover.current = () => {};
+        };
+        map.on("click", event => {
+          if (current.current.selected || current.current.backgroundOnly || event.originalEvent.target !== map.getCanvas()) return;
+          const id = hoveredStudy(event.point);
+          if (id && current.current.available.has(id)) current.current.onSelect(id);
+        });
         map.on("moveend", logCamera);
+        map.on("moveend", logLayout);
         const updateCardSpace = () => {
           for (const [id, element] of buttons.current) {
             const location = caseMapPlaces[id].location;
             if (!location) continue;
             const point = map.project(location);
             const viewport = map.getContainer();
-            const cardWidth = viewport.clientWidth > 1200 ? 336 : 304;
-            const fraction = id === "aegean-sea" ? 0.76 : 0.24;
-            const left = Math.min(viewport.clientWidth - cardWidth - 24, Math.max(24, viewport.clientWidth * fraction));
+            const cardWidth = viewport.clientWidth > 1200 ? 304 : 272;
+            const saved = id === "aegean-sea"
+              ? { x: 0.6640787760416667, y: 0.2400735294117647 }
+              : { x: 0.35540364583333334, y: 0.18856951871657754 };
+            const custom = cardPositions.get(id) ?? saved;
+            const left = Math.min(viewport.clientWidth - cardWidth - 8, Math.max(8, custom.x * viewport.clientWidth));
+            const top = Math.max(8, Math.min(custom.y * viewport.clientHeight, viewport.clientHeight - 160));
             element.style.setProperty("--card-left", `${left - point.x}px`);
-            element.style.setProperty("--card-top", `${112 - point.y}px`);
+            element.style.setProperty("--card-top", `${top - point.y}px`);
             element.style.setProperty("--card-room", `${Math.max(200, viewport.clientHeight - 240)}px`);
           }
         };
@@ -611,10 +751,29 @@ const GeographicMap = (props: Props) => {
         moveCamera(map, current.current.selected, false);
         updateCardSpace();
         updateConnectors();
+        let lastWidth = container.current.clientWidth;
+        let lastHeight = container.current.clientHeight;
         observer = new ResizeObserver(() => {
-          map.resize();
-          updateCardSpace();
-          updateConnectors();
+          const viewport = map.getContainer();
+          const width = viewport.clientWidth;
+          const height = viewport.clientHeight;
+          if (!width || !height || (width === lastWidth && height === lastHeight)) return;
+          lastWidth = width;
+          lastHeight = height;
+          if (!resizeFrame) resizeFrame = requestAnimationFrame(() => {
+            resizeFrame = 0;
+            if (disposed) return;
+            map.resize();
+            updateCardSpace();
+            updateConnectors();
+          });
+          window.clearTimeout(reframeTimer);
+          reframeTimer = window.setTimeout(() => {
+            if (disposed) return;
+            if (!current.current.enablePlacementTools && !switchingScene.current) moveCamera(map, current.current.selected, false);
+            updateCardSpace();
+            updateConnectors();
+          }, 160);
         });
         observer.observe(container.current);
       } catch {
@@ -622,13 +781,17 @@ const GeographicMap = (props: Props) => {
       }
     });
     const markerButtons = buttons.current;
+    const roots = markerRoots.current;
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(resizeFrame);
+      window.clearTimeout(reframeTimer);
+      cleanupHover?.();
       observer?.disconnect();
       cardObserver?.disconnect();
       cardRoots.forEach(root => root.unmount());
-      markerRoots.current.clear();
+      roots.clear();
       markers.forEach((marker) => marker.remove());
       markerButtons.clear();
       mapRef.current?.remove();

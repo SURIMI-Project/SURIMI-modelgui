@@ -108,3 +108,16 @@
     margin-top: var(--spacing-lg);
   }
 }
+
+@layer components {
+  .page { width: 100vw; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+  .card { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+}
+
+@layer components {
+  .input:focus { outline: var(--focus-ring); outline-offset: calc(-1 * var(--focus-width)); border-color: var(--color-focus); box-shadow: none; }
+  .form { gap: 1.25rem; }
+  .form input { min-height: 3rem; }
+  .form > button, .sso > button { width: 100%; min-height: 3rem; }
+  .sso { margin-top: 1.5rem; gap: 1rem; }
+}

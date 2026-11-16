@@ -32,7 +32,7 @@
   .option[data-focused],
   .option[data-selected] {
     background: var(--color-selected);
-    color: var(--color-primary);
+    color: var(--color-primary-ink);
   }
   .option[data-disabled] {
     color: var(--color-disabled-text);

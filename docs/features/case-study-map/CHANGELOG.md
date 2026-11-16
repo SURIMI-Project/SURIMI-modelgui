@@ -1,5 +1,37 @@
 # Case-study map changelog
 
+## 2026-11-16 — Inset model-detail scrolling
+
+Moved the model description and references into an inner scroll region with inset scrollbar spacing. Model title, close control and video link remain visible while reading. The YouTube link sits directly to the right of the title. Kept the rounded model-detail card/background and its border. Following the user correction, removed the border/inset outline from the outer model-connections container instead. The scroll region is keyboard focusable.
+
+**Verified:** production build, focused ESLint and whitespace checks pass. Final browser scrolling/layout review remains outstanding.
+
+## 2026-11-16 — Consolidate application styling
+
+The active `styles/aria` and `styles/design-system` directories remain; the application now uses only `styles/themes/theme.css`. Removed obsolete reference/utility styles and the separate marine theme module. Logo/avatar white surfaces and the sea-card white coverage strip remain explicit semantic roles rather than depending on a light default theme.
+
+**Verified:** production build, 26 network tests, structural single-theme checks and focused lint pass. Browser visual review remains outstanding. See [design-system changelog](../frontend-design-system/CHANGELOG.md).
+
+## 2026-11-16 — Restore tabbed models sheet and clear map detail view
+
+**User correction:** the large ecosystem panel obscured the map's area of interest. Removed the new overview component and its grid styles. Restored the right-side About the models and Compare scenarios buttons; kept the bottom back/setup controls. The dark models sheet again contains SURIMI MODELS (illustration with Linking Ecology, Fisheries, and Economy subtitle) and ABOUT THE MODELS BEHIND (interactive connections). Dedicated sheet styles keep restored functionality separate from removed map styles.
+
+**Verified:** production build and focused ESLint checks pass. No backend, data, camera/framing, setup or authentication changes. Browser layout verification remains outstanding.
+
+## 2026-11-16 — Dark explorer, case-specific setup and approved cleanup
+
+- Added compact image/coverage cards, a dark case-preview modal, linked hover highlighting/dimming, final user-approved camera/card positions and disabled developer placement controls. Preserve the existing camera flight when Explore opens a detail view.
+- Detail views pair the case description with the ecosystem illustration. About the models opens a connections-only sheet without tabs. Runs use case-specific headings, compact back/setup controls and viewport-contained tables. Setup restores separate harvest-input, duration and IPCC screens; no numbered indicator or case picker. Short runs use the displayed SSP2-4.5 default. Demo-only completion is unchanged.
+- Shared modal/select/sheet marine styling, account popover, fixed logo/avatar and internal scroll containers use centralized semantic tokens. Resize handling ignores unchanged dimensions, batches WebGL canvas changes and defers camera reframing until resizing settles.
+- Applied the cleanup proposal and removed its completed proposal document: 67 listed files plus nine verified UI leftovers (abandoned case picker/selector, unused small logo and chart stylesheets). Pruned unreferenced map CSS rules, obsolete expansion selectors and unused fixture metadata. Explicitly preserved output/reference components, React Aria controls, videos, marine imagery, prototype data and dependencies remain. The original commented selector reference remains as previously requested.
+- Fixed the redesign's callback dependency lint error and captured the map-root ref used during cleanup. No backend, API, authentication, dependency, lockfile, deployment or CI changes.
+
+**Verified:** production build and all 26 network tests pass; `git diff --check` passes. Lint reports 16 existing errors and five warnings in the preserved chart/output/video code, with no errors or warnings in the changed map/setup components. Static reachability includes lazy routes, tests and the external NetCDF experiment.
+
+**Limits:** no new browser verification of the final cleanup, keyboard/touch interactions, visual layout or live experiment submission. The UI remains a demo for simulation creation. Existing API/session behavior is covered by the network checks, not a live backend session.
+
+**Deploy:** frontend rebuild only.
+
 ## 2026-11-06 — One orange for all study boundaries
 
 User confirmed every study boundary should use the Aegean orange. Added shared light semantic token `--color-map-study-boundary` (alias of `--color-secondary-ink`) and use it for all overlay outlines, glows and fills. Case marker accents and distinct sea backgrounds remain unchanged. Updated feature README, T02 and platform changelog.

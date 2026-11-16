@@ -5,12 +5,13 @@ import Button from "../../../../components/ui/Button/Button";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, Outlet, useLocation, useNavigate, useMatch, useSearchParams } from "react-router-dom";
-import { FiArrowLeft, FiArrowRight, FiCompass, FiLayers, FiList, FiPlus } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight, FiCompass, FiLayers, FiList } from "react-icons/fi";
 import {
   aegeanStudyArea,
   northwesternStudyArea,
   caseMapPlaces,
 } from "../../../../../mock-data/caseMap";
+import CasePreviewModal from "./CasePreviewModal";
 import MarineCaseIdentity from "./MarineCaseIdentity";
 import Logo from "../../../../components/Logo/Logo";
 import SessionMenu from "../../../../features/auth/SessionMenu";
@@ -48,13 +49,11 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
   const modelsView = searchParams.get("view") === "models";
   const [setupOpen, setSetupOpen] = useState(false);
   const [previewCase, setPreviewCase] = useState<SimulationCaseId | null>(null);
-  const [hovered, setHovered] = useState<SimulationCaseId | null>(null);
   const [previousPath, setPreviousPath] = useState(pathname);
   // This map stays mounted across routes; preview selection belongs to one visit.
   if (previousPath !== pathname) {
     setPreviousPath(pathname);
     setPreviewCase(null);
-    setHovered(null);
   }
 
   const available = useMemo(
@@ -85,7 +84,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
         else setPreviewCase(previous => previous === id ? null : id);
       }
     },
-    [available, navigate, listView, searchParams, setSearchParams, selection],
+    [available, navigate, listView, searchParams, setSearchParams, selection, setPreviewCase],
   );
   const transition = {
     duration: reducedMotion ? 0 : 0.65,
@@ -106,14 +105,11 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
       data-selected={selected ?? "overview"}
       data-list={listView || undefined}
       data-bay={selected === "anchovy-bay"}
-      data-hovered={hovered ?? undefined}
     >
       <div className={styles.sceneContent} data-loading={availability?.pending || undefined} inert={Boolean(availability)} aria-hidden={availability ? true : undefined} aria-busy={availability?.pending || undefined}>
       <GeographicMap
+        enablePlacementTools={false}
         backgroundOnly={listView}
-        expandedCase={previewCase}
-        hovered={listView ? null : hovered ?? previewCase}
-        onHover={setHovered}
         selected={selected}
         available={available}
         onSelect={select}
@@ -173,11 +169,11 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             <section className={styles.caseInformation} aria-labelledby="selected-case-title">
               <div className={styles.caseInformationScroll}>
                 <h1 id="selected-case-title">{scenarioWorldContent[selected!].worldTitle}</h1>
-                <h2>{scenarioWorldContent[selected!].aboutTitle}</h2>
+                <h2>{scenarioWorldContent[selected!].aboutTitle.toUpperCase()}</h2>
                 {scenarioWorldContent[selected!].description.map(paragraph => <p key={paragraph} className={styles.caseParagraph}>{paragraph}</p>)}
               </div>
             </section>
-            <nav className={styles.aegeanQuickActions} aria-label={`${place.title} actions`}>
+            <nav className={styles.caseDetailActions} aria-label={`${place.title} actions`}>
               <SheetTrigger isOpen={modelsView && !availability} onOpenChange={open => navigate(`/scenario/${selected}${open ? "?view=models" : ""}`, { replace: !open })}>
                 <Button variant="primary-outlined"><FiLayers aria-hidden="true" />ABOUT THE MODELS</Button>
                 <CaseModelsSheet key={selected} caseId={selected!} onClose={() => navigate(`/scenario/${selected}`, { replace: true })} />
@@ -191,24 +187,20 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
       {!listView && !selected ? (
         <div className={styles.mobileCaseCards}>
           {simulationCaseStudies.filter(item => item.id !== "anchovy-bay").map(item => (
-            <MarineCaseIdentity key={item.id} caseId={item.id} disabled={!available.has(item.id)} expanded={previewCase === item.id}
+            <MarineCaseIdentity key={item.id} caseId={item.id} disabled={!available.has(item.id)}
               onSelect={() => select(item.id)} />
           ))}
         </div>
       ) : null}
 
       {!listView && !selected ? (
-        <div className={styles.bayCard} data-expanded={previewCase === "anchovy-bay"}>
+        <div className={styles.bayCard}>
         <Button
           variant="secondary-outlined"
           className={styles.bayInset}
           aria-label="Preview Anchovy Bay"
-          aria-pressed={previewCase === "anchovy-bay"}
+          aria-haspopup="dialog"
           isDisabled={!available.has("anchovy-bay")}
-          onHoverStart={() => setHovered("anchovy-bay")}
-          onHoverEnd={() => setHovered(null)}
-          onFocus={() => setHovered("anchovy-bay")}
-          onBlur={() => setHovered(null)}
           onPress={() => select("anchovy-bay")}
         >
           <img src="/useCasesInfo/anchovy-bay-one-river.svg" alt="Illustration of Anchovy Bay" />
@@ -216,7 +208,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             <span>ANCHOVY BAY</span>
             <span className={styles.insetCategory}>Educational Case Study</span>
           </span>
-          <span className={styles.bayDescription} aria-hidden={previewCase !== "anchovy-bay"}>{simulationCaseStudies.find(item => item.id === "anchovy-bay")?.description}</span>
+
         </Button>
 
         </div>
@@ -242,12 +234,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
           onHover={id => setHovered(normalizeSimulationCaseId(id))}
         />
         */}
-        {!listView && !selected ? (
-          <nav className={styles.caseActions} aria-label="Case actions">
-            <Button isDisabled={!previewCase || Boolean(availability)} onPress={() => { if (previewCase) navigate(`/scenario/${previewCase}`); }}>EXPLORE SCENARIO</Button>
-            <Button variant="primary-outlined" isDisabled={!previewCase || Boolean(availability)} onPress={() => { if (previewCase) navigate(`/scenario-runs?case=${previewCase}`); }}>COMPARE SCENARIOS</Button>
-          </nav>
-        ) : null}
+
 
         {!listView && !availability && available.size === 0 ? (
           <p className={styles.empty} role="status">
@@ -279,9 +266,13 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
       {selected ? (
         <nav className={styles.detailActions} aria-label="Case study actions">
           <Button variant="primary-outlined" onPress={() => navigate("/scenarios")}><FiArrowLeft aria-hidden="true" />BACK TO CASE STUDIES</Button>
-          <Button isDisabled={Boolean(availability) || !available.has(selected)} onPress={() => setSetupOpen(true)}><FiPlus aria-hidden="true" />SET UP SCENARIO</Button>
+          <Button isDisabled={Boolean(availability) || !available.has(selected)} onPress={() => setSetupOpen(true)}>SET UP SCENARIO</Button>
         </nav>
       ) : null}
+      <CasePreviewModal caseId={!selected && !listView && !availability ? previewCase : null}
+        onClose={() => setPreviewCase(null)}
+        onExplore={id => navigate(`/scenario/${id}`)}
+        onCompare={id => navigate(`/scenario-runs?case=${id}`)} />
       {selected && InputsFlow ? <InputsFlow key={selected} isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => { setSetupOpen(false); navigate(`/scenario-runs?case=${selected}`); }} /> : null}
       <AnimatePresence>
         {availability ? (

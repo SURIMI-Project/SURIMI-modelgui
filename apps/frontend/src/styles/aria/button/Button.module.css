@@ -27,12 +27,13 @@
     background: var(--color-primary-hover);
   }
   .button[data-variant="primary-outlined"] {
-    background: var(--color-surface);
-    color: var(--color-primary);
+    color-scheme: light;
+    background: var(--color-primary-outlined-surface);
+    color: var(--color-primary-outlined-text);
     border-color: var(--color-primary);
   }
   .button[data-variant="primary-outlined"][data-hovered] {
-    background: var(--color-primary-surface);
+    background: var(--color-primary-outlined-hover);
   }
   .button[data-variant="secondary"] {
     background: var(--color-secondary);

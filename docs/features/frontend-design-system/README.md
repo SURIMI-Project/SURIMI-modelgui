@@ -1,11 +1,11 @@
 # Frontend design system
 
-**User authorized 2026-11-06:** implement the light theme only, a protected `/design-system` visual preview, React Aria controls and login extraction; remove all Mantine consumers/dependencies. Preserve unrelated work, backend and authentication contracts. The pasted architecture and `styles2` are reference structure, not the chosen palette.
+**Current scope, user authorized 2026-11-16:** one dark application theme under `styles/themes/theme.css`, with the active React Aria/design-system style tree retained. This supersedes the original light-only/reference-tree scope of 2026-11-06; see [ADR 0019](../../decisions/0019-single-dark-application-theme.md). Preserve backend and authentication contracts.
 
 | Decision | Why | Source |
 | --- | --- | --- |
-| Light theme only | Dark mode explicitly excluded | User 2026-11-06 |
-| CSS palette/scales, semantic light tokens, CSS Modules and cascade layers | Central ownership and predictable overrides | [ADR 0018](../../decisions/0018-frontend-css-tokens-and-react-aria.md) |
+| One dark application theme | One source for base, controls, modals and portal dropdowns; no alternate theme or switch | User refinement, 2026-11-16; [ADR 0019](../../decisions/0019-single-dark-application-theme.md) |
+| CSS palette/scales, semantic dark tokens, CSS Modules and cascade layers | Central ownership and predictable overrides | [ADR 0018](../../decisions/0018-frontend-css-tokens-and-react-aria.md) |
 | `react-aria-components` behind project-owned controls | Accessible behaviour with SURIMI-owned appearance | User architecture |
 | Preview actual shared controls/compositions, no props playground | Changes must reach production | User request |
 | Red primary, warm secondary, neutral surfaces | Initial editable SURIMI direction, not a certified branding palette | SURIMI brand article and user |
@@ -13,11 +13,11 @@
 
 ## Structure and scope
 
-`styles/design-system/` holds palette, spacing, typography, radii, borders, shadows and motion. `styles/themes/light.css` implements semantic tokens. `styles/aria/` holds shared control styles. `components/ui/` owns React Aria wrappers and simple reusable building blocks; `components/presentational/` owns domain-independent visual compositions with display-ready props. Parents own layout; feature hooks/adapters retain data and domain rules. No dark implementation or theme switcher.
+`styles/design-system/` holds palette, spacing, typography, radii, borders, shadows and motion. `styles/themes/theme.css` is the only theme file and implements the dark semantic tokens. `styles/aria/` holds shared control styles. `components/ui/` owns React Aria wrappers and simple reusable building blocks; `components/presentational/` owns domain-independent visual compositions with display-ready props. Parents own layout; feature hooks/adapters retain data and domain rules. The document root applies the single dark theme before paint; modal, sheet and portal controls inherit it. White logo/avatar surfaces, sea-card coverage strips, primary outlined buttons and modal close controls use explicit semantic roles. There is no theme switcher or theme-specific CSS module.
 
 `/design-system` sits behind the existing session guard and has Theme, UI components and Presentational components tabs. Static examples show relevant variants and validation states; controls remain functional and keyboard accessible. Preview datasets/descriptive content live under `mock-data/`. Report previews reuse actual existing map/chart/indicator components through existing feature adapters, without scientific REST requests or simulation creation. The existing report map retains its OpenStreetMap tile requests.
 
-Login retains local/SSO services, errors, session restoration and required-password routing. Its fields, buttons and surface use the shared foundation. Mantine layout wrappers are replaced with semantic HTML and CSS layouts, interactive controls with React Aria; charts already use Chart.js. Remove Mantine provider/theme files/packages after the last consumer migrates. `styles2` is kept untouched as the supplied reference; the adopted implementation lives in `styles/` and never imports its reference or dark files. Legacy styles outside the migrated consumers remain for later screen refinement; new/migrated foundation styles use the declared layers.
+Login uses a navy/teal composition and dark form card, with single inset input-focus indicators. It retains local/SSO services, errors, session restoration and required-password routing. Its fields, buttons and surface use the shared foundation. Mantine layout wrappers are replaced with semantic HTML and CSS layouts, interactive controls with React Aria; charts already use Chart.js. Remove Mantine provider/theme files/packages after the last consumer migrates. The adopted implementation lives in `styles/`. The unimported reference tree, obsolete global utility stylesheet and separate font entry stylesheet were removed under the user-authorized 2026-11-16 cleanup. Font loading and base rules now live in `styles/design-system/globals.css`. Five still-consumed compatibility names are kept in the single theme file to preserve prototype/chart text contrast. Legacy styles outside the migrated consumers remain for later screen refinement; new/migrated foundation styles use the declared layers.
 
 ## Verification
 

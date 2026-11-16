@@ -7,15 +7,13 @@ import AnchovyInputsStepOne from "../components/HarvestControlInputs/AnchovyInpu
 import {
   DEFAULT_SPECIES_INPUTS,
   HARVEST_CONTROL_INPUT_INFO,
-  INPUT_FLOW_STEPS,
   IPCC_OPTIONS,
   IPCC_SCENARIO_DESCRIPTION,
   YEAR_OPTIONS,
 } from "../../../../mock-data/inputs";
 
 const aegeanSeaInputsFlowConfig: CreateSimulationModalConfig = {
-  modalTitle: "Aegean Sea · Scenario definition",
-  steps: INPUT_FLOW_STEPS,
+  modalTitle: "Aegean Sea · Set up scenario",
   speciesInputs: DEFAULT_SPECIES_INPUTS,
   stepOneInfo: {
     eyebrow: "Harvest control rules",
@@ -25,7 +23,7 @@ const aegeanSeaInputsFlowConfig: CreateSimulationModalConfig = {
   yearOptions: YEAR_OPTIONS,
   ipccOptions: IPCC_OPTIONS,
   ipccDescription: IPCC_SCENARIO_DESCRIPTION,
-  StepOneComponent: AnchovyInputsStepOne,
+  InputsComponent: AnchovyInputsStepOne,
 };
 
 const AegeanSeaCreateSimulationModal = (props: CreateSimulationModalProps) => {

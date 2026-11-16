@@ -1,21 +1,7 @@
 import type { SimulationCaseId } from "../src/data/simulationCases";
 
-// Presentation fixtures, not scientific model boundaries. Camera centres are illustrative.
-export const caseMapContent = {
-  eyebrow: "The SURIMI explorer",
-  title: "One sea.",
-  titleAccent: "Many futures.",
-  description:
-    "Explore the places where marine ecosystems, fisheries and people meet. Choose a case study to begin.",
-  bayImage: "/useCasesInfo/anchovy-bay-one-river.svg",
-};
-
 export type CaseMapPlace = {
   title: string;
-  heading: string;
-  category: string;
-  detail: string;
-  colourToken: string;
   location: [number, number] | null;
   zoom: number;
   bearing: number;
@@ -23,33 +9,18 @@ export type CaseMapPlace = {
 export const caseMapPlaces: Record<SimulationCaseId, CaseMapPlace> = {
   "northwestern-mediterranean": {
     title: "Northwestern Mediterranean",
-    heading: "Northwestern\nMediterranean",
-    category: "Marine case study",
-    detail:
-      "Ecology, fisheries and the communities that depend on them. Explore a connected marine system in the northwestern Mediterranean.",
-    colourToken: "--color-primary",
     location: [3.8, 41.3],
     zoom: 6.1,
     bearing: -14,
   },
   "aegean-sea": {
     title: "Aegean Sea",
-    heading: "The Aegean\nperspective.",
-    category: "Marine case study",
-    detail:
-      "An island-rich sea, a changing climate and generations of coastal fisheries. Explore different futures for the Aegean ecosystem.",
-    colourToken: "--color-secondary-ink",
     location: [25, 38.4],
     zoom: 6.4,
     bearing: 12,
   },
   "anchovy-bay": {
     title: "Anchovy Bay",
-    heading: "A small bay.\nA bigger picture.",
-    category: "Educational case study",
-    detail:
-      "Step into an illustrated bay to explore how fishing pressure, ecosystem health and economic choices connect. A place to learn by exploring.",
-    colourToken: "--color-brand-pink",
     location: null,
     zoom: 0,
     bearing: 0,
@@ -59,12 +30,6 @@ export const caseMapPlaces: Record<SimulationCaseId, CaseMapPlace> = {
 export const overviewBounds: [[number, number], [number, number]] = [
   [-8, 30],
   [34, 47.5],
-];
-
-// Fixed desktop overview matching the broader Mediterranean composition.
-export const overviewDesktopBounds: [[number, number], [number, number]] = [
-  [-17, 27],
-  [43, 51],
 ];
 
 // Official FAO/GFCM source geometry lives in public/maps; this is presentation configuration.

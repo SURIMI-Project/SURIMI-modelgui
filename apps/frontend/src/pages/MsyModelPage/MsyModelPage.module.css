@@ -475,3 +475,6 @@
     gap: var(--spacing-xl);
   }
 }
+
+.viewport { width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; }
+.viewportContent { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }

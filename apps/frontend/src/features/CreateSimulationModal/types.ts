@@ -9,12 +9,6 @@ export type CreateSimulationModalProps = {
   onComplete?: (draft: ScenarioRunInputDraft) => void;
 };
 
-export type CreateSimulationModalStep = {
-  key: string;
-  title: string;
-  subtitle: string;
-};
-
 export type ScenarioInputsInfoContent = {
   eyebrow: string;
   text: string;
@@ -30,15 +24,10 @@ export type ScenarioInputsStepOneComponentProps = {
 
 export type CreateSimulationModalConfig = {
   modalTitle: string;
-  steps: readonly [
-    CreateSimulationModalStep,
-    CreateSimulationModalStep,
-    CreateSimulationModalStep,
-  ];
   speciesInputs: readonly SpeciesInputPreset[];
   stepOneInfo: ScenarioInputsInfoContent;
   yearOptions: SelectableCardOption[];
   ipccOptions: SelectableCardOption[];
   ipccDescription: string;
-  StepOneComponent: ComponentType<ScenarioInputsStepOneComponentProps>;
+  InputsComponent: ComponentType<ScenarioInputsStepOneComponentProps>;
 };

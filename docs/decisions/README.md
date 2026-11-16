@@ -25,3 +25,4 @@ One file per decision. A decision is `Proposed` until the user accepts it, then
 | [0016](0016-separate-sso-and-local-accounts.md) | SSO and local users are separate accounts, never linked; unique verified e-mail; the provider owns an SSO user's e-mail and names | Accepted 2026-11-04 |
 | [0017](0017-frontend-axios-zod-and-query-layers.md) | Frontend Axios request + Zod contracts, services and TanStack hooks; defer OpenAPI client generation | Accepted 2026-11-05 |
 | [0018](0018-frontend-css-tokens-and-react-aria.md) | CSS semantic tokens, light theme and project-owned React Aria controls; remove Mantine | Accepted 2026-11-06 |
+| [0019](0019-single-dark-application-theme.md) | Single dark theme file; retain active CSS scales and React Aria styles, remove duplicate/reference theme files | Accepted 2026-11-16 |

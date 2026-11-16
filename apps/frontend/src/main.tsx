@@ -5,8 +5,6 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/design-system/tokens.css";
 import "./styles/design-system/globals.css";
-import "./styles/globals.css";
-import "./index.css";
 import App from "./App.tsx";
 
 // This app has no service worker. Remove an old /sw.js left on this dev origin

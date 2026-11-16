@@ -94,26 +94,6 @@ export const DEFAULT_SPECIES_INPUTS = [
   },
 ] as const satisfies readonly SpeciesInputPreset[];
 
-export const INPUT_FLOW_STEPS = [
-  {
-    key: "inputs",
-    title: "Harvest control input",
-    subtitle:
-      "Harvest control rules (HCR) provide the foundation for modern fisheries management. The rules say, “with this biomass (X-axis), you are allowed to catch this proportion of the biomass (Y-axis)”. From this one can set the actual fishing regulation, be it as a quota or duration of the fishing season. SURIMI uses management strategy evaluation and a large number of simulations to find HCR that are robust to uncertainty in both the ecosystem and management.",
-  },
-  {
-    key: "years",
-    title: "How long would you like to run your simulation for?",
-    subtitle:
-      "If you choose 5 or 10 years, the simulation will automatically choose the SPP2 scenario (“Business-as-usual”).",
-  },
-  {
-    key: "ipcc",
-    title: "Select IPCC Scenario",
-    subtitle: "Choose one climate scenario for long-horizon runs (> 10 years).",
-  },
-] as const;
-
 export const HARVEST_CONTROL_INPUT_INFO =
   "Harvest control rules (HCR) provide the foundation for modern fisheries management. The rules say, “with this biomass (X-axis), you are allowed to catch this proportion of the biomass (Y-axis)”. From this one can set the actual fishing regulation, be it as a quota or duration of the fishing season. SURIMI uses management strategy evaluation and a large number of simulations to find HCR that are robust to uncertainty in both the ecosystem and management.";
 

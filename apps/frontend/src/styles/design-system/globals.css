@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap");
+
 @layer reset {
   *,
   *::before,
@@ -37,8 +39,12 @@
     margin: 0;
     line-height: var(--line-height-body);
   }
-  #root {
-    min-height: 100svh;
+  html, body, #root {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
   }
   h1,
   h2,

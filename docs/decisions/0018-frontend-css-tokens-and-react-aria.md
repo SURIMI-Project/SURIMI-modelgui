@@ -1,6 +1,6 @@
 # 0018 — CSS design tokens and project-owned React Aria controls
 
-**Status:** Accepted by the user, 2026-11-06.  
+**Status:** Accepted by the user, 2026-11-06. Theme/storage scope superseded by [0019](0019-single-dark-application-theme.md), 2026-11-16.
 **Scope:** Frontend styling/component architecture. Backend/protocol/deployment behaviour is unchanged.
 
 ## Decision

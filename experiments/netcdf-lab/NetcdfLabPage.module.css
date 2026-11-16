@@ -60,3 +60,6 @@
 .empty { padding: 40px 20px; border: 1px dashed #cbdce5; border-radius: 8px; color: #738492; font-size: 13px; }
 .footer { font-size: 11px; color: #738492; line-height: 1.8; margin: 18px 2px; }
 @media (max-width: 760px) { .page { padding: 24px 14px; } .sourceCard { padding: 18px; } .stats { grid-template-columns: repeat(2,1fr); } .stats div:nth-child(2) { border-right: 0; } .stats div:nth-child(-n+2) { border-bottom: 1px solid #d8e3e9; } .explorer { grid-template-columns: minmax(0,1fr); } .tabs { border-right: 0; border-bottom: 1px solid #d8e3e9; max-height: 235px; } .panel { padding: 20px 14px; } .panelHeader h2 { font-size: 21px; } .json { padding: 14px; font-size: 11px; } .rangeTable input { width: 72px; } }
+
+.page { width: 100vw; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+.container { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
