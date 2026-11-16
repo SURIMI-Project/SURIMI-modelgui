@@ -1,0 +1,53 @@
+info:
+  name: post species import
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/admin/species/import?mode=upsert&dry_run=true&map=species_code:Code&map=name:Common name&delimiter=,"
+  headers:
+    - name: Content-Type
+      value: text/csv
+  body:
+    type: text
+    data: |-
+      Code,Common name,Notes
+      GRM,Grey mullets (example),from an admin
+      HKE,European hake,unchanged
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # post species import
+
+  The body is the CSV itself (`Content-Type: text/csv`, UTF-8). Nothing changes
+  while `dry_run=true` (the default): the answer is the report of what an
+  import would do. Set `dry_run=false` to apply. Any error and nothing changes.
+
+  ## Query
+
+  | Parameter | Meaning |
+  | --- | --- |
+  | `mode` | `upsert` (default): insert new codes, change existing rows in the mapped columns only, delete nothing. `replace`: the file becomes the table (rows not in it deleted, unmapped columns emptied); a code still in use cannot be deleted |
+  | `dry_run` | `true` (default) or `false` |
+  | `map` | Repeatable `target:header`. Unmapped table columns take the file column of their own name, else their ASFIS header (`Alpha3_Code`, `English_name`, …), so an ASFIS file needs no `map`. `map=family:` (empty) leaves a column unmapped |
+  | `delimiter` | `,` (default), `;`, `tab` |
+  | `default_source` | `manual` (default) or `asfis`, for rows when no column maps to `source` |
+
+  ## Response
+
+  `SpeciesImportReport`: `mode`, `dry_run`, `applied`, `mapping` used,
+  `rows_read`, `inserted`/`updated`/`deleted` (`count` and the first 50
+  `codes`), `unchanged`, `errors` (`line`, `message`), `warnings`.
+
+  ## Errors
+
+  `413` over `CATALOG_IMPORT_MAX_MB` (10); `415` not `text/csv`; `422` an apply
+  with errors (report in `error.details`); `403` not an admin. The example's
+  `Notes` column is reported as not mapped, ignored.

@@ -113,3 +113,37 @@ def test_weak_password_is_refused(
     env.setenv("ADMIN_PASSWORD", "short")
     assert run("--from-env") == 1
     assert "at least 12" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(("value", "workers"), [(None, 1), ("4", 4)])
+def test_serve_starts_web_concurrency_processes(
+    monkeypatch: pytest.MonkeyPatch, value: str | None, workers: int
+) -> None:
+    """`serve` passes WEB_CONCURRENCY to uvicorn as workers; the app stays an import
+    string with factory=True, which uvicorn needs to start several processes."""
+    import uvicorn
+
+    seen: dict[str, Any] = {}
+    monkeypatch.setattr(uvicorn, "run", lambda app, **kwargs: seen.update(app=app, **kwargs))
+    if value is None:
+        monkeypatch.delenv("WEB_CONCURRENCY", raising=False)
+    else:
+        monkeypatch.setenv("WEB_CONCURRENCY", value)
+    cli.serve()
+    assert (seen["app"], seen["factory"], seen["workers"]) == (
+        "surimi_backend.main:create_app",
+        True,
+        workers,
+    )
+    assert seen["log_config"] is None  # our structlog setup, in every process
+
+
+@pytest.mark.parametrize("value", ["0", "33"])
+def test_web_concurrency_is_bounded(value: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    from pydantic import ValidationError
+
+    from surimi_backend.core.config import Settings
+
+    monkeypatch.setenv("WEB_CONCURRENCY", value)
+    with pytest.raises(ValidationError):
+        Settings()

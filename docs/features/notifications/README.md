@@ -1,11 +1,12 @@
 # Notifications
 
-**Status:** Planned
+**Status:** Built 2026-11-06 as SSE; polling since 2026-11-12 (backend) on `develop`, not merged into `main`. Frontend in phase 10
+**Changes:** [CHANGELOG.md](CHANGELOG.md)
 **Plan:** [2026-11-03-monorepo-and-backend](../../plans/2026-11-03-monorepo-and-backend.md), phase 5
-**ADRs:** [0008](../../decisions/0008-notifications-sse.md)
+**ADRs:** [0021](../../decisions/0021-notifications-by-polling.md) (supersedes [0008](../../decisions/0008-notifications-sse.md))
 
-The browser is told when an experiment changes state or its outputs are ready,
-without refreshing, and catches up on what it missed while disconnected.
+The browser learns when an experiment changes state or its results are ready
+by polling a cursor, and catches up on what it missed while the tab slept.
 
 ---
 
@@ -13,12 +14,11 @@ without refreshing, and catches up on what it missed while disconnected.
 
 | Decision | Why | Recorded in |
 | --- | --- | --- |
-| Server-Sent Events, not WebSocket | Traffic is one-way; `EventSource` reconnects and replays by itself; no Upgrade handling in proxies | [ADR 0008](../../decisions/0008-notifications-sse.md) |
-| Worker → API through `LISTEN/NOTIFY`, sending only the event id | No extra broker; `NOTIFY` payloads are capped at 8000 bytes | [ADR 0008](../../decisions/0008-notifications-sse.md) |
-| Events are rows in `experiment_events`; SSE `id` = row id | Replay after reconnect and history for free | [ADR 0008](../../decisions/0008-notifications-sse.md) |
-| Replay at most 500 events or 24 h | A tab closed for a week reloads data instead of replaying | this file |
-| Heartbeat every 20 s | Proxies close idle connections | this file |
-| Fall back to refetching every 30 s after three failed reconnects | Works behind proxies that break SSE | this file |
+| Clients poll `GET /api/v1/events?after=<id>`; no SSE stream, no WebSocket | Statuses come from the worker's 10 s poll of the controller, so SSE saves nothing noticeable; no long-lived connections through nginx and the EDITO ingress; no `LISTEN` per API process. The user asked for it, 2026-11-12 | [ADR 0021](../../decisions/0021-notifications-by-polling.md) |
+| Events are rows in `experiment_events`; the cursor is the row id | Nothing missed between polls, history for free | [ADR 0021](../../decisions/0021-notifications-by-polling.md) |
+| Without `after`, only the cursor is returned, no old events | A page loads the current state from the experiment endpoints; events only signal what changes after | this file |
+| `poll_after_seconds` = `POLL_INTERVAL_SECONDS` in every answer | Clients never poll faster than statuses can change; one setting to tune | this file |
+| At most `limit` events (default 100, max 500) per answer, `has_more` to continue | A tab back after a long sleep catches up in a few requests | this file |
 | Admins receive every experiment's events; `?scope=mine` to narrow | Admins manage all runs | this file |
 
 ---
@@ -47,20 +47,29 @@ flowchart LR
 
 ## Target behaviour
 
-- `GET /api/v1/events`, `text/event-stream`, cookie auth. Why SSE and not
-  WebSocket: ADR 0008.
-- Event types: `experiment.submitted`, `experiment.status_changed`,
-  `experiment.stalled`, `experiment.cancelled`, `experiment.outputs_ready`,
-  `experiment.outputs_failed`.
-- Payload: `{experiment_id, name, status, previous_status, at}`. Each SSE `id`
-  is the `experiment_events.id`.
+- `GET /api/v1/events`, JSON, session cookie or bearer token like every
+  endpoint. Why polling and not SSE: ADR 0021.
+- Answer: `{events, last_id, has_more, poll_after_seconds}`. Each event is
+  `{id, type, data, at}` with `data` = `{experiment_id, name, scenario_name,
+  status, previous_status, at, ...}`.
+- Event types: `experiment.queued`, `experiment.submitted`,
+  `experiment.status_changed` (also `copying_results` → `completed` or
+  `failed` when the results arrive or do not), `experiment.stalled`,
+  `experiment.cancelled`, and for a re-index of results that were already
+  there `experiment.outputs_ready` / `experiment.outputs_failed`.
+- `simulation.status_changed`: one simulation of the experiment changed state
+  (or was first reported). `data.simulation` = `{id, order, status,
+  status_raw, previous_status}`; `data.status` is the experiment's status;
+  `data.simulations` the experiment's counts per state, for example
+  `{"initialising": 3, "initialised": 2}`. An MSE run writes about 20 of them
+  (5 simulations: first report, initialised, running, finished).
+- Without `after`: `events` is empty and `last_id` is the newest id the caller
+  may see (0 when none). With `after`: events with a larger id, oldest first.
 - Filter: owner only; admins get all, or only theirs with `?scope=mine`.
-- Replay: on `Last-Event-ID`, send newer events (max 500, max 24 h).
-- Heartbeat comment every 20 s.
-- Frontend: one `EventSource` in a provider; on each event invalidate
-  `['experiments']` and `['experiment', id]` queries and show a Mantine
-  notification. If the stream fails three times, fall back to refetching every
-  30 s.
+- Events are hints: the experiment endpoints hold the state.
+- Frontend (phase 10): one TanStack Query with `refetchInterval =
+  poll_after_seconds` that keeps `last_id`; on each event invalidate
+  `['experiments']` and `['experiment', id]` and show a Mantine notification.
 
 ```mermaid
 sequenceDiagram
@@ -68,13 +77,15 @@ sequenceDiagram
     participant W as Frontend
     participant A as Backend API
     participant D as PostgreSQL
-    W->>A: GET /api/v1/events (Last-Event-ID 41)
-    A->>D: LISTEN experiment_events
-    A->>D: SELECT events id > 41 visible to user
-    A-->>W: id 42, 43 replayed
-    D-->>A: NOTIFY 44
-    A->>D: SELECT event 44
-    A-->>W: id 44 experiment.status_changed
+    W->>A: GET /api/v1/events
+    A->>D: SELECT max(id) visible to user
+    A-->>W: last_id 41, poll_after_seconds 10
+    loop every poll_after_seconds
+        W->>A: GET /api/v1/events?after=41
+        A->>D: SELECT events id > 41 visible to user, oldest first
+        A-->>W: events 42, 43, last_id 43
+        W->>W: refresh the experiments those events name
+    end
 ```
 
 ---
@@ -83,7 +94,7 @@ sequenceDiagram
 
 | Method | Path | Role | Request | Response |
 | --- | --- | --- | --- | --- |
-| GET | `/api/v1/events` | any | `Last-Event-ID` header, `?scope=mine` | `text/event-stream` |
+| GET | `/api/v1/events` | any | `?after`, `?scope=mine`, `?limit` (1 to 500, default 100) | `{events, last_id, has_more, poll_after_seconds}` |
 | GET | `/api/v1/experiments/{id}/events` | owner, admin | `?page` | page of events |
 
 ---
@@ -96,9 +107,9 @@ They are built only in phase 10, the last phase, if the user agrees then
 
 | Area | File | Change |
 | --- | --- | --- |
-| Backend | `src/surimi_backend/notifications/` | `broker.py` (one LISTEN connection, fan-out with per-client queues), `router.py` |
-| Frontend (phase 10) | `apps/frontend/src/features/notifications/` | `EventsProvider`, toast mapping |
-| Deploy | `deployments/nginx/default.conf.template` | `location /api/v1/events` with `proxy_buffering off`, `proxy_read_timeout 1h` |
+| Backend | `src/surimi_backend/notifications/router.py` | The polling endpoint |
+| Backend | `src/surimi_backend/experiments/events.py` | Writes the event row (no `NOTIFY` since 2026-11-12) |
+| Frontend (phase 10) | `apps/frontend/src/features/notifications/` | Polling query, toast mapping |
 
 ---
 

@@ -50,6 +50,16 @@ class InvalidInputError(AppError):
     code = "invalid_input"
 
 
+class PayloadTooLargeError(AppError):
+    status_code = 413
+    code = "payload_too_large"
+
+
+class UnsupportedMediaTypeError(AppError):
+    status_code = 415
+    code = "unsupported_media_type"
+
+
 def error_body(code: str, message: str, details: dict[str, Any] | None = None) -> dict[str, Any]:
     body: dict[str, Any] = {"code": code, "message": message}
     if details:

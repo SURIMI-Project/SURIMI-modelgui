@@ -57,8 +57,8 @@ diagrams.
 - **Where the changes are** — table of area, file, change.
 - **Observability** — logs, metrics and audit events the feature emits.
 - **How to test** and **What has been verified**.
-- **Open questions** — what needs an answer from the user or a partner team (Rik
-  for the controller). Ask the user the ones that block the work.
+- **Open questions** — what needs an answer from the user or a partner team (for example
+  the controller team). Ask the user the ones that block the work.
 
 Remove template sections that do not apply. Do not leave empty headings.
 

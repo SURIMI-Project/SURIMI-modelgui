@@ -1,0 +1,16 @@
+info:
+  name: species
+  type: folder
+  seq: 12
+
+request:
+  auth: inherit
+
+docs: |-
+  # Species
+
+  `/api/v1/species`: every species of the FAO ASFIS list (13,567), with
+  English and scientific name, family, order or higher taxa and ISSCAAP group
+  (ADR 0023). Loaded from `catalog/data/species.csv` by
+  `surimi-backend seed-species`. Codes ASFIS lacks (`GRM`, `OTH`, `YRC`) have
+  `source: manual` and empty fields. Any signed-in user.

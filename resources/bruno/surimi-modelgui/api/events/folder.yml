@@ -1,0 +1,13 @@
+info:
+  name: events
+  type: folder
+  seq: 11
+
+request:
+  auth: inherit
+
+docs: |-
+  # Events
+
+  `GET /api/v1/events`: experiment events polled from a cursor (ADR 0021,
+  replaces the SSE stream of ADR 0008).

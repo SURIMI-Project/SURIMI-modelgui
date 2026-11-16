@@ -1,0 +1,26 @@
+info:
+  name: post experiment clone
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/clone"
+  body:
+    type: json
+    data: |-
+      {
+        "end_date_time": "2015-01-01T00:00:00Z"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # post experiment clone
+
+  Queues a copy owned by you, with the changes given; validated again.

@@ -1,6 +1,6 @@
 # Experiment outputs
 
-**Status:** Planned
+**Status:** Built 2026-11-06 (backend and API) on `develop`, not merged into `main`. Dashboards in phase 10
 **Plan:** [2026-11-03-monorepo-and-backend](../../plans/2026-11-03-monorepo-and-backend.md), phase 6
 **ADRs:** [0009](../../decisions/0009-output-storage-and-ingestion.md), [0007](../../decisions/0007-scheduler-worker-postgres-queue.md)
 
@@ -19,14 +19,18 @@ database. The output dashboards switch from mock data to these.
 | The `.nc` is the only copy of the data; the database keeps metadata only | No duplicate to keep in step; measured: all chart data of a run is 2 requests and 0.08 s | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
 | One setting `OUTPUTS_URI` (`s3://…` or `file://…`) read through `fsspec` | Same code for S3 and local, as required | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
 | Read in place by range; never copy whole files | A map needs 0.15–1.7 MB of a 309 MB file (measured) | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
-| Worker job `index_outputs` builds a kerchunk chunk index and a quality report once per run | Turns 1,701 small reads into 2; the report is the only thing worth computing ahead | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
+| Worker job `index_outputs` builds a chunk index (h5py chunk API, our own decoder) and a quality report once per run | Turns 1,701 small reads into 2; same offsets as kerchunk without kerchunk and zarr | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md), [ADR 0020](../../decisions/0020-own-chunk-index-built-with-h5py.md) |
+| Fill detected by exact equality with the float32 fill value; NaN is "never written"; ±inf and values out of range are counted and set to null | A threshold would also hide `+inf`, which the report must count (found by the tests 2026-11-06) | this file |
+| Out of range: price above 10,000 EUR/kg, anything negative, anything above 1e12 | Catches the 1.3e15 prices and the 52,800 EUR/kg outlier; **Proposed** bounds | this file |
 | Charts and maps on request, with immutable HTTP caching | Finished outputs never change; the browser asks once | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
 | Bounded LRU of compressed chunks per API process; one month at a time | Memory stays fixed: peak 141 MB even for the 6.3 GB variable (measured) | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
 | Downloads: the API authorises, then redirects to a presigned S3 URL (or hands the file to nginx in local mode) | No file bytes through the API; resumable; plain link | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
+| The presigned link is also returned as JSON (`/outputs/download-url`), with its expiry | A page or a script can show, copy or pass on the link; a browser `fetch` cannot read the `Location` of a cross-origin redirect (user, 2026-11-12) | this file |
+| Results count as arrived only when the `.nc` is stable and indexed; the experiment is `copying_results` until then, `completed` after, `failed` after `OUTPUT_WAIT_MINUTES` without a file | The controller says `Finished` before the output creator has written the file (user, 2026-11-12) | [scheduler](../simulation-status-scheduler/README.md#results-copying_results--completed) |
 | Members download their own `.nc`; admins download `.nc` and `.bin` of any experiment | Confirmed by the user, 2026-11-03; `.bin` format unknown and 1.3 GB | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
 | Every download is an audit event | Who took which data, for 24 months | [ADR 0013](../../decisions/0013-data-retention.md) |
 | Clean non-finite and out-of-range values on every read, and report the counts | Every chart sees the same numbers; users see how much was cleaned | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
-| Species sharing one functional-group series counted once in totals | Summing species overstated biomass 1.53× | this file |
+| Output level per metric from the [scenario catalog](../scenario-catalog/README.md): biomass at functional-group level (one member's series, never a sum), catch, discards, sales and price at species level | Summing species overstated biomass 1.53×; biomass is a group value copied to each member, catch is per species (**Verified** 2026-11-05) | [ADR 0017](../../decisions/0017-scenario-catalog-from-partner-config.md) |
 | `.bin` not read until its message type is confirmed | Unknown format | [ADR 0009](../../decisions/0009-output-storage-and-ingestion.md) |
 | Wait until the `.nc` size is stable for 60 s before indexing | The output creator may still be writing | this file |
 | `parser_version` per output; re-index on change | The layout may change upstream | this file |
@@ -97,10 +101,10 @@ they can be read in 2 merged range requests (3.57 MB).
 
 | Step | Done by | When | Stores |
 | --- | --- | --- | --- |
-| Detect that a run finished | Worker poller | Every 10 s | `experiments.status` |
-| Index and report | Worker job `index_outputs` | Once, after `finished` | `experiment_outputs`: chunk index, report, state |
+| Detect that a run finished | Worker poller | Every 10 s | `experiments.status` = `copying_results`, `experiment_outputs` row `pending` |
+| Wait for the file, index and report | Worker job `index_outputs` | Once the `.nc` is in the bucket and stable | `experiment_outputs`: chunk index, report, state; `experiments.status` = `completed` (or `failed`) |
 | Charts and maps | API, on request | Each view (then browser cache) | Nothing; in-memory chunk LRU only |
-| Raw download | Browser, from S3 | On click | Nothing |
+| Raw download | Browser, from S3, through a presigned link from the API | On click | Audit row |
 
 ### After a run finishes
 
@@ -111,13 +115,15 @@ sequenceDiagram
     participant J as Worker index_outputs
     participant S as S3 or local folder
     participant D as PostgreSQL
-    P->>J: experiment finished, defer job
+    P->>D: experiment copying_results, outputs row pending
+    J->>D: rows to do
     J->>S: HEAD .nc until size is stable for 60 s
     J->>S: range reads of HDF5 metadata only
     J->>S: 2 merged range reads of the chart variables
     J->>J: count non-finite, out-of-range, shared series
     J->>D: experiment_outputs: chunk_index, report, state ready
-    J->>D: event experiment.outputs_ready
+    J->>D: experiment completed, completed_at
+    J->>D: event experiment.status_changed (copying_results → completed)
 ```
 
 ### A chart or a map
@@ -147,8 +153,11 @@ cover the species and months asked for.
 - **Cleaning:** `±inf` and `NaN` → `null`; values above a per-metric bound →
   `null`. The same rules run in the report and on every read, so the report's
   counts match what the charts show.
-- **Functional groups:** species that share one series inside a group are
-  counted once in totals.
+- **Functional groups:** the catalog says per metric whether it is real at
+  group or species level. A group's biomass is one member's series; species
+  metrics are summed over members for a group total. The series and map
+  endpoints take `level=functional_group|species` and refuse a level the
+  metric does not have.
 - **Charts:** monthly or yearly (mean for biomass and price, sum for catch,
   discards and sales); per species and life stage, fleet or market, or summed.
 - **Maps:** monthly or yearly; catch and discards summed over fleets unless a
@@ -172,9 +181,22 @@ sequenceDiagram
     U->>W: Click Download .nc
     W->>A: GET /api/v1/experiments/{id}/outputs/download?file=nc (session cookie)
     A->>D: owner or admin? outputs ready? write audit outputs.downloaded
-    A-->>W: 302 Location: presigned URL, 15 min, filename set
+    A-->>W: 302 Location: presigned URL, 1 hour, filename set
     W->>S: GET presigned URL (Range on resume)
     S-->>W: 311 MB .nc, saved as name_id8.nc
+```
+
+The same link as JSON, for a page that shows or copies it:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant W as Browser or script
+    participant A as Backend API
+    participant D as PostgreSQL
+    W->>A: GET /api/v1/experiments/{id}/outputs/download-url?file=nc
+    A->>D: owner or admin? outputs ready? write audit outputs.downloaded
+    A-->>W: 200 {url, file_name, size_bytes, presigned true, expires_at}
 ```
 
 | Rule | Value |
@@ -182,7 +204,7 @@ sequenceDiagram
 | Who | Owner: `.nc`. Admin: `.nc` and `.bin` of any experiment |
 | When | Outputs `ready` (file present); otherwise 409 with the state |
 | Soft-deleted experiment | Owner: no longer; admin: until it is purged |
-| Link | Presigned GET, `PRESIGNED_URL_TTL` 15 min, signed for `S3_PUBLIC_ENDPOINT`, one object only. Signed with the EDITO experiments credentials (read and write); the link still allows only `GET` of that object (`PUT`/`DELETE` → 403, verified) |
+| Link | Presigned GET, `PRESIGNED_URL_TTL_SECONDS` 1 hour (user, 2026-11-16; 60 s to 7 days accepted), signed for `S3_PUBLIC_ENDPOINT`, one object only. Signed with the EDITO experiments credentials (read and write); the link still allows only `GET` of that object (`PUT`/`DELETE` → 403, verified) |
 | Credentials | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_SESSION_TOKEN` when they are temporary; reloaded from the mounted Secret when it changes, so links keep working after a rotation |
 | File name | `<experiment name, slugified>_<first 8 of id>.nc` via `response-content-disposition` |
 | Local mode | `X-Accel-Redirect` to the `internal` nginx location `/protected-outputs/`, nginx mounts the outputs folder read-only |
@@ -194,7 +216,7 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> pending: experiment finished
+    [*] --> pending: experiment copying_results
     pending --> waiting_for_file: file missing or still growing
     waiting_for_file --> indexing: file stable
     pending --> indexing
@@ -216,8 +238,10 @@ stateDiagram-v2
 | GET | `/api/v1/experiments/{id}/outputs/maps` | owner, admin | `?metric&species&life_stage&fleet&year` or `&month` → grid; immutable caching |
 | GET | `/api/v1/experiments/{id}/outputs/files` | owner, admin | Files available to this user, with size and download path |
 | GET | `/api/v1/experiments/{id}/outputs/download?file=nc` | owner, admin | `302` to a presigned S3 URL, or the file through nginx in local mode |
+| GET | `/api/v1/experiments/{id}/outputs/download-url?file=nc` | owner, admin | JSON `{file, file_name, size_bytes, url, presigned, expires_at}`: the presigned link itself, to show, copy or hand to a script; same checks and audit as `/download`. Local mode: `url` is the `/download` path, `presigned` false |
+| GET | `/api/v1/experiments/{id}/outputs/download-url?file=bin` | admin | Same, for the `.bin` |
 | GET | `/api/v1/experiments/{id}/outputs/download?file=bin` | admin | Same, for the `.bin` |
-| GET | `/api/v1/outputs/compare` | owner of both, admin | `?a&b&metric&…` → two aligned series |
+| GET | `/api/v1/outputs/compare` | owner of both, admin | Not built: the series endpoint already aligns by month, so a page asks it twice. Open question below |
 | POST | `/api/v1/admin/experiments/{id}/outputs/reindex` | admin | 202 |
 
 ---
@@ -229,9 +253,10 @@ stateDiagram-v2
 | `OUTPUTS_URI` | `file:///data/experiments` | Where `<id>/<id>.nc` lives |
 | `S3_ENDPOINT_URL`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | — | For `s3://`; the EDITO experiments credentials |
 | `S3_SESSION_TOKEN` | unset | Only if the credentials are temporary |
+| `S3_REGION` | `us-east-1` | Region the S3 client signs for; MinIO accepts the default |
 | `OUTPUT_CHUNK_CACHE_MB` | 256 | Compressed chunks kept in memory per API process |
 | `OUTPUT_RANGE_MERGE_GAP_KB` | 64 | Neighbouring ranges closer than this are fetched in one request |
-| `PRESIGNED_URL_TTL` | 15 min | Download links |
+| `PRESIGNED_URL_TTL_SECONDS` | 3600 (1 hour) | Lifetime of a download link, 60 to 604800 (7 days, the SigV4 limit); with `S3_SESSION_TOKEN` a link also ends when those credentials do |
 | `S3_PUBLIC_ENDPOINT` | = `S3_ENDPOINT_URL` | Endpoint browsers can reach; download links are signed for it. On EDITO probably `https://minio.dive.edito.eu` (the controller's dev config uses it; to confirm) |
 | `OUTPUTS_NGINX_PREFIX` | `/protected-outputs/` | Local mode: internal nginx location that maps to the outputs folder |
 
@@ -246,9 +271,10 @@ They are built only in phase 10, the last phase, if the user agrees then
 | Area | File | Change |
 | --- | --- | --- |
 | Backend | `src/surimi_backend/outputs/storage.py` | fsspec opener, merged range reads, presigned URLs, `X-Accel-Redirect` |
-| Backend | `src/surimi_backend/outputs/index.py` | kerchunk index build and load |
+| Backend | `src/surimi_backend/outputs/build.py`, `index.py` | Index build (worker, h5py) and load (API) |
+| Backend | `src/surimi_backend/outputs/queries.py`, `indexer.py` | Series, maps, report; the worker job |
 | Backend | `src/surimi_backend/outputs/read.py` | chunk selection, LRU cache, decompression, cleaning, aggregation |
-| Backend | `src/surimi_backend/outputs/report.py` | data-quality counts |
+| Backend | `src/surimi_backend/outputs/queries.py` (`report`), `outputs/indexer.py` | data-quality counts, computed when the file is indexed |
 | Backend | `src/surimi_backend/outputs/router.py` | endpoints above |
 | Frontend (phase 10) | `features/ScenarioOutputs/data/` | replace mock datasets with API calls; decode the float32 map payload |
 | Deploy | compose `api`, `worker` | memory limit 512 MB each |
@@ -290,6 +316,8 @@ return the same values. Not verified there: a month-at-a-time build within
 
 ## Open questions
 
+- Is a compare endpoint still wanted, or do two series calls do? (User, phase 10)
+
 - Exact bucket path and read credentials for `project-surimi`, and may we get
   presigned URLs on it? (Controller team)
 - Message type and purpose of the `.bin`; needed if the `.nc` has everything?
@@ -297,7 +325,7 @@ return the same values. Not verified there: a month-at-a-time build within
 - How are the 5 simulations of an MSE experiment written: one file or five,
   and how should they combine on the dashboard? (Controller team)
 - Partial results while a run is still going: possible? Asked 2026-11-03, not
-  answered. (Rik)
+  answered. (controller team)
 - Retention of raw files in the bucket; our dashboards depend on them.
   (Controller team)
 - The format experiment of 2026-11-03 raised more questions (agree the yearly

@@ -15,7 +15,7 @@ a bug.
 | --- | --- |
 | `grpc-proxy/` | Controller RPCs (`surimi.v1.ControllerService`), `type: grpc`. Called directly or through Envoy |
 | `api/` | Backend REST requests, `type: http`, one sub-folder per router (`auth/`, `experiments/`, `admin/`, …), created with the backend |
-| `environments/` | One file per target: `local`, `rikkert`, … |
+| `environments/` | One file per target: `local`, `user-<controller-team>`, … |
 
 ## gRPC requests
 

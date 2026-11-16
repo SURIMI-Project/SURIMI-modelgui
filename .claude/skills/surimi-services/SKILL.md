@@ -1,6 +1,6 @@
 ---
 name: surimi-services
-description: Look up how the SURIMI services this GUI depends on really behave, in their source on GitHub (org SURIMI-Project: controller, Ecopath, market, fisheries authority, output creator, protocol, POSEIDON, CMSY, value chain) and in the SURIMI-project issue tracker, instead of guessing. Use before stating or relying on any behaviour of the controller or a model service (statuses, cancel, MSE runs, Ecopath pods, outputs, errors, env vars), when designing backend code that calls them, when a run behaves unexpectedly, when the user mentions Rik or a partner's answer, or when the user types /surimi-services.
+description: Look up how the SURIMI services this GUI depends on really behave, in their source on GitHub (org SURIMI-Project: controller, Ecopath, market, fisheries authority, output creator, protocol, POSEIDON, CMSY, value chain) and in the SURIMI-project issue tracker, instead of guessing. Use before stating or relying on any behaviour of the controller or a model service (statuses, cancel, MSE runs, Ecopath pods, outputs, errors, env vars), when designing backend code that calls them, when a run behaves unexpectedly, when the user mentions a partner's answer, or when the user types /surimi-services.
 ---
 
 # Check the SURIMI services at the source
@@ -15,7 +15,7 @@ All under `https://github.com/SURIMI-Project/`. The `gh` CLI is logged in.
 
 | Repo | Language | What it is, for us |
 | --- | --- | --- |
-| `SURIMI-controller` | C# | `surimi.v1.ControllerService`: experiments, simulations, statuses, Ecopath pod dispatch. **The one we call.** Owner: Rik |
+| `SURIMI-controller` | C# | `surimi.v1.ControllerService`: experiments, simulations, statuses, Ecopath pod dispatch. **The one we call.** Owner: controller team |
 | `SURIMI-protocol` | proto | Source of `buf.build/surimi/surimi-protocol` |
 | `SURIMI-Ecopath` | C# | Ecology service (Ecopath with Ecosim); one pod per simulation |
 | `SURIMI-market` | Python | Market service; S3 inputs under `market/<scenario>/` |

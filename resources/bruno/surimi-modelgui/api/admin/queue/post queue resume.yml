@@ -1,0 +1,20 @@
+info:
+  name: post queue resume
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/admin/queue/resume"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # post queue resume
+
+  Dispatches again (audited).

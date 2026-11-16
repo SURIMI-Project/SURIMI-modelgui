@@ -10,6 +10,7 @@ grpc:
   message:
     - title: message 1
       message: |-
+        
         {
-          "scenario_name": "northwestern_med"
+          "scenario_name": "aegean_sea"
         }

@@ -1,6 +1,6 @@
 [project]
 name = "surimi-protocol"
-version = "2026.10.20"
+version = "2026.11.11"
 description = "Python messages and gRPC stubs of the SURIMI controller protocol, generated from buf.build/surimi/surimi-protocol (ADR 0011)"
 requires-python = ">=3.13"
 # Lower bounds = the versions the code was generated with; the generated code
@@ -18,7 +18,7 @@ dev = ["grpcio-tools>=1.85.1"]
 # review the diff of packages/proto/src, update the mapping tests.
 [tool.surimi-protocol]
 module = "buf.build/surimi/surimi-protocol"
-ref = "b10b05a0ca7f4712a333392a7d431b25"  # 2026-10-20, github.com/SURIMI-Project/SURIMI-protocol@ee03680
+ref = "be08fd333a8649e586c9a4ebf546ad96"  # 2026-11-11, github.com/SURIMI-Project/SURIMI-protocol@250f617
 
 [build-system]
 requires = ["hatchling"]

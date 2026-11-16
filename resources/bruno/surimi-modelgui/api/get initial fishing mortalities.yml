@@ -1,0 +1,33 @@
+info:
+  name: get initial fishing mortalities
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/initial-fishing-mortalities"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get initial fishing mortalities
+
+  The controller's `GetInitialFishingMortalities` for one scenario, asked on
+  every request (not cached, not part of the catalog). Ecopath computes F as
+  the catch of the last 12 spin-up months divided by the initial biomass.
+
+  ## Response
+
+  `{scenario_name, initial_fishing_mortalities[]}`, each row `species_code`,
+  `life_stage`, `length_class`, `age` and `fishing_mortality`. A species with
+  no catch has `0` (the controller leaves the field out; the API sends 0).
+
+  ## Notes
+
+  Same errors as `get initial biomasses`. The gRPC call itself:
+  `grpc-proxy/GetInitialFishingMortalities`.

@@ -1,0 +1,25 @@
+info:
+  name: get outputs series
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/series?metric=gross_catch&species=HKE&period=year"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get outputs series
+
+  `metric`: biomass, gross_catch, dead_discards, live_discards,
+  sales_quantity, sales_value, price, fishing_activity. Pick `species` (+
+  `life_stage`) or `functional_group`; optional `fleet` (index), `market`,
+  `period` (month, year), `start`, `end` (YYYY-MM). Biomass is asked by
+  functional group (ADR 0017). `cleaned` counts infinite and out-of-range
+  values set to null.

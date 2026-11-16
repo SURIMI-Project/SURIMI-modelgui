@@ -23,3 +23,9 @@ variables:
   - name: userId
     value: ""
     description: Set by admin/users/post user; used by get, patch and reset password
+  - name: experimentId
+    value: ""
+    description: Set by experiments/post experiment
+  - name: hcrConfigurationId
+    value: ""
+    description: Set by hcr-configurations/post hcr configuration; used by get, put and delete

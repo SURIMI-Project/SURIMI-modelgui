@@ -10,6 +10,7 @@ import time
 from collections.abc import AsyncIterator
 from typing import Any
 
+import asyncpg
 from fastapi import Request
 from sqlalchemy import MetaData, text
 from sqlalchemy.ext.asyncio import (
@@ -65,3 +66,16 @@ async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
     sessionmaker: async_sessionmaker[AsyncSession] = request.app.state.sessionmaker
     async with sessionmaker() as session:
         yield session
+
+
+async def connect_raw(settings: Settings) -> asyncpg.Connection:
+    """A connection outside the pool, for LISTEN and the worker's advisory
+    lock (ADR 0008, ADR 0019): both belong to one session for its lifetime."""
+    url = settings.sqlalchemy_url.set(drivername="postgresql")
+    ssl: str | None = None
+    if settings.database_url is None and settings.db_sslmode != "disable":
+        ssl = settings.db_sslmode
+    connection: asyncpg.Connection = await asyncpg.connect(
+        url.render_as_string(hide_password=False), ssl=ssl
+    )
+    return connection

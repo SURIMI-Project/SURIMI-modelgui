@@ -1,0 +1,13 @@
+info:
+  name: queue
+  type: folder
+  seq: 3
+
+request:
+  auth: inherit
+
+docs: |-
+  # Admin queue
+
+  The whole queue and what holds the Ecopath pods, priority, pause and resume,
+  and adopting experiments started outside this app.

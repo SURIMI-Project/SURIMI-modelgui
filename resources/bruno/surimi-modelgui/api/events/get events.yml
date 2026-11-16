@@ -1,0 +1,38 @@
+info:
+  name: get events
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/events?after=0&scope=mine"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get events
+
+  Experiment events since a cursor, for polling (ADR 0021). Without `after`:
+  no events, only `last_id` to start from. With `after=<last_id>`: newer
+  events, oldest first, at most `limit` (default 100, max 500).
+
+  ## Response
+
+  `{events[], last_id, has_more, poll_after_seconds}`. Each event: `id`,
+  `type` (experiment.queued, .submitted, .status_changed, .stalled,
+  .cancelled; .outputs_ready / .outputs_failed after a re-index;
+  simulation.status_changed for each simulation of a run, with `simulation`
+  and the counts per state in `simulations`), `data` (experiment_id, name,
+  scenario_name, status, previous_status, at, …), `at`.
+  Ask again with `after=last_id` after `poll_after_seconds`, or at once when
+  `has_more`.
+
+  ## Notes
+
+  Members see their own experiments' events. Admins see all; `scope=mine`
+  narrows to theirs.

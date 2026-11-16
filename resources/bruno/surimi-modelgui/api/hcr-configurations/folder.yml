@@ -1,0 +1,20 @@
+info:
+  name: hcr-configurations
+  type: folder
+  seq: 7
+
+request:
+  auth: inherit
+
+docs: |-
+  # HCR configurations
+
+  `/api/v1/scenarios/{name}/hcr-configurations`: your named sets of harvest
+  control rules per scenario, as many as you like (at most 50 per scenario;
+  ADR 0025). Biomass in **kg** (`biomass_limit_kg`, `biomass_base_kg`;
+  ADR 0022). There are no scenario defaults (ADR 0024). A configuration is
+  saved and read as a whole: `post` creates one, `put` renames it and
+  replaces its rules, `delete` removes it. Only entries the scenario catalog
+  marks `hcr_eligible` are accepted; anything else is a `422` listing every
+  problem and the eligible entries. Use one in an experiment with
+  `hcr_configuration_id` in `post experiment`.

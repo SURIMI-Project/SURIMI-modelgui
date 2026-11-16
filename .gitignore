@@ -6,6 +6,8 @@
 output_folder/
 # Format benchmark working files (1.5 GB of variants)
 docs/features/experiment-outputs/benchmark/work/
+#
+/discussions
 
 # FS
 .DS_Store

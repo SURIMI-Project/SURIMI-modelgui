@@ -1,0 +1,21 @@
+info:
+  name: get hcr configuration
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/hcr-configurations/{{hcrConfigurationId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get hcr configuration
+
+  One of your configurations. Someone else's, or one asked for under another
+  scenario, is a `404` like a missing one.

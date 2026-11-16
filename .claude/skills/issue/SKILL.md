@@ -26,7 +26,7 @@ Items live under one of these headings, most serious first inside each:
 
 **Severity:** High | Medium | Low — <what it affects in one line>
 **Evidence:** Verified YYYY-MM-DD | Read from source | Open question
-**Owner:** this repo | Rik (controller) | <team>
+**Owner:** this repo | Controller team | <team>
 **Where:** [file.py:12](../apps/backend/…#L12) or service and RPC
 
 What happens, with the input that shows it and the output seen.

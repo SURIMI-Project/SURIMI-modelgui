@@ -19,19 +19,31 @@ from google.protobuf.message import Message
 from surimi.v1 import (
     controller_service_pb2_grpc,
     get_all_simulation_statuses_pb2,
+    get_initial_biomasses_pb2,
+    get_initial_fishing_mortalities_pb2,
     get_protocol_version_pb2,
     get_scenario_names_pb2,
     get_simulation_contract_pb2,
     get_simulation_statuses_pb2,
+    regulation_definition_pb2,
+    remove_experiment_pb2,
+    species_pb2,
+    submit_experiment_pb2,
 )
 
 from surimi_backend.integrations.controller.base import (
     ControllerError,
     ControllerTimeoutError,
     ControllerUnavailableError,
+    ExperimentSubmission,
     SimulationStatus,
+    SpeciesValue,
 )
-from surimi_backend.integrations.controller.convert import message_to_dict, status_from_proto
+from surimi_backend.integrations.controller.convert import (
+    message_to_dict,
+    status_from_proto,
+    timestamp,
+)
 
 log = structlog.get_logger("surimi.controller")
 
@@ -132,6 +144,32 @@ class GrpcControllerClient:
         )
         return message_to_dict(response.simulation)
 
+    async def get_initial_biomasses(self, scenario_name: str) -> list[SpeciesValue]:
+        response = await self._call(
+            "GetInitialBiomasses",
+            self._stub.GetInitialBiomasses,
+            get_initial_biomasses_pb2.GetInitialBiomassesRequest(scenario_name=scenario_name),
+            read_only=True,
+        )
+        return [
+            _species_value(b.species, b.biomass)
+            for b in response.initial_biomass_summary.initial_biomasses
+        ]
+
+    async def get_initial_fishing_mortalities(self, scenario_name: str) -> list[SpeciesValue]:
+        response = await self._call(
+            "GetInitialFishingMortalities",
+            self._stub.GetInitialFishingMortalities,
+            get_initial_fishing_mortalities_pb2.GetInitialFishingMortalitiesRequest(
+                scenario_name=scenario_name
+            ),
+            read_only=True,
+        )
+        return [
+            _species_value(f.species, f.fishing_mortality)
+            for f in response.initial_fishing_mortality_summary.initial_fishing_mortalities
+        ]
+
     async def get_simulation_statuses(
         self, experiment_ids: Sequence[str]
     ) -> list[SimulationStatus]:
@@ -153,6 +191,59 @@ class GrpcControllerClient:
             read_only=True,
         )
         return [status_from_proto(s) for s in response.simulation_statuses]
+
+    async def submit_experiment(self, submission: ExperimentSubmission) -> None:
+        await self._call(
+            "SubmitExperiment",
+            self._stub.SubmitExperiment,
+            submit_request(submission),
+            read_only=False,
+        )
+
+    async def remove_experiment(self, experiment_id: str) -> None:
+        await self._call(
+            "RemoveExperiment",
+            self._stub.RemoveExperiment,
+            remove_experiment_pb2.RemoveExperimentRequest(experiment_id=experiment_id),
+            read_only=False,
+        )
+
+
+def submit_request(
+    submission: ExperimentSubmission,
+) -> submit_experiment_pb2.SubmitExperimentRequest:
+    """The protobuf request. Biomass values are already in kg."""
+    return submit_experiment_pb2.SubmitExperimentRequest(
+        experiment_id=submission.experiment_id,
+        scenario_name=submission.scenario_name,
+        end_date_time=timestamp(submission.end_date_time),
+        is_mse_run=submission.is_mse_run,
+        climate_scenario=submission.climate_scenario,
+        regulations_definitions_summary=regulation_definition_pb2.RegulationDefinitionsSummary(
+            target_fishing_mortalities=[
+                regulation_definition_pb2.TargetFishingMortality(
+                    species=species_pb2.Species(
+                        species_code=t.species_code, life_stage=t.life_stage
+                    ),
+                    biomass_limit=t.biomass_limit_kg,
+                    biomass_base=t.biomass_base_kg,
+                    f_max=t.f_max,
+                )
+                for t in submission.target_fishing_mortalities
+            ]
+        ),
+    )
+
+
+def _species_value(species: species_pb2.Species, value: float) -> SpeciesValue:
+    # proto3 leaves a 0.0 out of the message; reading the field gives 0.0 back.
+    return SpeciesValue(
+        species_code=species.species_code,
+        life_stage=species.life_stage,
+        length_class=species.length_class,
+        age=species.age,
+        value=float(value),
+    )
 
 
 def _map_error(rpc: str, target: str, exc: grpc.aio.AioRpcError) -> ControllerError:

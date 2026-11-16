@@ -29,7 +29,7 @@ Every name is a setting; these are the defaults.
 | Database | `surimi_modelgui_db` | — |
 | Application user | `surimi_modelgui` | `migrate` job, API and worker. Owns the schema, so it runs migrations (DDL) and reads and writes data |
 | Admin user (optional) | the instance admin, `POSTGRES_USER` (default `postgres`) | `db-bootstrap` job only: creates the database and the application user when missing, sets the user's password. In the bundled instance its own name and password are applied only when the volume is first created (official image) |
-| Schema | `public` | Procrastinate's tables are prefixed `procrastinate_` |
+| Schema | `public` | (Procrastinate was dropped by [ADR 0019](0019-worker-row-driven-with-advisory-lock.md); no extra tables) |
 | Extensions | none | Case-insensitive uniqueness through `lower()` indexes |
 
 Two ways to run it, with the same settings:
@@ -52,7 +52,7 @@ Two ways to run it, with the same settings:
 | `DB_HOST`, `DB_PORT` | `postgres`, 5432 | Server |
 | `DB_NAME` | `surimi_modelgui_db` | Database |
 | `DB_USER`, `DB_PASSWORD` | `surimi_modelgui` | Application user: migrations, API, worker |
-| `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` | unset | Only for `db-bootstrap`; unset skips it |
+| `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` | unset | Only for `db-bootstrap`; unset skips it. **Built differently** (compose, 2026-11-03): `db-bootstrap` uses `POSTGRES_USER` and `POSTGRES_PASSWORD` (the instance admin) |
 | `DB_SSLMODE` | `disable` locally, `require` external | TLS |
 | `DB_POOL_SIZE` | 10 | Connections per process |
 | `DATABASE_URL` | unset | Overrides the pieces above when set |
@@ -66,12 +66,14 @@ The URL is built in `core/config.py`. The bootstrap script is
 
 - `postgres`: `postgres:17-alpine`, admin `POSTGRES_USER=postgres` with
   `POSTGRES_PASSWORD` from `.env`, named volume `postgres-data`, `pg_isready`
-  healthcheck, no published port.
+  healthcheck, published on `127.0.0.1:${POSTGRES_PORT:-15432}` only.
 - `db-bootstrap`: runs `deployments/postgres/bootstrap.sql` with the admin credentials.
 - `migrate`: backend image, `alembic upgrade head` as `surimi_modelgui`.
 - `api` and `worker` connect as `surimi_modelgui` and wait for the other two
   with `depends_on: condition: service_completed_successfully`.
-- `compose.local.yml` publishes `127.0.0.1:5432` for local tools.
+- No `compose.local.yml`: `compose.yml` itself publishes PostgreSQL on
+  `127.0.0.1:15432` (`POSTGRES_PORT`), not 5432, so it does not clash with a
+  local PostgreSQL.
 
 ### Helm (phase 9)
 

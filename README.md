@@ -32,8 +32,17 @@ docker compose -f deployments/compose.yml down
 With npm installed, the same as shortcuts: `npm run docker:up`,
 `npm run docker:down`, `npm run docker:logs`.
 
-- The stack is the web app (nginx), the backend API, and PostgreSQL. On start,
-  the database and its user are created and migrated before the API starts.
+- The stack is the web app (nginx), the backend API, the worker, and
+  PostgreSQL. On start, the database and its user are created and migrated,
+  the first admin and the species list are loaded (`create-admin`,
+  `seed-species`), then the API and the worker start.
+- The worker polls the controller, sends queued experiments when enough
+  Ecopath pods are free, and indexes finished runs' outputs. Set
+  `ECOPATH_PODS` and `CONTROLLER_MSE_SIMULATIONS` to the controller's own
+  values. Outputs are read from `OUTPUTS_URI`: the local
+  `output_folder/experiments` by default, or an S3 bucket with `S3_*`
+  (see `deployments/.env.example`; keep credentials in `deployments/.env`,
+  which git ignores).
 - The API answers under <http://localhost:18080/api/v1/> (OpenAPI docs at
   `/api/v1/docs`) and directly on <http://localhost:18082>. Without a reachable
   controller it uses a built-in fake (`CONTROLLER_MODE=fake`, the default); set
@@ -49,7 +58,17 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
 ### Sign in to the API
 
 Every API route except health and sign-in needs a user. The web app does not
-have a sign-in page yet (phase 10); use Bruno, curl or `/api/v1/docs`.
+have a sign-in page yet (phase 10). Use the backend console, Bruno, curl or
+`/api/v1/docs`.
+
+- **Backend console:** open <http://localhost:18080/api/v1/console/>. It is a
+  page served by the API with password and SSO sign-in and tabs: your account
+  and the scenarios, the species list, New experiment (choose a scenario, add
+  harvest control rules from a dropdown, keep named HCR configurations, submit,
+  follow and cancel runs, download a finished run's `.nc`), and for admins the
+  users and the species import and export. It only calls the public
+  API and is not the SURIMI frontend. Turn it off with `CONSOLE_ENABLED=false`.
+  Design: [docs/features/backend-console](docs/features/backend-console/README.md).
 
 - **First admin:** set `ADMIN_EMAIL`, `ADMIN_USERNAME`, `ADMIN_FIRST_NAME`,
   `ADMIN_LAST_NAME` and `ADMIN_PASSWORD` in `deployments/.env`. The `migrate` job creates that admin on every start
@@ -59,8 +78,9 @@ have a sign-in page yet (phase 10); use Bruno, curl or `/api/v1/docs`.
   then send `Authorization: Bearer <access_token>`. In Bruno, run
   `api/auth/post token`.
 - **SSO with a local Keycloak:** add `OIDC_PROVIDERS=keycloak` to
-  `deployments/.env` and start with `--profile keycloak`. Then open
-  <http://localhost:18080/api/v1/auth/sso/keycloak/login> and sign in as
+  `deployments/.env` and start with `--profile keycloak`. Then open the
+  console and click "Sign in with Keycloak" (or open
+  <http://localhost:18080/api/v1/auth/sso/keycloak/login>), and sign in as
   `alice` / `alice-local-only` (admin), `bob` / `bob-local-only` (member) or
   `carol` / `carol-local-only` (no access). The Keycloak console is at
   <http://localhost:18083> (`admin` / `admin-local-only`).

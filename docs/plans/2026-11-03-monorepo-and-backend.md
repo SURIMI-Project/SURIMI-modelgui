@@ -1,7 +1,7 @@
 # Monorepo and backend for the SURIMI model GUI
 
-**Status:** Proposed
-**Author:** Alexios Gkikas with Claude, 2026-11-03
+**Status:** In progress — phases 1 to 6 built on `develop` (4 to 6 on 2026-11-06); 7 and 9 next, 10 only if the user agrees
+**Author:** written with Claude, 2026-11-03
 
 ## Goal
 
@@ -59,9 +59,9 @@ Inferred:
 | --- | --- |
 | Controller RPCs are all unary; no streaming, no push | Read from source, `buf.build/surimi/surimi-protocol`, exported 2026-11-03 |
 | `GetSimulationStatuses(experiment_ids)` exists in the registry but not in `apps/frontend/proto/surimi.binpb` | Verified 2026-11-03 |
-| `RemoveExperiment` is the cancel: it cancels only `Running` simulations (status `Canceled`) and returns success even when nothing was cancelled | Read from source, `SURIMI-controller` `a8a7f3a`; confirmed by Rik 2026-11-03 |
-| 10 Ecopath pods on `project-surimi`, one per simulation; MSE experiment = 5 simulations, otherwise 1; no queue in the controller | Confirmed by Rik 2026-11-03; read from source |
-| "No available pods" is thrown in the controller's background task, not returned by `SubmitExperiment`; the run stays `Initialising` | Read from source |
+| `RemoveExperiment` is the cancel: it cancels only `Running` simulations (status `Canceled`) and returns success even when nothing was cancelled | Read from source, `SURIMI-controller` `a8a7f3a`; confirmed by the controller team 2026-11-03 |
+| 10 Ecopath pods on `project-surimi`, one per simulation; MSE experiment = 5 simulations, otherwise 1; no queue in the controller | Confirmed by the controller team 2026-11-03; read from source |
+| "No available pods" is thrown in the controller's background task, not returned by `SubmitExperiment`; the simulation is then never created, so the controller reports nothing for the experiment (corrected 2026-11-06; earlier text said it stays `Initialising`) | Read from source; Verified 2026-11-06 |
 | `Error` simulations keep their pod; the controller keeps all state in memory | Read from source |
 | The `.nc` is chunked one month per chunk, gzip 1; maps are 305 of 309 MB, chart variables 3.6 MB | Verified 2026-11-03 |
 | The client chooses `experiment_id`; the controller has no users and no auth | Read from source |
@@ -78,12 +78,12 @@ flowchart LR
     browser(("Browser"))
     nginx["nginx + apps/frontend"]
     api["apps/backend API: FastAPI"]
-    worker["apps/backend worker: Procrastinate"]
+    worker["apps/backend worker: row-driven loop, advisory lock"]
     db[("PostgreSQL")]
     kc["OIDC provider: Keycloak"]
     ctrl["SURIMI controller"]
     store[("S3 or local outputs")]
-    browser -->|"REST + SSE"| nginx --> api
+    browser -->|"REST, events polled"| nginx --> api
     api --> db
     worker --> db
     api -->|OIDC| kc
@@ -104,9 +104,9 @@ Full picture, data model and flows: [ARCHITECTURE.md](../ARCHITECTURE.md#part-2-
 | Authentication | Local Argon2id + generic OIDC (Keycloak first, providers as config), both ending in our session (JWT 15 min + rotating refresh, HttpOnly cookies); SSO sessions 12 h max | One session type, revocable, tokens out of JavaScript; a new SSO is config, not code | [0004](../decisions/0004-authentication-local-and-oidc.md) |
 | Authorization | Roles `admin` and `member`; SSO role mapped from a configurable claim at every sign-in, deny if none; ownership in the repository layer, 404 for foreign ids | Roles follow Keycloak; shared realms grant nothing by accident; scoping cannot be forgotten | [0005](../decisions/0005-authorization-roles-and-ownership.md) |
 | Protocols | REST/JSON + OpenAPI to the browser, native gRPC to the controller | Browsers lack gRPC; controller must leave the public path | [0006](../decisions/0006-protocols-rest-sse-grpc.md) |
-| Scheduler | Worker with Procrastinate on PostgreSQL; poll active experiments every 10 s | Controller cannot push; no extra broker | [0007](../decisions/0007-scheduler-worker-postgres-queue.md) |
-| Notifications | SSE fed by `LISTEN/NOTIFY`, replay with `Last-Event-ID` | Traffic is one-way; SSE reconnects and replays by itself | [0008](../decisions/0008-notifications-sse.md) |
-| Outputs | `OUTPUTS_URI` via fsspec; files read in place by chunk through a kerchunk index; charts and maps read on request with immutable caching; no output values copied into the database; presigned URLs only for raw downloads | No duplicate data; all chart data of a run is 2 requests (measured), a map 0.15–1.7 MB of a 309 MB file; memory stays bounded | [0009](../decisions/0009-output-storage-and-ingestion.md) || Observability | structlog JSON, Prometheus, OpenTelemetry; activity in tables | Metrics for trends, database for exact per-user numbers | [0010](../decisions/0010-observability-and-activity-tracking.md) |
+| Scheduler | Worker as a row-driven loop, one leader by advisory lock (was Procrastinate, superseded 2026-11-06); poll active experiments every 10 s | Controller cannot push; no extra broker; one driver and one migration tool | [0019](../decisions/0019-worker-row-driven-with-advisory-lock.md) |
+| Notifications | Polled from a cursor, `GET /api/v1/events?after=` (SSE of ADR 0008 replaced 2026-11-12) | Statuses change at most every 10 s worker poll; no long-lived connections through the EDITO ingress | [0021](../decisions/0021-notifications-by-polling.md) |
+| Outputs | `OUTPUTS_URI` via fsspec; files read in place by chunk through our own chunk index (ADR 0020, was kerchunk); charts and maps read on request with immutable caching; no output values copied into the database; presigned URLs only for raw downloads | No duplicate data; all chart data of a run is 2 requests (measured), a map 0.15–1.7 MB of a 309 MB file; memory stays bounded | [0009](../decisions/0009-output-storage-and-ingestion.md) || Observability | structlog JSON, Prometheus, OpenTelemetry; activity in tables | Metrics for trends, database for exact per-user numbers | [0010](../decisions/0010-observability-and-activity-tracking.md) |
 | Controller stubs | Generated from the Buf registry, pinned, committed | Registry is the contract; reflection is stale or off | [0011](../decisions/0011-controller-stubs-from-buf-registry.md) |
 | Documentation | Features with Decisions tables, ADRs, plans, issues, Mermaid, DBML, Claude skills | Docs reviewed with the code; one home per shared decision, summarised in each feature | [0012](../decisions/0012-docs-as-code-with-mermaid.md) |
 | Retention | Logs 30 days; sign-in rows 13 months then monthly roll-up; IPs 90 days; audit 24 months; no passwords, tokens or unknown logins stored | Enough for debugging and statistics; GDPR storage limitation and minimisation | [0013](../decisions/0013-data-retention.md) |
@@ -122,8 +122,8 @@ Full picture, data model and flows: [ARCHITECTURE.md](../ARCHITECTURE.md#part-2-
 | Database | PostgreSQL 17, SQLAlchemy 2 (asyncio), asyncpg, Alembic |
 | Auth | pwdlib[argon2], pyjwt, httpx (OIDC client, written by us; authlib rejected, ADR 0004), Keycloak |
 | Controller | grpcio (`grpc.aio`), protobuf, stubs from Buf |
-| Jobs | Procrastinate (psycopg 3) |
-| Outputs | fsspec, s3fs, xarray, h5netcdf, numpy |
+| Jobs | none: row-driven worker with a PostgreSQL advisory lock (ADR 0019) |
+| Outputs | fsspec, s3fs, h5py (index build, worker only), numpy |
 | Observability | structlog, prometheus-client, opentelemetry-sdk with FastAPI, SQLAlchemy, grpc and httpx instrumentation; optional Sentry |
 | Quality | Ruff, mypy, pytest, pytest-asyncio, testcontainers (PostgreSQL), respx; ESLint, `tsc`; Playwright later |
 | Packaging | uv, npm workspaces, Docker multi-stage images, GitHub Actions |
@@ -168,7 +168,7 @@ the user agrees when we get there**.
 - Exit: `GET /api/v1/scenarios` answers from the fake and the real
   controller; tests pass against PostgreSQL in testcontainers; regenerated DBML matches the design or the
   differences are explained; Bruno `api/` folder exists. Met 2026-11-03,
-  including calls to a real controller (`user-alexiosgkikas`), except the
+  including calls to a real controller (`user-<developer>`), except the
   DBML regeneration (no tables yet, first in phase 3); see
   [features/backend-skeleton](../features/backend-skeleton/CHANGELOG.md).
 
@@ -194,32 +194,39 @@ the user agrees when we get there**.
   every designed table exists ([database/README](../database/README.md)).
   See [features/auth-and-users](../features/auth-and-users/CHANGELOG.md).
 
-### Phase 4 — Experiments
+### Phase 4 — Experiments (built 2026-11-06 on `develop`)
 
 - Scope: [experiments](../features/experiments/README.md). Submit with
   validation against the contract, list with filters and pagination, detail with
   simulations, cancel, soft delete, admin view with owner filter, audit events.
+  Since 2026-11-05 also the [scenario catalog](../features/scenario-catalog/README.md)
+  and [harvest control rules](../features/harvest-control-rules/README.md),
+  in steps 4a to 4d of
+  [2026-11-05-scenario-catalog-hcr-experiments](2026-11-05-scenario-catalog-hcr-experiments.md).
   No frontend pages (phase 10).
-- Exit: a user submits to the fake controller and to `rikkert`, sees only their
-  runs, cancels one; an admin sees all and filters by user.
+- Exit: a user submits to the fake controller and to `user-<developer>`
+  (user, 2026-11-05), sees only their runs, cancels one; an admin sees all
+  and filters by user.
 
-### Phase 5 — Status scheduler, experiment queue and notifications
+### Phase 5 — Status scheduler, experiment queue and notifications (built 2026-11-06 on `develop`; notifications polled instead of SSE since 2026-11-12, ADR 0021)
 
 - Scope: [simulation-status-scheduler](../features/simulation-status-scheduler/README.md),
   [experiment-queue](../features/experiment-queue/README.md) and
   [notifications](../features/notifications/README.md). Worker, poller,
   status mapping, stall detection, queue dispatcher with fair order and
-  pod counting, retention purge task, SSE endpoint. No frontend changes
+  pod counting, retention purge task, events endpoint (SSE, then polling
+  since 2026-11-12). No frontend changes
   (phase 10). Until this phase, phase 4 submits directly.
-- Exit: a status change on the controller shows in the browser within 15 s;
+- Exit: a status change on the controller shows in the browser within 20 s
+  (worker poll 10 s plus client poll 10 s; was 15 s with SSE, changed 2026-11-12);
   with capacity 1 on the fake controller, a second run waits as `queued` with
   its position and starts when the first ends; restarting the worker loses
   nothing; two workers never poll or submit twice.
 
-### Phase 6 — Outputs
+### Phase 6 — Outputs (built 2026-11-06 on `develop`; verified on the EDITO bucket with run `77c1e2a4…`)
 
 - Scope: [experiment-outputs](../features/experiment-outputs/README.md).
-  Storage through `OUTPUTS_URI`, kerchunk chunk index and quality report per
+  Storage through `OUTPUTS_URI`, chunk index (ADR 0020) and quality report per
   run, on-request chart and map endpoints with chunk cache and immutable
   caching, presigned raw downloads. The dashboards keep their mock data until
   phase 10. Measure
@@ -255,7 +262,7 @@ of phase 10.
 - Scope: everything marked "Frontend (phase 10)" in the feature docs: a client
   typed from the OpenAPI document (`openapi-typescript`, `openapi-fetch`),
   TanStack Query, sign-in pages and SSO buttons, experiment and queue pages,
-  SSE notifications, dashboards on the real chart and map endpoints, admin
+  notifications by polling, dashboards on the real chart and map endpoints, admin
   pages (users, all experiments, statistics, audit). Then remove Envoy, the
   `/api/controller` nginx location, connect-web, `apps/frontend/src/gen/`,
   `apps/frontend/proto/` and the frontend `MOCK` mode.
@@ -329,8 +336,8 @@ Beyond the stated requirements, each with the reason:
 | The EDITO experiments S3 credentials (read and write) will sign the download links: are they static access keys or temporary (session token)? And is the public endpoint `https://minio.dive.edito.eu`? | EDITO, controller team |
 | What message type is in the `.bin`, and is it needed if the `.nc` has everything? | Controller team |
 | How are the outputs of the 5 simulations of an MSE experiment written, and how should they combine? | Controller team |
-| Partial results per simulation while a run is going (asked 2026-11-03, not answered) | Rik (controller) |
-| Will the controller release pods of `Error` runs, report pod errors, or add its own queue? | Rik (controller) |
+| Partial results per simulation while a run is going (asked 2026-11-03, not answered) | Controller team |
+| Will the controller release pods of `Error` runs, report pod errors, or add its own queue? | Controller team |
 
 Answered on 2026-11-03 and recorded where they belong: any Keycloak for now and
 other SSO later ([ADR 0004](../decisions/0004-authentication-local-and-oidc.md));
@@ -340,6 +347,6 @@ PostgreSQL bundled or external, database `surimi_modelgui_db`
 ([ADR 0014](../decisions/0014-postgresql-in-repo-bundled-or-external.md));
 retention proposal ([ADR 0013](../decisions/0013-data-retention.md)); one database
 user for migrations and app (ADR 0014); admins cancel, delete and download any
-experiment and run their own (ADR 0005); members download their own `.nc`; no output values copied into the database (ADR 0009). Answered by Rik on 2026-11-03: cancel,
+experiment and run their own (ADR 0005); members download their own `.nc`; no output values copied into the database (ADR 0009). Answered by the controller team on 2026-11-03: cancel,
 pods, MSE size, no queue (recorded in
 [ARCHITECTURE.md § Controller behaviour](../ARCHITECTURE.md#controller-behaviour)).

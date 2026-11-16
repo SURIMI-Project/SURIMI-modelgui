@@ -29,6 +29,44 @@ class SimulationStatus:
     order: int
 
 
+@dataclass(frozen=True, slots=True)
+class TargetFishingMortality:
+    """One harvest control rule as the controller takes it: biomass in **kg**,
+    the unit the backend stores and serves too (ADR 0022)."""
+
+    species_code: str
+    life_stage: str
+    biomass_limit_kg: float
+    biomass_base_kg: float
+    f_max: float
+
+
+@dataclass(frozen=True, slots=True)
+class SpeciesValue:
+    """One value per species from `GetInitialBiomasses` or
+    `GetInitialFishingMortalities`. The species key is the full
+    `surimi.v1.Species`; empty strings where the controller sends none. The
+    controller states no unit (docs/ISSUES.md)."""
+
+    species_code: str
+    life_stage: str
+    length_class: str
+    age: str
+    value: float
+
+
+@dataclass(frozen=True, slots=True)
+class ExperimentSubmission:
+    """`surimi.v1.SubmitExperimentRequest`, in plain values."""
+
+    experiment_id: str
+    scenario_name: str
+    end_date_time: datetime
+    is_mse_run: bool
+    climate_scenario: str
+    target_fishing_mortalities: tuple[TargetFishingMortality, ...]
+
+
 class ControllerClient(Protocol):
     async def get_protocol_version(self) -> str: ...
 
@@ -38,11 +76,35 @@ class ControllerClient(Protocol):
         """`surimi.v1.Simulation` as protobuf JSON with the proto's field names."""
         ...
 
+    async def get_initial_biomasses(self, scenario_name: str) -> list[SpeciesValue]:
+        """Biomass per species at the end of the scenario's spin-up. The
+        controller passes the call to an Ecopath pod without reserving it; a
+        member of a functional group gets the group's biomass (SURIMI-Ecopath
+        `88e1121`, `InitialStateFileService`)."""
+        ...
+
+    async def get_initial_fishing_mortalities(self, scenario_name: str) -> list[SpeciesValue]:
+        """Initial F per species: catch of the last 12 spin-up months divided by
+        the initial biomass. An F of 0 is sent as an absent field, read as 0."""
+        ...
+
     async def get_simulation_statuses(
         self, experiment_ids: Sequence[str]
     ) -> list[SimulationStatus]: ...
 
     async def get_all_simulation_statuses(self) -> list[SimulationStatus]: ...
+
+    async def submit_experiment(self, submission: ExperimentSubmission) -> None:
+        """Returns as soon as the controller has the experiment; its simulations
+        start in the background. A missing Ecopath pod is **not** reported
+        here: the simulation is then never created (controller `a8a7f3a`,
+        `SimulationDispatcher.DispatchAsync`). Never retried."""
+        ...
+
+    async def remove_experiment(self, experiment_id: str) -> None:
+        """The controller's cancel. Stops only `Running` simulations and
+        succeeds even when it stopped nothing. Never retried."""
+        ...
 
     async def close(self) -> None: ...
 

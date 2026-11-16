@@ -1,0 +1,34 @@
+info:
+  name: get outputs download url
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/download-url?file=nc"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get outputs download url
+
+  The presigned S3 link to the `.nc` (or, for admins, `?file=bin`) as JSON,
+  instead of the `302` of `get outputs download`. Same checks and the same
+  `outputs.downloaded` audit row.
+
+  ## Response
+
+  `{file, file_name, size_bytes, url, presigned, expires_at}`. The link
+  works without signing in, for `PRESIGNED_URL_TTL_SECONDS` (1 hour by default), and
+  allows only GET of that one object. Local mode (no S3): `url` is the API's
+  `/download` path, `presigned` false, `expires_at` null.
+
+  ## Notes
+
+  Only for a `completed` experiment (outputs `ready`): otherwise `409` with
+  the state. Someone else's experiment: `404`. `.bin` for a member: `403`.

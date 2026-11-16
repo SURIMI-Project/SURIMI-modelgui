@@ -1,6 +1,6 @@
 # 0009 — Outputs stay in their files: read in place by chunk (S3 or local) through a chunk index; nothing copied into the database; presigned URLs only for raw downloads
 
-**Status:** Proposed
+**Status:** Proposed; the kerchunk index superseded by [0020](0020-own-chunk-index-built-with-h5py.md) (2026-11-06)
 **Date:** 2026-11-03
 **Related:** [features/experiment-outputs](../features/experiment-outputs/README.md), [0007](0007-scheduler-worker-postgres-queue.md)
 
@@ -100,7 +100,7 @@ normal link. The API checks the session and ownership, writes an
 `outputs.downloaded` audit event, and then:
 
 - **S3 mode:** answers `302 Found` with a presigned GET URL to the object,
-  valid `PRESIGNED_URL_TTL` (15 min), signed for `S3_PUBLIC_ENDPOINT` (the
+  valid `PRESIGNED_URL_TTL_SECONDS` (1 hour since 2026-11-16, user; 15 min before), signed for `S3_PUBLIC_ENDPOINT` (the
   address browsers can reach, not the in-cluster one) and carrying
   `response-content-disposition=attachment; filename="<name>_<id8>.nc"`. The
   browser downloads straight from S3; no file bytes pass through our backend.
@@ -143,8 +143,9 @@ Not read until its message type is confirmed by the controller team.
   API only authorises; S3 or nginx move the hundreds of megabytes, with
   resume, and the API process never holds file bytes. A plain link works in
   every browser without JavaScript.
-- **Short-lived links:** a leaked link stops working after 15 minutes and
-  opens only that one file.
+- **Short-lived links:** a leaked link stops working after an hour (the user
+  chose 1 hour on 2026-11-16, long enough to start a large download from a
+  slow network; 15 min before) and opens only that one file.
 - **fsspec:** one code path for local and S3, as required.
 
 ## Alternatives considered
@@ -169,8 +170,8 @@ Not read until its message type is confirmed by the controller team.
   object: **Verified** 2026-11-03 against MinIO with read/write credentials,
   `PUT` and `DELETE` through the same link answer `403` and the object is
   unchanged; the secret key is not in the URL, only the access key ID. A link
-  lives at most `PRESIGNED_URL_TTL` (and never more than 7 days, the SigV4
-  limit). If the credentials are temporary (EDITO user credentials carry a
+  lives at most `PRESIGNED_URL_TTL_SECONDS` (60 to 604800 accepted: never
+  more than 7 days, the SigV4 limit). If the credentials are temporary (EDITO user credentials carry a
   session token, **Read from source** `SURIMI-controller` `SURIMI-gui/Models/EditoApp.cs`),
   a link also dies when the token expires, and the backend must reload
   refreshed credentials; static access keys have no such limit (open question

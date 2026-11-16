@@ -8,6 +8,8 @@ from surimi.v1 import finalise_simulation_pb2 as surimi_dot_v1_dot_finalise__sim
 from surimi.v1 import get_biomass_pb2 as surimi_dot_v1_dot_get__biomass__pb2
 from surimi.v1 import get_catch_disposition_pb2 as surimi_dot_v1_dot_get__catch__disposition__pb2
 from surimi.v1 import get_fishing_activity_pb2 as surimi_dot_v1_dot_get__fishing__activity__pb2
+from surimi.v1 import get_initial_biomasses_pb2 as surimi_dot_v1_dot_get__initial__biomasses__pb2
+from surimi.v1 import get_initial_fishing_mortalities_pb2 as surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2
 from surimi.v1 import get_protocol_version_pb2 as surimi_dot_v1_dot_get__protocol__version__pb2
 from surimi.v1 import get_sales_pb2 as surimi_dot_v1_dot_get__sales__pb2
 from surimi.v1 import initialise_simulation_pb2 as surimi_dot_v1_dot_initialise__simulation__pb2
@@ -99,6 +101,16 @@ class EcologyServiceStub:
                 '/surimi.v1.EcologyService/GetSales',
                 request_serializer=surimi_dot_v1_dot_get__sales__pb2.GetSalesRequest.SerializeToString,
                 response_deserializer=surimi_dot_v1_dot_get__sales__pb2.GetSalesResponse.FromString,
+                _registered_method=True)
+        self.GetInitialBiomasses = channel.unary_unary(
+                '/surimi.v1.EcologyService/GetInitialBiomasses',
+                request_serializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesRequest.SerializeToString,
+                response_deserializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesResponse.FromString,
+                _registered_method=True)
+        self.GetInitialFishingMortalities = channel.unary_unary(
+                '/surimi.v1.EcologyService/GetInitialFishingMortalities',
+                request_serializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesRequest.SerializeToString,
+                response_deserializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesResponse.FromString,
                 _registered_method=True)
         self.UpdateSpeciesPrices = channel.unary_unary(
                 '/surimi.v1.EcologyService/UpdateSpeciesPrices',
@@ -197,6 +209,20 @@ class EcologyServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetInitialBiomasses(self, request, context):
+        """Gets the initial biomass for every species in a scenario.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetInitialFishingMortalities(self, request, context):
+        """Gets the initial fishing mortality for every species in a scenario.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def UpdateSpeciesPrices(self, request, context):
         """This method is used to update the species prices for a given simulation.
         """
@@ -261,6 +287,16 @@ def add_EcologyServiceServicer_to_server(servicer, server):
                     servicer.GetSales,
                     request_deserializer=surimi_dot_v1_dot_get__sales__pb2.GetSalesRequest.FromString,
                     response_serializer=surimi_dot_v1_dot_get__sales__pb2.GetSalesResponse.SerializeToString,
+            ),
+            'GetInitialBiomasses': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetInitialBiomasses,
+                    request_deserializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesRequest.FromString,
+                    response_serializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesResponse.SerializeToString,
+            ),
+            'GetInitialFishingMortalities': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetInitialFishingMortalities,
+                    request_deserializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesRequest.FromString,
+                    response_serializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesResponse.SerializeToString,
             ),
             'UpdateSpeciesPrices': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateSpeciesPrices,
@@ -565,6 +601,60 @@ class EcologyService:
             '/surimi.v1.EcologyService/GetSales',
             surimi_dot_v1_dot_get__sales__pb2.GetSalesRequest.SerializeToString,
             surimi_dot_v1_dot_get__sales__pb2.GetSalesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetInitialBiomasses(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/surimi.v1.EcologyService/GetInitialBiomasses',
+            surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesRequest.SerializeToString,
+            surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetInitialFishingMortalities(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/surimi.v1.EcologyService/GetInitialFishingMortalities',
+            surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesRequest.SerializeToString,
+            surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesResponse.FromString,
             options,
             channel_credentials,
             insecure,

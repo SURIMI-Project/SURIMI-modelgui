@@ -1,0 +1,21 @@
+info:
+  name: get outputs map
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/maps?metric=biomass&functional_group=27&year=2013"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get outputs map
+
+  One lat x lon grid for `month` (YYYY-MM) or `year`. `metric`: biomass,
+  gross_catch, dead_discards, live_discards. `format=binary` returns float32.

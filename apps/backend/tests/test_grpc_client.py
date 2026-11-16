@@ -13,19 +13,27 @@ import grpc
 import pytest
 from surimi.v1 import (
     controller_service_pb2_grpc,
+    get_initial_biomasses_pb2,
+    get_initial_fishing_mortalities_pb2,
     get_protocol_version_pb2,
     get_scenario_names_pb2,
     get_simulation_contract_pb2,
     get_simulation_statuses_pb2,
+    remove_experiment_pb2,
     simulation_pb2,
     simulation_status_pb2,
+    species_pb2,
+    submit_experiment_pb2,
 )
 
 from surimi_backend.integrations.controller import (
     ControllerError,
     ControllerTimeoutError,
     ControllerUnavailableError,
+    ExperimentSubmission,
     GrpcControllerClient,
+    SpeciesValue,
+    TargetFishingMortality,
 )
 from surimi_backend.integrations.controller.convert import timestamp
 from surimi_backend.integrations.controller.grpc_client import parse_target
@@ -36,6 +44,20 @@ class Servicer(controller_service_pb2_grpc.ControllerServiceServicer):
         self.calls: Counter[str] = Counter()
         self.unavailable_left = 0
         self.delay = 0.0
+        self.submitted: list[submit_experiment_pb2.SubmitExperimentRequest] = []
+        self.removed: list[str] = []
+
+    async def SubmitExperiment(self, request, context):  # type: ignore[no-untyped-def]
+        self.calls["SubmitExperiment"] += 1
+        if self.unavailable_left:
+            self.unavailable_left -= 1
+            await context.abort(grpc.StatusCode.UNAVAILABLE, "warming up")
+        self.submitted.append(request)
+        return submit_experiment_pb2.SubmitExperimentResponse(experiment_id=request.experiment_id)
+
+    async def RemoveExperiment(self, request, context):  # type: ignore[no-untyped-def]
+        self.removed.append(request.experiment_id)
+        return remove_experiment_pb2.RemoveExperimentResponse(experiment_id=request.experiment_id)
 
     async def GetProtocolVersion(self, request, context):  # type: ignore[no-untyped-def]
         return get_protocol_version_pb2.GetProtocolVersionResponse(protocol_version="1.4.0")
@@ -70,6 +92,38 @@ class Servicer(controller_service_pb2_grpc.ControllerServiceServicer):
         return get_simulation_statuses_pb2.GetSimulationStatusesResponse(
             simulation_statuses=[status]
         )
+
+    async def GetInitialBiomasses(self, request, context):  # type: ignore[no-untyped-def]
+        if request.scenario_name != "northwestern_med":
+            await context.abort(grpc.StatusCode.UNKNOWN, "Exception was thrown by handler.")
+        summary = get_initial_biomasses_pb2.InitialBiomassSummary(
+            initial_biomasses=[
+                get_initial_biomasses_pb2.InitialBiomass(
+                    species=species_pb2.Species(species_code="ANE", life_stage="adult"),
+                    biomass=123719.1598388878,
+                ),
+                get_initial_biomasses_pb2.InitialBiomass(
+                    species=species_pb2.Species(species_code="ALB"), biomass=20526.8
+                ),
+            ]
+        )
+        return get_initial_biomasses_pb2.GetInitialBiomassesResponse(
+            initial_biomass_summary=summary
+        )
+
+    async def GetInitialFishingMortalities(self, request, context):  # type: ignore[no-untyped-def]
+        m = get_initial_fishing_mortalities_pb2
+        summary = m.InitialFishingMortalitySummary(
+            initial_fishing_mortalities=[
+                m.InitialFishingMortality(
+                    species=species_pb2.Species(species_code="ANE", life_stage="adult"),
+                    fishing_mortality=4.224581647364614,
+                ),
+                # F = 0 is not on the wire, as for BON on project-surimi.
+                m.InitialFishingMortality(species=species_pb2.Species(species_code="BON")),
+            ]
+        )
+        return m.GetInitialFishingMortalitiesResponse(initial_fishing_mortality_summary=summary)
 
 
 @pytest.fixture
@@ -111,6 +165,27 @@ async def test_reads_map_to_plain_values(server: tuple[Servicer, str]) -> None:
         assert status.simulation_duration == timedelta(seconds=90)
         assert status.simulation_current is None
         assert status.order == 3
+    finally:
+        await client.close()
+
+
+async def test_initial_state_maps_species_and_reads_absent_f_as_zero(
+    server: tuple[Servicer, str],
+) -> None:
+    _, url = server
+    client = GrpcControllerClient(url, timeout=2, read_retries=0)
+    try:
+        assert await client.get_initial_biomasses("northwestern_med") == [
+            SpeciesValue("ANE", "adult", "", "", 123719.1598388878),
+            SpeciesValue("ALB", "", "", "", 20526.8),
+        ]
+        assert await client.get_initial_fishing_mortalities("northwestern_med") == [
+            SpeciesValue("ANE", "adult", "", "", 4.224581647364614),
+            SpeciesValue("BON", "", "", "", 0.0),
+        ]
+        with pytest.raises(ControllerError) as info:
+            await client.get_initial_biomasses("anchovy_bay")
+        assert info.value.details == {"rpc": "GetInitialBiomasses", "grpc_code": "UNKNOWN"}
     finally:
         await client.close()
 
@@ -199,3 +274,44 @@ def test_parse_target(url: str, expected: tuple[str, bool]) -> None:
 def test_parse_target_rejects_unusable_urls(url: str) -> None:
     with pytest.raises(ValueError, match="CONTROLLER_GRPC_URL"):
         parse_target(url)
+
+
+async def test_submit_sends_the_request_in_kg_and_is_never_retried(
+    server: tuple[Servicer, str],
+) -> None:
+    servicer, url = server
+    client = GrpcControllerClient(url, timeout=2, read_retries=3)
+    submission = ExperimentSubmission(
+        experiment_id="7d0c3c2e-0000-4000-8000-000000000001",
+        scenario_name="northwestern_med",
+        end_date_time=datetime(2014, 1, 1, tzinfo=UTC),
+        is_mse_run=True,
+        climate_scenario="RCP_4.5",
+        target_fishing_mortalities=(
+            TargetFishingMortality("HKE", "adult", 4_000_000.0, 16_000_000.0, 0.3),
+        ),
+    )
+    try:
+        await client.submit_experiment(submission)
+        [sent] = servicer.submitted
+        assert sent.experiment_id == submission.experiment_id
+        assert sent.is_mse_run is True
+        assert sent.climate_scenario == "RCP_4.5"
+        assert sent.end_date_time.ToDatetime(tzinfo=UTC) == datetime(2014, 1, 1, tzinfo=UTC)
+        [rule] = sent.regulations_definitions_summary.target_fishing_mortalities
+        assert (rule.species.species_code, rule.species.life_stage) == ("HKE", "adult")
+        assert (rule.biomass_limit, rule.biomass_base, rule.f_max) == (
+            4_000_000.0,
+            16_000_000.0,
+            0.3,
+        )
+
+        servicer.unavailable_left = 1
+        with pytest.raises(ControllerUnavailableError):
+            await client.submit_experiment(submission)
+        assert servicer.calls["SubmitExperiment"] == 2  # no retry of a call that changes state
+
+        await client.remove_experiment(submission.experiment_id)
+        assert servicer.removed == [submission.experiment_id]
+    finally:
+        await client.close()

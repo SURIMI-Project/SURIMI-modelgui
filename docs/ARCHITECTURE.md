@@ -36,12 +36,20 @@ the controller, and the output dashboards show mock data
 (`apps/frontend/src/features/ScenarioOutputs/MockData/`). **Read from source.**
 
 On branch `develop` (not merged into `main`), the first part of
-Part 2 runs beside this in compose: `api` (FastAPI), `postgres`, the
-`db-bootstrap` and `migrate` jobs, and `keycloak` (profile `keycloak`) for SSO.
-The API serves sign-in (password and OIDC), sessions, user administration
-and the scenario catalogue from the controller; nginx routes `/api/v1/` to
-it. The frontend does not call it yet (phase 10). **Verified** on the compose
-stack, 2026-11-03.
+Part 2 runs beside this in compose: `api` (FastAPI), `worker`, `postgres`,
+the `db-bootstrap` and `migrate` jobs, and `keycloak` (profile `keycloak`)
+for SSO. The API serves sign-in (password and OIDC), sessions, user
+administration, the scenario catalogue, harvest control rules, experiments
+and their queue, outputs (charts, maps, downloads, presigned links), the
+initial biomass and fishing mortality of a scenario (from the controller), and
+experiment events to poll; the worker polls the controller, dispatches the
+queue and waits for and indexes results (phases 4 to 6, 2026-11-06, polling
+and `copying_results` 2026-11-12, **Verified** against `user-<developer>` and its bucket);
+nginx routes `/api/v1/` to the API. The frontend does not call it yet (phase 10). **Verified** on the compose
+stack, 2026-11-03. The API also serves a static page at `/api/v1/console/`
+with sign-in and a home screen. The page calls only the public API
+([backend-console](features/backend-console/README.md)). **Verified** in
+headless Chrome on the compose stack, 2026-11-06.
 
 ### Controller API
 
@@ -73,25 +81,32 @@ open question in [ISSUES.md](ISSUES.md)).
 
 ### Controller behaviour
 
-What the controller does, from its code and from Rik. Code facts are **Read
+What the controller does, from its code and from the controller team. Code facts are **Read
 from source**, `SURIMI-controller` commit `a8a7f3a` (2026-10-22); answers are
-**Confirmed by Rik, 2026-11-03**. Re-check with `/surimi-services` when the
+**Confirmed by the controller team, 2026-11-03**. Re-check with `/surimi-services` when the
 controller changes.
 
 | Topic | Behaviour | Evidence |
 | --- | --- | --- |
 | Status values | Exactly `Initialising`, `Initialised`, `Running`, `Finished`, `Error`, `Canceled` (American spelling) | Code, `SimulationManager.cs` |
-| Simulations per experiment | MSE run (`is_mse_run = true`): `NR_OF_MSE_RUNS` simulations, 5 on `project-surimi`. Otherwise 1 | Code, `ExperimentManager.SubmitExperiment`; Rik |
-| Ecopath pods | One pod per simulation, `ECOPATH_NR_OF_PODS` in total, 10 on `project-surimi`. So at most 2 MSE experiments, or 10 non-MSE, or a mix (for example 1 MSE + 5 non-MSE) | Code, `SimulationDispatcher.cs`; Rik |
+| Simulations per experiment | MSE run (`is_mse_run = true`): `NR_OF_MSE_RUNS` simulations, 5 on `project-surimi`. Otherwise 1 | Code, `ExperimentManager.SubmitExperiment`; the controller team |
+| Parallel simulations | All simulations of an experiment initialise in parallel, alongside the experiment services (CMSY, output creator, value chain). None runs until **all** of that is done; then all run in parallel (`Task.WhenAll`). A simulation can therefore wait in `Initialised` for the others | Read from source, SURIMI-controller `117e604`, `ExperimentManager.RunExperimentAsync` |
+| Ecopath pods | One pod per simulation, `ECOPATH_NR_OF_PODS` in total, 10 on `project-surimi`. So at most 2 MSE experiments, or 10 non-MSE, or a mix (for example 1 MSE + 5 non-MSE) | Code, `SimulationDispatcher.cs`; the controller team |
 | Submit | `SubmitExperiment` registers the experiment and returns at once; initialisation and the run happen in a background task | Code, `ExperimentManager.SubmitExperiment` |
-| No pod free | `SimulationDispatcher` throws `Exception("No available pods")` inside the background initialisation. `SubmitExperiment` has already returned OK; the error is only logged and the simulation stays `Initialising` | Code; Rik says "you get an exception", which is true in the controller log, not for the caller |
+| No pod free | `SimulationDispatcher.DispatchAsync` throws `Exception("No available pods")` from `EcopathServiceClient.AddInitialise`, which `InitSimulationAsync` calls **before** it registers the simulation. `SubmitExperiment` has already returned OK; the error is only logged ("Exception in Init simulation"), and the simulation is **never created**: `GetSimulationStatuses` returns nothing for the experiment, while the experiment id stays known (a second submit with it fails, `RemoveExperiment` finds it and stops nothing). In an MSE run, simulations that got a pod stay `Initialising` and keep it | Read from source 2026-11-06 (`a8a7f3a`); **Verified** 2026-11-06 on `user-<developer>`: experiment `6e996aab…` submitted OK, log "No available pods", `GetSimulationStatuses` empty. The controller team says "you get an exception", which is true in the controller log, not for the caller |
 | Failed initialisation | `InitSimulationAsync` has no error handling: the status stays `Initialising`, never `Error` | Code |
-| Cancel | `RemoveExperiment` = cancel the experiment: it cancels each simulation, which ends as `Canceled`. Only `Running` simulations can be cancelled; for any other state the error is logged and swallowed, and the RPC still returns success | Code, `ExperimentManager.CancelExperimentAsync`, `SimulationManager.CancelSimulationAsync`; Rik |
+| Cancel | `RemoveExperiment` = cancel the experiment: it cancels each simulation, which ends as `Canceled`. Only `Running` simulations can be cancelled; for any other state the error is logged and swallowed, and the RPC still returns success | Code, `ExperimentManager.CancelExperimentAsync`, `SimulationManager.CancelSimulationAsync`; the controller team |
 | Pod release | A pod is released on finalise (`Finished`) and on cancel (`Canceled`), not on `Error` | Code, `EcopathServiceClient.cs` |
-| Queue | None. Rik: "A queue might be a good idea" | Rik |
+| Queue | None. The controller team: "A queue might be a good idea" | Controller team |
 | State | Experiments and simulations live in in-memory dictionaries; a controller restart forgets all of them | Code, `ExperimentManager._experiments`, `SimulationManager._simulations` |
-| Protocol version | `GetProtocolVersion` returns the first 12 characters of the Buf registry commit the controller was built with (`b10b05a0ca7f` on `user-alexiosgkikas`, 2026-11-03), so it can be compared with the backend's pin | Verified |
+| Protocol version | `GetProtocolVersion` returns the first 12 characters of the Buf registry commit the controller was built with (`b10b05a0ca7f` on `user-<developer>`, 2026-11-03), so it can be compared with the backend's pin | Verified |
 | Partial results per simulation | Asked 2026-11-03, not answered yet | Open question |
+| Scenario contract | One YAML per scenario in `Includes/<scenario>/`, synced nightly from `Official-EwE/SURIMI-data_preprocessing`. Species are `species_code` + optional `life_stage` only: no functional groups, no names, no list of species that take an HCR. Those live in the Ecopath `.semantics` and the fisheries authority CSVs, see [scenario catalog](features/scenario-catalog/README.md) | Read from source, `.github/workflows/sync-surimi-contracts.yml`; contracts Verified 2026-11-05 on `user-<developer>` |
+| Climate scenarios | Allowed codes are the contract's `items.climate_scenarios`: `RCP_2.6`, `RCP_4.5`, `RCP_8.5` for `anchovy_bay` and `northwestern_med`, none for `aegean_sea` | Verified 2026-11-05 |
+| Initial biomass and fishing mortality | `GetInitialBiomasses(scenario_name)` and `GetInitialFishingMortalities(scenario_name)` return one value per `species_code` + `life_stage`. The controller passes them to Ecopath **without reserving a pod** (a scenario name is not a GUID, so `SimulationDispatcher` uses the first pod). Ecopath reads `<scenario>/initial_biomasses.csv` and `initial_catch.csv` from its input store; F = catch of the last 12 spin-up months ÷ biomass. The files are written by an Ecopath spin-up run with `CREATE_HCR_INITIALISE_FILES` set. Only `northwestern_med` has them (91 rows); for other scenarios the call errors. A species in a multi-species functional group gets the **group's** biomass (ALB = BON = 20,526.8), so its F is its own catch ÷ the group's biomass. An F of 0 is left out of the JSON (proto3 default): 49 of 91 rows. No unit is given; see [ISSUES.md](ISSUES.md) | Read from source, SURIMI-protocol `250f617`, SURIMI-controller `117e604` (`ControllerService`, `EcopathServiceClient`, `SimulationDispatcher.DispatchAsync`), SURIMI-Ecopath `88e1121` (`InitialStateFileService`, `HcrInitialisationFileService`). **Verified** 2026-11-12 on `project-surimi`, through Bruno (the user) and through the backend. The values are identical to the repo file. Other scenarios fail with "MinIO API responded with message=ecopath/<scenario>/initial_biomasses.csv". `user-<developer>` answers `UNIMPLEMENTED` (older build) |
+| Request validation | The protocol declares `buf.validate` rules (HCR `0 < biomass_limit, biomass_base ≤ 3.3e12` kg and `0 < f_max ≤ 100`; `scenario_name` and `climate_scenario` not empty), but the controller does not enforce them: it registers no validation interceptor and checks only `scenario_name` on `SubmitExperiment`. Only POSEIDON validates the requests it receives, and it is called only for scenarios with `POSEIDON` fleet segments (`northwestern_med`). So the backend's HCR checks are the only ones, and the empty `climate_scenario` of `aegean_sea` is accepted; see [ISSUES.md](ISSUES.md) | Read from source 2026-11-13, SURIMI-protocol `be08fd33`, SURIMI-controller `117e604` (`Program.cs`, `ControllerService`, `PoseidonServiceClient`), SURIMI-POSEIDON `ValidationInterceptor.java`; corrects the earlier "the controller rejects" (SURIMI-protocol `0c4b6c4`) |
+| How an HCR becomes a TAC (fisheries authority) | Once a year, when the controller asks for the next year's regulations (`GetRegulationsAsync`), the fisheries authority computes each regulated species' TAC (total allowable catch: the most that may be landed that year). In the **first** year the TAC is the species' value in `initial_quota.csv`, not the HCR; from the second year on it comes from EwE's `cMSEQuotaCalculator.UpdateQuotas` (NuGet `Eii.Ecopath.EwECore` 6.7, not open here) with `Blim` = `biomass_limit`, `Bbase` = `biomass_base`, `Fopt` = `f_max` and the biomass estimate of the year just ended, where biomass is the sum of Ecopath's grid cells for the species (the whole model area). The TAC is then split between fleets by `quotashare.csv`. Monthly landings are gross catch minus live discards. **Read from source**, SURIMI-fisheries-authority `a68715a`, `Services/QuotaCalculationService.cs` (`GetRegulationsAsync`, `UpdateBiomassAsync`, `UpdateCatchDispositionAsync`), 2026-11-16. The shape of the rule between `Blim` and `Bbase` is in EwECore, not read: **Open question** |
+| Where the output files are written before S3 (output creator) | During a run the output creator service records every message it receives to `experiments/<id>/<id>.bin`, relative to its working directory `/app` (so `/app/experiments/<id>/` in its container; `ExperimentRecorderManager`, `base_dir="experiments"`). When the last simulation is finalised (`FinaliseExperiment`) it starts a subprocess (`netcdf_worker_main.py`) that reads the `.bin`, writes `/app/experiments/<id>/<id>.nc`, then uploads every file of that folder to `s3://$AWS_BUCKET_NAME/output_creator/experiments/<id>/` (`S3_Storage.UploadFilesToS3`), the `.bin` too. The local copies are **not deleted** after the upload; a cancel deletes the partial `.bin`. No volume is declared in its Dockerfile, so the folder lives in the container's own filesystem unless the EDITO chart mounts one (not in the SURIMI-Project repos). **Read from source**, SURIMI-output-creator `da3ec9d` (2026-09-29), 2026-11-16 |
 
 What this means for the backend: the queue counts **pods**, not experiments
 ([ADR 0015](decisions/0015-experiment-admission-queue.md)); capacity problems
@@ -146,7 +161,7 @@ flowchart TB
     kc["OIDC provider: Keycloak, later others"]
     store[("S3 bucket or local folder")]
 
-    browser -->|"HTTPS: REST JSON and SSE"| nginx
+    browser -->|"HTTPS: REST JSON"| nginx
     nginx -->|HTTP| api
     api -->|"SQL, asyncpg"| db
     api -->|"gRPC: Submit, Remove, contract"| ctrl
@@ -161,11 +176,11 @@ flowchart TB
 
 | Container | Technology | Does | Decision |
 | --- | --- | --- | --- |
-| nginx | nginx 1.27 | Serves the built SPA; proxies `/api/` to the API with buffering off for SSE; one origin so cookies need no CORS | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
+| nginx | nginx 1.27 | Serves the built SPA; proxies `/api/` to the API; one origin so cookies need no CORS | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
 | frontend | React 19, Vite, Mantine, TanStack Query, client generated from OpenAPI | UI; no tokens in JavaScript | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
-| backend API | Python 3.13, FastAPI, SQLAlchemy 2 async, grpcio `aio` | REST API, auth, RBAC, SSE | [0002](decisions/0002-backend-python-fastapi.md) |
-| backend worker | Same image, `surimi-worker` entrypoint, Procrastinate | Polls the controller, dispatches the experiment queue, indexes finished outputs, detects stalls, purges by retention | [0007](decisions/0007-scheduler-worker-postgres-queue.md), [0015](decisions/0015-experiment-admission-queue.md) |
-| PostgreSQL | PostgreSQL 17, database `surimi_modelgui_db` | Users, sessions, experiments and their queue, simulations, events, jobs, output metadata (chunk index, quality report). No output values | [0003](decisions/0003-postgresql-sqlalchemy-alembic.md), [0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |
+| backend API | Python 3.13, FastAPI, SQLAlchemy 2 async, grpcio `aio` | REST API, auth, RBAC, events to poll | [0002](decisions/0002-backend-python-fastapi.md) |
+| backend worker | Same image, `surimi-backend worker`; one leader by PostgreSQL advisory lock | Polls the controller, dispatches the experiment queue, waits for the results of finished runs in the bucket and indexes them (`copying_results` → `completed`), detects stalls. Purges by retention: not built yet (phase 7) | [0019](decisions/0019-worker-row-driven-with-advisory-lock.md), [0015](decisions/0015-experiment-admission-queue.md) |
+| PostgreSQL | PostgreSQL 17, database `surimi_modelgui_db` | Users, sessions, harvest control rules, experiments and their queue, simulations, events, output metadata (chunk index, quality report). No output values | [0003](decisions/0003-postgresql-sqlalchemy-alembic.md), [0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |
 | Output storage | S3 API or local folder through `fsspec` | Raw `.nc` and `.bin` written by the output creator; read in place by chunk, never copied | [0009](decisions/0009-output-storage-and-ingestion.md) |
 
 ### Protocols
@@ -173,12 +188,12 @@ flowchart TB
 | From → to | Protocol | Why |
 | --- | --- | --- |
 | Browser → backend | REST/JSON over HTTPS, OpenAPI 3.1 | Browsers speak it natively; works with cookies, caching, Bruno, generated TS types. [ADR 0006](decisions/0006-protocols-rest-sse-grpc.md) |
-| Backend → browser | Server-Sent Events, `GET /api/v1/events` | Notifications only go one way; SSE reconnects by itself and resumes with `Last-Event-ID`. [ADR 0008](decisions/0008-notifications-sse.md) |
+| Backend → browser | The browser polls `GET /api/v1/events?after=<id>` every `poll_after_seconds` (10 s) | Statuses change at most every worker poll, so a push channel saves nothing noticeable; no long-lived connections through proxies. [ADR 0021](decisions/0021-notifications-by-polling.md) (supersedes SSE, ADR 0008) |
 | Backend → controller | Native gRPC over HTTP/2 with TLS | The controller only speaks gRPC; server to server, no gRPC-Web or Envoy needed. [ADR 0006](decisions/0006-protocols-rest-sse-grpc.md) |
 | Backend → OIDC provider (Keycloak first) | OIDC Authorization Code with PKCE | Standard, works with any provider; the backend keeps the tokens. [ADR 0004](decisions/0004-authentication-local-and-oidc.md) |
-| Browser → storage | `302` from the API to a presigned S3 GET, `.nc`/`.bin` downloads only (nginx `X-Accel-Redirect` in local mode) | The API only authorises; no file bytes through it; resumable. [ADR 0009](decisions/0009-output-storage-and-ingestion.md) |
-| Backend → storage | S3 range requests (`s3fs`) or filesystem, through a kerchunk chunk index | Same code for both through `fsspec`; only the chunks a view needs are read. [ADR 0009](decisions/0009-output-storage-and-ingestion.md) |
-| API ↔ worker | PostgreSQL: job table and `LISTEN/NOTIFY` | No extra broker to run. [ADR 0007](decisions/0007-scheduler-worker-postgres-queue.md) |
+| Browser → storage | A presigned S3 GET, from a `302` (`/outputs/download`) or as JSON (`/outputs/download-url`), `.nc`/`.bin` only (nginx `X-Accel-Redirect` in local mode) | The API only authorises; no file bytes through it; resumable. [ADR 0009](decisions/0009-output-storage-and-ingestion.md) |
+| Backend → storage | S3 range requests (`s3fs`) or filesystem, through our own chunk index ([ADR 0020](decisions/0020-own-chunk-index-built-with-h5py.md)) | Same code for both through `fsspec`; only the chunks a view needs are read. [ADR 0009](decisions/0009-output-storage-and-ingestion.md) |
+| API ↔ worker | PostgreSQL rows (`experiments`, `experiment_outputs`, `experiment_events`) and `NOTIFY surimi_dispatch` (wakes the worker) | No extra broker to run. [ADR 0019](decisions/0019-worker-row-driven-with-advisory-lock.md), [ADR 0021](decisions/0021-notifications-by-polling.md) |
 
 ### Backend modules
 
@@ -188,12 +203,12 @@ flowchart LR
         core["core: config, db, logging, security"]
         auth["auth: local, oidc, sessions"]
         users["users"]
-        catalog["catalog: scenarios, contracts"]
+        catalog["catalog: scenarios, contracts, scenario catalogs, admin workbook (ADR 0017, 0023)"]
         exp["experiments"]
         sched["scheduler: poller, stall detection, retention"]
         queue["queue: dispatcher, fair order, capacity"]
         outputs["outputs: storage, chunk index, charts, maps"]
-        notif["notifications: SSE broker"]
+        notif["notifications: events to poll"]
         obs["observability: metrics, audit, stats"]
         ctrlc["integrations/controller: grpc and fake"]
     end
@@ -235,6 +250,8 @@ erDiagram
     experiments ||--o{ simulations : contains
     experiments ||--o{ experiment_events : logs
     experiments ||--o| experiment_outputs : produces
+    users ||--o{ hcr_configurations : keeps
+    users |o--o{ app_settings : "last changed"
 
     users {
         uuid id PK
@@ -264,6 +281,24 @@ erDiagram
         timestamptz absolute_expires_at
         timestamptz revoked_at
     }
+    hcr_configurations {
+        uuid id PK
+        uuid owner_id FK
+        text scenario_name
+        text name "unique per owner and scenario"
+        jsonb rules "HCRs in kg (ADR 0025)"
+    }
+    species {
+        text species_code PK "FAO ASFIS alpha code"
+        text name
+        text scientific_name
+        text source "asfis or manual"
+    }
+    app_settings {
+        text key PK
+        jsonb value
+        uuid updated_by FK
+    }
     experiments {
         uuid id PK "also the controller experiment_id"
         uuid owner_id FK
@@ -283,7 +318,7 @@ erDiagram
         text status_raw
     }
     experiment_events {
-        bigint id PK "SSE event id"
+        bigint id PK "polling cursor"
         uuid experiment_id FK
         uuid owner_id FK
         text type
@@ -291,7 +326,7 @@ erDiagram
     experiment_outputs {
         uuid experiment_id PK
         output_state state
-        bytea chunk_index "kerchunk refs"
+        bytea chunk_index "zlib JSON, ADR 0020"
         jsonb report
     }
     login_events {
@@ -322,16 +357,22 @@ stateDiagram-v2
     queued --> submitting: dispatch_queue, capacity free
     submitting --> submit_failed: SubmitExperiment error
     submitting --> submitted: controller accepted
-    submitted --> initialising: Initialising / Initialised
-    initialising --> running: Running
-    running --> finished: all simulations Finished
+    submitted --> initialising: first simulation reported
+    initialising --> initialised: every simulation Initialised
+    initialised --> running: controller starts them all
+    running --> copying_results: all simulations Finished
+    copying_results --> completed: .nc in the bucket, stable, indexed
+    copying_results --> failed: no .nc after OUTPUT_WAIT_MINUTES, or unreadable
+    failed --> copying_results: admin re-index
     initialising --> failed: Error
+    initialised --> failed: Error
     running --> failed: Error, or lost after a controller restart
     submitted --> cancelling: cancel
     initialising --> cancelling: cancel
+    initialised --> cancelling: cancel
     running --> cancelling: cancel
     cancelling --> cancelled: simulations Canceled
-    finished --> [*]
+    completed --> [*]
     failed --> [*]
     cancelled --> [*]
     submit_failed --> [*]
@@ -343,8 +384,11 @@ simulations. `queued` waits for controller capacity
 ([ADR 0015](decisions/0015-experiment-admission-queue.md),
 [features/experiment-queue](features/experiment-queue/README.md)). `stalled`
 is a flag, not a state: it is set when an experiment has made no progress for
-`STALL_AFTER` (default 30 min), because the controller does not set `Error`
-when initialisation fails ([ISSUES.md](ISSUES.md)). Details:
+`STALL_AFTER_MINUTES` (default 30), because the controller does not set `Error`
+when initialisation fails ([ISSUES.md](ISSUES.md)). `copying_results` holds no
+Ecopath pod (the controller freed it at `Finished`) and is no longer polled on
+the controller; it cannot be cancelled. `finished_at` is when the run ended,
+`completed_at` when its results were ready (user, 2026-11-12). Details:
 [features/simulation-status-scheduler](features/simulation-status-scheduler/README.md).
 
 ### Main flows
@@ -397,16 +441,20 @@ sequenceDiagram
         C-->>P: simulation_statuses
         P->>D: upsert simulations, derive experiment status
         opt status changed
-            P->>D: INSERT experiment_events, NOTIFY experiment_events
-            D-->>A: notification
-            A-->>W: SSE event experiment.status_changed
+            P->>D: INSERT experiment_events
         end
+    end
+    loop every poll_after_seconds
+        W->>A: GET /api/v1/events?after=last_id
+        A->>D: SELECT events id > last_id visible to the user
+        A-->>W: experiment.status_changed, ...
     end
 ```
 
-Only one worker runs the poller at a time (a Procrastinate periodic task is
-deferred once per period across all workers). A final state also triggers
-`dispatch_queue`.
+Only one worker runs the poller at a time: the one holding the PostgreSQL
+advisory lock ([ADR 0019](decisions/0019-worker-row-driven-with-advisory-lock.md)).
+Each cycle polls, then dispatches, so a run that ends frees its pods for the
+next queued one in the same cycle.
 
 Sign-in with an OIDC provider (Keycloak first):
 

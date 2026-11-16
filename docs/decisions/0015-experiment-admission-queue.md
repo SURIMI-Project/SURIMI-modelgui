@@ -1,6 +1,6 @@
 # 0015 — Experiments wait in a fair queue in our database and are submitted when enough Ecopath pods are free
 
-**Status:** Proposed
+**Status:** Proposed; the Procrastinate job queue and lock it mentions replaced by [0019](0019-worker-row-driven-with-advisory-lock.md) (2026-11-06)
 **Date:** 2026-11-03
 **Related:** [features/experiment-queue](../features/experiment-queue/README.md), [0007](0007-scheduler-worker-postgres-queue.md), [ARCHITECTURE.md § Controller behaviour](../ARCHITECTURE.md#controller-behaviour)
 
@@ -8,10 +8,10 @@
 
 - Each simulation needs one Ecopath pod. `project-surimi` has 10. An MSE
   experiment has 5 simulations, a non-MSE experiment 1: at most 2 MSE
-  experiments or 10 non-MSE ones at a time. **Confirmed by Rik, 2026-11-03**,
+  experiments or 10 non-MSE ones at a time. **Confirmed by the controller team, 2026-11-03**,
   and **Read from source** (`SURIMI-controller` `a8a7f3a`,
   `ECOPATH_NR_OF_PODS`, `NR_OF_MSE_RUNS`).
-- The controller has no queue. **Confirmed by Rik.** Its protocol has no RPC
+- The controller has no queue. **Confirmed by the controller team.** Its protocol has no RPC
   for a queue, for free capacity or for pod counts: `ControllerService` has
   only `SubmitExperiment`, `RemoveExperiment`, `GetSimulationStatuses`,
   `GetAllSimulationStatuses`, `GetSimulationContract`, `GetProtocolVersion`
@@ -53,12 +53,12 @@ Two queues, each for its own job:
      higher `priority`, then oldest `queued_at`. The head of the queue is
      submitted only if its `pods_required` fits in the free pods. A smaller
      experiment further back may go first only if the head has waited less
-     than `MAX_HEAD_WAIT` (30 min); after that nothing overtakes it. A user at
+     than `MAX_HEAD_WAIT` (30 min, built as `MAX_HEAD_WAIT_MINUTES`); after that nothing overtakes it. A user at
      `MAX_PODS_PER_USER` is skipped until one of theirs ends.
    - Rows are claimed with `SELECT … FOR UPDATE SKIP LOCKED` inside a
      Procrastinate lock, so two workers never submit the same experiment.
    - **Detecting a wrong count:** if a simulation of an experiment we just
-     submitted is still `Initialising` after `INIT_TIMEOUT` (10 min), the
+     submitted is still `Initialising` after `INIT_TIMEOUT` (10 min, built as `INIT_TIMEOUT_MINUTES`), the
      experiment is flagged `stalled`, an event and a log line say "probably no
      Ecopath pod", and admins see it in the queue view. If the controller
      reports a different number of simulations than `pods_required`, the
@@ -98,7 +98,7 @@ Two queues, each for its own job:
 | Back-off on submit errors only | The controller returns no error when pods run out |
 | One Procrastinate job per experiment with a concurrency limit | No position, priority, fairness or pod sizes; state in two places |
 | RabbitMQ or Redis queue | A new service for something one table and one task do |
-| Queue in the controller | The right place long term (Rik agrees a queue is a good idea); not available now |
+| Queue in the controller | The right place long term (the controller team agrees a queue is a good idea); not available now |
 
 ## Consequences
 

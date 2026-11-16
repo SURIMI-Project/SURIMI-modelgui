@@ -2,9 +2,9 @@
 #   docker compose -f deployments/compose.yml up --build -d     (or: npm run docker:up)
 # Variables come from deployments/.env (see deployments/.env.example).
 #
-# Start order: postgres (healthy) -> db-bootstrap -> migrate -> api; web
-# (nginx) serves the SPA and proxies /api/v1/ to api and /api/controller/ to
-# grpc-proxy (profile).
+# Start order: postgres (healthy) -> db-bootstrap -> migrate -> api and worker;
+# web (nginx) serves the SPA and proxies /api/v1/ to api and /api/controller/
+# to grpc-proxy (profile).
 
 # Keeps container and network names as before the move to deployments/.
 name: surimi-modelgui
@@ -17,6 +17,31 @@ x-db-env: &db-env
   # Local-only default; any shared environment sets its own (ADR 0014).
   DB_PASSWORD: ${DB_PASSWORD:-surimi-local-only}
   DB_SSLMODE: disable
+
+# Shared by api and worker, so both count the same pods and read the same
+# outputs (ADR 0015, ADR 0019, ADR 0009).
+x-runtime-env: &runtime-env
+  # fake: built-in stand-in; grpc: the real controller at CONTROLLER_GRPC_URL.
+  CONTROLLER_MODE: ${CONTROLLER_MODE:-fake}
+  CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
+  LOG_FORMAT: ${LOG_FORMAT:-json}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  # Must equal the controller's ECOPATH_NR_OF_PODS and NR_OF_MSE_RUNS.
+  ECOPATH_PODS: ${ECOPATH_PODS:-10}
+  CONTROLLER_MSE_SIMULATIONS: ${CONTROLLER_MSE_SIMULATIONS:-5}
+  MAX_PODS_PER_USER: ${MAX_PODS_PER_USER:-5}
+  MAX_QUEUED_EXPERIMENTS_PER_USER: ${MAX_QUEUED_EXPERIMENTS_PER_USER:-10}
+  # s3://bucket/prefix, or the outputs folder mounted at /data/experiments.
+  OUTPUTS_URI: ${OUTPUTS_URI:-file:///data/experiments}
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+  S3_SESSION_TOKEN: ${S3_SESSION_TOKEN:-}
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
+  # Lifetime of a presigned download link, in seconds (60 to 604800).
+  PRESIGNED_URL_TTL_SECONDS: ${PRESIGNED_URL_TTL_SECONDS:-3600}
+  # Largest species CSV an admin may import (MB); nginx allows 10 for that path.
+  CATALOG_IMPORT_MAX_MB: ${CATALOG_IMPORT_MAX_MB:-10}
 
 x-backend: &backend
   build:
@@ -40,6 +65,9 @@ services:
       # Defaults to the grpc-proxy service below (the browser speaks gRPC-Web).
       CONTROLLER_BASE_URL: ${CONTROLLER_BASE_URL:-http://grpc-proxy:8080}
       API_BASE_URL: ${API_BASE_URL:-http://api:8000}
+    volumes:
+      # Local outputs mode: nginx sends downloads from here (X-Accel-Redirect).
+      - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
     restart: unless-stopped
 
   # --- database (ADR 0014) --------------------------------------------------------
@@ -94,7 +122,7 @@ services:
   # unset, a partly set group fails; safe on every start).
   migrate:
     <<: *backend
-    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env"]
+    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species"]
     environment:
       <<: *db-env
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
@@ -111,20 +139,19 @@ services:
     <<: *backend
     command: ["surimi-backend", "serve"]
     environment:
-      <<: *db-env
-      # fake: built-in stand-in; grpc: the real controller at CONTROLLER_GRPC_URL.
-      CONTROLLER_MODE: ${CONTROLLER_MODE:-fake}
-      CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
-      LOG_FORMAT: ${LOG_FORMAT:-json}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      <<: [*db-env, *runtime-env]
       # nginx in front: trust X-Forwarded-For from the compose network.
       TRUSTED_PROXIES: "*"
+      # API processes (uvicorn workers), 1 to 32; see .env.example.
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
       # --- sign-in (ADR 0004) ---
       # Local-only default; any shared environment sets its own (>= 32 characters).
       JWT_SECRET: ${JWT_SECRET:-local-only-jwt-secret-change-me-0123456789abcdef}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:18080}
       # Plain http on localhost: browsers drop Secure cookies there.
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Sign-in and home page at /api/v1/console/ (docs/features/backend-console).
+      CONSOLE_ENABLED: ${CONSOLE_ENABLED:-true}
       # SSO: empty = password sign-in only. "keycloak" with --profile keycloak.
       OIDC_PROVIDERS: ${OIDC_PROVIDERS:-}
       OIDC_KEYCLOAK_ISSUER: ${OIDC_KEYCLOAK_ISSUER:-http://localhost:18083/realms/surimi}
@@ -147,6 +174,25 @@ services:
     ports:
       # Direct access for Bruno and debugging, local machine only.
       - "127.0.0.1:${API_PORT:-18082}:8000"
+    volumes:
+      - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
+    restart: unless-stopped
+
+  # Polls the controller, dispatches the queue, indexes outputs (ADR 0019).
+  # Replicas are safe: one leads (advisory lock), the others wait.
+  worker:
+    <<: *backend
+    command: ["surimi-backend", "worker"]
+    environment:
+      <<: [*db-env, *runtime-env]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
+    # No HTTP port: the image's /healthz check does not apply.
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   # --- Keycloak for local SSO (profile "keycloak") ---------------------------------

@@ -1,0 +1,22 @@
+info:
+  name: get hcr configurations
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/hcr-configurations"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get hcr configurations
+
+  Your configurations for the scenario, by name, each with its rules;
+  `configurations: []` when you saved none. Each rule says whether it is
+  still `eligible`. Unknown scenario: `404`.
