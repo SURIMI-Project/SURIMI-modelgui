@@ -11,13 +11,13 @@ import {
   caseMapPlaces,
   northwesternStudyArea,
   overviewBounds,
-  overviewDesktopBounds,
 } from "../../../../../mock-data/caseMap";
 import type { SimulationCaseId } from "../../../../data/simulationCases";
 import styles from "./CaseStudyMap.module.css";
 
 type Props = {
   backgroundOnly?: boolean;
+  expandedCase: SimulationCaseId | null;
   selected: SimulationCaseId | null;
   available: ReadonlySet<SimulationCaseId>;
   reducedMotion: boolean;
@@ -122,7 +122,15 @@ const moveCamera = (
   if (selected === "anchovy-bay") return;
   if (!place?.location) {
     map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
-    map.fitBounds(mobile ? overviewBounds : overviewDesktopBounds, {
+    if (!mobile) {
+      // Match the approved 1920 × 935 overview, scaling to fit smaller viewports.
+      const scale = Math.min(width / 1920, map.getContainer().clientHeight / 935);
+      const camera = { center: [6.164721861770346, 38.48192946871973] as [number, number], zoom: 4.259597210796989 + Math.log2(scale), pitch: 0, bearing: 0 };
+      if (animate) map.flyTo({ ...camera, duration });
+      else map.jumpTo(camera);
+      return;
+    }
+    map.fitBounds(overviewBounds, {
       duration,
       pitch: 0,
       bearing: 0,
@@ -200,7 +208,7 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
     if (visible && !map.getSource(source)) {
       const northwestern = caseId === "northwestern-mediterranean";
       const colour = northwestern
-        ? "#ffad52"
+        ? themeColour("--color-map-study-northwestern")
         : themeColour("--color-map-study-boundary");
       map.addSource(source, { type: "geojson", data: area.asset });
       map.addLayer(
@@ -218,7 +226,7 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
         type: "fill-extrusion",
         source,
         paint: {
-          "fill-extrusion-color": "#ffc778",
+          "fill-extrusion-color": themeColour("--color-map-study-lift"),
           "fill-extrusion-height": 0,
           "fill-extrusion-base": 0,
           "fill-extrusion-opacity": 0,
@@ -263,7 +271,8 @@ const GeographicMap = (props: Props) => {
   const lastScene = useRef<SimulationCaseId | null>(props.selected);
   const switchingScene = useRef(false);
   const mapRef = useRef<LibreMap | null>(null);
-  const buttons = useRef(new Map<SimulationCaseId, HTMLButtonElement>());
+  const markerRoots = useRef(new Map<SimulationCaseId, Root>());
+  const buttons = useRef(new Map<SimulationCaseId, HTMLDivElement>());
   const current = useRef(props);
   const water = useRef<AnimatedWaterLayer | null>(null);
   const [waterReady, setWaterReady] = useState(false);
@@ -276,14 +285,14 @@ const GeographicMap = (props: Props) => {
     for (const [id, button] of buttons.current) {
       const dimmed = Boolean(selected && selected !== id);
       button.hidden = Boolean(backgroundOnly) || selected !== null;
-      button.disabled = !available.has(id) || selected === "anchovy-bay";
-      button.tabIndex = dimmed || button.disabled ? -1 : 0;
+      button.tabIndex = -1;
       button.dataset.dimmed = String(dimmed);
       button.dataset.selected = String(selected === id);
       button.setAttribute("aria-pressed", String(selected === id));
     }
     const map = mapRef.current;
     if (!map) return;
+    const selectionChanged = selected !== lastScene.current;
     const fictional = selected === "anchovy-bay";
     const crossesScene = fictional !== (lastScene.current === "anchovy-bay");
     lastScene.current = selected;
@@ -295,7 +304,7 @@ const GeographicMap = (props: Props) => {
       updateStudyArea(map, selected);
       updateMapAppearance(map, water.current, reducedMotion);
       map.getCanvas().setAttribute("aria-label", fictional ? "Fictional Anchovy Bay educational map" : "Mediterranean geographic context");
-      moveCamera(map, selected, !crossesScene && !reducedMotion);
+      if (selectionChanged) moveCamera(map, selected, !crossesScene && !reducedMotion);
     };
     if (!crossesScene || reducedMotion || !curtain.current) {
       applyScene();
@@ -332,6 +341,19 @@ const GeographicMap = (props: Props) => {
   }, [selected, available, reducedMotion, onSelect, onHover, backgroundOnly]);
 
   useEffect(() => {
+    current.current = props;
+    for (const [caseId, root] of markerRoots.current) {
+      const marker = buttons.current.get(caseId);
+      if (marker) marker.dataset.expanded = String(props.expandedCase === caseId);
+      root.render(createElement(MarineCaseIdentity, {
+        caseId, expanded: props.expandedCase === caseId,
+        disabled: !props.available.has(caseId),
+        onSelect: () => current.current.onSelect(caseId),
+      }));
+    }
+  }, [props, ready]);
+
+  useEffect(() => {
     const map = mapRef.current;
     for (const [id, button] of buttons.current) button.setAttribute("data-hovered", String(hovered === id));
     if (!map || !ready) return;
@@ -354,6 +376,7 @@ const GeographicMap = (props: Props) => {
     const markers: maplibregl.Marker[] = [];
     const cardRoots: Root[] = [];
     let observer: ResizeObserver | undefined;
+    let cardObserver: ResizeObserver | undefined;
     // Give React's surrounding UI its first paint before initializing WebGL.
     const frame = requestAnimationFrame(() => {
       if (!container.current || disposed) return;
@@ -365,12 +388,12 @@ const GeographicMap = (props: Props) => {
           minZoom: 2,
           maxZoom: 8,
           interactive: true,
-          dragPan: false,
-          scrollZoom: false,
+          dragPan: true,
+          scrollZoom: true,
           boxZoom: false,
-          doubleClickZoom: false,
-          keyboard: false,
-          touchZoomRotate: false,
+          doubleClickZoom: true,
+          keyboard: true,
+          touchZoomRotate: true,
           dragRotate: false,
           pitchWithRotate: false,
           touchPitch: false,
@@ -430,7 +453,7 @@ const GeographicMap = (props: Props) => {
           },
         });
         mapRef.current = map;
-        map.getCanvas().tabIndex = -1;
+        map.getCanvas().tabIndex = 0;
         map
           .getCanvas()
           .setAttribute("aria-label", "Mediterranean geographic context");
@@ -483,8 +506,7 @@ const GeographicMap = (props: Props) => {
         for (const [id, place] of Object.entries(caseMapPlaces)) {
           if (!place.location) continue;
           const caseId = id as SimulationCaseId;
-          const button = document.createElement("button");
-          button.type = "button";
+          const button = document.createElement("div");
           button.className = styles.mapMarker;
           button.dataset.case = caseId;
           button.setAttribute("aria-label", `Preview ${place.title}`);
@@ -492,21 +514,22 @@ const GeographicMap = (props: Props) => {
             "aria-pressed",
             String(current.current.selected === caseId),
           );
-          const dimmed = Boolean(
-            current.current.selected && current.current.selected !== caseId,
-          );
+
           button.hidden = Boolean(current.current.backgroundOnly) || current.current.selected !== null;
-          button.disabled =
-            !current.current.available.has(caseId) ||
-            current.current.selected === "anchovy-bay";
-          button.tabIndex = dimmed || button.disabled ? -1 : 0;
-          button.dataset.dimmed = String(dimmed);
+          button.tabIndex = -1;
+          button.dataset.dimmed = String(Boolean(current.current.selected && current.current.selected !== caseId));
           button.dataset.selected = String(current.current.selected === caseId);
+          button.dataset.expanded = String(current.current.expandedCase === caseId);
           const label = document.createElement("span");
           label.className = styles.markerLabel;
           const cardRoot = createRoot(label);
           cardRoots.push(cardRoot);
-          cardRoot.render(createElement(MarineCaseIdentity, { caseId }));
+          markerRoots.current.set(caseId, cardRoot);
+          cardRoot.render(createElement(MarineCaseIdentity, {
+            caseId, expanded: current.current.expandedCase === caseId,
+            disabled: !current.current.available.has(caseId),
+            onSelect: () => current.current.onSelect(caseId),
+          }));
           button.addEventListener("mouseenter", () => current.current.onHover(caseId));
           button.addEventListener("mouseleave", () => current.current.onHover(null));
           button.addEventListener("focus", () => current.current.onHover(caseId));
@@ -514,11 +537,11 @@ const GeographicMap = (props: Props) => {
           const dot = document.createElement("span");
           dot.className = styles.markerDot;
           dot.setAttribute("aria-hidden", "true");
-          button.append(label, dot);
-          button.addEventListener("click", (event) => {
-            event.stopPropagation();
-            current.current.onSelect(caseId);
-          });
+          const connector = document.createElement("span");
+          connector.className = styles.mapConnector;
+          connector.setAttribute("aria-hidden", "true");
+          button.append(connector, label, dot);
+
           buttons.current.set(caseId, button);
           markers.push(
             new maplibregl.Marker({
@@ -530,10 +553,68 @@ const GeographicMap = (props: Props) => {
               .addTo(map),
           );
         }
+        const updateConnectors = () => {
+          for (const element of buttons.current.values()) {
+            const label = element.querySelector<HTMLElement>(`.${styles.markerLabel}`);
+            const dot = element.querySelector<HTMLElement>(`.${styles.markerDot}`);
+            const connector = element.querySelector<HTMLElement>(`.${styles.mapConnector}`);
+            if (!label || !dot || !connector) continue;
+            const card = label.getBoundingClientRect();
+            const pin = dot.getBoundingClientRect();
+            const origin = element.getBoundingClientRect();
+            const x = pin.left + pin.width / 2;
+            const y = pin.top + pin.height / 2;
+            const targetX = Math.max(card.left, Math.min(x, card.right));
+            const targetY = Math.max(card.top, Math.min(y, card.bottom));
+            const dx = targetX - x;
+            const dy = targetY - y;
+            connector.style.left = `${x - origin.left}px`;
+            connector.style.top = `${y - origin.top}px`;
+            connector.style.height = `${Math.hypot(dx, dy)}px`;
+            connector.style.transform = `rotate(${Math.atan2(-dx, dy)}rad)`;
+            dot.style.visibility = Math.hypot(dx, dy) < 1 ? "hidden" : "visible";
+          }
+        };
+        cardObserver = new ResizeObserver(updateConnectors);
+        for (const element of buttons.current.values()) {
+          const label = element.querySelector(`.${styles.markerLabel}`);
+          if (label) cardObserver.observe(label);
+        }
+        const logCamera = () => {
+          if (!import.meta.env.DEV) return;
+          const center = map.getCenter();
+          console.info("SURIMI_MAP_CAMERA " + JSON.stringify({
+            scene: current.current.selected ?? "overview",
+            center: [center.lng, center.lat], zoom: map.getZoom(),
+            bearing: map.getBearing(), pitch: map.getPitch(), padding: map.getPadding(),
+            viewport: { width: map.getContainer().clientWidth, height: map.getContainer().clientHeight },
+            bounds: map.getBounds().toArray(),
+          }));
+        };
+        map.on("moveend", logCamera);
+        const updateCardSpace = () => {
+          for (const [id, element] of buttons.current) {
+            const location = caseMapPlaces[id].location;
+            if (!location) continue;
+            const point = map.project(location);
+            const viewport = map.getContainer();
+            const cardWidth = viewport.clientWidth > 1200 ? 336 : 304;
+            const fraction = id === "aegean-sea" ? 0.76 : 0.24;
+            const left = Math.min(viewport.clientWidth - cardWidth - 24, Math.max(24, viewport.clientWidth * fraction));
+            element.style.setProperty("--card-left", `${left - point.x}px`);
+            element.style.setProperty("--card-top", `${112 - point.y}px`);
+            element.style.setProperty("--card-room", `${Math.max(200, viewport.clientHeight - 240)}px`);
+          }
+        };
+        map.on("move", updateCardSpace);
+        map.on("move", updateConnectors);
         moveCamera(map, current.current.selected, false);
+        updateCardSpace();
+        updateConnectors();
         observer = new ResizeObserver(() => {
           map.resize();
-          if (!switchingScene.current) moveCamera(map, current.current.selected, false);
+          updateCardSpace();
+          updateConnectors();
         });
         observer.observe(container.current);
       } catch {
@@ -545,7 +626,9 @@ const GeographicMap = (props: Props) => {
       disposed = true;
       cancelAnimationFrame(frame);
       observer?.disconnect();
+      cardObserver?.disconnect();
       cardRoots.forEach(root => root.unmount());
+      markerRoots.current.clear();
       markers.forEach((marker) => marker.remove());
       markerButtons.clear();
       mapRef.current?.remove();

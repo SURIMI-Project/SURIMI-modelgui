@@ -21,15 +21,28 @@
       var(--palette-neutral-0) 82%,
       transparent
     );
-    --color-map-water: var(--palette-sea-400);
-    --color-map-water-deep: var(--palette-sea-600);
-    --color-map-water-shallow: var(--palette-sea-100);
-    --color-map-water-reflection: var(--palette-neutral-0);
-    --color-map-land: var(--palette-neutral-100);
-    --color-map-coast: var(--palette-neutral-300);
-    --color-map-grid: var(--palette-sea-800);
-    --color-map-label: var(--palette-neutral-600);
-    --color-map-study-boundary: var(--color-secondary-ink);
+    --color-map-detail-text: #e5f0f3;
+    --color-map-card-image-overlay: rgb(3 42 59 / 55%);
+    --color-map-card-surface: rgb(3 42 59 / 90%);
+    --color-map-card-border: rgb(197 228 229 / 32%);
+    --color-map-card-muted: #c5e4e5;
+    --color-map-water: #075675;
+    --color-map-water-deep: #033b56;
+    --color-map-water-shallow: #087d9b;
+    --color-map-water-reflection: #8ed9e7;
+    --color-map-land: #183849;
+    --color-map-coast: #52788a;
+    --color-map-grid: #8ab7c8;
+    --color-map-label: #c5e4e5;
+    --color-map-study-boundary: #f5ad72;
+    --color-map-study-northwestern: #ffad52;
+    --color-map-study-lift: #ffc778;
+    --color-map-bay-water: #095773;
+    --color-map-bay-deep: #063c59;
+    --color-map-bay-shallow: #157f95;
+    --color-map-bay-reflection: #9cdee1;
+    --color-map-overview-scrim: #02283d;
+    --color-map-overview-glow: #26a7c5;
     --color-background: var(--palette-neutral-50);
     --color-surface: var(--palette-neutral-0);
     --color-surface-muted: var(--palette-neutral-100);

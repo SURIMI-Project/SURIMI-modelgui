@@ -8,6 +8,7 @@ export type UseCaseOption<Id extends string = string> = {
 };
 type Props<Id extends string> = {
   actionLabel?: string;
+  showNumbers?: boolean;
   options: readonly UseCaseOption<Id>[];
   selectedId: Id | null;
   onSelect: (id: Id) => void;
@@ -17,6 +18,7 @@ type Props<Id extends string> = {
 };
 export default function UseCaseSelector<Id extends string>({
   options,
+  showNumbers = true,
   actionLabel = "Preview",
   selectedId,
   onSelect,
@@ -49,7 +51,7 @@ export default function UseCaseSelector<Id extends string>({
           }
           onPress={() => onSelect(option.id)}
         >
-          <span className={styles.dot} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+          {showNumbers ? <span className={styles.dot} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span> : null}
           <span>{option.title}</span>
         </Button>
       ))}
