@@ -32,7 +32,7 @@ from surimi_backend.users.models import Role, RoleSource, User
 from tests.world import make_world  # noqa: F401 - fixture for experiment tests
 
 JWT_SECRET = "test-only-jwt-secret-0123456789-abcdefghijklmnop"
-BOOTSTRAP_DIR = Path(__file__).resolve().parents[3] / "deployments" / "postgres"
+BOOTSTRAP_DIR = Path(__file__).resolve().parents[3] / "deployments" / "mounts" / "postgres"
 APP_DB_PASSWORD = "app-test-password"
 PASSWORD = "a-long-test-password-1"  # passes the policy; for users made by `users`
 

@@ -20,6 +20,10 @@ dashboard. Envoy and Keycloak were not started.
 
 - `deployments/compose.yml` — the six bind mounts; a header comment on `mounts/`.
 - `.github/workflows/ci.yml` — backend path filter `deployments/mounts/postgres/**`.
+- `apps/backend/tests/conftest.py` — `BOOTSTRAP_DIR`, the folder the test PostgreSQL
+  container mounts. Missed in the first commit: CI failed (run 44076397150,
+  `/bootstrap/bootstrap.sql: No such file or directory`); fixed, and the full
+  suite passes again (321 tests, 118 against PostgreSQL in Docker).
 - `deployments/mounts/observability/grafana/provisioning/dashboards/dashboards.yml` — comment.
 - Docs: ADR 0001 (the layout rule), ADR 0006, ADR 0014, `CLAUDE.md`,
   `docs/database/README.md`, `docs/ISSUES.md`, feature READMEs of
