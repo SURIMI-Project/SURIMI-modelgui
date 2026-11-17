@@ -12,11 +12,10 @@
     "build": "npm --workspace apps/frontend run build --",
     "lint": "npm --workspace apps/frontend run lint --",
     "preview": "npm --workspace apps/frontend run preview --",
-    "docker:up": "docker compose -f deployments/compose.yml up --build -d",
-    "docker:down": "docker compose -f deployments/compose.yml down",
-    "docker:logs": "docker compose -f deployments/compose.yml logs -f web"
-  },
-  "devDependencies": {
-    "@bufbuild/buf": "^1.73.0"
+    "proto:pull": "npm --workspace apps/frontend run proto:pull",
+    "proto:gen": "npm --workspace apps/frontend run proto:gen",
+    "docker:up": "docker compose -f deployments/compose.local.yml up --build -d",
+    "docker:down": "docker compose -f deployments/compose.local.yml down",
+    "docker:logs": "docker compose -f deployments/compose.local.yml logs -f web"
   }
 }

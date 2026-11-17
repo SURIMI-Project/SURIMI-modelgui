@@ -420,7 +420,7 @@ once at start with the folder) and `tracing.enabled` (with the endpoint) in
 - Integration (PostgreSQL in Docker): statistics for owner and admin,
   member refused, period filters, roll-up rows counted; audit filters; every
   purge step against rows dated in the past, run twice.
-- Local: `docker compose -f deployments/compose.yml --profile observability up`
+- Local: `docker compose -f deployments/compose.local.yml --profile observability up`
   then Prometheus <http://localhost:18090> (targets `api`, `worker` up), Grafana
   <http://localhost:18091> (dashboard "SURIMI model GUI"), Jaeger
   <http://localhost:18092> (service `surimi-api`).

@@ -17,7 +17,7 @@ docs: |-
 
   ## Before you run it
 
-  - Start the stack: `docker compose -f deployments/compose.yml up --build -d`
+  - Start the stack: `docker compose -f deployments/compose.local.yml up --build -d`
     (add `--profile keycloak` for SSO).
   - Pick the `local` environment (`apiUrl` = `http://localhost:18082`).
   - Set the secret `password` in the environment (for the compose admin:

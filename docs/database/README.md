@@ -39,7 +39,7 @@ the file. `scripts/db-docs.sh` is not written yet.
 Regenerating (once every table is built; script `scripts/db-docs.sh` to be written):
 
 ```bash
-docker compose -f deployments/compose.yml run --rm migrate
+docker compose -f deployments/compose.local.yml run --rm migrate
 npx -p @dbml/cli db2dbml postgres \
   "postgresql://surimi_modelgui:<password>@localhost:5432/surimi_modelgui_db" \
   -o docs/database/schema.dbml
