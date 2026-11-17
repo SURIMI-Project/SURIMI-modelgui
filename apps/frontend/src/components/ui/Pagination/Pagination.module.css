@@ -1,0 +1,9 @@
+@layer components {
+  .pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-md); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  .summary { margin: 0; font-variant-numeric: tabular-nums; }
+  .pageSize { flex-direction: row; align-items: center; gap: var(--spacing-smd); }
+  .pageSize > button { width: auto; }
+  .pages, .pageItem { display: flex; align-items: center; gap: var(--spacing-xs); }
+  .pages button[aria-current="page"] { background: var(--color-primary-surface); color: var(--color-primary-ink); font-weight: var(--font-weight-semibold); }
+  .ellipsis { padding-inline: var(--spacing-xs); }
+}

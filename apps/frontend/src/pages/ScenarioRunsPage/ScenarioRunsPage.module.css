@@ -11,6 +11,9 @@
   .table tr { transition: background var(--motion-fast); }
   .table tbody tr:hover { background: var(--color-surface-hover); }
   .footer { flex-shrink: 0; border-top: var(--border-default); background: var(--color-surface-muted); padding: var(--spacing-md) var(--spacing-lg); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  .emptyState { padding: var(--spacing-xl); text-align: center; color: var(--color-text-muted); }
+  .emptyState p { margin-bottom: var(--spacing-md); }
+  .status { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm); font-size: var(--font-size-sm); }
   @media (max-width: 64rem) { .header { flex-wrap: wrap; gap: var(--spacing-md); } }
   @media (prefers-reduced-motion: reduce) { .table tr { transition: none; } }
 }
