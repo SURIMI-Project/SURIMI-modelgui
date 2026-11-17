@@ -24,7 +24,9 @@ export const experimentEventsQueryOptions = (client: QueryClient, userId: string
         client.invalidateQueries({ queryKey: outputQueryKeys.user(userId) }),
       ]);
     } else {
-      const changes = feed.events.filter((event) => event.type.startsWith("experiment."));
+      // Individual simulations may change while the experiment status stays the same.
+      const changes = feed.events.filter((event) =>
+        event.type.startsWith("experiment.") || event.type === "simulation.status_changed");
       const ids = new Set(changes.map((event) => event.data.experiment_id)
         .filter((id): id is string => typeof id === "string" && id.length > 0));
       await Promise.all([

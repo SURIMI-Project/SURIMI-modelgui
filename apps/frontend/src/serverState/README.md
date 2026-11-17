@@ -38,6 +38,8 @@ is included in this increment.
 
 The event feed follows the backend's `poll_after_seconds`, drains `has_more`
 without waiting, and refreshes affected details/output queries plus user lists.
+Both `experiment.*` and `simulation.status_changed` trigger refreshes; individual
+simulation changes can update counts without changing the experiment status.
 The initial cursor reconciles existing views because it contains no history.
 Focus/reconnect requests catch up using the cursor; unmount discards the cursor
 and remount establishes/reconciles a new one. Background polling is disabled
@@ -58,8 +60,8 @@ eligible entries and configuration summaries. Saving a configuration checks
 current eligibility. These checks supplement backend validation; the server
 still owns authorization, uniqueness and latest capabilities. Initial values
 are nullable reference data, never default HCR rules or an implicit conversion.
-Unconfirmed biomass units and controller limitations remain documented in
-`docs/ISSUES.md`. No frontend schema claims to resolve them.
+Initial biomass units remain unconfirmed; no frontend schema assumes a
+conversion to HCR kilograms.
 
 Output series/maps and core axis fields are validated against the backend
 implementation, whose JSON routes lack full OpenAPI response models. Unknown
