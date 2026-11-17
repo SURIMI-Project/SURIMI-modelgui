@@ -10,6 +10,8 @@ import { scenarioWorldContent } from "../../../mock-data/content/caseIntroductio
 import { getScenarioWorldConfig } from "../../constants/scenarioWorldConfig";
 import { getSimulationCaseById, normalizeSimulationCaseId, simulationCaseStudies } from "../../data/simulationCases";
 import { useExperiments } from "../../serverState/experiments/useExperiments";
+import { useExperimentEvents } from "../../serverState/events/useExperimentEvents";
+import ScenarioOutputModal from "../../features/ScenarioOutputModal/ScenarioOutputModal";
 import type { Experiment } from "../../network/services/experiments/experimentSchemas";
 import { AppError } from "../../network/errors/appError";
 import styles from "./ScenarioRunsPage.module.css";
@@ -54,9 +56,12 @@ export default function ScenarioRunsPage() {
   const sizeValue = Number(params.get("size") ?? 20);
   const size = pageSizes.includes(sizeValue) ? sizeValue : 20;
   const experiments = useExperiments({ scenario: study?.scenarioName, page, size, sort: "-created_at" }, !invalidCase && !caseId);
+  const updates = useExperimentEvents(!invalidCase && !caseId);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [output, setOutput] = useState<Pick<Experiment, "id" | "scenario_name"> | null>(null);
   const title = `${selectedCase ? scenarioWorldContent[selectedCase].worldTitle : "All case studies"} scenario runs`;
-  const Inputs = selectedCase ? getScenarioWorldConfig(selectedCase).CreateSimulationModalComponent : undefined;
+  const world = selectedCase ? getScenarioWorldConfig(selectedCase) : undefined;
+  const Inputs = world?.creationEnabled ? world.CreateSimulationModalComponent : undefined;
   const runs = invalidCase ? [] : experiments.data?.items ?? [];
   const total = invalidCase ? 0 : experiments.data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / size));
@@ -91,7 +96,7 @@ export default function ScenarioRunsPage() {
         <nav className={styles.actions} aria-label="Scenario runs actions">
           <Button variant="ghost" onPress={() => navigate("/scenarios")}><FiArrowLeft aria-hidden="true" />Back to case studies</Button>
           <Button variant="primary-outlined" isDisabled aria-description="Comparison is not available on this screen yet.">COMPARE SELECTED</Button>
-          {selectedCase ? <Button onPress={() => setSetupOpen(true)}><FiPlus aria-hidden="true" />SET UP SCENARIO</Button> : null}
+          {selectedCase ? <Button isDisabled={!world?.creationEnabled} onPress={() => setSetupOpen(true)}><FiPlus aria-hidden="true" />SET UP SCENARIO</Button> : null}
         </nav>
       </header>
       <div className={styles.tableRegion}>
@@ -110,10 +115,12 @@ export default function ScenarioRunsPage() {
               {run.progress !== null ? <span>{Math.round(run.progress * 100)}%</span> : null}
               {run.stalled ? <Tag tone="danger" title={run.stalled_reason ?? undefined}>Stalled</Tag> : null}
             </div></Cell>
-            <Cell><Button variant="primary-outlined" size="sm" isDisabled aria-description="Results are not available on this screen yet.">VIEW RESULTS<FiArrowRight aria-hidden="true" /></Button></Cell>
+            <Cell><Button variant="primary-outlined" size="sm" aria-label={`View output for ${run.name}`} onPress={() => setOutput({ id: run.id, scenario_name: run.scenario_name })}>VIEW RESULTS<FiArrowRight aria-hidden="true" /></Button></Cell>
           </Row>}</TableBody>
         </Table>
         <footer className={styles.footer}>
+          {updates.isError && !experiments.isError ? <p role="alert">Live updates are unavailable. <Button variant="ghost" size="sm" isDisabled={updates.isFetching}
+            onPress={() => { void updates.refetch(); void experiments.refetch(); }}>TRY AGAIN</Button></p> : null}
           {experiments.isError && runs.length > 0 ? <p role="alert">{listErrorMessage(experiments.error)} <Button variant="ghost" size="sm" isDisabled={experiments.isFetching} onPress={() => { void experiments.refetch(); }}>TRY AGAIN</Button></p> : null}
           <Pagination page={page} pageSize={size} total={total} pageSizeOptions={pageSizes}
             isDisabled={experiments.isFetching || experiments.isError || invalidCase}
@@ -121,6 +128,7 @@ export default function ScenarioRunsPage() {
         </footer>
       </div>
     </div>
+    {output ? <ScenarioOutputModal key={output.id} experimentId={output.id} scenarioName={output.scenario_name} isOpen onClose={() => setOutput(null)} /> : null}
     {Inputs ? <Inputs key={selectedCase} isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => { setSetupOpen(false); }} /> : null}
   </section>;
 }

@@ -14,7 +14,7 @@ import Table, { TableHeader, Column, TableBody, Row, Cell } from "../../componen
 import RadioGroup, { Radio } from "../../components/ui/RadioGroup/RadioGroup";
 import SessionMenu from "../../features/auth/SessionMenu";
 import ReportComponentPreview from "../../features/designSystem/ReportComponentPreview";
-import AegeanSeaCreateSimulationModal from "../../features/CreateSimulationModal/cases/AegeanSeaCreateSimulationModal";
+import CreateSimulationModal from "../../features/CreateSimulationModal/CreateSimulationModal";
 import CasePreviewModal from "../SimulationCaseSelectionPage/components/CaseStudyMap/CasePreviewModal";
 import CaseModelsSheet from "../SimulationCaseSelectionPage/components/CaseStudyMap/models/AegeanModelsSheet";
 import AnchovyBayCard from "../../components/presentational/CaseStudyCard/AnchovyBayCard";
@@ -117,7 +117,7 @@ function Components() {
         <Button variant="primary-outlined" onPress={() => setModelsOpen(true)}>ABOUT THE MODELS</Button>
       </div>
       <CasePreviewModal caseId={previewCase} onClose={() => setPreviewCase(null)} onExplore={() => setPreviewCase(null)} onCompare={() => setPreviewCase(null)} />
-      <AegeanSeaCreateSimulationModal isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => setSetupOpen(false)} />
+      <CreateSimulationModal isOpen={setupOpen} onClose={() => setSetupOpen(false)} title="Northwestern Mediterranean · Set up scenario"><Card><p>Shared simulation modal shell. Each case provides its own form and screens.</p><Button variant="primary-outlined" onPress={() => setSetupOpen(false)}>CLOSE PREVIEW</Button></Card></CreateSimulationModal>
       <CaseModelsSheet caseId="aegean-sea" opened={modelsOpen} onClose={() => setModelsOpen(false)} />
     </section>
     <section>

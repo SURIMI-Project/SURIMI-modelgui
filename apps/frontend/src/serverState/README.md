@@ -12,7 +12,8 @@ Local login/session restoration, the protected route boundary and sign-out now c
 
 ## Experiment foundation (2026-11-17)
 
-Services and hooks are prepared but **not imported or mounted by any page**.
+The runs list, Northwestern creation options/submission, and event polling are integrated.
+Output queries and HCR configuration management remain prepared for later integration.
 Use backend scenario names (`aegean_sea`, `anchovy_bay`, `northwestern_med`), not
 UI route slugs. The existing case mapping remains the place to translate them.
 
@@ -28,7 +29,7 @@ UI route slugs. The existing case mapping remains the place to translate them.
 | `useOutputSeries` | `(experimentId, paramsOrNull, enabled)` | Immutable data cached per selection; inactive retention 30 minutes |
 | `useOutputMap` | `(experimentId, paramsOrNull, enabled)` | JSON grids cached per selection; inactive retention five minutes |
 | `useOutputDownloadUrl` | `(experimentId)`; `mutateAsync("nc")` | Explicit audited GET, exposed as a mutation; no retries, inactive retention zero |
-| `useExperimentEvents` | `(enabled)`; mount once in the protected shell | User-scoped cursor; refresh hints, never list data |
+| `useExperimentEvents` | `(enabled)`; mounted once by the runs page | User-scoped cursor; refresh hints, never list data |
 
 Queries return standard TanStack results. Pass `null` output selections until
 metadata is ready. Do not enable chart/map queries for unready outputs. A
@@ -40,6 +41,9 @@ The event feed follows the backend's `poll_after_seconds`, drains `has_more`
 without waiting, and refreshes affected details/output queries plus user lists.
 Both `experiment.*` and `simulation.status_changed` trigger refreshes; individual
 simulation changes can update counts without changing the experiment status.
+Observed list pages with nonterminal runs also refresh on each feed poll because
+progress-only changes do not emit events. Terminal-only pages refresh on events.
+The runs page exposes feed errors; it does not invent progress between polls.
 The initial cursor reconciles existing views because it contains no history.
 Focus/reconnect requests catch up using the cursor; unmount discards the cursor
 and remount establishes/reconciles a new one. Background polling is disabled

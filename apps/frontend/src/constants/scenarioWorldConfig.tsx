@@ -3,20 +3,24 @@ import type { SimulationCaseId } from "../data/simulationCases";
 import AegeanSeaCreateSimulationModal from "../features/CreateSimulationModal/cases/AegeanSeaCreateSimulationModal";
 import AnchovyCreateSimulationModal from "../features/CreateSimulationModal/cases/AnchovyCreateSimulationModal";
 import type { CreateSimulationModalProps } from "../features/CreateSimulationModal/types";
-import WesternMediterraneanCreateSimulationModal from "../features/CreateSimulationModal/cases/WesternMediterraneanCreateSimulationModal";
+import NorthwesternMediterraneanCreateSimulationModal from "../features/CreateSimulationModal/cases/NorthwesternMediterraneanCreateSimulationModal";
 
 export type ScenarioWorldConfig = {
+  creationEnabled: boolean;
   CreateSimulationModalComponent?: ComponentType<CreateSimulationModalProps>;
 };
 
 const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
   "northwestern-mediterranean": {
-    CreateSimulationModalComponent: WesternMediterraneanCreateSimulationModal,
+    creationEnabled: true,
+    CreateSimulationModalComponent: NorthwesternMediterraneanCreateSimulationModal,
   },
   "aegean-sea": {
+    creationEnabled: false,
     CreateSimulationModalComponent: AegeanSeaCreateSimulationModal,
   },
   "anchovy-bay": {
+    creationEnabled: false,
     CreateSimulationModalComponent: AnchovyCreateSimulationModal,
   },
 };

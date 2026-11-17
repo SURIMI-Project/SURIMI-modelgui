@@ -11,8 +11,8 @@ import {
 } from "chart.js";
 import dragDataPlugin from "chartjs-plugin-dragdata";
 import { Line } from "react-chartjs-2";
-import { CHART_POINT_LABELS } from "../../../../../mock-data/inputs";
-import type { GraphPoint, SpeciesInputRow } from "./types";
+const CHART_POINT_LABELS = ["Origin", "Biomass limit", "Biomass base", "Maximum fishing mortality"];
+import type { GraphPoint, HcrCurveRow } from "./types";
 
 ChartJS.register(
   LineElement,
@@ -23,27 +23,29 @@ ChartJS.register(
   dragDataPlugin,
 );
 
-type AnchovyInputGraphProps = {
-  activeRow: SpeciesInputRow;
+type HcrCurveGraphProps = {
+  activeRow: HcrCurveRow;
   graphPoints: GraphPoint[];
   xMax: number;
   isDraggingHandle: boolean;
+  isReadOnly?: boolean;
   onDragStart: (pointIndex: number) => boolean;
   onDrag: (pointIndex: number, point: GraphPoint) => GraphPoint | null;
   onDragEnd: (pointIndex: number) => void;
 };
 
-const formatDisplayValue = (value: number) => value.toFixed(2);
+const formatDisplayValue = (value: number) => value.toLocaleString("en", { maximumSignificantDigits: 8 });
 
-const AnchovyInputGraph = ({
+const HcrCurveGraph = ({
   activeRow,
   graphPoints,
   xMax,
   isDraggingHandle,
+  isReadOnly = false,
   onDragStart,
   onDrag,
   onDragEnd,
-}: AnchovyInputGraphProps) => {
+}: HcrCurveGraphProps) => {
   const theme = getComputedStyle(document.documentElement);
   const token = (name: string) => theme.getPropertyValue(name).trim();
   const text = token("--color-map-detail-text");
@@ -53,9 +55,7 @@ const AnchovyInputGraph = ({
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: {
-      duration: 240,
-    },
+    animation: false,
     interaction: {
       mode: "nearest",
       intersect: true,
@@ -65,7 +65,7 @@ const AnchovyInputGraph = ({
         (element) => element.index === 1 || element.index === 2,
       );
 
-      chart.canvas.style.cursor = isDraggingHandle
+      chart.canvas.style.cursor = isReadOnly ? "default" : isDraggingHandle
         ? "grabbing"
         : isHandleHovered
           ? "grab"
@@ -85,14 +85,14 @@ const AnchovyInputGraph = ({
         },
         title: {
           display: true,
-          text: "Biomass",
+          text: "Biomass (kg)",
           color: text,
           font: { size: 14, weight: 600 },
         },
       },
       y: {
         min: 0,
-        max: 1,
+        max: Math.min(100, Math.max(1, activeRow.fMax * 1.25)),
         ticks: {
           color: text,
           callback: (value) => formatDisplayValue(Number(value)),
@@ -132,8 +132,8 @@ const AnchovyInputGraph = ({
       dragData?: Record<string, unknown>;
     }
   ).dragData = {
-    dragX: true,
-    dragY: true,
+    dragX: !isReadOnly,
+    dragY: !isReadOnly,
     showTooltip: true,
     round: 4,
     onDragStart: (
@@ -194,7 +194,7 @@ const AnchovyInputGraph = ({
     ],
   };
 
-  return <Line options={chartOptions} data={chartData} />;
+  return <Line options={chartOptions} data={chartData} role="img" aria-label={`${activeRow.label}: biomass limit ${activeRow.biomassLimit} kg, biomass base ${activeRow.biomassBase} kg, maximum fishing mortality ${activeRow.fMax} per year`} />;
 };
 
-export default AnchovyInputGraph;
+export default HcrCurveGraph;

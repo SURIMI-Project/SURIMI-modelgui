@@ -1,6 +1,8 @@
 # Local demonstration data
 
-All case-study flows show **the same example simulation/report**. Completing an input form only navigates to the example; it never creates or saves a run or changes the report. Simulation setup/report demonstration creates no run, persistence or execution request. Authentication, password changes, SSO entry and case-study availability now use the real REST backend; these are separate from the scientific demo data.
+Output reports still use demonstration fixtures. Authentication, case availability,
+the runs list and Northwestern simulation creation use REST services. Explicit
+local development HCR presets are labeled and excluded from production form defaults.
 
 | File/folder | Contains |
 | --- | --- |
@@ -8,7 +10,7 @@ All case-study flows show **the same example simulation/report**. Completing an 
 | `designSystem.ts` | Auth presentation copy and fixed design-system examples |
 | `caseStudies.ts` | Case names, descriptions, video sources and REST scenario identifiers |
 | `simulation.ts` | The one fixed example simulation shown in the library |
-| `inputs.ts` | Prototype HCR values, duration/IPCC choices and explanations |
+| `defaultConfigureRules.ts` | Development-only HCR thresholds in kg for real eligible Northwestern entries; not scientific defaults |
 | `content/` | Case introductions, model-flow descriptions, legend descriptions and reference-page concepts |
 | `species/` | Reference species rows/taxonomy and the prototype species mapper |
 | `outputs/report.ts` | The single shared example report configuration |

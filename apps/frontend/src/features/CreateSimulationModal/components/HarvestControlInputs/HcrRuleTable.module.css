@@ -1,0 +1,17 @@
+@layer components {
+  .table { table-layout: fixed; background: transparent; }
+  .table th { position: sticky; top: 0; z-index: 1; line-height: var(--line-height-tight); }
+  .table th, .table td { padding: var(--spacing-sm); white-space: normal; vertical-align: middle; }
+  .table th:first-child { width: 30%; }
+  .table th:nth-child(2), .table th:nth-child(4) { width: 20%; }
+  .table th:nth-child(3) { width: 7%; }
+  .table th:nth-child(5) { width: 16%; }
+  .table th:last-child { width: 7%; }
+  .table td { overflow-wrap: anywhere; }
+  .table td small { display: block; color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .table td > span:not(.species) { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .table td:last-child { padding-inline: 0; text-align: center; }
+  .species { display: block; font-size: var(--font-size-xs); line-height: var(--line-height-tight); }
+  .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  @media (max-width: 40rem) { .table { min-width: 34rem; } }
+}

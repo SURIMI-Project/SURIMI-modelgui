@@ -1,33 +1,10 @@
 import CreateSimulationModal from "../CreateSimulationModal";
-import type {
-  CreateSimulationModalConfig,
-  CreateSimulationModalProps,
-} from "../types";
-import AnchovyInputsStepOne from "../components/HarvestControlInputs/AnchovyInputsStepOne";
-import {
-  DEFAULT_SPECIES_INPUTS,
-  HARVEST_CONTROL_INPUT_INFO,
-  IPCC_OPTIONS,
-  IPCC_SCENARIO_DESCRIPTION,
-  YEAR_OPTIONS,
-} from "../../../../mock-data/inputs";
+import type { CreateSimulationModalProps } from "../types";
+import styles from "../CreateSimulationModal.module.css";
 
-const aegeanSeaInputsFlowConfig: CreateSimulationModalConfig = {
-  modalTitle: "Aegean Sea · Set up scenario",
-  speciesInputs: DEFAULT_SPECIES_INPUTS,
-  stepOneInfo: {
-    eyebrow: "Harvest control rules",
-    text: HARVEST_CONTROL_INPUT_INFO,
-    ariaLabel: "Open harvest control input information",
-  },
-  yearOptions: YEAR_OPTIONS,
-  ipccOptions: IPCC_OPTIONS,
-  ipccDescription: IPCC_SCENARIO_DESCRIPTION,
-  InputsComponent: AnchovyInputsStepOne,
-};
-
-const AegeanSeaCreateSimulationModal = (props: CreateSimulationModalProps) => {
-  return <CreateSimulationModal {...props} config={aegeanSeaInputsFlowConfig} />;
-};
-
-export default AegeanSeaCreateSimulationModal;
+// This case will own its flow when its setup requirements are confirmed.
+export default function AegeanSeaCreateSimulationModal(props: CreateSimulationModalProps) {
+  return <CreateSimulationModal {...props} title="Aegean Sea · Set up scenario">
+    <p className={styles.formBody}>Simulation creation for Aegean Sea is not available yet.</p>
+  </CreateSimulationModal>;
+}

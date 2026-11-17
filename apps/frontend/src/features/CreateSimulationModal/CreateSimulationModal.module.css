@@ -1,24 +1,19 @@
 @layer components {
   .modalBody { display: flex; flex: 1; min-height: 0; overflow: hidden; padding: 0; }
   .root { display: flex; flex-direction: column; min-height: 0; width: 100%; color: var(--color-text); }
-  .formBody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--spacing-xl); scrollbar-width: thin; }
-  .headingRow { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-smd); }
-  .heading h2 { margin: 0; font-size: var(--font-size-xl); line-height: 1.3; outline: none; }
-  .speciesSelect { width: var(--layout-action-width); flex-shrink: 0; }
-  .intro { margin: 0 0 var(--spacing-mdl); color: var(--color-text-muted); font-size: var(--font-size-md); line-height: var(--line-height-body); }
-  .settings { display: grid; align-content: start; gap: var(--spacing-mdl); padding: var(--spacing-mdl); min-height: 24rem; border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface-muted); }
-  .settings small { display: block; color: var(--color-text-muted); margin-top: var(--spacing-xs); font-size: var(--font-size-sm); line-height: 1.5; }
-  .optionGroup { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--spacing-smd); }
-  .optionGroup > :first-child { grid-column: 1 / -1; }
-  .optionMeta { display: block; margin-bottom: var(--spacing-sm); text-transform: uppercase; font-size: var(--font-size-xs); letter-spacing: 0.07em; color: var(--color-map-card-muted); }
-  .footer { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-lg); padding: var(--spacing-mdl) var(--spacing-xl); border-top: var(--border-default); background: var(--color-surface); }
+  .formBody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--spacing-mdl); scrollbar-width: thin; }
+  .headingRow { margin-bottom: var(--spacing-smd); }
+  .heading h2 { margin: 0; font-size: var(--font-size-xl); line-height: var(--line-height-tight); outline: none; }
+  .footer { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-lg); padding: var(--spacing-md) var(--spacing-mdl); border-top: var(--border-default); background: var(--color-surface); }
   .notice { max-width: 26rem; margin: 0 auto; color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: var(--line-height-body); text-align: center; }
   .footer button { flex-shrink: 0; }
-  .inputs, .editorBody, .inputsEditor { min-width: 0; }
-  .stepContent { display: grid; gap: var(--spacing-md); }
-  .chartPanel, .tablePanel { min-width: 0; border: var(--border-default); border-radius: var(--radius-md); padding: var(--spacing-md); background: var(--color-surface-muted); }
-  .chartSurface { height: var(--setup-chart-height); }
-  .tablePanel { padding: 0; overflow: hidden; }
-  .hint { margin: 0; font-size: var(--font-size-md); line-height: var(--line-height-body); color: var(--color-text-muted); }
-  @media (max-width: 600px) { .formBody { padding: var(--spacing-md); } .headingRow { flex-direction: column; align-items: stretch; } .speciesSelect { width: 100%; } .optionGroup { grid-template-columns: 1fr; } .footer { padding: var(--spacing-md); gap: var(--spacing-smd); flex-wrap: wrap; } .notice { order: 3; flex-basis: 100%; max-width: none; } .chartSurface { height: var(--setup-chart-height); } .settings { min-height: 0; padding: var(--spacing-md); } }
+  .chartSurface { height: var(--setup-chart-height); min-width: 0; }
+  .curvePlaceholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--spacing-md); padding: var(--spacing-lg); text-align: center; }
+  .hint { margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-body); color: var(--color-text-muted); }
+  @media (min-width: 75rem) and (min-height: 48rem) { .formBody[data-screen="hcr"] { display: flex; flex-direction: column; overflow: hidden; } }
+  @media (max-width: 40rem) {
+    .formBody { padding: var(--spacing-md); }
+    .footer { padding: var(--spacing-md); gap: var(--spacing-smd); flex-wrap: wrap; }
+    .notice { order: 3; flex-basis: 100%; max-width: none; }
+  }
 }

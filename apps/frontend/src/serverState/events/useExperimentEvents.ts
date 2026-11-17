@@ -2,10 +2,13 @@ import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import eventService from "../../network/services/events/eventService";
 import type { EventFeed } from "../../network/services/events/eventSchemas";
+import type { Experiment, ExperimentPage } from "../../network/services/experiments/experimentSchemas";
 import { experimentQueryKeys } from "../experiments/experimentQueryKeys";
 import { outputQueryKeys } from "../outputs/outputQueryKeys";
 import { isCurrentSession, useServerSession } from "../useServerSession";
 import { eventQueryKeys } from "./eventQueryKeys";
+
+const finalStatuses = new Set<Experiment["status"]>(["completed", "failed", "submit_failed", "cancelled"]);
 
 export const experimentEventPollInterval = (feed?: EventFeed) =>
   feed?.has_more ? 1 : (feed?.poll_after_seconds ?? 10) * 1000;
@@ -27,10 +30,15 @@ export const experimentEventsQueryOptions = (client: QueryClient, userId: string
       // Individual simulations may change while the experiment status stays the same.
       const changes = feed.events.filter((event) =>
         event.type.startsWith("experiment.") || event.type === "simulation.status_changed");
+      // Progress updates are stored without an event when status is unchanged.
+      // Refresh observed pages with active runs on the backend's polling cadence.
+      const hasActiveRuns = client.getQueriesData<ExperimentPage>({
+        queryKey: experimentQueryKeys.lists(userId), type: "active",
+      }).some(([, page]) => page?.items.some(run => !finalStatuses.has(run.status)));
       const ids = new Set(changes.map((event) => event.data.experiment_id)
         .filter((id): id is string => typeof id === "string" && id.length > 0));
       await Promise.all([
-        ...(changes.length ? [client.invalidateQueries({ queryKey: experimentQueryKeys.lists(userId) })] : []),
+        ...(changes.length || hasActiveRuns ? [client.invalidateQueries({ queryKey: experimentQueryKeys.lists(userId) })] : []),
         ...Array.from(ids).flatMap((id) => [
           client.invalidateQueries({ queryKey: experimentQueryKeys.detail(userId, id) }),
           client.invalidateQueries({ queryKey: outputQueryKeys.experiment(userId, id) }),
@@ -46,7 +54,7 @@ export const experimentEventsQueryOptions = (client: QueryClient, userId: string
   refetchInterval: (query) => experimentEventPollInterval(query.state.data),
 });
 
-// Mount once in the protected app shell when UI integration is authorized.
+// Mounted once by the runs page; future consumers must share this observer.
 // This hook returns feed/polling state; useExperiments supplies the actual list.
 export const useExperimentEvents = (enabled = true) => {
   const client = useQueryClient();

@@ -1,4 +1,4 @@
-import axios from "axios";
+import { HttpError } from "./httpError";
 import { z } from "zod";
 import { AppError, type AppErrorKind } from "./appError";
 
@@ -31,11 +31,8 @@ const kindByStatus: Record<number, AppErrorKind> = {
 
 const normalizeApiError = (error: unknown): AppError => {
   if (error instanceof AppError) return error;
-  if (axios.isAxiosError<unknown>(error)) {
-    const response = error.response;
-    if (!response) {
-      return new AppError({ kind: "network", message: "Unable to reach SURIMI. Please try again." });
-    }
+  if (error instanceof HttpError) {
+    const response = error;
     const application = applicationErrorSchema.safeParse(response.data);
     const framework = frameworkErrorSchema.safeParse(response.data);
     const body = application.success ? application.data.error : undefined;
@@ -43,8 +40,8 @@ const normalizeApiError = (error: unknown): AppError => {
     const issues = Array.isArray(detail)
       ? detail.map((issue) => ({ path: issue.loc?.join(".") ?? "", message: issue.msg }))
       : undefined;
-    const headerRequestId: unknown = response.headers["x-request-id"];
-    const retryAfter: unknown = response.headers["retry-after"];
+    const headerRequestId: unknown = response.headers.get("x-request-id");
+    const retryAfter: unknown = response.headers.get("retry-after");
     return new AppError({
       kind: kindByStatus[response.status] ?? (response.status >= 500 ? "server" : "unknown"),
       status: response.status,

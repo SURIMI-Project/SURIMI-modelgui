@@ -89,7 +89,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
   );
   const selected = selection;
   const worldConfig = getScenarioWorldConfig(selected ?? "aegean-sea");
-  const InputsFlow = worldConfig.CreateSimulationModalComponent;
+  const InputsFlow = worldConfig.creationEnabled ? worldConfig.CreateSimulationModalComponent : undefined;
   const place = selected ? caseMapPlaces[selected] : null;
   const select = useCallback(
     (id: SimulationCaseId) => {
@@ -363,7 +363,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             BACK TO CASE STUDIES
           </Button>
           <Button
-            isDisabled={Boolean(availability) || !available.has(selected)}
+            isDisabled={Boolean(availability) || !available.has(selected) || !worldConfig.creationEnabled}
             onPress={() => setSetupOpen(true)}
           >
             SET UP SCENARIO
