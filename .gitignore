@@ -4,6 +4,8 @@
 
 # Local copies of experiment outputs (GBs), never committed
 output_folder/
+# Outputs mounted into the containers (data, not configuration; ADR 0001).
+deployments/mounts/experiments/
 # Format benchmark working files (1.5 GB of variants)
 docs/features/experiment-outputs/benchmark/work/
 #

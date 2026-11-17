@@ -21,6 +21,16 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-17
 
+### Change — Outputs folder under `deployments/mounts/experiments`
+
+The local outputs folder the containers mount (`OUTPUTS_LOCAL_DIR`) now
+defaults to `deployments/mounts/experiments` (git-ignored) instead of
+`output_folder/experiments`. The develop deploy never touches it.
+
+> **Deploying this:** to keep reading the local copies in `output_folder/`,
+> set `OUTPUTS_LOCAL_DIR=../output_folder/experiments`. With S3 outputs
+> nothing changes.
+
 ### Feature — Automatic deployment of `develop`
 
 A push to `develop` whose checks pass is deployed to the develop server by
