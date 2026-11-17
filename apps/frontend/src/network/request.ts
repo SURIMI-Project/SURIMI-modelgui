@@ -40,15 +40,24 @@ const waitForRefresh = async (refresh: Promise<void>, signal?: AbortSignal) => {
   }
 };
 
-const buildPath = (path: string, params: BaseOptions<z.ZodType>["pathParams"]) => {
+const buildPath = (
+  path: string,
+  params: BaseOptions<z.ZodType>["pathParams"],
+) => {
   // Services use API-relative paths only; never send cookies or CSRF to a supplied URL.
   if (!path.startsWith("/") || path.startsWith("//") || path.includes("://")) {
-    throw new AppError({ kind: "payloadValidation", message: "Expected an API-relative path." });
+    throw new AppError({
+      kind: "payloadValidation",
+      message: "Expected an API-relative path.",
+    });
   }
   return path.replace(/\{([^}]+)\}/g, (_, name: string) => {
     const value = params?.[name];
     if (value === undefined) {
-      throw new AppError({ kind: "payloadValidation", message: `Missing path parameter: ${name}.` });
+      throw new AppError({
+        kind: "payloadValidation",
+        message: `Missing path parameter: ${name}.`,
+      });
     }
     return encodeURIComponent(String(value));
   });
@@ -76,8 +85,12 @@ export const createRequest = (
             headers: csrfHeaders(),
           });
           if (response.status !== 204) {
-            throw new AppError({ kind: "invalidResponse", status: response.status,
-              message: "SURIMI returned an unexpected session refresh response." });
+            throw new AppError({
+              kind: "invalidResponse",
+              status: response.status,
+              message:
+                "SURIMI returned an unexpected session refresh response.",
+            });
           }
           refreshVersion += 1;
         } catch (error) {
@@ -91,7 +104,10 @@ export const createRequest = (
     return refreshInFlight;
   };
 
-  const request = async <ResponseSchema extends z.ZodType, PayloadSchema extends z.ZodType>(
+  const request = async <
+    ResponseSchema extends z.ZodType,
+    PayloadSchema extends z.ZodType,
+  >(
     options: BaseOptions<ResponseSchema> & PayloadOptions<PayloadSchema>,
   ): Promise<z.output<ResponseSchema>> => {
     const { signal, method, responseSchema } = options;
@@ -101,17 +117,28 @@ export const createRequest = (
     if (options.payloadSchema) {
       const parsed = options.payloadSchema.safeParse(options.payload);
       if (!parsed.success) {
-        throw new AppError({ kind: "payloadValidation", message: "Check the request fields.",
-          issues: parsed.error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) });
+        throw new AppError({
+          kind: "payloadValidation",
+          message: "Check the request fields.",
+          issues: parsed.error.issues.map((issue) => ({
+            path: issue.path.join("."),
+            message: issue.message,
+          })),
+        });
       }
       payload = parsed.data;
     }
 
-    const send = () => client.request<unknown>({
-      url: path, method, data: payload, params: options.params, signal,
-      withCredentials: true,
-      headers: method === "GET" ? undefined : csrfHeaders(),
-    });
+    const send = () =>
+      client.request<unknown>({
+        url: path,
+        method,
+        data: payload,
+        params: options.params,
+        signal,
+        withCredentials: true,
+        headers: method === "GET" ? undefined : csrfHeaders(),
+      });
 
     try {
       let response;
@@ -119,9 +146,13 @@ export const createRequest = (
       try {
         response = await send();
       } catch (error) {
-        if (!axios.isAxiosError(error) || error.response?.status !== 401
-          || (options.auth ?? "session") !== "session"
-          || normalizeApiError(error).code === "invalid_credentials") throw error;
+        if (
+          !axios.isAxiosError(error) ||
+          error.response?.status !== 401 ||
+          (options.auth ?? "session") !== "session" ||
+          normalizeApiError(error).code === "invalid_credentials"
+        )
+          throw error;
         throwIfCancelled(signal);
         // A late 401 may belong to a request sent before another request refreshed.
         if (refreshVersion === initialRefreshVersion) {
@@ -130,11 +161,19 @@ export const createRequest = (
         throwIfCancelled(signal);
         response = await send(); // One retry, with the freshly rotated CSRF cookie.
       }
-      const parsed = responseSchema.safeParse(response.status === 204 ? undefined : response.data);
+      const parsed = responseSchema.safeParse(
+        response.status === 204 ? undefined : response.data,
+      );
       if (!parsed.success) {
-        throw new AppError({ kind: "invalidResponse", status: response.status,
+        throw new AppError({
+          kind: "invalidResponse",
+          status: response.status,
           message: "SURIMI returned data in an unexpected format.",
-          issues: parsed.error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) });
+          issues: parsed.error.issues.map((issue) => ({
+            path: issue.path.join("."),
+            message: issue.message,
+          })),
+        });
       }
       return parsed.data;
     } catch (error) {
@@ -150,5 +189,7 @@ const client = axios.create({
   timeout: API_CONFIG.TIMEOUT_MS,
   headers: { Accept: "application/json" },
 });
+
 export const { request, refreshSession } = createRequest(client);
+
 export default request;

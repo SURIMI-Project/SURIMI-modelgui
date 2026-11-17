@@ -1,5 +1,26 @@
 # Frontend REST foundation — changelog
 
+## 2026-11-17 — Prepare experiment services and server state
+
+User approved services/hooks only, with no UI integration. Added experiment
+options to the scenario service, services/schemas for experiments, named HCR
+configurations, outputs and events, and user-scoped hooks/query keys. Strict
+payload validation covers HCR bounds/duplicates, exclusive configuration versus
+inline rules, dates and case-specific choices. Output schemas include nullable
+values, cleaning counts and grid dimensions. Saved configuration mutations
+invalidate setup options; creation invalidates runs. The future shell-mounted
+event poller follows server cadence/cursors and invalidates affected queries.
+Download links are explicit, non-persisted actions and never followed by the
+API transport. Existing cookie/CSRF transport and session cache are reused.
+
+Tests extend the existing runner with contract/cache regressions for options,
+HCRs, creation, pagination/detail, output grids/series/downloads, account scoping
+and event cursor/invalidation behaviour. Verification: all 38 network/contract/cache tests pass; targeted ESLint and
+the production TypeScript/Vite build pass. The build retains chunk-size and
+upstream Zod annotation warnings. No backend, protocol, deployment or page files changed;
+no live experiment was submitted and no browser integration was performed.
+
+
 ## 2026-11-06 — Targeted catalogue read recovery
 
 `serverState/scenarios/scenarioListOptions.ts` adds at most two retries with 1s/2s backoff for network/502/503/504 failures on the scenario catalogue GET. Global defaults, auth transport retry and writes are unchanged. Read options are shared by useScenarios and regression tests. Initial retries remain loading; terminal errors and failed background refreshes are presented explicitly by the case-selection page. All 26 network tests pass, with three new catalogue retry regressions. Local API logs exposed an upstream SSL error, recorded in ISSUES rather than claimed fixed in the backend.

@@ -6,10 +6,11 @@ import { tmpdir } from "node:os";
 
 const temporary = await mkdtemp(join(tmpdir(), "surimi-network-tests-"));
 try {
-  const output = join(temporary, "network.test.mjs");
+  const names = ["network.test", "experimentState.test"];
   await build({
-    entryPoints: ["tests/network.test.ts"],
-    outfile: output,
+    entryPoints: names.map((name) => `tests/${name}.ts`),
+    outdir: temporary,
+    outExtension: { ".js": ".mjs" },
     bundle: true,
     platform: "node",
     format: "esm",
@@ -18,7 +19,7 @@ try {
     banner: { js: 'import { createRequire } from "node:module"; const require = createRequire(import.meta.url);' },
     define: { "import.meta.env": "{}" },
   });
-  const result = spawnSync(process.execPath, ["--test", output], { stdio: "inherit" });
+  const result = spawnSync(process.execPath, ["--test", ...names.map((name) => join(temporary, `${name}.mjs`))], { stdio: "inherit" });
   if (result.error) throw result.error;
   process.exitCode = result.status ?? 1;
 } finally {

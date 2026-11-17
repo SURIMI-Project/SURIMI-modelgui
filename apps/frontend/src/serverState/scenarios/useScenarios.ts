@@ -8,8 +8,8 @@ export const useScenarios = () => {
     ...scenarioListOptions(session.data?.id ?? "signed-out"),
     enabled: Boolean(
       session.isSuccess &&
-        session.data?.is_active &&
-        !session.data.must_change_password,
+      session.data?.is_active &&
+      !session.data.must_change_password,
     ),
   });
 };

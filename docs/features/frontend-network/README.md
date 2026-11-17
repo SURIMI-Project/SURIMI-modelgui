@@ -23,7 +23,7 @@ flowchart LR
 
 ## Boundaries
 
-**Initial foundation snapshot:** the query provider was installed without mounting requests. **Follow-up, 2026-11-05:** local login now mounts auth hooks; see [local login](../frontend-local-login/README.md). Provider discovery and scenario availability hooks are now mounted; password-change completion and real Keycloak SSO are browser-tested. Services cover existing auth and catalogue endpoints only. There is no guessed experiment API or copied surge/port behaviour. HTTP uses same-origin `/api/v1`, credentials, and the readable CSRF cookie for writes. JavaScript does not access authentication tokens.
+**Initial foundation snapshot:** the query provider was installed without mounting requests. **Follow-up, 2026-11-05:** local login now mounts auth hooks; see [local login](../frontend-local-login/README.md). Provider discovery and scenario availability hooks are now mounted; password-change completion and real Keycloak SSO are browser-tested. Services now also cover experiment options, experiment creation/list/detail, named HCR configurations, output metadata/series/maps/download links and the polled event feed, based on the backend contracts merged in November 2026. These new hooks are prepared without UI integration. HTTP uses same-origin `/api/v1`, credentials, and the readable CSRF cookie for writes. JavaScript does not access authentication tokens.
 
 Login, providers and password-change requests do not trigger automatic refresh on wrong credentials. Protected requests may refresh once after a 401; The HTTP transport does not replay 403, network errors or invalid responses; the catalogue query has the limited read-retry exception described below. A caller can cancel its own wait without cancelling refresh for other callers. CSRF is read again after refresh. The refresh response must be 204.
 
@@ -39,4 +39,32 @@ SSO provider URLs are returned as data and the login UI performs browser navigat
 
 ## Next step
 
-Local login/session/route protection is implemented and tested with the running API in the linked feature. SSO, password completion and live catalogue integration are now verified in that feature. Contract-driven inputs and real experiment/output data remain later steps.
+Local login/session/route protection is implemented and tested with the running API in the linked feature. SSO, password completion and live catalogue integration are now verified in that feature. Connecting the prepared experiment/options/output hooks to the form, runs list and results pages remains a later step.
+
+## Prepared experiment server state — 2026-11-17
+
+User-authorized scope: prepare services, Zod schemas and server-state hooks;
+no page integration or backend changes. The existing flow diagram also applies
+to these resources. [Hook usage and cache policies](../../../apps/frontend/src/serverState/README.md#experiment-foundation-2026-11-17)
+describe the approved separation of form drafts from server state.
+
+- One options request per case provides species/life stages, capabilities,
+  nullable reference values, date limits, climate identifiers and saved HCR
+  configuration summaries. Five-minute freshness; no app-wide species preload.
+- Strict request validation plus contextual case checks precede creation;
+  biomass stays kg and no HCR/climate defaults are invented. Configuration
+  presets are optional and mutually exclusive with inline rules on creation.
+- User-scoped queries cover paginated runs, individual experiment details,
+  named configurations, output readiness and independently keyed series/maps.
+- A single future shell-mounted event hook keeps a cursor and invalidates
+  affected resources; the runs hook fetches the actual list. Initial cursor
+  creation and focus/reconnect reconcile cached views.
+- Signed download links are requested explicitly, never persisted or followed
+  by the authenticated API transport. Raw NetCDF parsing is outside this scope.
+- Handwritten response schemas track Pydantic models and, for JSON output
+  routes, the actual query implementation. Untyped dictionaries remain unknown
+  records except core output axes verified against the producer.
+
+Verification uses controlled transport responses and TanStack caches. It does
+not establish controller availability, confirmed reference biomass units or
+successful end-to-end experiment execution for every case.
