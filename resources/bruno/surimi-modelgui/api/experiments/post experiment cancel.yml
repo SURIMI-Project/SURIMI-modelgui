@@ -1,0 +1,22 @@
+info:
+  name: post experiment cancel
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/cancel"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # post experiment cancel
+
+  Queued: `cancelled` at once. Otherwise `cancelling`: the worker repeats
+  `RemoveExperiment` until no simulation runs (the controller only stops
+  `Running` ones). `409` when already final.

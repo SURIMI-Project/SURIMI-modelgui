@@ -144,7 +144,7 @@ Phase 2 adds `apps/backend/`, `packages/proto/`, `pyproject.toml`, and
   as before.
 - With the `grpc-proxy` profile, Envoy starts from `deployments/envoy/` and
   forwards to the controller; the reply was the same `404` that a direct call
-  to the controller gives, because **both EDITO controllers (`rikkert` and
+  to the controller gives, because **both EDITO controllers (`user-<controller-team>` and
   `project-surimi`) answered 404 to every gRPC call on 2026-11-03**. A
   successful call end to end could not be checked.
 - `.github/workflows/ci.yml` passes `actionlint`; it has not run on GitHub

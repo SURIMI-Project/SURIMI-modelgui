@@ -1,0 +1,37 @@
+info:
+  name: get species
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/species?q=hake&sort=name&size=20"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get species
+
+  Species sorted by code, a page at a time. Filters combine.
+
+  ## Query
+
+  | Parameter | Meaning |
+  | --- | --- |
+  | `code` | Repeatable: keep only these codes (`?code=HKE&code=BFT`) |
+  | `q` | Each word must start a word of the code, English or scientific name, ignoring case: `hake`, `merluc`, `european hake`. `ake` finds nothing |
+  | `isscaap_group`, `family`, `order_or_higher_taxa` | Exact, as ASFIS spells them: `32`, `MERLUCCIIDAE`, `GADIFORMES` |
+  | `sort` | `species_code` (default), `name`, `scientific_name`; `-` first for descending (`-name`). Ties by code. Species without a name come last ascending, first descending |
+  | `page`, `size` | Default 1 and 50; `size` at most 200 |
+
+  ## Response
+
+  `{items, total, page, size}`; each item has `species_code`, `name`,
+  `scientific_name`, `family`, `order_or_higher_taxa` (as ASFIS spells it,
+  e.g. `SCOMBRIFORMES (SCOMBROIDEI)`), `isscaap_group`, `source` (`asfis` or
+  `manual`).

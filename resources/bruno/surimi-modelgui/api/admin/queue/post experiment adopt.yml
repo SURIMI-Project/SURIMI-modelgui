@@ -1,0 +1,29 @@
+info:
+  name: post experiment adopt
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/admin/experiments/{{experimentId}}/adopt"
+  body:
+    type: json
+    data: |-
+      {
+        "owner_id": "<user id from admin/users/get users>",
+        "name": "Adopted run"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # post experiment adopt
+
+  Takes an experiment started outside this app (Bruno, other tools) into
+  the table, owned by `owner_id`, so the worker follows it and indexes its
+  outputs. Its inputs are unknown. Audited.

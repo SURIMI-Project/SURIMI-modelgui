@@ -7,7 +7,7 @@
 ## Context
 
 - Today `buf.gen.yaml` generates TypeScript from `proto/surimi.binpb`, a
-  descriptor set pulled by server reflection from the `rikkert` controller
+  descriptor set pulled by server reflection from the `user-<controller-team>` controller
   (`npm run proto:pull`). **Read from source.**
 - That descriptor lacks `GetSimulationStatuses`, which the published module
   has. **Verified** 2026-11-03 by exporting `buf.build/surimi/surimi-protocol`

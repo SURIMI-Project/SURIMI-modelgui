@@ -1,0 +1,21 @@
+info:
+  name: delete experiment
+  type: http
+  seq: 7
+
+http:
+  method: DELETE
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # delete experiment
+
+  Hides a completed, failed or cancelled experiment (soft delete). `409`
+  while it is still going: cancel first.

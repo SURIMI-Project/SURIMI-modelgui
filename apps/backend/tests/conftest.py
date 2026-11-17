@@ -22,19 +22,25 @@ from sqlalchemy import text
 from surimi_backend import cli
 from surimi_backend.auth.dependencies import Principal, current_principal
 from surimi_backend.auth.models import LoginMethod, UserSession
+from surimi_backend.catalog.species import CsvSpeciesLookup
 from surimi_backend.core.config import Settings
 from surimi_backend.core.db import create_engine, create_sessionmaker
 from surimi_backend.integrations.controller import FakeControllerClient
 from surimi_backend.main import create_app
 from surimi_backend.users import service as users_service
 from surimi_backend.users.models import Role, RoleSource, User
+from tests.world import make_world  # noqa: F401 - fixture for experiment tests
 
 JWT_SECRET = "test-only-jwt-secret-0123456789-abcdefghijklmnop"
 BOOTSTRAP_DIR = Path(__file__).resolve().parents[3] / "deployments" / "postgres"
 APP_DB_PASSWORD = "app-test-password"
 PASSWORD = "a-long-test-password-1"  # passes the policy; for users made by `users`
 
-TABLES = "users, identities, sessions, login_events, login_stats_monthly, audit_events"
+TABLES = (
+    "users, identities, sessions, login_events, login_stats_monthly, audit_events, "
+    "hcr_configurations, experiments, simulations, experiment_events, experiment_outputs, "
+    "app_settings"
+)
 
 
 # --- unit tests ---------------------------------------------------------------------
@@ -85,8 +91,9 @@ def fake_principal(role: Role = Role.MEMBER) -> Principal:
 
 @pytest.fixture
 def client(settings: Settings, fake_controller: FakeControllerClient) -> Iterator[TestClient]:
-    """Signed in as a member without a database (auth is overridden)."""
-    app = create_app(settings, controller=fake_controller)
+    """Signed in as a member without a database (auth is overridden); species
+    names come from the shipped CSV."""
+    app = create_app(settings, controller=fake_controller, species=CsvSpeciesLookup())
     app.dependency_overrides[current_principal] = fake_principal
     with TestClient(app) as c:
         yield c
@@ -96,7 +103,8 @@ def client(settings: Settings, fake_controller: FakeControllerClient) -> Iterato
 def anonymous_client(
     settings: Settings, fake_controller: FakeControllerClient
 ) -> Iterator[TestClient]:
-    with TestClient(create_app(settings, controller=fake_controller)) as c:
+    app = create_app(settings, controller=fake_controller, species=CsvSpeciesLookup())
+    with TestClient(app) as c:
         yield c
 
 
@@ -134,7 +142,8 @@ def postgres() -> Iterator[Any]:
 
 @pytest.fixture(scope="session")
 def db_env(postgres: Any) -> dict[str, str]:
-    """Bootstrapped and migrated database; the env vars that point at it."""
+    """Bootstrapped and migrated database with the shipped species loaded (the
+    `species` table is not truncated between tests); the env vars that point at it."""
     code, output = bootstrap(postgres)
     assert code == 0, output
     env = {
@@ -150,6 +159,7 @@ def db_env(postgres: Any) -> dict[str, str]:
         for key, value in env.items():
             mp.setenv(key, value)
         cli.migrate("head")
+        assert cli.seed_species() == 0
     return env
 
 

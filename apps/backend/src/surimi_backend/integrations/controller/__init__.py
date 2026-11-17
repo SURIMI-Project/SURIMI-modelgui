@@ -8,7 +8,10 @@ from surimi_backend.integrations.controller.base import (
     ControllerError,
     ControllerTimeoutError,
     ControllerUnavailableError,
+    ExperimentSubmission,
     SimulationStatus,
+    SpeciesValue,
+    TargetFishingMortality,
 )
 from surimi_backend.integrations.controller.fake import FakeControllerClient
 from surimi_backend.integrations.controller.grpc_client import GrpcControllerClient
@@ -18,16 +21,24 @@ __all__ = [
     "ControllerError",
     "ControllerTimeoutError",
     "ControllerUnavailableError",
+    "ExperimentSubmission",
     "FakeControllerClient",
     "GrpcControllerClient",
     "SimulationStatus",
+    "SpeciesValue",
+    "TargetFishingMortality",
     "build_controller_client",
 ]
 
 
 def build_controller_client(settings: Settings) -> ControllerClient:
     if settings.controller_mode == "fake":
-        return FakeControllerClient()
+        return FakeControllerClient(
+            pods=settings.ecopath_pods,
+            mse_simulations=settings.controller_mse_simulations,
+            init_seconds=settings.fake_controller_init_seconds,
+            run_seconds=settings.fake_controller_run_seconds,
+        )
     return GrpcControllerClient(
         settings.controller_grpc_url,
         timeout=settings.controller_timeout_seconds,

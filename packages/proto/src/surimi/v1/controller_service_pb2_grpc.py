@@ -4,6 +4,8 @@ import grpc
 import warnings
 
 from surimi.v1 import get_all_simulation_statuses_pb2 as surimi_dot_v1_dot_get__all__simulation__statuses__pb2
+from surimi.v1 import get_initial_biomasses_pb2 as surimi_dot_v1_dot_get__initial__biomasses__pb2
+from surimi.v1 import get_initial_fishing_mortalities_pb2 as surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2
 from surimi.v1 import get_protocol_version_pb2 as surimi_dot_v1_dot_get__protocol__version__pb2
 from surimi.v1 import get_scenario_names_pb2 as surimi_dot_v1_dot_get__scenario__names__pb2
 from surimi.v1 import get_simulation_contract_pb2 as surimi_dot_v1_dot_get__simulation__contract__pb2
@@ -77,6 +79,16 @@ class ControllerServiceStub:
                 request_serializer=surimi_dot_v1_dot_get__scenario__names__pb2.GetScenarioNamesRequest.SerializeToString,
                 response_deserializer=surimi_dot_v1_dot_get__scenario__names__pb2.GetScenarioNamesResponse.FromString,
                 _registered_method=True)
+        self.GetInitialBiomasses = channel.unary_unary(
+                '/surimi.v1.ControllerService/GetInitialBiomasses',
+                request_serializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesRequest.SerializeToString,
+                response_deserializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesResponse.FromString,
+                _registered_method=True)
+        self.GetInitialFishingMortalities = channel.unary_unary(
+                '/surimi.v1.ControllerService/GetInitialFishingMortalities',
+                request_serializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesRequest.SerializeToString,
+                response_deserializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesResponse.FromString,
+                _registered_method=True)
 
 
 class ControllerServiceServicer:
@@ -134,6 +146,20 @@ class ControllerServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetInitialBiomasses(self, request, context):
+        """Gets the initial biomass for every species in a scenario.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetInitialFishingMortalities(self, request, context):
+        """Gets the initial fishing mortality for every species in a scenario.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ControllerServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -171,6 +197,16 @@ def add_ControllerServiceServicer_to_server(servicer, server):
                     servicer.GetScenarioNames,
                     request_deserializer=surimi_dot_v1_dot_get__scenario__names__pb2.GetScenarioNamesRequest.FromString,
                     response_serializer=surimi_dot_v1_dot_get__scenario__names__pb2.GetScenarioNamesResponse.SerializeToString,
+            ),
+            'GetInitialBiomasses': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetInitialBiomasses,
+                    request_deserializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesRequest.FromString,
+                    response_serializer=surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesResponse.SerializeToString,
+            ),
+            'GetInitialFishingMortalities': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetInitialFishingMortalities,
+                    request_deserializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesRequest.FromString,
+                    response_serializer=surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -364,6 +400,60 @@ class ControllerService:
             '/surimi.v1.ControllerService/GetScenarioNames',
             surimi_dot_v1_dot_get__scenario__names__pb2.GetScenarioNamesRequest.SerializeToString,
             surimi_dot_v1_dot_get__scenario__names__pb2.GetScenarioNamesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetInitialBiomasses(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/surimi.v1.ControllerService/GetInitialBiomasses',
+            surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesRequest.SerializeToString,
+            surimi_dot_v1_dot_get__initial__biomasses__pb2.GetInitialBiomassesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetInitialFishingMortalities(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/surimi.v1.ControllerService/GetInitialFishingMortalities',
+            surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesRequest.SerializeToString,
+            surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2.GetInitialFishingMortalitiesResponse.FromString,
             options,
             channel_credentials,
             insecure,

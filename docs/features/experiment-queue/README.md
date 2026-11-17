@@ -1,13 +1,14 @@
 # Experiment queue
 
-**Status:** Planned (designed 2026-11-03, no code yet)
+**Status:** Built 2026-11-06 (backend and API) on `develop`, not merged into `main`. Frontend in phase 10
+**Changes:** [CHANGELOG.md](CHANGELOG.md)
 **Plan:** [2026-11-03-monorepo-and-backend](../../plans/2026-11-03-monorepo-and-backend.md), phase 5
 **ADRs:** [0015](../../decisions/0015-experiment-admission-queue.md), [0007](../../decisions/0007-scheduler-worker-postgres-queue.md)
 
 Experiments wait in a fair queue and are sent to the controller only when
 enough Ecopath pods are free. A busy controller then means "queued, position
 3" instead of a run that hangs in `Initialising`. The controller has no queue
-of its own (Rik, 2026-11-03), so this is the only one.
+of its own (the controller team, 2026-11-03), so this is the only one.
 
 ---
 
@@ -16,15 +17,18 @@ of its own (Rik, 2026-11-03), so this is the only one.
 | Decision | Why | Recorded in |
 | --- | --- | --- |
 | Admission queue is state in `experiments` (`queued`), not broker messages | Users and admins must see, reorder and cancel it; survives restarts | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
-| Internal jobs stay on Procrastinate | Different purpose: opaque work items, not user-visible | [ADR 0007](../../decisions/0007-scheduler-worker-postgres-queue.md) |
-| Capacity counted in **pods**: MSE experiment = 5, non-MSE = 1, 10 pods in total | One simulation per pod; an MSE run has 5 simulations (Rik, controller code) | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
+| The worker that dispatches is the one leader chosen by a PostgreSQL advisory lock; no job queue library | Two dispatchers would count the same free pods | [ADR 0019](../../decisions/0019-worker-row-driven-with-advisory-lock.md) (supersedes Procrastinate in ADR 0007) |
+| The API wakes the dispatcher with `NOTIFY surimi_dispatch` on submit, cancel, priority and pause | A run starts within a second when pods are free, not after up to 10 s | [ADR 0019](../../decisions/0019-worker-row-driven-with-advisory-lock.md) |
+| A submit whose reply is lost stays `submitting` and is sent again after 2 min; "already submitted" counts as success | The controller rejects a known id, so a repeat cannot run it twice | this file |
+| Capacity counted in **pods**: MSE experiment = 5, non-MSE = 1, 10 pods in total | One simulation per pod; an MSE run has 5 simulations (the controller team, controller code) | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
 | Pods in use taken from the controller's own simulation list, counting everything not `Finished` or `Canceled` | Includes other clients' runs and pods leaked by `Error` | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
 | No reliance on submit errors; stall flag after 10 min in `Initialising` | The controller does not return "No available pods" to the caller | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
 | Fair share by pods per owner, then priority, then age | One user queueing ten runs must not block the rest | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
 | Small runs may use spare pods ahead of a waiting MSE run, but not after it has waited 30 min | Uses idle pods without starving big runs | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
 | Real simulation count overrides `pods_required` | A changed `NR_OF_MSE_RUNS` corrects itself | [ADR 0015](../../decisions/0015-experiment-admission-queue.md) |
 | Cancel while queued touches only our row | Nothing exists on the controller yet | this file |
-| Estimated start from the median duration of the last 20 finished runs of the same scenario and kind (MSE or not) | Good enough for "about 40 min"; no model needed | this file |
+| Estimated start from the median run time (`started_at` to `finished_at`) of the last 20 runs of the same scenario and kind (MSE or not) that finished on the controller (`copying_results` or `completed`) | Good enough for "about 40 min"; the time to copy results does not hold a pod, so it is left out | this file |
+| `copying_results` does not count against capacity | The controller frees the pods at `Finished`, before the results are copied | this file |
 
 ---
 
@@ -60,13 +64,17 @@ flowchart LR
 
 ## Capacity, worked example
 
-`ECOPATH_PODS = 10`. In flight: one MSE run of user A (5 pods), one non-MSE run
-of user B (1 pod), and a run started from Bruno (1 pod). Free: 10 − 7 = 3.
+`ECOPATH_PODS = 10`, `MAX_PODS_PER_USER` raised to 10 for the example. In
+flight: one MSE run of user A (5 pods), one non-MSE run of user B (1 pod) and
+one of user C (1 pod). Free: 10 − 7 = 3. B and C have the same pods in
+flight, so the older run leads.
 
-Queue, in fair order: B's MSE run (5 pods), C's non-MSE run (1 pod).
+Queue, in fair order: B's MSE run (5 pods, older), C's non-MSE run (1 pod).
+(Corrected 2026-11-06: the earlier example gave C no run in flight, and then
+the fair-share rule puts C first; `tests/test_queue_rules.py` checks both.)
 
 - B's MSE run does not fit (5 > 3). It has waited 5 min, under
-  `MAX_HEAD_WAIT`, so C's 1-pod run goes now. Free: 2.
+  `MAX_HEAD_WAIT_MINUTES`, so C's 1-pod run goes now. Free: 2.
 - When A's run finishes, free becomes 7 and B's MSE run goes.
 - If B's run had waited 30 min, C's run would wait behind it.
 
@@ -130,15 +138,16 @@ submitting → submitted → …`, and `queued → cancelled` directly.
 | `CONTROLLER_MSE_SIMULATIONS` | 5 | Must equal the controller's `NR_OF_MSE_RUNS` |
 | `MAX_PODS_PER_USER` | 5 | Pods one user may have in flight (one MSE run or five non-MSE) |
 | `MAX_QUEUED_EXPERIMENTS_PER_USER` | 10 | Waiting runs per user |
-| `MAX_HEAD_WAIT` | 30 min | After this, nothing overtakes the head of the queue |
-| `INIT_TIMEOUT` | 10 min | `Initialising` longer than this → `stalled` |
-| `DISPATCH_INTERVAL` | 10 s | How often `dispatch_queue` runs when nothing triggers it |
+| `MAX_HEAD_WAIT_MINUTES` | 30 | After this, nothing overtakes the head of the queue |
+| `INIT_TIMEOUT_MINUTES` | 10 | `Initialising` longer than this → `stalled` ([scheduler](../simulation-status-scheduler/README.md#configuration)) |
+| `POLL_INTERVAL_SECONDS` | 10 | How often the worker runs the queue when no `NOTIFY surimi_dispatch` wakes it |
 
 ---
 
 ## How to check the queue
 
-Nothing exists yet; this is how to look at it once phase 5 is built.
+Built 2026-11-06. The web app pages come in phase 10; until then use the API
+or the database.
 
 | Where | How |
 | --- | --- |
@@ -153,7 +162,7 @@ Nothing exists yet; this is how to look at it once phase 5 is built.
 WITH in_flight AS (
   SELECT owner_id, sum(pods_required) AS pods
   FROM experiments
-  WHERE status IN ('submitting', 'submitted', 'initialising', 'running', 'cancelling')
+  WHERE status IN ('submitting', 'submitted', 'initialising', 'initialised', 'running', 'cancelling')
   GROUP BY owner_id
 )
 SELECT e.id, u.username, e.name, e.pods_required, e.priority, e.queued_at,
@@ -197,4 +206,4 @@ audit `queue.priority_changed`, `queue.paused`.
 
 - Should admins' experiments jump the queue by default? (User)
 - Will the controller release pods of `Error` simulations, or expose free pods
-  through an RPC? (Rik)
+  through an RPC? (controller team)

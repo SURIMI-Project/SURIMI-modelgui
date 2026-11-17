@@ -1,0 +1,21 @@
+info:
+  name: get outputs download
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/download?file=nc"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get outputs download
+
+  `302` to a presigned S3 link valid 1 hour by default (or the file through nginx in
+  local mode). Audited. Redirects are not followed here, so you see the link.

@@ -1,0 +1,23 @@
+info:
+  name: get outputs
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get outputs
+
+  State (`pending`, `waiting_for_file`, `indexing`, `ready`, `failed`), the
+  data-quality report, and what can be asked: months, species (with names
+  and functional groups), fleets (use `index`), markets, metrics, levels,
+  map grid.

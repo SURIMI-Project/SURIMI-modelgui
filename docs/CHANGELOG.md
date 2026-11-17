@@ -19,119 +19,334 @@ What changed and why. Link to the feature folder.
 
 ---
 
-
 ## 2026-11-16
 
-### Fix — Model-detail scrollbar containment
+### Feature — Several API processes (`WEB_CONCURRENCY`)
 
-Inset model-detail scrolling within the rounded card, keep heading/controls visible, and remove the outer model-connections container border/inset outline while retaining the detail-card border. Build and focused lint pass; browser layout review remains outstanding. Frontend rebuild only.
+`surimi-backend serve` starts `WEB_CONCURRENCY` uvicorn processes (default 1,
+1 to 32). Each opens its own database pool, so keep `WEB_CONCURRENCY` × 20
+under PostgreSQL's `max_connections`. See
+[features/backend-skeleton](features/backend-skeleton/README.md#processes).
 
-### Design — Dark login and single input focus treatment
+> **Deploying this:** rebuild the backend image. Nothing changes until
+> `WEB_CONCURRENCY` is set.
 
-Refreshed the login layout for the dark theme. Inputs have one inset focus indicator; primary outlined buttons and modal close controls again use theme-owned white surfaces. Local/SSO authentication, redirects, errors and pending behavior are unchanged. See [design-system](features/frontend-design-system/CHANGELOG.md) and [authentication](features/auth-and-users/CHANGELOG.md) entries.
+### Docs — Checked against the code and the database; console end date one year
 
-**Verified:** production build, 26 network tests, focused lint and structural control-style checks pass. Browser visual/keyboard/autofill review remains outstanding.
+The docs were checked against the API routes, the settings, the files and the
+live database, and corrected where they had drifted (setting names, file
+lists, the schema doc, the data model diagram, the feature index); see
+[features/backend-skeleton](features/backend-skeleton/CHANGELOG.md). The
+console's New experiment form now proposes an end date one year after the
+scenario's start instead of the contract's maximum.
 
-> **Deploying this:** frontend rebuild only.
+> **Deploying this:** rebuild the backend image (the console).
 
-### Refactor — Single dark theme and active style tree
+### Fix — Console: HCRs typed into the experiment form were not sent
 
-Consolidated application colors into `styles/themes/theme.css`, the only theme file. Kept React Aria and design-system styles, removed the obsolete reference/utility styles and redundant font entry, and retained white logo/avatar/coverage roles explicitly. Portal controls inherit the same dark theme without a separate theme module. See [ADR 0019](decisions/0019-single-dark-application-theme.md).
+In the New experiment tab, values typed for a species were dropped unless its
+**Apply** box was ticked, so an experiment could be submitted with no rules
+(`"harvest_control_rules": []`). The form now has an **Add a species**
+dropdown and a list of the species added: every row of the list is sent, an
+incomplete row stops the submit, and the confirmation names the rules sent.
+See [features/backend-console](features/backend-console/CHANGELOG.md).
 
-**Verified:** build, 26 network tests, focused lint and structural theme checks pass; final browser visual checks remain outstanding.
+> **Deploying this:** rebuild the backend image.
 
-> **Deploying this:** frontend rebuild only; no dependency or backend changes.
+### Change — Download links last 1 hour; download from the console
 
-### Design — Dark case-study explorer and streamlined case workflows
+A presigned download link to an experiment's `.nc` now works for 1 hour
+(`PRESIGNED_URL_TTL_SECONDS`, default 3600, was 900; 60 s to 7 days
+accepted). The console's **My experiments** has a **Download .nc** button for
+completed runs. See [features/experiment-outputs](features/experiment-outputs/CHANGELOG.md).
 
-Refined the dark map, compact illustrated cards, case preview modal, account controls and user-approved fixed map/card layout. Detail pages retain right-side model/comparison actions so the map stays visible; the models sheet contains separate ecosystem-illustration and connections tabs. Runs have compact case-specific navigation, and scenario setup keeps three separate screens without numbered steps or a case picker. Pages remain within the viewport with internal content scrolling and smoother resize scheduling.
+> **Deploying this:** rebuild the backend image. Set
+> `PRESIGNED_URL_TTL_SECONDS` only to change the 1 hour.
 
-Removed 76 verified unused frontend files and stale map styles/fixture metadata, preserving the explicitly protected output/reference code, tests, shared controls and dependencies. The completed cleanup proposal was removed. See [case-study map](features/case-study-map/CHANGELOG.md) and [design system](features/frontend-design-system/CHANGELOG.md).
+### Change — Unreleased migrations rebuilt, one per feature
 
-**Verified:** build and 26 network tests pass; existing lint debt is 16 errors/five warnings. Final browser verification remains outstanding.
+The migrations after `0003_user_names`, none released, are now one per
+feature, each creating its final tables: `0004_experiment_runs`,
+`0005_experiment_outputs`, `0006_species_catalog`, `0007_hcr_configurations`.
+The schema they build is identical to before. See
+[features/backend-skeleton](features/backend-skeleton/CHANGELOG.md).
 
-> **Deploying this:** frontend rebuild only. No migrations, dependency, backend or configuration changes.
+> **Deploying this:** a database at `0007_hcr_configurations` needs nothing.
+> One at `0004_experiments_hcr_kg`, `0005_species` or `0006_hcr_owner_required`
+> stops with "Can't locate revision": either bring it to the old head with the
+> previous build's `surimi-backend migrate` (keeps the data), or recreate it
+> (drop the tables after 0003 and set `alembic_version` to `0003_user_names`,
+> or recreate the database), then run the migrate job.
+
+### Feature — Several HCR configurations per scenario
+
+Each user can keep several named harvest control rule configurations per
+scenario (at most 50), at `/api/v1/scenarios/{name}/hcr-configurations`, and
+submit an experiment with one (`hcr_configuration_id`) or with rules as given.
+The rules of a configuration are stored as a `jsonb` array. The experiment
+options now list every species of the contract, each saying whether it can
+carry an HCR, and the user's configurations. The console's New experiment tab
+loads, saves, saves as new and deletes configurations. `/api/v1/scenarios/{name}/hcr`
+is removed. See
+[ADR 0025](decisions/0025-several-named-hcr-configurations-per-scenario-in-jsonb.md)
+and [features/harvest-control-rules](features/harvest-control-rules/CHANGELOG.md).
+
+> **Deploying this:** rebuild the images, then run the migrate job (migration
+> `0007_hcr_configurations`; see the rebuilt migrations above for a database
+> part-way through the old chain).
+
+### Docs — No names of persons
+
+The docs, the skills, the Bruno request docs and a few code comments no
+longer name persons: partners appear as their team (controller team, Ecopath
+team, MICE team, the project), author lines read "written with Claude", and
+personal EDITO namespaces appear as `user-<developer>`, `oidc-<developer>` and
+`user-<controller-team>`. The real namespace names stay where they are needed
+to connect: the Bruno environments, `apps/frontend/package.json` and
+`deployments/.env`.
+
+> **Deploying this:** nothing.
+
+### Change — Harvest control rules are only each user's own
+
+There are no scenario default HCRs any more: admins do not maintain HCR
+values, and the reference values come from the controller (initial biomass
+and fishing mortality). Each user saves their own biomass limits, biomass
+bases and fishing mortalities per scenario, as a whole set with
+`PUT /api/v1/scenarios/{name}/hcr` or **Save as my rules** in the console's
+New experiment tab. Removed: `/api/v1/admin/scenarios/{name}/hcr-defaults`,
+`POST /api/v1/scenarios/{name}/hcr/reset`, `surimi-backend seed-hcr`, and
+`source` / `rules_source` in the HCR list and the experiment options. See
+[ADR 0024](decisions/0024-harvest-control-rules-only-per-user-no-defaults.md)
+and [features/harvest-control-rules](features/harvest-control-rules/CHANGELOG.md).
+
+> **Deploying this:** rebuild the images, then run the migrate job
+> (`surimi-backend migrate`, migration `0006_hcr_owner_required`). It deletes
+> the default rules for good. The migrate job no longer runs `seed-hcr`; drop
+> it from any other deployment script that calls it.
+
+### Feature — Configure and submit experiments from the console
+
+`GET /api/v1/scenarios/{name}/experiment-options` returns, in one call,
+everything an experiment form needs for a scenario: the contract's dates and
+climate scenarios, the pods a run takes, and for each species that can carry
+a harvest control rule its names, group, the user's saved rule and the
+controller's initial biomass and fishing mortality. The backend console's new
+**New experiment** tab uses it to configure and submit an experiment (HCRs in
+tonnes and per year) and lists the user's experiments with a cancel button.
+The console is now in tabs. See
+[features/experiments](features/experiments/CHANGELOG.md).
+
+> **Deploying this:** rebuild the backend image. No migration.
+
+### Feature — Species import, export and browsing
+
+Admins can export the species table as CSV and import a CSV back, mapping its
+columns onto the table's (an ASFIS file needs no mapping), either **upsert**
+(add and update, delete nothing) or **replace** (the file becomes the table;
+codes still in use cannot be deleted). Every import is checked first (dry
+run), applied all or nothing, and audited. `GET /api/v1/species` can be sorted
+by code, name or scientific name. The backend console gains a species browser
+and, for admins, the import and export screen. See
+[features/scenario-catalog](features/scenario-catalog/CHANGELOG.md).
+
+> **Deploying this:** rebuild the backend and web images (nginx now allows
+> 10 MB for `/api/v1/admin/species/import` only). Optional
+> `CATALOG_IMPORT_MAX_MB` (10). `seed-species` now only adds missing codes;
+> load a newer shipped list with an admin import or
+> `surimi-backend seed-species --update`.
+
+### Feature — Species names and higher taxa from the database
+
+The backend now keeps every species of the FAO ASFIS list (13,567, plus
+manual rows for codes it lacks) in a `species` table, with English and
+scientific name, family, order or higher taxa and ISSCAAP group.
+`GET /api/v1/species` serves them a page at a time, with a word search and
+filters by ISSCAAP group, family and order, all index-backed;
+`GET /api/v1/species/{code}` serves one. The scenario catalog adds `family`
+and `order_or_higher_taxa` to each species. The data ships as
+`catalog/data/species.csv`, written by `scripts/build_species_csv.py`. See
+[features/scenario-catalog](features/scenario-catalog/CHANGELOG.md) and
+[ADR 0023](decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md).
+
+> **Deploying this:** run the `migrate` job (migration `0005_species`, then
+> `surimi-backend seed-species` before `seed-hcr`, which loads the 13,570
+> rows) before the new `api` starts.
+
+---
+
+## 2026-11-13
+
+### Feature — Startup log shows the URLs and every setting
+
+When the API starts, `app.started` now lists the Swagger UI, OpenAPI and
+console URLs and whether SSO is on, and a new `app.config` line lists every
+setting by area, with each SSO provider's callback URL; secrets appear only as
+`set` or `not set`. The worker logs the same as `worker.config`. See
+[features/backend-skeleton](features/backend-skeleton/CHANGELOG.md).
+
+> **Deploying this:** nothing to do. Log pipelines that parse `app.started`
+> get new fields.
+
+### Change — Harvest control rule biomass in kg; migrations 0004 to 0006 rebuilt
+
+Harvest control rules now carry biomass in **kilograms** in the API, the
+database and each experiment's stored request: `biomass_limit_kg` and
+`biomass_base_kg` replace `biomass_limit_t` and `biomass_base_t` (at most
+3.3e12). The controller takes kg, so the backend no longer converts; the
+phase 10 UI will show tonnes. The seed still reads the partners' tonnes CSV.
+See [ADR 0022](decisions/0022-hcr-biomass-in-kg-tonnes-only-in-the-ui.md) and
+[features/harvest-control-rules](features/harvest-control-rules/CHANGELOG.md).
+
+The unreleased migrations `0004_experiments`, `0005_results_and_hcr_bounds`
+and `0006_initialised` are replaced by one, `0004_experiments_hcr_kg`, with
+the same end state apart from the kg columns. The deploy notes below that
+name the old migrations now mean this one.
+
+> **Deploying this:** a database that ran the old migrations stops with
+> "Can't locate revision". Recreate it, or keep its users and sign-ins by
+> removing what migration 0004 onward created, then run the `migrate` job
+> (it also runs `seed-hcr`):
+>
+> ```sql
+> DROP TABLE simulations, experiment_outputs, experiment_events,
+>   harvest_control_rules, experiments, app_settings;
+> DROP TYPE experiment_status, simulation_status, output_state;
+> UPDATE alembic_version SET version_num = '0003_user_names';
+> ```
+>
+> Experiments, saved rules and app settings are lost. API clients send
+> `biomass_limit_kg` and `biomass_base_kg` (tonnes × 1000).
+
+### Feature — Status `initialised` and each simulation of a run
+
+An experiment now shows `initialised` when all its simulations are initialised
+and wait for the controller to start them together; it stays `initialising`
+while any one is not. Every experiment response has `simulation_counts` (for
+example 3 initialising, 2 initialised for an MSE run), each simulation has its
+own `progress`, and each simulation's change is a `simulation.status_changed`
+event. See
+[simulation-status-scheduler](features/simulation-status-scheduler/README.md#experiment-state-from-its-simulations).
+
+> **Deploying this:** run the `migrate` job (migration `0006_initialised`,
+> since 2026-11-13 part of `0004_experiments_hcr_kg`, see above)
+> before starting the new API and worker.
+
+---
+
+## 2026-11-12
+
+### Feature — Experiment statuses `copying_results` and `completed`
+
+A run the controller reports `Finished` is now `copying_results` until its
+`.nc` is in the bucket and indexed, then `completed`; `failed` if the file does
+not arrive within `OUTPUT_WAIT_MINUTES` (60) or cannot be read. `finished` no
+longer exists as a status. New field `completed_at`; `finished_at` is when the
+run ended. A `copying_results` run cannot be cancelled and holds no Ecopath
+pod. See [features/simulation-status-scheduler](features/simulation-status-scheduler/README.md#results-copying_results--completed).
+
+### Feature — Presigned download link as JSON
+
+`GET /api/v1/experiments/{id}/outputs/download-url?file=nc` returns the
+presigned S3 link with its expiry, for pages and scripts that need the link
+itself. See [features/experiment-outputs](features/experiment-outputs/README.md#downloads).
+
+### Feature — Initial biomass and fishing mortality per scenario
+
+`GET /api/v1/scenarios/{name}/initial-biomasses` and
+`/initial-fishing-mortalities` ask the controller (new RPCs, SURIMI-protocol
+`250f617`) on every request. Only `northwestern_med` has them today. See
+[features/scenario-catalog](features/scenario-catalog/README.md#initial-biomass-and-fishing-mortality).
+
+### Change — Notifications are polled, not streamed
+
+`GET /api/v1/events` now answers JSON for polling (`?after=<last_id>`) instead
+of a Server-Sent Events stream ([ADR 0021](decisions/0021-notifications-by-polling.md)).
+No client used the stream yet.
+
+### Change — Harvest control rules follow the controller's bounds
+
+Biomass limit and base at most 3.3e9 t and `f_max` at most 100 are now refused
+with 422 when a rule is saved or an experiment submitted, instead of failing
+at the controller. See [features/harvest-control-rules](features/harvest-control-rules/README.md).
+
+> **Deploying this:** run the `migrate` job (migration
+> `0005_results_and_hcr_bounds`, since 2026-11-13 part of
+> `0004_experiments_hcr_kg`) before the new `api` and `worker` start. It
+> renames `finished` to `completed` and moves existing runs to `completed`,
+> `copying_results` or `failed` by the state of their outputs; it fails if a
+> saved harvest control rule is outside the new bounds. Remove
+> `SSE_HEARTBEAT_SECONDS`, `SSE_REPLAY_MAX_EVENTS` and `SSE_REPLAY_MAX_HOURS`
+> from the environment if they were set: the settings are gone. The controller
+> must run SURIMI-controller `117e604` or later for the two initial-state
+> endpoints (true on `project-surimi` on 2026-11-12).
+
+---
 
 ## 2026-11-06
 
-### Design — Distinct sea background identities
+### Feature — Harvest control rules, experiments, queue, worker, notifications, outputs (phases 4 to 6)
 
-Selected Northwestern Mediterranean now uses muted deep marine blue; Aegean uses brighter azure with restrained turquoise. Reusable palette/semantic tokens drive both the existing animated water and its static fallback. All study boundaries share the user-preferred Aegean orange and subtle glow; light cards, typography, layout, controls, overview and Anchovy remain intact. See [case-study map](features/case-study-map/CHANGELOG.md).
+The backend now runs experiments end to end. Users keep harvest control rules
+per scenario in tonnes ([features/harvest-control-rules](features/harvest-control-rules/README.md)),
+submit experiments that are checked against the scenario catalog and contract
+and queued ([features/experiments](features/experiments/README.md)), and a new
+worker sends them to the controller only when enough Ecopath pods are free
+([features/experiment-queue](features/experiment-queue/README.md)), follows them
+([features/simulation-status-scheduler](features/simulation-status-scheduler/README.md)),
+and indexes finished runs' outputs so charts, maps and downloads are served
+from the file in S3 or a local folder
+([features/experiment-outputs](features/experiment-outputs/README.md)).
+Changes stream to browsers over `GET /api/v1/events`
+([features/notifications](features/notifications/README.md)).
 
-> **Deploying this:** frontend rebuild only. No new dependency or configuration.
+Why the queue matters now: the controller drops a run silently when no pod is
+free ("No available pods" only in its log) and never frees the pods of
+`Error` runs. On 2026-11-06 all 5 pods of `user-<developer>` were held that
+way. The queue counts those pods and waits; a run that still never starts is
+failed with that reason.
 
-### Fix — Map framing, Northwestern boundaries and Anchovy illustration
+Decisions: [ADR 0019](decisions/0019-worker-row-driven-with-advisory-lock.md)
+(worker without Procrastinate) and [ADR 0020](decisions/0020-own-chunk-index-built-with-h5py.md)
+(chunk index without kerchunk).
 
-Removed country labels, widened the overview, equalized selector widths and moved the Anchovy inset to the bottom right. Northwestern selection shows official GSA 06 + 07 polygons. The complete Anchovy illustration fits upright over visible animated water; pause/resume and reduced motion remain available. See [case-study map](features/case-study-map/CHANGELOG.md).
+> **Deploying this:** migration `0004_experiments` (since 2026-11-13
+> `0004_experiments_hcr_kg`; the migrate job runs it,
+> then `seed-hcr`). New compose service `worker`. Set `ECOPATH_PODS` and
+> `CONTROLLER_MSE_SIMULATIONS` to the controller's values, and `OUTPUTS_URI`
+> plus `S3_*` for a bucket. New dependencies: numpy, h5py, s3fs.
 
-> **Deploying this:** frontend rebuild only; includes the new local boundary asset. No backend or configuration change.
+### Feature — Backend console
 
-### Design — Compact glass case selector and fixed map navigation
+The API now serves a sign-in and home page at `/api/v1/console/`
+(<http://localhost:18080/api/v1/console/> in compose). It offers password and
+SSO sign-in, a forced password change for temporary passwords, the signed-in
+account, the controller's scenarios and, for admins, the user list. It lets
+the backend be tried in a browser before the phase 10 frontend exists. It only
+calls the public API and is not the frontend.
+[features/backend-console](features/backend-console/README.md).
 
-The landing page now uses the reusable UseCaseSelector with compact names-only glass styling. The map frames both seas and accepts case-selection flights only; manual drag/zoom and top-right map controls are removed. Removed the extra perspectives heading and location disclaimer. Water pause remains in the footer.
+> **Deploying this:** nothing; the page ships in the API image. Set
+> `CONSOLE_ENABLED=false` to turn it off.
 
-### Fix — Recover temporary catalogue failures on refresh
-
-A live backend log showed a controller SSL failure (502) followed by a successful request. The frontend now retries temporary catalogue reads twice behind loading, preserves honest terminal failures, and keeps last-known map data with a visible notice on background failure. The upstream connection issue remains open; no backend change was made. See [case-study map](features/case-study-map/CHANGELOG.md).
-
-### Design — Light case selection with animated water
-
-The signed-in case-selection page now uses the shared light theme, reusable case options and React Aria actions across all previews. The geographic map has procedural animated waves/reflections with pause/resume, live reduced-motion support and a static fallback; official study boundaries and camera/navigation behaviour remain connected. Water is a decorative effect, not satellite or scientific ocean data. See [case-study map](features/case-study-map/CHANGELOG.md).
-
-> **Deploying this:** frontend rebuild only. No new dependency, tile service, backend or deployment change.
-
-### Feature — Light design system and shared React Aria controls
-
-Added protected `/design-system` with Theme, UI components and actual report compositions, without a props playground. Login now uses the shared light fields, buttons, card and AuthLayout. Mantine consumers/provider/theme adapter and all three packages are removed; searchable controls, table and help dialogs use React Aria, while report trend cards share the new ChartCard composition. No dark theme was implemented. See [design system](features/frontend-design-system/README.md) and [ADR 0018](decisions/0018-frontend-css-tokens-and-react-aria.md).
-
-> **Deploying this:** run `npm ci` for the changed frontend dependencies and rebuild frontend assets. Backend/protocol/CI/deployment files and authentication contracts are unchanged.
-
-### Design — Immersive Aegean selection
-
-The selected Aegean view now gives the map more space with closer full-area framing, a faint coral outline glow and lighter fill. The floating study marker and large heading give way to a small identity label, compact actions and case switcher. Other cases retain their existing presentation. See [case-study map](features/case-study-map/CHANGELOG.md).
-
-
-### Feature — Official Aegean study-area boundary overlay
-
-Selecting Aegean Sea now highlights the user-confirmed GSA 22 (Aegean Sea) and GSA 23 (Crete) using the official FAO/GFCM source geometry. The camera fits both areas; the overlay is hidden on the overview and other cases. The boundary asset loads from the frontend only on first selection. Provenance and verification are recorded in [case-study map](features/case-study-map/CHANGELOG.md).
-
-> **Deploying this:** rebuild frontend assets, including `maps/aegean-gsa-22-23.geojson`. No new runtime dependency, API key, backend or deployment configuration change.
+---
 
 ## 2026-11-05
 
-### Feature — Cinematic case-study map entrance
+### Feature — Scenario catalog
 
-Signed-in users now select cases through a geographic overview and personalized previews. The previous video/cards implementation is preserved as an unused component. Anchovy Bay uses the supplied illustration as a separate educational entrance; geographic markers are illustrative until approved scientific boundaries are supplied. See [case-study map](features/case-study-map/README.md). Backend availability, loading/retry and existing navigation remain connected.
+`GET /api/v1/scenarios/{name}/catalog` says what each scenario contains:
+functional groups with the names from the EwE models, species with English
+names, which species can carry a harvest control rule, climate scenarios, and
+whether outputs make sense per functional group, per species or both
+(`northwestern_med` both, `anchovy_bay` functional groups only, `aegean_sea`
+species only until its MICE groups are published). With
+`CONTROLLER_MODE=fake` the contracts are now copies of the real ones.
+[features/scenario-catalog](features/scenario-catalog/README.md).
 
-> **Deploying this:** rebuild the frontend, including the local geographic and illustration assets. No new dependency, map-service key, backend or deployment configuration change.
+> **Deploying this:** nothing; the catalog files ship in the image.
 
-### Fix — Case cards no longer flash disabled after sign-in
-
-The case-selection page now waits for the initial REST availability result before mounting cards and intro animation. Loading and failed requests have dedicated states; only genuinely unavailable cases from a successful response receive disabled styling. Verified with a delayed first-login response and error/retry browser checks. Frontend-only change.
-
-### Feature — Password completion, Keycloak SSO and real case availability
-
-Users with temporary passwords can now complete the required change and enter their requested page. Login offers configured SSO providers; Keycloak code/token exchange stays in the backend. Case selection uses the authenticated REST catalogue with distinct loading/error/unavailable states and retry. Live password/SSO/catalogue and controlled error states were browser-tested. Scientific reports and experiment submission remain demo implementations.
-
-> **Local SSO:** ignored local settings use `PUBLIC_BASE_URL=http://localhost:5173`; the same callback must be registered on the local Keycloak client. Tracked backend/protocol/CI/deployment files are unchanged. Callback denials still display backend JSON; see ISSUES. Setup and verification are in the frontend-local-login feature.
-
-### Feature — Local frontend login and protected access
-
-Local username/email/password login now uses the existing backend cookie session. Session restoration, deep-link return, protected content and sign-out are connected. `/test` remains public; `/netcdf-lab` requires login. Existing scientific/demo data is unchanged. SSO, password-change completion and scenario availability remain deferred. See [local login](features/frontend-local-login/README.md).
-
-> **Local development:** start the existing API/database and Vite. Vite proxies `/api/v1` to `127.0.0.1:18082`. Backend/protocol/deployment files are unchanged. The GHCR uv image denial required a temporary local-only build workaround; details and live verification are in the feature changelog.
-
-### Change — Frontend REST request and server-state foundation
-
-Added centralized Axios/Zod transport, typed auth/catalogue services, and TanStack query/mutation hooks. Removed copied examples from another project. Existing demo pages still make no API requests; login UI and live integration remain pending. See [frontend network](features/frontend-network/README.md) and ADR 0017. Backend/protocol/CI/deployment files are unchanged.
-
-> **Developing this:** install updated frontend dependencies with `npm ci`; run `npm --workspace apps/frontend run test:network` for focused tests.
-
-### Change — Frontend uses one shared demo report without browser gRPC
-
-All three case studies are navigable and show the same labelled example simulation/report. Setup creates no run and stores nothing; fake execution delay and output variants were removed. Fixtures, species references and descriptive content are centralized under `apps/frontend/mock-data/`. Browser protocol files/dependencies and Envoy were removed; native backend gRPC is retained, with Buf tooling moved to the root npm package. Auth/REST integration is next, not part of this change. See [frontend cleanup](implementation-plan/T05-remove-frontend-grpc.md).
-
-> **Deploying this:** rebuild the frontend image. Remove the old `grpc-proxy` service/container when updating an existing stack; `MOCK`, `CONTROLLER_BASE_URL`, `GRPC_PROXY_PORT`, and `CORS_ALLOWED_ORIGINS` are obsolete frontend/proxy settings. Keep backend `CONTROLLER_MODE` and `CONTROLLER_GRPC_URL`. This intermediate frontend is for development review; authentication is not yet connected.
+---
 
 ## 2026-11-04
 

@@ -1,0 +1,33 @@
+info:
+  name: put hcr configuration
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/hcr-configurations/{{hcrConfigurationId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cautious hake and tuna, v2",
+        "rules": [
+          {"species_code": "HKE", "life_stage": "adult", "biomass_limit_kg": 4000000, "biomass_base_kg": 16000000, "f_max": 0.3},
+          {"species_code": "BFT", "life_stage": "", "biomass_limit_kg": 364376, "biomass_base_kg": 1457504, "f_max": 0.622}
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # put hcr configuration
+
+  Renames the configuration and replaces its whole set of rules, all or
+  nothing: one bad entry and nothing changes. Same checks and errors as
+  `post hcr configuration`. Experiments already submitted keep the rules they
+  were sent with.

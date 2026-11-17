@@ -1,0 +1,46 @@
+info:
+  name: post hcr configuration
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/hcr-configurations"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cautious hake and tuna",
+        "rules": [
+          {"species_code": "HKE", "life_stage": "adult", "biomass_limit_kg": 4000000, "biomass_base_kg": 16000000, "f_max": 0.3},
+          {"species_code": "BFT", "life_stage": "", "biomass_limit_kg": 364376, "biomass_base_kg": 1457504, "f_max": 0.622}
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201) {
+          bru.setEnvVar("hcrConfigurationId", res.body.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # post hcr configuration
+
+  Saves a new named configuration. `name`: 1 to 100 characters, unique among
+  yours for the scenario (compared without case). `rules` may be empty. Biomass
+  in kg: `0 < biomass_limit_kg < biomass_base_kg ≤ 3.3e12`, `0 < f_max ≤ 100`;
+  one rule per entry (life stage compared without case; the contract's
+  spelling is stored). Stores `hcrConfigurationId`.
+
+  Errors: `422` an entry not eligible or given twice (`error.details.problems`,
+  `error.details.eligible`), limits wrong, blank name; `409` the name is taken,
+  or you have 50 already.

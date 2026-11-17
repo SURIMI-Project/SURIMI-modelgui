@@ -1,0 +1,35 @@
+info:
+  name: get initial biomasses
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/initial-biomasses"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get initial biomasses
+
+  The controller's `GetInitialBiomasses` for one scenario, asked on every
+  request (not cached, not part of the catalog): the biomass of each species
+  at the end of the spin-up, the reference for harvest control rule limits.
+  A member of a functional group gets the group's biomass (ALB = BON).
+
+  ## Response
+
+  `{scenario_name, initial_biomasses[]}`, each row `species_code`,
+  `life_stage`, `length_class`, `age` (empty strings when none) and
+  `biomass`. The controller states no unit (docs/ISSUES.md).
+
+  ## Notes
+
+  Only `northwestern_med` has the files (91 rows); `anchovy_bay` and
+  `aegean_sea` answer `502` `controller_error`. Unknown scenario: `404`.
+  The gRPC call itself: `grpc-proxy/GetInitialBiomasses`.

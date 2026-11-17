@@ -1,0 +1,15 @@
+info:
+  name: GetInitialBiomasses
+  type: grpc
+  seq: 7
+
+grpc:
+  url: "{{urlGrpcProxy}}"
+  method: /surimi.v1.ControllerService/GetInitialBiomasses
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "scenario_name":"northwestern_med"
+        }

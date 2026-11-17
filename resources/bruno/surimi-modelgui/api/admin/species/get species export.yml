@@ -1,0 +1,23 @@
+info:
+  name: get species export
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/species/export.csv"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get species export
+
+  The whole `species` table as CSV (`species_code,name,scientific_name,family,
+  order_or_higher_taxa,isscaap_group,source`), sorted by code: the format of the
+  shipped `catalog/data/species.csv`. It imports back unchanged with
+  `post species import`. Admin only: a member gets `403`.

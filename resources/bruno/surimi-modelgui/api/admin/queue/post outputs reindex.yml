@@ -1,0 +1,20 @@
+info:
+  name: post outputs reindex
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/admin/experiments/{{experimentId}}/outputs/reindex"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # post outputs reindex
+
+  Indexes the outputs again (after a parser change or a fixed file). Audited.

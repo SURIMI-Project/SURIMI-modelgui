@@ -1,6 +1,6 @@
 # 0007 — A worker process polls the controller; jobs and schedules run on PostgreSQL with Procrastinate
 
-**Status:** Proposed
+**Status:** Superseded by [0019](0019-worker-row-driven-with-advisory-lock.md) (2026-11-06): the worker stays, Procrastinate goes
 **Date:** 2026-11-03
 **Related:** [features/simulation-status-scheduler](../features/simulation-status-scheduler/README.md), [0003](0003-postgresql-sqlalchemy-alembic.md), [0008](0008-notifications-sse.md)
 
@@ -24,7 +24,7 @@
 
 - A separate **worker** process from the same image (`surimi-worker`) runs
   Procrastinate.
-- Periodic task `poll_controller`, every 10 s (`POLL_INTERVAL`): load
+- Periodic task `poll_controller`, every 10 s (`POLL_INTERVAL`, built as `POLL_INTERVAL_SECONDS`): load
   experiments not in a final state, call `GetSimulationStatuses` with their ids
   in batches of 100, upsert simulations, derive the experiment state, write
   `experiment_events` and `NOTIFY` on change. A Procrastinate lock makes sure two

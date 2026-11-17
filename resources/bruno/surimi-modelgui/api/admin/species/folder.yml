@@ -1,0 +1,15 @@
+info:
+  name: species
+  type: folder
+  seq: 4
+
+request:
+  auth: inherit
+
+docs: |-
+  # Species (admin)
+
+  `/api/v1/admin/species`: export the species table as CSV, and import a CSV
+  with a column mapping, `upsert` or `replace`, dry run first. Design:
+  `docs/features/scenario-catalog/README.md` § Step 2. Run `auth/post token`
+  as an admin first.

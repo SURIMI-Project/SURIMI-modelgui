@@ -1,6 +1,6 @@
 # 0008 — Notifications over Server-Sent Events, fed by PostgreSQL LISTEN/NOTIFY
 
-**Status:** Proposed
+**Status:** Superseded by [0021](0021-notifications-by-polling.md) on 2026-11-12
 **Date:** 2026-11-03
 **Related:** [features/notifications](../features/notifications/README.md), [0007](0007-scheduler-worker-postgres-queue.md)
 

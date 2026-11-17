@@ -1,0 +1,15 @@
+info:
+  name: outputs
+  type: folder
+  seq: 10
+
+request:
+  auth: inherit
+
+docs: |-
+  # Outputs
+
+  `/api/v1/experiments/{id}/outputs`: a completed experiment's outputs, read in
+  place from S3 or a local folder through the chunk index the worker builds
+  (ADR 0009, ADR 0020). Owner or admin. Series and maps are cached for good
+  (`ETag`, `immutable`).

@@ -12,7 +12,7 @@ import re
 from functools import cached_property
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL, make_url
 
@@ -63,10 +63,18 @@ class Settings(BaseSettings):
     # --- HTTP server --------------------------------------------------------------
     host: str = "0.0.0.0"  # noqa: S104 - inside a container
     port: int = 8000
+    # API processes `serve` starts (uvicorn workers; user, 2026-11-16). One async
+    # process already overlaps waits on the database and the controller; more help
+    # CPU-bound work (charts and maps from .nc files, password hashing). Each has its
+    # own DB pool (DB_POOL_SIZE + 10 overflow), chunk cache and sign-in IP limiter.
+    # On Kubernetes keep 1 and scale replicas instead.
+    web_concurrency: int = Field(default=1, ge=1, le=32)
     # Proxies whose X-Forwarded-For is trusted (uvicorn forwarded_allow_ips).
     trusted_proxies: str = "127.0.0.1"
     # Address browsers use for the app; SSO callbacks and redirects are built on it.
     public_base_url: str = "http://localhost:18080"
+    # Sign-in and home page at /api/v1/console/ (docs/features/backend-console).
+    console_enabled: bool = True
 
     # --- database (ADR 0014) ---------------------------------------------------------
     # 127.0.0.1, not localhost: on Windows localhost resolves to ::1 first and
@@ -86,9 +94,59 @@ class Settings(BaseSettings):
     controller_grpc_url: str = ""
     controller_timeout_seconds: float = 10.0
     controller_read_retries: int = 2
+    # CONTROLLER_MODE=fake: how long a fake simulation initialises, then runs.
+    fake_controller_init_seconds: float = 5.0
+    fake_controller_run_seconds: float = 60.0
 
     # --- catalog ---------------------------------------------------------------------
     catalog_cache_seconds: float = 600.0
+    # Largest species CSV an admin may import (docs/features/scenario-catalog).
+    # nginx's limit for that path (deployments/nginx) must match.
+    catalog_import_max_mb: int = 10
+
+    # --- experiment queue and worker (ADR 0015, ADR 0019) ------------------------------
+    # Must equal the controller's ECOPATH_NR_OF_PODS and NR_OF_MSE_RUNS.
+    ecopath_pods: int = 10
+    controller_mse_simulations: int = 5
+    max_pods_per_user: int = 5
+    max_queued_experiments_per_user: int = 10
+    # After this, nothing overtakes the head of the queue.
+    max_head_wait_minutes: int = 30
+    poll_interval_seconds: float = 10.0
+    # A submitted experiment the controller never reports after this did not
+    # start (no free Ecopath pod, or init failed before any simulation existed).
+    start_timeout_minutes: int = 5
+    # Initialising longer than this, or no progress for STALL_AFTER: stalled.
+    init_timeout_minutes: int = 10
+    stall_after_minutes: int = 30
+    # Polls in a row in which a known experiment is missing: lost (controller restart).
+    lost_after_polls: int = 3
+    # How long the worker keeps calling RemoveExperiment for a cancel.
+    cancel_timeout_minutes: int = 10
+
+    # --- outputs (ADR 0009, ADR 0020) ---------------------------------------------------
+    # Where <experiment id>/<experiment id>.nc lives: s3://bucket/prefix or file:///dir
+    outputs_uri: str = "file:///data/experiments"
+    s3_endpoint_url: str = ""
+    s3_access_key_id: str = ""
+    s3_secret_access_key: SecretStr = SecretStr("")
+    s3_session_token: SecretStr = SecretStr("")
+    s3_region: str = "us-east-1"
+    # Endpoint browsers reach; download links are signed for it. Empty = S3_ENDPOINT_URL.
+    s3_public_endpoint: str = ""
+    # Lifetime of a presigned download link (user, 2026-11-16: 1 hour). At most 7 days,
+    # the longest an S3 SigV4 signature may live; with S3_SESSION_TOKEN a link also
+    # stops working when those temporary credentials expire.
+    presigned_url_ttl_seconds: int = Field(default=3600, ge=60, le=604_800)
+    output_chunk_cache_mb: int = 256
+    output_range_merge_gap_kb: int = 64
+    # The .nc must keep the same size this long before it is indexed.
+    output_stable_seconds: int = 60
+    # Give up waiting for the .nc after this long.
+    output_wait_minutes: int = 60
+    output_index_max_attempts: int = 5
+    # Local mode: internal nginx location mapped to the outputs folder.
+    outputs_nginx_prefix: str = "/protected-outputs/"
 
     # --- sessions and tokens (ADR 0004) ----------------------------------------------
     # Signs access tokens and the SSO flow cookie. Required, >= 32 characters.

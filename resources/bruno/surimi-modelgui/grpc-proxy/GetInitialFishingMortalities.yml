@@ -1,0 +1,15 @@
+info:
+  name: GetInitialFishingMortalities
+  type: grpc
+  seq: 8
+
+grpc:
+  url: "{{urlGrpcProxy}}"
+  method: /surimi.v1.ControllerService/GetInitialFishingMortalities
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "scenario_name":"northwestern_med"
+        }

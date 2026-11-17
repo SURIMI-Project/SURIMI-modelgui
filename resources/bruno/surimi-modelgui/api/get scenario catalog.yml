@@ -1,0 +1,47 @@
+info:
+  name: get scenario catalog
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/catalog"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get scenario catalog
+
+  What one scenario contains: functional groups (Ecopath groups, named as in
+  the EwE model), species with English names and higher taxa (FAO ASFIS, from
+  the `species` table), which entries can
+  carry a harvest control rule, climate scenarios, fleets, markets, and the
+  level at which each output metric holds its own values. Built from the
+  scenario's catalog file, the `species` table and the live contract (ADR 0017,
+  ADR 0023); rebuilt when the
+  contract cache (10 min) expires. Nothing is made up: names the sources lack
+  are null.
+
+  ## Response
+
+  | Field | Meaning |
+  | --- | --- |
+  | `status` | `complete`, or `partial` when no functional groups are known (today `aegean_sea`) |
+  | `levels` | `functional_group`, `species` or both. `anchovy_bay`: only `functional_group` |
+  | `metric_levels` | Per metric. `biomass` is `functional_group` whenever groups exist: it is a group value copied to each species |
+  | `functional_groups[]` | `key` (Ecopath group id), `name` and `name_source` (`ewe_model`, `manual`, or null), `members[]` |
+  | `species[]` | Every contract entry: `species_code`, `life_stage`, `name`, `scientific_name`, `family`, `order_or_higher_taxa`, `isscaap_group`, `functional_group`, `hcr_eligible` |
+  | `climate_scenarios`, `fleets`, `markets` | From the contract |
+  | `built_from` | Partner commits and sources of the catalog file |
+  | `notes` | Known gaps of the sources (missing mapping, model or fisheries authority inputs) |
+  | `drift` | Differences between the file and the live contract, and contract codes with no `species` row |
+
+  ## Notes
+
+  Unknown scenario: `404` `not_found`. Try `anchovy_bay` and `aegean_sea`
+  to see the other shapes.

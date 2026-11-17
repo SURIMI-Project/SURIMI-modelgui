@@ -1,0 +1,35 @@
+info:
+  name: get experiment options
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/experiment-options"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get experiment options
+
+  Everything the experiment form needs for one scenario, in one call. Run it
+  before `post experiment`.
+
+  ## Response
+
+  | Field | Meaning |
+  | --- | --- |
+  | `start_date_time`, `maximum_end_date_time` | The end date must be after the first and not after the second (contract) |
+  | `climate_scenarios`, `climate_scenario_required` | Send one of them as `climate_scenario` when required; none for `aegean_sea` |
+  | `pods_single_run`, `pods_mse_run` | Ecopath pods a run takes: 1, or `CONTROLLER_MSE_SIMULATIONS` for `is_mse_run` |
+  | `species[]` | Every species entry of the contract, in catalog order: `species_code`, `life_stage`, `hcr_eligible` (only those can carry a rule), `species_name`, `scientific_name`, `functional_group` and its name, `initial_biomass`, `initial_fishing_mortality` (both null when the controller has no value for the entry) |
+  | `hcr_configurations[]` | Your saved configurations for the scenario: `id`, `name`, `rule_count`, `updated_at`; the rules are at `get hcr configuration` |
+  | `initial_values_available`, `notes` | Whether the controller had initial values (only `northwestern_med` today), and what is missing |
+
+  The initial biomass has no unit from the controller (most likely tonnes over
+  the whole model area, not yet confirmed). Unknown scenario: `404`.

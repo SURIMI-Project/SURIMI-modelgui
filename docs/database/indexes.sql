@@ -35,7 +35,7 @@ CREATE INDEX experiments_status_created_idx ON experiments (status, created_at D
 
 DROP INDEX IF EXISTS experiments_in_flight_idx;
 CREATE INDEX experiments_in_flight_idx ON experiments (status) INCLUDE (owner_id, pods_required)
-  WHERE status IN ('submitting', 'submitted', 'initialising', 'running', 'cancelling');
+  WHERE status IN ('submitting', 'submitted', 'initialising', 'initialised', 'running', 'cancelling');
 
 DROP INDEX IF EXISTS experiments_queue_idx;
 CREATE INDEX experiments_queue_idx ON experiments (priority DESC, queued_at)
@@ -70,7 +70,39 @@ CREATE INDEX audit_events_action_at_idx ON audit_events (action, at DESC);
 
 -- experiment_outputs ---------------------------------------------------------
 DROP INDEX IF EXISTS experiment_outputs_todo_idx;
-CREATE INDEX experiment_outputs_todo_idx ON experiment_outputs (updated_at) WHERE state <> 'ready';
+CREATE INDEX experiment_outputs_todo_idx ON experiment_outputs (next_attempt_at)
+  WHERE state IN ('pending', 'waiting_for_file', 'indexing');
+
+-- hcr_configurations (ADR 0025) -------------------------------------------------
+-- One name per owner and scenario, without case; also serves a user's list for a scenario
+-- (GET /scenarios/{name}/hcr-configurations, the experiment options). Expression column:
+-- not expressible in DBML. Migration 0007_hcr_configurations.
+DROP INDEX IF EXISTS hcr_configurations_name_uq;
+CREATE UNIQUE INDEX hcr_configurations_name_uq ON hcr_configurations
+  (owner_id, scenario_name, lower(name));
+
+-- species (ADR 0023) ----------------------------------------------------------
+-- Word search on code, English and scientific name. The expression must be the
+-- one in catalog/models.py SEARCH_DOCUMENT, or the planner cannot use it.
+DROP INDEX IF EXISTS species_search_idx;
+CREATE INDEX species_search_idx ON species USING gin
+  (to_tsvector('simple', species_code || ' ' || coalesce(name, '') || ' ' || coalesce(scientific_name, '')));
+
+DROP INDEX IF EXISTS species_isscaap_group_idx;
+CREATE INDEX species_isscaap_group_idx ON species (isscaap_group);
+
+DROP INDEX IF EXISTS species_family_idx;
+CREATE INDEX species_family_idx ON species (family);
+
+DROP INDEX IF EXISTS species_order_or_higher_taxa_idx;
+CREATE INDEX species_order_or_higher_taxa_idx ON species (order_or_higher_taxa);
+
+-- sort=name / sort=scientific_name, ties by code; read backwards for descending.
+DROP INDEX IF EXISTS species_name_idx;
+CREATE INDEX species_name_idx ON species (name, species_code);
+
+DROP INDEX IF EXISTS species_scientific_name_idx;
+CREATE INDEX species_scientific_name_idx ON species (scientific_name, species_code);
 
 -- Full-text search on the experiment name. GIN is not a DBML index type, so
 -- schema.dbml lists this index without its type.

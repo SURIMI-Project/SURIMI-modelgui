@@ -154,7 +154,7 @@ API only; no frontend change (phase 10).
 - Compose stack with `--profile keycloak` (Keycloak 26.4), through nginx on
   `localhost:18080`: the `migrate` job created the admin from `ADMIN_*`;
   password sign-in as that admin; `/api/v1/scenarios` from the real
-  controller `user-alexiosgkikas` (200 when signed in, 401 without).
+  controller `user-<developer>` (200 when signed in, 401 without).
 - SSO through Keycloak's real login form (scripted browser): alice → admin,
   bob → member, carol → 403 `no_access`. Bob moved from `surimi-members` to
   `surimi-admins` with the Keycloak admin API → admin at the next sign-in, and
@@ -232,7 +232,7 @@ Found and fixed while verifying:
   `post password`, `post logout`, `get sso login`.
 - `api/admin/users/` — new: `get users`, `post user` (stores `userId`),
   `get user`, `patch user`, `post user reset password`.
-- `environments/local.yml`, `alexiosgkikas.yml`, `project-surimi.yml` —
+- `environments/local.yml`, `<developer>.yml`, `project-surimi.yml` —
   `login`, secrets `password`, `newPassword`, `accessToken`, `csrfToken`,
   `userId`.
 - `.claude/skills/bruno/SKILL.md` — bearer folder auth and script syntax,

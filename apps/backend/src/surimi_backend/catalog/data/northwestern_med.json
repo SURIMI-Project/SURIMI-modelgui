@@ -1,0 +1,697 @@
+{
+ "format_version": 1,
+ "scenario_name": "northwestern_med",
+ "built_from": {
+  "SURIMI-Ecopath": "SURIMI-Ecopath@156c130",
+  "SURIMI-fisheries-authority": "SURIMI-fisheries-authority@a68715a",
+  "controller_protocol": "b10b05a0ca7f",
+  "ewe_model": "SURIMI-data_preprocessing@92f4ad6"
+ },
+ "notes": [],
+ "functional_groups": [
+  {
+   "key": "11",
+   "name": "Spottail mantis shrimp",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "MTS",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "12",
+   "name": "Norway lobster",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "NEP",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "13",
+   "name": "Red shrimp",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "ARA",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "14",
+   "name": "Other shrimps",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "FAM",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LKO",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LKT",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SKM",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "15",
+   "name": "Crabs",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "GRQ",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LQZ",
+     "life_stage": ""
+    },
+    {
+     "species_code": "OLV",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "16",
+   "name": "Bivalves-gastropods",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BOY",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "18",
+   "name": "Benthic cephalopods (continental shelf)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "EOI",
+     "life_stage": ""
+    },
+    {
+     "species_code": "OCC",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "19",
+   "name": "Benthopelagic cephalopods (continental shelf)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "OUL",
+     "life_stage": ""
+    },
+    {
+     "species_code": "OUM",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SQM",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "20",
+   "name": "Benthic cephalopods (upper slope)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "OQT",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "21",
+   "name": "Benthopelagic cephalopods (upper slope)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "HQB",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SQE",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "23",
+   "name": "Juvenil mullets",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "MUT",
+     "life_stage": "juvenile"
+    }
+   ]
+  },
+  {
+   "key": "56",
+   "name": "Adult mullets",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "MUT",
+     "life_stage": "adult"
+    }
+   ]
+  },
+  {
+   "key": "24",
+   "name": "Blue whiting",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "WHB",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "25",
+   "name": "Anglerfish",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "ANK",
+     "life_stage": ""
+    },
+    {
+     "species_code": "MON",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "26",
+   "name": "Juvenil hake",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "HKE",
+     "life_stage": ""
+    },
+    {
+     "species_code": "HKE",
+     "life_stage": "juvenile"
+    }
+   ]
+  },
+  {
+   "key": "27",
+   "name": "Adult hake",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "HKE",
+     "life_stage": "adult"
+    }
+   ]
+  },
+  {
+   "key": "28",
+   "name": "Poor cod",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "POD",
+     "life_stage": ""
+    },
+    {
+     "species_code": "BIB",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "29",
+   "name": "European conger",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "COE",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "30",
+   "name": "Flatfishes",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "CIL",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LDB",
+     "life_stage": ""
+    },
+    {
+     "species_code": "BLL",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SOO",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "31",
+   "name": "Small demersal fishesl (continental shelf)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "SRG",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LDV",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SRJ",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "32",
+   "name": "Large demersal fishes (continental shelf)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "SBA",
+     "life_stage": ""
+    },
+    {
+     "species_code": "PAC",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "33",
+   "name": "Demersal fishes (upper slope)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BRF",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SFS",
+     "life_stage": ""
+    },
+    {
+     "species_code": "TSU",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "34",
+   "name": "Bentopelagic fishes",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "GLI",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LXQ",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SPC",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "35",
+   "name": "Mesopelagic fishes",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BOG",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "36",
+   "name": "Demersal sharks (continental shelf)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "SYC",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "55",
+   "name": "Demersal sharks (upper slope)",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "SCK",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SHO",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "37",
+   "name": "Rays and skates",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "JDP",
+     "life_stage": ""
+    },
+    {
+     "species_code": "RJC",
+     "life_stage": ""
+    },
+    {
+     "species_code": "JRS",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "38",
+   "name": "Juvenile anchovy",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "ANE",
+     "life_stage": "juvenile"
+    }
+   ]
+  },
+  {
+   "key": "39",
+   "name": "Adult anchovy",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "ANE",
+     "life_stage": "adult"
+    }
+   ]
+  },
+  {
+   "key": "40",
+   "name": "Juvenile sardine",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "PIL",
+     "life_stage": "juvenile"
+    }
+   ]
+  },
+  {
+   "key": "41",
+   "name": "Adult sardine",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "PIL",
+     "life_stage": "adult"
+    }
+   ]
+  },
+  {
+   "key": "42",
+   "name": "Round sardinella",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "SAA",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "43",
+   "name": "European sprat",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "SPR",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "44",
+   "name": "Horse mackerel",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "HMM",
+     "life_stage": ""
+    },
+    {
+     "species_code": "JAA",
+     "life_stage": ""
+    },
+    {
+     "species_code": "HOM",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "45",
+   "name": "Atlantic mackerel",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "MAC",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "46",
+   "name": "Atlantic bluefin tuna",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BFT",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "47",
+   "name": "Other large pelagic fishes",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BON",
+     "life_stage": ""
+    },
+    {
+     "species_code": "ALB",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "59",
+   "name": "Non-commercial large pelagic fishes",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BSK",
+     "life_stage": ""
+    },
+    {
+     "species_code": "RMM",
+     "life_stage": ""
+    },
+    {
+     "species_code": "MOX",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "60",
+   "name": "Blue shark",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "BSH",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "48",
+   "name": "Sea turtles",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "TTL",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "49",
+   "name": "Seabirds",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "CDI",
+     "life_stage": ""
+    },
+    {
+     "species_code": "FPA",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DAZ",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LVH",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LCW",
+     "life_stage": ""
+    },
+    {
+     "species_code": "LOW",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DTR",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DTY",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DKH",
+     "life_stage": ""
+    },
+    {
+     "species_code": "CVV",
+     "life_stage": ""
+    },
+    {
+     "species_code": "MVB",
+     "life_stage": ""
+    },
+    {
+     "species_code": "ISY",
+     "life_stage": ""
+    },
+    {
+     "species_code": "UIM",
+     "life_stage": ""
+    },
+    {
+     "species_code": "UYE",
+     "life_stage": ""
+    },
+    {
+     "species_code": "FBP",
+     "life_stage": ""
+    },
+    {
+     "species_code": "TVA",
+     "life_stage": ""
+    }
+   ]
+  },
+  {
+   "key": "50",
+   "name": "Dolphins",
+   "name_source": "ewe_model",
+   "members": [
+    {
+     "species_code": "PIW",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DRR",
+     "life_stage": ""
+    },
+    {
+     "species_code": "SPW",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DST",
+     "life_stage": ""
+    },
+    {
+     "species_code": "DBO",
+     "life_stage": ""
+    }
+   ]
+  }
+ ],
+ "hcr_eligible": [
+  {
+   "species_code": "BOG",
+   "life_stage": ""
+  },
+  {
+   "species_code": "HKE",
+   "life_stage": "adult"
+  },
+  {
+   "species_code": "HKE",
+   "life_stage": "juvenile"
+  },
+  {
+   "species_code": "PIL",
+   "life_stage": "adult"
+  },
+  {
+   "species_code": "MUT",
+   "life_stage": "adult"
+  },
+  {
+   "species_code": "BFT",
+   "life_stage": ""
+  }
+ ]
+}

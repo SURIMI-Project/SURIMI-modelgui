@@ -33,11 +33,12 @@ def test_migrations_ran_as_the_application_user(sql: Callable[..., list[Any]]) -
     assert (superuser, createdb) == (False, False)
 
 
-def test_the_tables_of_phase_3_exist(sql: Callable[..., list[Any]]) -> None:
+def test_the_tables_exist(sql: Callable[..., list[Any]]) -> None:
     rows = sql("SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY 1")
     assert [r[0] for r in rows] == [
-        "alembic_version", "audit_events", "identities", "login_events",
-        "login_stats_monthly", "sessions", "users",
+        "alembic_version", "app_settings", "audit_events", "experiment_events",
+        "experiment_outputs", "experiments", "hcr_configurations", "identities",
+        "login_events", "login_stats_monthly", "sessions", "simulations", "species", "users",
     ]  # fmt: skip
 
 

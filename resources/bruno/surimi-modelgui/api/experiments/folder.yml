@@ -1,0 +1,15 @@
+info:
+  name: experiments
+  type: folder
+  seq: 8
+
+request:
+  auth: inherit
+
+docs: |-
+  # Experiments
+
+  `/api/v1/experiments`: submit, list, follow, cancel, clone, delete. A
+  submitted experiment is **queued**; the worker sends it to the controller
+  when enough Ecopath pods are free (ADR 0015, ADR 0019). Members see only
+  their own; someone else's id is a `404`.

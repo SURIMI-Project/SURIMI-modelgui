@@ -1,0 +1,216 @@
+# Harvest control rules — changelog
+
+Every change made for this feature, newest first. Each entry says what changed,
+where, how it was checked and what deploying it needs. Design is in
+[README.md](README.md).
+
+---
+
+## 2026-11-16 — Several named configurations per scenario, rules in jsonb
+
+**Status:** built (backend and console). Ruff, format, mypy strict clean; **286 tests pass, all integration tests included** (PostgreSQL 17 in Docker), 2026-11-16. Migration
+`0007_hcr_configurations` **Verified** on a throwaway PostgreSQL 17: one
+user's rules of two scenarios became two "My rules" configurations with their
+rules as `jsonb`, `harvest_control_rules` dropped, a `rules` that is not an
+array refused, downgrade restores the rows, upgrade again works;
+`alembic check` finds nothing for the new table. **Not run** on the compose
+stack; the console **not used in a browser**.
+
+Asked by the user, 2026-11-16: several configurations per scenario, the rules
+in a JSON column. [ADR 0025](../../decisions/0025-several-named-hcr-configurations-per-scenario-in-jsonb.md)
+(accepted) supersedes the storage of ADR 0018 and the single set of ADR 0024.
+
+`apps/backend/`:
+
+- `src/surimi_backend/hcr/models.py`: `HcrConfiguration` (`hcr_configurations`:
+  owner, scenario, name, `rules` jsonb) replaces `HarvestControlRule`.
+- `src/surimi_backend/migrations/versions/20261116_0007_hcr_configurations.py`
+  (new): the table, index `hcr_configurations_name_uq`, checks; rules moved;
+  old table dropped.
+- `src/surimi_backend/hcr/schemas.py`: `HcrConfigurationIn` (name trimmed,
+  1 to 100), `HcrConfigurationOut`, `HcrConfigurationListOut`, `HcrRuleOut`,
+  `MAX_CONFIGURATIONS` = 50; `HcrUpdateIn`, `HcrSetIn`, `HcrListOut`, `HcrOut`
+  removed.
+- `src/surimi_backend/hcr/service.py`: `validate_rules()` (used by experiments
+  too), `create`, `replace`, `remove`, `get_configuration`,
+  `configurations_of`, `list_configurations`; 409 for a taken name (from the
+  unique index) or the 50th.
+- `src/surimi_backend/hcr/router.py`: `/api/v1/scenarios/{name}/hcr-configurations`
+  (`GET`, `POST`, `GET /{id}`, `PUT /{id}`, `DELETE /{id}`); `/hcr` routes removed.
+- `src/surimi_backend/catalog/species_import.py`: codes in use read with
+  `jsonb_array_elements`.
+- `src/surimi_backend/models.py`, `tests/conftest.py`, `tests/test_database.py`:
+  the new table.
+- Tests: `tests/test_hcr.py` rewritten (see the README's How to test).
+
+Elsewhere: experiments ([experiments CHANGELOG](../experiments/CHANGELOG.md)),
+the console ([backend-console CHANGELOG](../backend-console/CHANGELOG.md)),
+Bruno (`api/hcr-configurations/*` replaces `api/hcr/*`; environment variable
+`hcrConfigurationId` replaces `ruleId`).
+
+**Deploy:** rebuild the images, then `surimi-backend migrate` (compose's
+migrate job).
+
+Later the same day the unreleased migrations were rebuilt one per feature
+([backend-skeleton CHANGELOG](../backend-skeleton/CHANGELOG.md)): `0007_hcr_configurations`
+now only creates `hcr_configurations`; `harvest_control_rules` and the move of
+its rows into "My rules" are gone from the chain.
+
+---
+
+## 2026-11-16 — No scenario defaults; save a whole set per scenario
+
+**Status:** built (backend and console). Ruff, format, mypy strict clean; **286 tests pass, all integration tests included** (PostgreSQL 17 in Docker), 2026-11-16. Migration
+`0006_hcr_owner_required` **Verified** on a throwaway PostgreSQL 17: a
+default row deleted and an owned row kept, `owner_id` NOT NULL, the index
+rebuilt without `NULLS NOT DISTINCT`; downgrade restores both, upgrade again
+works; `alembic check` finds nothing for this table (it reports only the
+`species_search_idx` expression index from 0005, an Alembic false positive
+for expression indexes). **Not run** on the compose stack; the console's save
+button **not used in a browser**.
+
+Asked by the user, 2026-11-16: the initial biomass and fishing mortality come
+from the controller; admins will not save defaults; users save their own
+preconfigured biomass and fishing mortality per scenario.
+[ADR 0024](../../decisions/0024-harvest-control-rules-only-per-user-no-defaults.md)
+(accepted) supersedes the defaults of ADR 0018.
+
+`apps/backend/`:
+
+- `src/surimi_backend/hcr/models.py`: `owner_id` not nullable; the unique index
+  without `postgresql_nulls_not_distinct`.
+- `src/surimi_backend/migrations/versions/20261116_0006_hcr_owner_required.py`
+  (new, revision `0006_hcr_owner_required`): deletes the rows with no owner,
+  sets NOT NULL, rebuilds `harvest_control_rules_entry_uq`.
+- `src/surimi_backend/hcr/schemas.py`: `HcrSetIn` (`rules`, at most
+  `MAX_RULES` = 200); `HcrListOut` loses `source`.
+- `src/surimi_backend/hcr/service.py`: `replace()` (whole set, one
+  transaction, all or nothing, every problem listed; logs `hcr.saved`);
+  `effective_rules()` becomes `saved_rules()`; `reset()`, `count_defaults()`
+  and the `hcr_default.*` audit events removed; no `actor_id`.
+- `src/surimi_backend/hcr/router.py`: `PUT /api/v1/scenarios/{name}/hcr`
+  added; `POST …/hcr/reset` and `admin_router`
+  (`/api/v1/admin/scenarios/{name}/hcr-defaults`) removed. `main.py` no
+  longer registers the admin router.
+- Removed: `src/surimi_backend/hcr/seed.py`,
+  `catalog/data/northwestern_med_hcr_defaults.csv`,
+  `catalog/data/anchovy_bay_hcr_defaults.csv`, and `surimi-backend seed-hcr`
+  (`cli.py`).
+- `experiments/service.py`, `experiments/options.py`, `experiments/schemas.py`:
+  saved rules only; `rules_source` removed from the options.
+- `catalog/species_import.py` (docstring), `scripts/build_species_csv.py` and
+  `tests/test_species.py` no longer read the defaults CSVs (`species.csv`
+  unchanged: it holds the whole ASFIS list).
+- Tests: `tests/test_hcr.py` rewritten (no rules before saving; whole-set save
+  replaces, per scenario and per user, `[]` deletes; all or nothing with
+  every problem listed; no admin routes; `owner_id` NOT NULL); seed tests and
+  `tests/test_cli.py::test_seed_hcr_runs_in_a_fresh_process` removed;
+  `tests/test_experiment_options.py` without `rules_source`.
+
+Elsewhere: `deployments/compose.yml` (the migrate job no longer runs
+`seed-hcr`), the console's **Save as my rules**
+([backend-console CHANGELOG](../backend-console/CHANGELOG.md)), Bruno
+(`api/hcr/put hcr.yml` new; `post hcr reset.yml` and `api/admin/hcr-defaults/`
+removed).
+
+The open question "HCR values for all species of the three case studies"
+(asked by the project) is removed here and from ISSUES.md: it was needed only for
+the defaults.
+
+**Deploy:** rebuild the images, then `surimi-backend migrate` (compose's
+migrate job). It deletes the default rows (the `BFT` row from the controller team's example).
+
+---
+
+## 2026-11-13 — Biomass in kg; migrations rebuilt
+
+**Status:** built (backend).
+
+- [ADR 0022](../../decisions/0022-hcr-biomass-in-kg-tonnes-only-in-the-ui.md)
+  (accepted by the user 2026-11-13) replaces the unit of ADR 0018: the
+  database, the API and each experiment's stored request hold biomass in kg;
+  tonnes only in the phase 10 UI.
+- API: `biomass_limit_t`, `biomass_base_t` → `biomass_limit_kg`,
+  `biomass_base_kg` in `HcrIn`, `HcrUpdateIn`, `HcrOut`
+  (`hcr/schemas.py`, `MAX_BIOMASS_KG = 3.3e12`), `hcr/service.py` (also the
+  audit details), `hcr/router.py` (summary).
+- Database: columns `biomass_limit_kg`, `biomass_base_kg`; check
+  `biomass_limit_kg > 0 AND biomass_limit_kg < biomass_base_kg AND
+  biomass_base_kg <= 3300000000000` (`hcr/models.py`).
+- `hcr/seed.py`: the controller team's CSV stays in tonnes; `parse()` multiplies by
+  `KG_PER_TONNE` (1000), the only conversion left in the backend.
+- Migrations `0004_experiments`, `0005_results_and_hcr_bounds` and
+  `0006_initialised` (none released) are replaced by one,
+  `20261113_0004_experiments_hcr_kg.py` (revision `0004_experiments_hcr_kg`),
+  which creates their end state directly. A new revision id, so a database
+  that ran the old ones stops with "Can't locate revision" instead of
+  silently keeping tonne columns.
+- Tests: `tests/test_hcr.py` (kg values, 3.4e12 → 422, seed rows in kg),
+  `tests/world.py`.
+- **Verified** 2026-11-13: the old chain and the new migration applied to two
+  empty PostgreSQL 17 databases; `pg_dump --schema-only` differs only in the
+  two kg columns, the kg check and the position of `experiments.completed_at`
+  (now next to `finished_at`); enum `experiment_status` identical;
+  `alembic check` finds no difference between the models and the new schema;
+  downgrade to `0003_user_names` and upgrade again work. Ruff, format, mypy
+  strict clean; 239 tests pass (integration included, Docker).
+- Found while checking: the controller does not enforce the `buf.validate`
+  bounds on `SubmitExperiment` (SURIMI-controller `117e604`: no validation
+  interceptor; only `scenario_name` is checked), so our checks are the only
+  ones. **Read from source.**
+- Deploy: recreate the database (or drop its tables of migration 0004 onward
+  and the `alembic_version` row back to `0003_user_names`), then
+  `surimi-backend migrate` and `seed-hcr`. See [docs/CHANGELOG.md](../../CHANGELOG.md).
+
+---
+
+## 2026-11-12 — The controller's bounds
+
+**Status:** built (backend).
+
+- `hcr/schemas.py`: `MAX_BIOMASS_T = 3.3e9` and `MAX_F = 100`, from the
+  controller's `buf.validate` rules (SURIMI-protocol `0c4b6c4`: biomass in
+  (0, 3.3e12] kg, `f_max` in (0, 100]). `HcrIn`, `HcrUpdateIn` and the rules in
+  `POST /experiments` refuse values above them (422).
+- `hcr/seed.py`: seed rows outside the bounds are reported, not loaded.
+- `hcr/models.py` and migration `0005_results_and_hcr_bounds`: checks
+  `harvest_control_rules_limits_ck` (… `AND biomass_base_t <= 3300000000`) and
+  `harvest_control_rules_f_max_ck` (`f_max > 0 AND f_max <= 100`).
+- The open question "allowed range of `f_max`" is answered by the protocol and
+  removed.
+- Tests: `tests/test_hcr.py` (`f_max` 100.5 and `biomass_base_t` 3.4e9 → 422;
+  a seed row with `f_max` 101 reported).
+- **Verified** 2026-11-12: Ruff, format, mypy strict clean; 235 tests pass;
+  the two checks seen in `pg_constraint` after migrating down to `0004` and up.
+- Deploy: `surimi-backend migrate`. It fails if a saved rule is outside the
+  bounds (none are expected: the defaults are far below).
+
+---
+
+## 2026-11-06 — Rules per user and scenario, defaults, seed
+
+**Status:** built (plan 2026-11-05 step 4b). Ruff, Ruff format and mypy strict clean; 229 tests pass, of them 61 new (integration tests against PostgreSQL 17 in Docker). `tests/test_hcr.py`:
+owner-only CRUD (someone else's rule is 404), the eligibility 422 naming
+`BFT, BOG, HKE adult, HKE juvenile, MUT adult, PIL adult`, limit not below
+base 422, duplicate 409 (life stage compared without case), reset, admin
+defaults with audit events, the controller team's file format (CRLF, spaced headers, tab-only
+rows) and a seed that loads only eligible rows and never overwrites.
+**Verified** on the compose stack: the migrate job ran `seed-hcr` and loaded
+`BFT` for `northwestern_med`, reporting `SAA`, `ANE` (NW Med) and `MAC`
+(Anchovy Bay) as not HCR-eligible.
+
+`apps/backend/…`:
+
+- `src/surimi_backend/hcr/` (`models.py`, `schemas.py`, `service.py`,
+  `router.py`, `seed.py`): new module.
+- `src/surimi_backend/migrations/versions/20261106_0004_experiments.py`:
+  table `harvest_control_rules` (unique per owner, scenario, species and
+  `lower(life_stage)`, `NULLS NOT DISTINCT`; checks on the limits).
+- `src/surimi_backend/catalog/data/northwestern_med_hcr_defaults.csv`,
+  `anchovy_bay_hcr_defaults.csv`: the controller team's example (mail 2026-10-16) as sent.
+- `src/surimi_backend/cli.py`: `seed-hcr`; it registers every model so the
+  owner foreign key resolves (a fresh-process test guards this: the first
+  compose run failed on it).
+
+**Deploy:** migration `0004_experiments`; compose's migrate job now runs
+`seed-hcr` too.

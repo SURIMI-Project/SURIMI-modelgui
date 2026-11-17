@@ -3,6 +3,9 @@
 surimi-backend serve          run the API (uvicorn)
 surimi-backend migrate        apply database migrations (alembic upgrade head)
 surimi-backend create-admin   create the first admin, or make a user admin
+surimi-backend seed-species   load catalog/data/species.csv into the species table
+                              (missing codes only; --update overwrites changed rows)
+surimi-backend worker         run the worker: poll, queue dispatch, output indexing
 surimi-backend version        print the backend version and the pinned protocol
 """
 
@@ -12,6 +15,7 @@ import argparse
 import asyncio
 import sys
 from importlib import resources
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from surimi_backend import __version__
@@ -49,6 +53,7 @@ def serve() -> None:
         factory=True,
         host=settings.host,
         port=settings.port,
+        workers=settings.web_concurrency,
         proxy_headers=True,
         forwarded_allow_ips=settings.trusted_proxies,
         access_log=False,  # RequestContextMiddleware logs requests
@@ -130,6 +135,49 @@ def create_admin(args: argparse.Namespace) -> int:
     return 0
 
 
+async def _seed_species(path: Path | None, *, update: bool) -> list[str]:
+    import surimi_backend.models  # noqa: F401 - every table, so foreign keys resolve
+    from surimi_backend.catalog.species import SPECIES_CSV, read_species_file, seed_species
+    from surimi_backend.core.config import Settings
+    from surimi_backend.core.db import create_engine, create_sessionmaker
+
+    rows = read_species_file(path or SPECIES_CSV)
+    engine = create_engine(Settings())
+    try:
+        async with create_sessionmaker(engine)() as db:
+            report = await seed_species(db, rows, update=update)
+    finally:
+        await engine.dispose()
+    return report.lines()
+
+
+def seed_species(path: Path | None = None, *, update: bool = False) -> int:
+    """Inserts missing codes; with `update` also overwrites changed rows; never
+    deletes (catalog/species.py)."""
+    from surimi_backend.core.config import Settings
+    from surimi_backend.core.logging import configure_logging
+
+    configure_logging(Settings())
+    try:
+        lines = asyncio.run(_seed_species(path, update=update))
+    except (OSError, ValueError) as exc:
+        print(f"seed-species: {exc}", file=sys.stderr)
+        return 1
+    for line in lines:
+        print(f"seed-species: {line}")
+    return 0
+
+
+def worker() -> None:
+    from surimi_backend.core.config import Settings
+    from surimi_backend.core.logging import configure_logging
+    from surimi_backend.scheduler.worker import run_worker
+
+    settings = Settings()
+    configure_logging(settings)
+    asyncio.run(run_worker(settings))
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="surimi-backend")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -151,6 +199,14 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument(
         "--reset-password", action="store_true", help="also set the password of an existing user"
     )
+    sp = sub.add_parser(
+        "seed-species", help="load species names into the species table (missing codes only)"
+    )
+    sp.add_argument("--file", type=Path, help="default: catalog/data/species.csv")
+    sp.add_argument(
+        "--update", action="store_true", help="also overwrite rows that differ from the file"
+    )
+    sub.add_parser("worker", help="run the worker (one leader at a time, ADR 0019)")
     sub.add_parser("version", help="print versions")
     args = parser.parse_args(argv)
 
@@ -160,6 +216,10 @@ def main(argv: list[str] | None = None) -> None:
         migrate(args.revision)
     elif args.command == "create-admin":
         sys.exit(create_admin(args))
+    elif args.command == "seed-species":
+        sys.exit(seed_species(args.file, update=args.update))
+    elif args.command == "worker":
+        worker()
     else:
         from surimi_backend.api.health import pinned_protocol
 

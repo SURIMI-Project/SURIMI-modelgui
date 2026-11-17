@@ -8,6 +8,11 @@ tested or imported by the backend.
 | --- | --- |
 | `build.py` | Aggregates the monthly `.nc` to calendar years into raw float32 memmaps, then writes every storage variant (M2–M5, A1–A3, D1–D7) and records size, object count and build time in `work/build_results.json` |
 | `make_summary.py` | Writes `summary.json.gz` in the proposed structure (meta, species, columnar yearly series, per-fleet and per-market tables) from `build.py`'s yearly memmaps and the case-study species CSV |
+| `make_indexed.py` | Writes the monthly `.nc` with the four maps indexed by species × fleet × lat × lon (CF compression by gathering); every other variable copied unchanged |
+| `indexed_chunks.py` | Writes the indexed maps with several chunk layouts and counts the exact chunks and bytes one species needs, checking the values against the source |
+| `indexed_yearly.py` | Yearly data with the index (fleets kept, and fleets summed), checked against the yearly aggregates; measures the map payload for the browser |
+| `query_indexed.py` | Six example queries on the indexed file (species map, species per fleet, one cell, a lat/lon box, yearly mean, a pandas table), each checked against the original |
+| `verify_indexed.py` | Rebuilds every map of the indexed file for all months and compares it value by value with the source, plus every other variable and its units |
 | `series.py` | Builds the chart tables (per species, per fleet, per market, yearly) and measures them as JSON, gzipped JSON and Parquet |
 | `verify.py` | Checks the yearly product against the monthly source for three years, and measures the loss of the 12-bit variants |
 | `access.py` | Uploads a variant to S3 and reads exactly what each dashboard action needs, counting every S3 request and byte |
@@ -30,6 +35,13 @@ python verify.py "$SRC" work/variants
 OUT=../../../../output_folder/experiments/99c1e2a4-5d3f-4e8a-9c6b-1f2a3d4e5f60/derived
 mkdir -p "$OUT" && cp work/variants/D1_nc_dash_species.nc "$OUT/maps.nc"
 python make_summary.py work "$SRC" ../../../../apps/frontend/src/data/assets/west_med_fishes.csv "$OUT/summary.json.gz"
+
+# the monthly file indexed by species x fleet x lat x lon (about 90 s, no work/ needed)
+python make_indexed.py "$SRC" "$OUT/indexed.nc"
+python verify_indexed.py "$SRC" "$OUT/indexed.nc"
+python indexed_chunks.py "$SRC" work/chunks                  # about 6 min
+python indexed_yearly.py work "$SRC" work/yearly_indexed      # needs build.py step 1
+cp work/yearly_indexed/Y1_4096.nc "$OUT/yearly_indexed.nc"
 
 # S3: a throwaway MinIO; optional network delay with netem
 docker run -d --name surimi-bench-minio -p 9100:9000 \

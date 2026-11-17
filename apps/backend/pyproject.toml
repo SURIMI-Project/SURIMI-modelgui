@@ -16,6 +16,9 @@ dependencies = [
     "pyjwt[crypto]>=2.10",          # access tokens; OIDC ID token verification
     "httpx>=0.28",                  # OIDC discovery, token exchange, JWKS
     "pydantic[email]>=2.11",        # EmailStr
+    "numpy>=2.3",                   # decode output chunks (ADR 0020)
+    "h5py>=3.14",                   # build the chunk index of an output file (ADR 0020)
+    "s3fs>=2025.10",                # outputs on S3 through fsspec; botocore signs download links (ADR 0009)
 ]
 
 [project.scripts]
@@ -60,5 +63,5 @@ packages = ["surimi_backend"]
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["surimi.*", "buf.*", "grpc.*", "testcontainers.*"]
+module = ["surimi.*", "buf.*", "grpc.*", "testcontainers.*", "h5py.*", "s3fs.*", "fsspec.*", "botocore.*", "asyncpg.*"]
 ignore_missing_imports = true

@@ -1,0 +1,20 @@
+info:
+  name: get outputs files
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/files"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get outputs files
+
+  The raw files you may download: the `.nc`, and for admins the `.bin`.

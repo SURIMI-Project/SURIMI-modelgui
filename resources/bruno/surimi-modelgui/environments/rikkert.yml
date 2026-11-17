@@ -3,3 +3,9 @@ variables:
   - name: urlGrpcProxy
     value: https://user-rikkert-surimi-controller.lab.dive.edito.eu/
     description: ""
+  - name: experimentId
+    value: ""
+    description: Set by experiments/post experiment
+  - name: hcrConfigurationId
+    value: ""
+    description: Set by hcr-configurations/post hcr configuration; used by get, put and delete

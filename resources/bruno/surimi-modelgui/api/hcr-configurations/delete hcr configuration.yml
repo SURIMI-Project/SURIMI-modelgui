@@ -1,0 +1,20 @@
+info:
+  name: delete hcr configuration
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/hcr-configurations/{{hcrConfigurationId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # delete hcr configuration
+
+  `204`. Experiments that used it keep their rules (copied into their request).

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SURIMI model GUI · Backend console</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <span class="brand">SURIMI <span class="muted">model GUI · backend console</span></span>
+    <span id="bar-user" class="bar-user" hidden>
+      <span id="bar-name"></span>
+      <button id="logout" type="button" class="link">Sign out</button>
+    </span>
+  </header>
+
+  <main>
+    <p id="loading" class="muted">Loading…</p>
+
+    <!-- Sign-in -->
+    <section id="view-login" class="card narrow" hidden>
+      <h1>Sign in</h1>
+      <form id="login-form" novalidate>
+        <label>E-mail or username
+          <input name="login" autocomplete="username" required maxlength="320" autofocus>
+        </label>
+        <label>Password
+          <input name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <p id="login-error" class="error" role="alert" hidden></p>
+        <button type="submit">Sign in</button>
+      </form>
+      <div id="sso" hidden>
+        <p class="divider"><span>or</span></p>
+        <div id="sso-buttons" class="stack"></div>
+      </div>
+    </section>
+
+    <!-- Password change (forced or voluntary) -->
+    <section id="view-password" class="card narrow" hidden>
+      <h1>Change your password</h1>
+      <p id="password-forced" class="notice" hidden>
+        Your account has a temporary password. Choose a new one to continue.
+      </p>
+      <form id="password-form" novalidate>
+        <input name="username" autocomplete="username" hidden>
+        <label>Current password
+          <input name="current_password" type="password" autocomplete="current-password" required>
+        </label>
+        <label>New password <span class="muted">(at least 12 characters)</span>
+          <input name="new_password" type="password" autocomplete="new-password" required minlength="12">
+        </label>
+        <p id="password-error" class="error" role="alert" hidden></p>
+        <div class="row">
+          <button type="submit">Change password</button>
+          <button id="password-cancel" type="button" class="secondary">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Home -->
+    <section id="view-home" hidden>
+      <h1 id="greeting"></h1>
+      <p id="password-done" class="notice" hidden>Your password was changed. Your other sessions have ended.</p>
+
+      <!-- Tabs: one address each (#/home, #/species, #/users, #/species-import). -->
+      <nav class="tabs" role="tablist" aria-label="Console sections">
+        <a id="tab-link-home" class="tab" role="tab" href="#/home" aria-controls="tab-home">Home</a>
+        <a id="tab-link-experiments" class="tab" role="tab" href="#/experiments" aria-controls="tab-experiments">New experiment</a>
+        <a id="tab-link-species" class="tab" role="tab" href="#/species" aria-controls="tab-species">Species</a>
+        <a id="tab-link-users" class="tab" role="tab" href="#/users" aria-controls="tab-users" hidden>Users</a>
+        <a id="tab-link-species-import" class="tab" role="tab" href="#/species-import" aria-controls="tab-species-import" hidden>Species import &amp; export</a>
+      </nav>
+
+      <div id="tab-home" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-home">
+      <div class="grid">
+        <section class="card">
+          <h2>Your account</h2>
+          <dl id="account" class="facts"></dl>
+          <button id="password-open" type="button" class="secondary" hidden>Change password</button>
+        </section>
+
+        <section class="card">
+          <h2>Scenarios</h2>
+          <p class="muted small">From the SURIMI controller, through <code>GET /api/v1/scenarios</code>.</p>
+          <ul id="scenarios" class="list"></ul>
+          <p id="scenarios-error" class="error" hidden></p>
+        </section>
+      </div>
+      </div>
+
+      <div id="tab-users" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-users" hidden>
+      <section id="users-card" class="card">
+        <h2>Users <span id="users-total" class="muted"></span></h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Username</th><th>E-mail</th><th>Role</th><th>Account</th><th>Active</th><th>Last sign-in</th></tr>
+            </thead>
+            <tbody id="users"></tbody>
+          </table>
+        </div>
+        <p id="users-error" class="error" hidden></p>
+      </section>
+      </div>
+
+      <!-- New experiment: everyone (experiment-options, POST /api/v1/experiments) -->
+      <div id="tab-experiments" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-experiments" hidden>
+      <section class="card">
+        <h2>New experiment</h2>
+        <p class="muted small">
+          Choose a scenario; its options come from the controller's contract and the scenario
+          catalog, through <code>GET /api/v1/scenarios/{name}/experiment-options</code>.
+          The experiment waits in the queue until the controller has free Ecopath pods.
+        </p>
+        <label>Scenario
+          <select id="exp-scenario">
+            <option value="">Choose a scenario…</option>
+          </select>
+        </label>
+        <p id="exp-options-error" class="error" hidden></p>
+
+        <form id="exp-form" novalidate hidden>
+          <div class="filters">
+            <label>Name <input name="exp_name" maxlength="200" required placeholder="Hake HCR to 2030"></label>
+            <label>End date <span id="exp-range" class="muted small"></span>
+              <input name="end_date" type="date" required>
+            </label>
+            <label id="exp-climate-label">Climate scenario
+              <select name="climate_scenario"></select>
+            </label>
+            <label class="check">
+              <input name="is_mse_run" type="checkbox">
+              <span>MSE run <span id="exp-pods" class="muted small"></span></span>
+            </label>
+          </div>
+
+          <h3>Harvest control rules <span id="exp-rules-source" class="muted small"></span></h3>
+          <p class="muted small">
+            Add the species to regulate from the list, then fill in its rule: biomass in
+            tonnes for the whole model area, fishing mortality per year (it can be above 1).
+            Below the biomass limit no fishing is allowed; above the biomass base the fishing
+            mortality is the one you set. Every species in the list is sent. The initial biomass
+            and F come from the controller, for reference. Only the species the fisheries
+            authority has settings for can carry a rule; the others are listed, greyed. Keep as
+            many named configurations per scenario as you like: choose one to load it, then save
+            your changes to it or save them as a new one.
+          </p>
+          <div class="filters">
+            <label>Configuration
+              <select id="exp-config"><option value="">(none: start empty)</option></select>
+            </label>
+            <label>Name <input id="exp-config-name" maxlength="100" placeholder="Cautious hake"></label>
+            <div class="actions">
+              <button id="exp-config-save" type="button" class="secondary">Save</button>
+              <button id="exp-config-new" type="button" class="secondary">Save as new</button>
+              <button id="exp-config-delete" type="button" class="secondary">Delete</button>
+            </div>
+          </div>
+          <p id="exp-config-notice" class="notice" hidden></p>
+          <p id="exp-config-error" class="error" role="alert" hidden></p>
+          <ul id="exp-config-problems" class="list error" hidden></ul>
+          <div class="filters">
+            <label>Add a species <select id="exp-species-pick"></select></label>
+            <div class="actions">
+              <button id="exp-species-add" type="button" class="secondary">Add</button>
+            </div>
+          </div>
+          <p id="exp-species-count" class="muted small"></p>
+          <p id="exp-rules-count" class="muted"></p>
+          <div class="table-wrap">
+            <table id="exp-hcr-table" class="hcr" hidden>
+              <thead>
+                <tr>
+                  <th>Species</th><th>Group</th><th>Initial biomass</th><th>Initial F</th>
+                  <th>Biomass limit (t)</th><th>Biomass base (t)</th><th>Fishing mortality (/year)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="exp-hcr"></tbody>
+            </table>
+          </div>
+          <ul id="exp-notes" class="list muted small"></ul>
+
+          <div class="actions">
+            <button id="exp-submit" type="submit">Submit experiment</button>
+          </div>
+        </form>
+        <p id="exp-submit-error" class="error" role="alert" hidden></p>
+        <ul id="exp-problems" class="list error" hidden></ul>
+        <p id="exp-submitted" class="notice" hidden></p>
+      </section>
+
+      <section class="card">
+        <h2>My experiments <span id="exp-total" class="muted"></span></h2>
+        <p><button id="exp-refresh" type="button" class="secondary">Refresh</button></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Scenario</th><th>Status</th><th>Progress</th><th>Queue</th><th>Pods</th><th>Created</th><th></th></tr>
+            </thead>
+            <tbody id="exp-list"></tbody>
+          </table>
+        </div>
+        <p id="exp-list-error" class="error" hidden></p>
+        <p id="exp-list-notice" class="notice" hidden></p>
+      </section>
+      </div>
+
+      <!-- Species: everyone (GET /api/v1/species) -->
+      <div id="tab-species" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-species" hidden>
+      <section id="species-card" class="card">
+        <h2>Species <span id="species-total" class="muted"></span></h2>
+        <p class="muted small">
+          FAO ASFIS names and higher taxa, through <code>GET /api/v1/species</code>.
+          Search finds words that start with what you type (<code>hake</code>, <code>merluc</code>, <code>HKE</code>).
+        </p>
+        <form id="species-filter" class="filters" novalidate>
+          <label>Search <input name="q" maxlength="100" placeholder="hake"></label>
+          <label>ISSCAAP group <input name="isscaap_group" maxlength="10" placeholder="32"></label>
+          <label>Family <input name="family" maxlength="100" placeholder="MERLUCCIIDAE"></label>
+          <label>Order or higher taxa <input name="order_or_higher_taxa" maxlength="100" placeholder="GADIFORMES"></label>
+          <label>Sort
+            <select name="sort">
+              <option value="species_code">Code, A → Z</option>
+              <option value="-species_code">Code, Z → A</option>
+              <option value="name">Name, A → Z</option>
+              <option value="-name">Name, Z → A</option>
+              <option value="scientific_name">Scientific name, A → Z</option>
+              <option value="-scientific_name">Scientific name, Z → A</option>
+            </select>
+          </label>
+          <div class="filter-actions">
+            <button type="submit">Filter</button>
+            <button id="species-clear" type="button" class="secondary">Clear</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Name</th><th>Scientific name</th><th>Family</th><th>Order or higher taxa</th><th>ISSCAAP</th><th>Source</th></tr>
+            </thead>
+            <tbody id="species"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="species-prev" type="button" class="secondary">Previous</button>
+          <span id="species-page" class="muted small"></span>
+          <button id="species-next" type="button" class="secondary">Next</button>
+        </div>
+        <p id="species-error" class="error" hidden></p>
+      </section>
+      </div>
+
+      <!-- Species import and export: admins (/api/v1/admin/species/*) -->
+      <div id="tab-species-import" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-species-import" hidden>
+      <section id="species-admin-card" class="card">
+        <h2>Species import and export</h2>
+        <p class="muted small">
+          Export downloads the whole table as CSV; it imports back as is. Import maps the
+          file's columns onto the table's, checks the file (dry run), then applies it.
+          <strong>Upsert</strong> adds new codes and changes existing rows in the mapped columns only.
+          <strong>Replace</strong> makes the file the table: rows not in it are deleted, unmapped
+          columns emptied; a code still in use cannot be deleted. Any error and nothing changes.
+        </p>
+        <p><button id="species-export" type="button" class="secondary">Export CSV</button></p>
+        <form id="species-import" novalidate>
+          <label>CSV file (UTF-8)
+            <input name="file" type="file" accept=".csv,.txt,text/csv,text/plain">
+          </label>
+          <div class="filters">
+            <label>Delimiter
+              <select name="delimiter">
+                <option value=",">Comma ( , )</option>
+                <option value=";">Semicolon ( ; )</option>
+                <option value="tab">Tab</option>
+              </select>
+            </label>
+            <label>Mode
+              <select name="mode">
+                <option value="upsert">Upsert: add and update, delete nothing</option>
+                <option value="replace">Replace: the file becomes the table</option>
+              </select>
+            </label>
+            <label>Source of rows when not mapped
+              <select name="default_source">
+                <option value="manual">manual</option>
+                <option value="asfis">asfis</option>
+              </select>
+            </label>
+          </div>
+          <fieldset id="species-mapping" hidden>
+            <legend>Column mapping <span class="muted small">(table column ← file column)</span></legend>
+            <div id="species-mapping-rows" class="filters"></div>
+          </fieldset>
+          <div class="actions">
+            <button id="species-check" type="button">Check (dry run)</button>
+            <button id="species-apply" type="button" disabled>Import</button>
+          </div>
+        </form>
+        <p id="species-import-error" class="error" role="alert" hidden></p>
+        <div id="species-report" hidden>
+          <h3 id="species-report-title"></h3>
+          <dl id="species-report-facts" class="facts"></dl>
+          <div id="species-report-errors" hidden>
+            <h4 class="error">Errors</h4>
+            <ul id="species-report-error-list" class="list"></ul>
+          </div>
+          <div id="species-report-warnings" hidden>
+            <h4>Warnings</h4>
+            <ul id="species-report-warning-list" class="list"></ul>
+          </div>
+        </div>
+      </section>
+      </div>
+
+      <p class="muted small">
+        API reference: <a href="/api/v1/docs">/api/v1/docs</a>.
+        This page only calls the public API. It is not the SURIMI frontend.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,22 @@
+info:
+  name: get admin queue
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/queue"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+
+docs: |-
+  # get admin queue
+
+  Every queued experiment in dispatch order, and every experiment holding
+  pods: `managed` (ours or not), `leaked` (pods kept by `Error` simulations,
+  freed only by a controller restart), `stalled`.
