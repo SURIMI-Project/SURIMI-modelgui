@@ -54,6 +54,14 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
 - To reach a controller, also start the gRPC-Web proxy and set
   `CONTROLLER_GRPC_URL`:
   `docker compose -f deployments/compose.yml --profile grpc-proxy up --build -d`.
+- Metrics, dashboards and traces: `docker compose -f deployments/compose.yml
+  --profile observability up --build -d` adds Prometheus
+  (<http://localhost:18090>), Grafana with the dashboard "SURIMI model GUI"
+  (<http://localhost:18091>, user `admin`, password `GRAFANA_ADMIN_PASSWORD`,
+  `admin-local-only` by default) and Jaeger (<http://localhost:18092>); set
+  `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318` in `deployments/.env` for
+  traces. The API's own metrics are at <http://localhost:18082/metrics>
+  ([observability-and-activity](docs/features/observability-and-activity/README.md)).
 
 ### Sign in to the API
 

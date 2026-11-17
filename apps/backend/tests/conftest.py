@@ -46,6 +46,15 @@ TABLES = (
 # --- unit tests ---------------------------------------------------------------------
 
 
+@pytest.fixture(autouse=True)
+def no_multiprocess_metrics(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`serve` with WEB_CONCURRENCY > 1 writes PROMETHEUS_MULTIPROC_DIR into the
+    environment for the processes it starts; in the test process that would make
+    every later app read an empty metrics folder. Set through monkeypatch, the
+    variable is put back after each test."""
+    monkeypatch.setenv("PROMETHEUS_MULTIPROC_DIR", "")
+
+
 @pytest.fixture
 def settings() -> Settings:
     # Port 1: nothing listens there, so database checks fail fast unless a test

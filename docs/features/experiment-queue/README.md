@@ -153,7 +153,7 @@ or the database.
 | --- | --- |
 | Web app | Admin → Queue: waiting runs in dispatch order, pods in use per run, paused or not. Members see their position on the experiments page |
 | API | `GET /api/v1/admin/queue` (Bruno: `api/admin/get admin queue`) |
-| Metrics | `surimi_queue_length`, `surimi_pods_in_use`, `surimi_pods_total`, `surimi_queue_wait_seconds` on `/metrics` |
+| Metrics | `surimi_experiments_active{status="queued"}` (queue length) and `surimi_ecopath_pods_in_use` on the worker's `/metrics` ([observability-and-activity](../observability-and-activity/README.md#metrics)) |
 | Logs | `experiment.queued`, `experiment.dispatched`, `queue.stalled` with `experiment_id` |
 | Database | the query below |
 
@@ -182,9 +182,12 @@ The controller's own view of pods is `GetAllSimulationStatuses` in Bruno
 
 ## Observability
 
-Gauges `surimi_queue_length`, `surimi_pods_total`, `surimi_pods_in_use`;
-histogram `surimi_queue_wait_seconds`; counter `surimi_queue_stalled_total`;
-events `experiment.queued`, `experiment.dispatched`, `experiment.stalled`;
+Gauges `surimi_experiments_active{status}` (`queued` is the queue length)
+and `surimi_ecopath_pods_in_use` (pods of our in-flight runs), set by the
+worker leader (built 2026-11-17, [observability-and-activity](../observability-and-activity/README.md#metrics)).
+Not built from the first design: `surimi_pods_total` (it is the setting
+`ECOPATH_PODS`), `surimi_queue_wait_seconds` and `surimi_queue_stalled_total`.
+Events `experiment.queued`, `experiment.dispatched`, `experiment.stalled`;
 audit `queue.priority_changed`, `queue.paused`.
 
 ---

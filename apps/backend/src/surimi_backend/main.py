@@ -12,6 +12,7 @@ from fastapi import FastAPI
 
 from surimi_backend import __version__
 from surimi_backend.api import health
+from surimi_backend.audit import router as audit_router
 from surimi_backend.auth import router as auth_router
 from surimi_backend.auth.ratelimit import FailureCounter
 from surimi_backend.catalog import router as catalog_router
@@ -28,6 +29,14 @@ from surimi_backend.hcr import router as hcr_router
 from surimi_backend.integrations.controller import ControllerClient, build_controller_client
 from surimi_backend.integrations.oidc import build_providers
 from surimi_backend.notifications import router as events_router
+from surimi_backend.observability import router as activity_router
+from surimi_backend.observability.metrics import metrics_router
+from surimi_backend.observability.tracing import (
+    API_SERVICE,
+    configure_tracing,
+    instrument_app,
+    shutdown_tracing,
+)
 from surimi_backend.outputs import router as outputs_router
 from surimi_backend.outputs.read import OutputReader
 from surimi_backend.outputs.storage import OutputStorage
@@ -64,6 +73,9 @@ def create_app(
     settings.validate_for_api()
     provider_settings = settings.oidc_provider_settings()
     catalog_files = load_catalog_files()
+    # Before the engine and the controller channel exist: the instrumentations
+    # patch their creation.
+    tracer_provider = configure_tracing(settings, API_SERVICE)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -101,6 +113,9 @@ def create_app(
             database=f"{settings.sqlalchemy_url.host}/{settings.sqlalchemy_url.database}",
             sso_enabled=bool(provider_settings),
             sso_providers=sorted(provider_settings),
+            metrics_enabled=settings.metrics_enabled,
+            metrics_multiprocess=bool(settings.prometheus_multiproc_dir),
+            tracing_enabled=tracer_provider is not None,
         )
         log.info("app.config", **config_summary(settings))
         try:
@@ -110,6 +125,7 @@ def create_app(
             if oidc_http is None:
                 await http.aclose()
             await engine.dispose()
+            shutdown_tracing()
             log.info("app.stopped")
 
     app = FastAPI(
@@ -136,8 +152,14 @@ def create_app(
         outputs_router.router,
         outputs_router.admin_router,
         events_router.router,
+        activity_router.router,
+        audit_router.router,
     ):
         app.include_router(router)
+    if settings.metrics_enabled:
+        app.include_router(metrics_router(settings))
     install_console(app, settings)
     app.add_middleware(RequestContextMiddleware, log_client_ip=settings.log_client_ip)
+    # Outermost, so the request log line and every span below carry the trace.
+    instrument_app(app, tracer_provider)
     return app

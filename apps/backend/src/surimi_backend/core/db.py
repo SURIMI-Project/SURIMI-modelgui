@@ -11,14 +11,10 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 import asyncpg
+import sqlalchemy.ext.asyncio as sa_asyncio
 from fastapi import Request
 from sqlalchemy import MetaData, text
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
 from surimi_backend.core.config import Settings
@@ -40,7 +36,9 @@ def create_engine(settings: Settings) -> AsyncEngine:
     connect_args: dict[str, Any] = {}
     if settings.database_url is None and settings.db_sslmode != "disable":
         connect_args["ssl"] = settings.db_sslmode  # asyncpg accepts libpq-style modes
-    return create_async_engine(
+    # Looked up at call time: with tracing on, the OpenTelemetry SQLAlchemy
+    # instrumentation replaces sqlalchemy.ext.asyncio.create_async_engine.
+    return sa_asyncio.create_async_engine(
         settings.sqlalchemy_url,
         pool_size=settings.db_pool_size,
         pool_pre_ping=True,

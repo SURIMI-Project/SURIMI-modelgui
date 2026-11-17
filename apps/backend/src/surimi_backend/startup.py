@@ -21,6 +21,13 @@ OPENAPI_PATH = "/api/v1/openapi.json"
 
 SECTIONS: dict[str, tuple[str, ...]] = {
     "logging": ("log_level", "log_format", "log_client_ip"),
+    "observability": (
+        "metrics_enabled",
+        "worker_metrics_port",
+        "metrics_token",
+        "prometheus_multiproc_dir",
+        "otel_exporter_otlp_endpoint",
+    ),
     "http": (
         "host",
         "port",
@@ -86,7 +93,15 @@ SECTIONS: dict[str, tuple[str, ...]] = {
         "cookie_secure",
     ),
     "sign_in": ("login_max_failures", "login_ip_max_failures", "login_failure_window_minutes"),
-    "retention": ("retention_login_ip_days", "retention_login_user_agent_days"),
+    "retention": (
+        "retention_login_ip_days",
+        "retention_login_user_agent_days",
+        "retention_purge_interval_hours",
+        "retention_login_events_days",
+        "retention_audit_days",
+        "retention_sessions_days",
+        "retention_deleted_experiments_days",
+    ),
     "sso": ("oidc_providers",),
     "first_admin": (
         "admin_email",

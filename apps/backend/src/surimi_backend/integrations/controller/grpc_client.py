@@ -44,6 +44,7 @@ from surimi_backend.integrations.controller.convert import (
     status_from_proto,
     timestamp,
 )
+from surimi_backend.observability import metrics
 
 log = structlog.get_logger("surimi.controller")
 
@@ -97,6 +98,9 @@ class GrpcControllerClient:
                 response = await method(request, timeout=self._timeout)
             except grpc.aio.AioRpcError as exc:
                 code = exc.code()
+                metrics.CONTROLLER_RPC_DURATION.labels(rpc, code.name).observe(
+                    time.perf_counter() - start
+                )
                 log.warning(
                     "controller.rpc_failed",
                     rpc=rpc,
@@ -109,6 +113,7 @@ class GrpcControllerClient:
                     await asyncio.sleep(0.2 * 2 ** (attempt - 1))
                     continue
                 raise _map_error(rpc, self.target, exc) from exc
+            metrics.CONTROLLER_RPC_DURATION.labels(rpc, "OK").observe(time.perf_counter() - start)
             log.debug(
                 "controller.rpc",
                 rpc=rpc,

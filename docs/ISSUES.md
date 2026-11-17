@@ -347,6 +347,19 @@ can report) when the upload fails.
 
 ---
 
+### The OpenTelemetry SQLAlchemy instrumentation does not declare SQLAlchemy 2.1
+
+**Severity:** Low — SQL spans work, but only because the version check is skipped
+**Evidence:** Verified 2026-11-17: without the skip, the API logged "SQLAlchemyInstrumentor only instruments sqlalchemy >= 1.0.0, < 2.1.0" and Jaeger showed no SQL spans; with it, `tests/test_tracing.py::test_sql_statements_are_spans_under_the_caller` passes
+**Owner:** this repo
+**Where:** `apps/backend/src/surimi_backend/observability/tracing.py` (`skip_dep_check=True`)
+
+`opentelemetry-instrumentation-sqlalchemy` 0.66b2, the newest, declares
+`sqlalchemy < 2.1`; we run 2.1.6. It hooks only engine events, which 2.1 keeps.
+
+**Fix:** when a release declares 2.1, upgrade it and remove `skip_dep_check`;
+the SQL span test shows whether it still works.
+
 ### FastAPI's TestClient warns that `httpx` is deprecated for Starlette
 
 **Severity:** Low — tests pass; the warning will become an error in a later Starlette
@@ -439,3 +452,4 @@ the run goes to 2030.
 | Should admins' experiments jump the queue by default | User |
 | Confirmation of the retention periods in ADR 0013 by the project's data protection contact | User |
 | Retention of raw outputs in the bucket | Controller team |
+| Is there a Prometheus, Grafana, log store or OTLP collector on EDITO to send to? It decides what the phase 9 chart deploys ([observability-and-activity](features/observability-and-activity/README.md#open-questions)) | EDITO |

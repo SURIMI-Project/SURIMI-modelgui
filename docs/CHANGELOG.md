@@ -19,6 +19,46 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-17
+
+### Feature — Metrics, traces, activity statistics and retention (phase 7)
+
+- **Metrics.** The API serves Prometheus metrics at `/metrics` (outside
+  `/api/v1/`, not forwarded by nginx), and the worker on port 9102: requests by
+  route, sign-ins, experiments submitted and ended, controller call times,
+  experiments by state, pods in use, stalled runs, worker cycles. Several API
+  processes share their numbers. `METRICS_ENABLED=false` turns it off;
+  `METRICS_TOKEN` makes both answer only `Authorization: Bearer <token>`.
+- **Traces.** OpenTelemetry over OTLP/HTTP when `OTEL_EXPORTER_OTLP_ENDPOINT`
+  is set: requests, SQL, controller calls and worker cycles. Log lines inside a
+  span carry `trace_id` and `span_id`.
+- **Admin statistics and audit log.** `GET /api/v1/admin/stats`,
+  `/admin/stats/users`, `/admin/users/{id}/activity`, `/admin/audit-events`:
+  sign-ins, last sign-in, experiments submitted, completed, failed and
+  cancelled, per user and in total, for any period.
+- **Retention (ADR 0013).** The worker leader purges once a day: sign-ins
+  older than 13 months are rolled up by month, IPs and user agents nulled after
+  90 days, audit events deleted after 24 months, ended sessions after 30 days,
+  soft-deleted experiments after 12 months.
+- **Local dashboards.** Compose profile `observability`: Prometheus
+  (127.0.0.1:18090), Grafana with a starter dashboard (18091), Jaeger (18092).
+  Container logs rotate at 5 × 10 MB.
+
+See [features/observability-and-activity](features/observability-and-activity/README.md).
+ADR 0010 accepted.
+
+> **Deploying this:** no migration. New settings, all optional, in
+> `deployments/.env.example`: `METRICS_ENABLED`, `WORKER_METRICS_PORT`,
+> `METRICS_TOKEN`, `PROMETHEUS_MULTIPROC_DIR`, `OTEL_EXPORTER_OTLP_ENDPOINT` (and the standard
+> `OTEL_*`), `RETENTION_PURGE_INTERVAL_HOURS`, `RETENTION_LOGIN_EVENTS_DAYS`,
+> `RETENTION_AUDIT_DAYS`, `RETENTION_SESSIONS_DAYS`,
+> `RETENTION_DELETED_EXPERIMENTS_DAYS`. The purge starts when the new worker
+> first leads; set a period to 0 to keep those rows. Keep `/metrics` off any
+> public ingress, and set `METRICS_TOKEN` (given to the scraper too) wherever
+> the API port is reachable from outside.
+
+---
+
 ## 2026-11-16
 
 ### Feature — Several API processes (`WEB_CONCURRENCY`)

@@ -23,6 +23,8 @@ from surimi_backend import __version__
 if TYPE_CHECKING:
     from alembic.config import Config
 
+    from surimi_backend.core.config import Settings
+
 
 def alembic_config() -> Config:
     from alembic.config import Config
@@ -42,12 +44,31 @@ def migrate(revision: str) -> None:
     command.upgrade(alembic_config(), revision)
 
 
+def _multiprocess_metrics(settings: Settings) -> None:
+    """Several API processes share their metrics through files (prometheus-client
+    multiprocess mode). The variable must be in the environment before the
+    processes start, since prometheus-client and Settings read it there."""
+    import os
+    import tempfile
+
+    from surimi_backend.observability.metrics import prepare_multiprocess_dir
+
+    path = settings.prometheus_multiproc_dir or tempfile.mkdtemp(prefix="surimi-metrics-")
+    prepare_multiprocess_dir(path)
+    os.environ["PROMETHEUS_MULTIPROC_DIR"] = path  # written, not read: see the docstring
+    print(f"serve: multiprocess metrics in {path}")
+
+
 def serve() -> None:
     import uvicorn
 
     from surimi_backend.core.config import Settings
 
     settings = Settings()
+    if settings.metrics_enabled and (
+        settings.web_concurrency > 1 or settings.prometheus_multiproc_dir
+    ):
+        _multiprocess_metrics(settings)
     uvicorn.run(
         "surimi_backend.main:create_app",
         factory=True,

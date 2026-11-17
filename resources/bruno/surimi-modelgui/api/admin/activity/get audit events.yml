@@ -1,0 +1,36 @@
+info:
+  name: get audit events
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/audit-events?page=1&size=50"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get audit events
+
+  The audit log, newest first. Admin only. Kept 24 months (ADR 0013).
+
+  ## Query
+
+  | Parameter | Meaning |
+  | --- | --- |
+  | `actor_id` | Who did it (a user id) |
+  | `action` | `user.created`, `role.synced`, `experiment.cancelled`, `outputs.downloaded`, `species.imported`, ... |
+  | `target_type`, `target_id` | What it was done to (`user`, `experiment`, ...) |
+  | `from`, `to` | Period: `from` inclusive, `to` exclusive |
+  | `page`, `size` | From 1; `size` at most 200 |
+
+  ## Response
+
+  `{"items", "total", "page", "size", "period"}`; each item has `at`,
+  `actor_id` and `actor_username` (`null` for the system, such as an SSO role
+  sync), `action`, `target_type`, `target_id`, `details`.

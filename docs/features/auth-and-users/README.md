@@ -264,9 +264,10 @@ other table uses; e-mail and username are unique ways to find a user, and an
 SSO user is found by `identities (provider, subject)`.
 Sign-in history keeps the IP for `RETENTION_LOGIN_IP_DAYS` and the user agent
 for `RETENTION_LOGIN_USER_AGENT_DAYS` (90 each; 0 means never stored, ADR
-0013); a client address that is not an IP is stored as NULL. The job that
-clears them after the retention period is the retention purge task of
-phase 5.
+0013); a client address that is not an IP is stored as NULL. The worker
+leader clears them after that period, and rolls up sign-ins older than 13
+months by month ([retention purge](../observability-and-activity/README.md#retention),
+built 2026-11-17).
 
 ---
 
@@ -344,9 +345,10 @@ attempt, success or not, is a `login_events` row (`result` `success`,
 `bad_credentials`, `locked` (rate limit), `inactive`, `no_role`,
 `email_rejected`, `error`). Audit events: `user.created`, `user.updated`,
 `user.password_reset`, `user.password_changed`, `user.admin_ensured`,
-`role.synced`, `profile.synced`, `access.removed`. The metric
-`surimi_logins_total{method,provider,result}` is not built; it comes with the
-observability feature.
+`role.synced`, `profile.synced`, `access.removed`. Metric
+`surimi_logins_total{method,result}`, one per `login_events` row (built
+2026-11-17 with [observability-and-activity](../observability-and-activity/README.md#metrics);
+no `provider` label: `login_events.provider` holds it for each attempt).
 
 ---
 

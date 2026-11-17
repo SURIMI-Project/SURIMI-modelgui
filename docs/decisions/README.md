@@ -16,7 +16,7 @@ One file per decision. A decision is `Proposed` until the user accepts it, then
 | [0007](0007-scheduler-worker-postgres-queue.md) | Worker polls the controller; jobs and schedules on PostgreSQL with Procrastinate | Superseded by 0019 |
 | [0008](0008-notifications-sse.md) | Notifications over SSE fed by `LISTEN/NOTIFY` | Superseded by 0021 |
 | [0009](0009-output-storage-and-ingestion.md) | Outputs stay in their files, read in place by chunk (fsspec + kerchunk index); nothing copied into the database; presigned URLs for raw downloads | Proposed 2026-11-03; kerchunk superseded by 0020 |
-| [0010](0010-observability-and-activity-tracking.md) | structlog, Prometheus, OpenTelemetry; user activity in the database | Proposed 2026-11-03 |
+| [0010](0010-observability-and-activity-tracking.md) | structlog, Prometheus, OpenTelemetry; user activity in the database | Accepted 2026-11-17 |
 | [0011](0011-controller-stubs-from-buf-registry.md) | Controller stubs from `buf.build/surimi/surimi-protocol`, pinned | Proposed 2026-11-03 |
 | [0012](0012-docs-as-code-with-mermaid.md) | Docs as code: features with Decisions tables, ADRs, plans, issues, Mermaid, DBML | Proposed 2026-11-03 |
 | [0013](0013-data-retention.md) | Retention: logs 30 days, sign-ins 13 months then monthly roll-up, IPs 90 days, audit 24 months | Proposed 2026-11-03 |

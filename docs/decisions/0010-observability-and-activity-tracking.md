@@ -1,6 +1,6 @@
 # 0010 — Structured logs, Prometheus metrics and OpenTelemetry traces for operations; user activity in the database
 
-**Status:** Proposed
+**Status:** Accepted 2026-11-17 (user, at the start of phase 7)
 **Date:** 2026-11-03
 **Related:** [features/observability-and-activity](../features/observability-and-activity/README.md)
 
@@ -20,14 +20,17 @@
   `user_id`, `experiment_id` and `trace_id` bound in context. Uvicorn access
   logs routed through the same formatter. No passwords, tokens or full request
   bodies in logs.
-- **Metrics:** `prometheus-client` with `/metrics` on the API and the worker.
-  HTTP metrics by route template; business counters:
+- **Metrics:** `prometheus-client` with `/metrics` on the API and the worker
+  (on by default, `METRICS_ENABLED=false` turns it off). HTTP metrics by route
+  template; business metrics:
   `surimi_experiments_submitted_total{scenario}`,
-  `surimi_experiments_completed_total{scenario,status}`,
+  `surimi_experiments_ended_total{scenario,status}`,
   `surimi_logins_total{method,result}`,
-  `surimi_controller_rpc_seconds{rpc,code}`,
-  `surimi_poll_duration_seconds`, `surimi_active_experiments`,
-  `surimi_stalled_experiments`. No user ids as labels.
+  `surimi_controller_rpc_duration_seconds{rpc,code}`,
+  `surimi_worker_cycle_duration_seconds`, `surimi_experiments_active{status}`,
+  `surimi_experiments_stalled`, `surimi_ecopath_pods_in_use`. No user ids
+  as labels. The full list is in the
+  [feature](../features/observability-and-activity/README.md#metrics).
 - **Traces:** OpenTelemetry SDK with FastAPI, SQLAlchemy, grpc and httpx
   instrumentation, exported over OTLP when `OTEL_EXPORTER_OTLP_ENDPOINT` is
   set, off otherwise.

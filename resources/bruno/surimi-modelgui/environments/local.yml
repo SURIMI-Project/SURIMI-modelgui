@@ -15,6 +15,9 @@ variables:
     name: newPassword
     description: New password for auth/post password
   - secret: true
+    name: metricsToken
+    description: METRICS_TOKEN of the backend, for get metrics; empty when the backend sets none
+  - secret: true
     name: accessToken
     description: Set by auth/post token; sent as Bearer by the api folder
   - secret: true

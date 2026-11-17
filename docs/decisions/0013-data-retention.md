@@ -104,33 +104,35 @@ its own mechanism:
 
 | Data | Mechanism | Where it is configured |
 | --- | --- | --- |
-| Our tables (`login_events`, `sessions`, `audit_events`, soft-deleted experiments and their series) | Worker task `purge_retention`, a Procrastinate periodic task, daily at 03:00 UTC, one run at a time across workers | `RETENTION_*` env vars |
+| Our tables (`login_events`, `sessions`, `audit_events`, soft-deleted experiments and their series) | `purge_retention`, run by the worker leader (ADR 0019) at its first cycle as leader and then every `RETENTION_PURGE_INTERVAL_HOURS` (24); one leader, so one run at a time | `RETENTION_*` env vars |
 | IP and user agent | Same task, one `UPDATE` per field: `ip = NULL` for rows older than `RETENTION_LOGIN_IP_DAYS`, `user_agent = NULL` for rows older than `RETENTION_LOGIN_USER_AGENT_DAYS` | `RETENTION_LOGIN_IP_DAYS`, `RETENTION_LOGIN_USER_AGENT_DAYS` |
 | Monthly roll-up | Same task, same transaction as the delete: `INSERT … ON CONFLICT DO UPDATE` into `login_stats_monthly`, then delete the rolled-up rows | — |
 | Deleted user | Immediately, in the delete request: personal fields replaced, IPs nulled, an audit event written | — |
 | Application logs | Not ours to delete: the log platform's retention (for example Loki `retention_period: 720h`). Locally, Docker `json-file` rotation (`max-size: 10m`, `max-file: 5`) and on Kubernetes the kubelet's rotation, both size-based, not time-based | Log platform; compose `logging`; Helm values |
 | Metrics | Prometheus `--storage.tsdb.retention.time=15d` | Prometheus config |
-| Traces | Retention of the trace store (for example Tempo `block_retention: 168h`) | Trace store config |
+| Traces | Retention of the trace store (for example Tempo `block_retention: 168h`); the local Jaeger keeps them in memory until it restarts | Trace store config |
 | Database backups | Backup CronJob keeps 7 daily and 4 weekly dumps; older dumps deleted by an S3 lifecycle rule on the backup prefix. Deleted rows survive in backups for up to 35 days, which the privacy notice must say | Helm `postgresql.backup` |
 | Map chunk cache | In memory, bounded by size (`OUTPUT_CHUNK_CACHE_MB`); nothing to expire | — |
 | Raw outputs in the bucket | Owned by the controller team; an S3 lifecycle rule if they agree a period | Bucket owner |
 
 How `purge_retention` works:
 
-- **Batched:** deletes and updates run in batches of 5,000 rows by primary
-  key (`… WHERE id IN (SELECT id … WHERE at < :cutoff LIMIT 5000)`), each in
-  its own short transaction, so no long locks and no huge transactions. The
-  `at` indexes make each batch an index range scan.
-- **Idempotent:** a failed or interrupted run is simply repeated the next
-  night.
-- **Observable:** logs `retention.purged` with table and row counts; metric
-  `surimi_retention_rows_total{table,action}`; gauge
-  `surimi_retention_oldest_seconds{table}` for the age of the oldest row, so an
-  alert fires if purging stops.
-- **Tested:** an integration test inserts rows on both sides of each cut-off,
-  runs the task, and checks what is left.
-- **Volume:** at about 110,000 sign-in rows a year, batched deletes are
-  enough. If a table passes about 10 million rows, switch it to monthly
+- **One statement per step, each in its own transaction:** the roll-up adds
+  the old sign-ins to their month and deletes them in the same statement; the
+  other steps are one `UPDATE` or `DELETE` each. The `at` indexes make each
+  an index range scan. A failed step does not undo or block the others.
+  (Built 2026-11-17. The first design batched by 5,000 rows; at about 9,000
+  sign-in rows a month one statement is short, and batching by primary key is
+  the change to make if a table passes a few million rows.)
+- **Idempotent:** a failed or interrupted run is repeated at the next run.
+- **Observable:** logs `retention.purged` with the rows per step (and
+  `retention.step_failed`); metric `surimi_retention_rows_total{table,action}`,
+  shown per day on the starter Grafana dashboard. The first design's gauge
+  `surimi_retention_oldest_seconds{table}` was not built: it would need a
+  query per table at every scrape.
+- **Tested:** `tests/test_retention.py` inserts rows on both sides of each
+  cut-off, runs the purge twice, and checks what is left.
+- **Volume:** if a table passes about 10 million rows, switch it to monthly
   partitions and drop whole partitions instead, which is instant and leaves no
   table bloat.
 
