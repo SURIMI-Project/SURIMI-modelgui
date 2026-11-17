@@ -27,7 +27,7 @@ from surimi_backend.auth.history import ClientInfo, recent_failures, record_logi
 from surimi_backend.auth.models import LoginMethod, LoginResult, UserSession
 from surimi_backend.auth.passwords import check_policy, hash_password, verify_password
 from surimi_backend.auth.ratelimit import FailureCounter
-from surimi_backend.auth.role_mapping import decide_role, role_claims_snapshot
+from surimi_backend.auth.role_mapping import claim_values, decide_role, role_claims_snapshot
 from surimi_backend.auth.tokens import create_access_token, decode_flow, encode_flow
 from surimi_backend.core.config import Settings
 from surimi_backend.integrations.oidc import OidcProvider, new_pkce_pair
@@ -291,7 +291,9 @@ async def sso_complete(
     user = await repository.get(db, identity.user_id) if identity else None
 
     if decision.role is None and (decision.managed or user is None):
-        await _refuse_no_role(db, settings, client, provider.key, user=user)
+        await _refuse_no_role(
+            db, settings, client, provider.key, user=user, seen=_role_claim_seen(claims, provider)
+        )
 
     if user is None:
         user = await _create_sso_user(
@@ -497,6 +499,24 @@ async def _sync_profile(db: AsyncSession, user: User, profile: SsoProfile, provi
         )
 
 
+MAX_LOGGED_ROLE_VALUES = 50
+
+
+def _role_claim_seen(claims: dict[str, Any], provider: OidcProvider) -> dict[str, Any]:
+    """What a refused sign-in logs to explain itself: the role claim's values as
+    they arrived (group or role names, not personal data; never the token) next
+    to the values that would have matched."""
+    config = provider.config
+    values = sorted(claim_values(claims, config.role_claim))
+    return {
+        "role_claim": config.role_claim or None,
+        "role_claim_present": bool(config.role_claim) and config.role_claim.split(".")[0] in claims,
+        "role_claim_values": [v[:100] for v in values[:MAX_LOGGED_ROLE_VALUES]],
+        "admin_values": sorted(config.values(config.admin_values)),
+        "member_values": sorted(config.values(config.member_values)),
+    }
+
+
 async def _refuse_no_role(
     db: AsyncSession,
     settings: Settings,
@@ -504,6 +524,7 @@ async def _refuse_no_role(
     provider: str,
     *,
     user: User | None,
+    seen: dict[str, Any],
 ) -> NoReturn:
     record_login(
         db,
@@ -527,7 +548,7 @@ async def _refuse_no_role(
             details={"provider": provider, "role_was": user.role.value},
         )
     await db.commit()
-    log.info("auth.sso_no_role", provider=provider, user_id=str(user.id) if user else None)
+    log.info("auth.sso_no_role", provider=provider, user_id=str(user.id) if user else None, **seen)
     raise NoAccessError(
         "your account at the sign-in provider has no access to SURIMI; ask an administrator"
     )

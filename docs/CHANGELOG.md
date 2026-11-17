@@ -21,6 +21,17 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-17
 
+### Fix — SSO sign-in started on another host name
+
+Signing in with SSO from the console opened at an address other than
+`PUBLIC_BASE_URL` (for example `127.0.0.1` instead of `localhost`) failed with
+`sso_failed`, "the sign-in state is missing". The login now moves to
+`PUBLIC_BASE_URL` before it sets its cookie. See
+[auth-and-users](features/auth-and-users/CHANGELOG.md).
+
+> **Deploying this:** rebuild the API image. Proxies in front of the API must
+> pass the original `Host` header (nginx does: `proxy_set_header Host $host`).
+
 ### Change — Mounted configuration under `deployments/mounts/`
 
 The files compose mounts into containers moved to

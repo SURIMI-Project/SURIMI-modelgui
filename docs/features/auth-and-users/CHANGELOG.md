@@ -6,6 +6,48 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-17 — A refused SSO sign-in says what it received
+
+**Status:** built. `auth.sso_no_role` now also logs `role_claim`,
+`role_claim_present`, `role_claim_values` (as they arrived, at most 50, each
+cut at 100 characters) and the `admin_values` and `member_values` that would
+have matched. They are group or role names, not personal data; the token is
+never logged. Reason: with the Konnecta Keycloak a member of `model_gui_admins`
+was refused (`403 no_access`) and the log could not say why. Ruff, format,
+mypy strict clean; 324 tests pass, 1 new in `tests/test_sso.py`
+(`/surimi-admins`, as Keycloak's "Full group path" sends it, is logged next
+to the expected `surimi-admins`).
+
+`apps/backend/`:
+
+- `src/surimi_backend/auth/service.py` — `_role_claim_seen`, passed to `_refuse_no_role`.
+- `tests/test_sso.py` — the new test, with a stand-in logger.
+
+---
+
+## 2026-11-17 — SSO login starts on the public host
+
+**Status:** fixed. A sign-in started on a host name other than
+`PUBLIC_BASE_URL`'s failed at the callback with `400 sso_failed` ("the
+sign-in state is missing"): the host-only flow cookie stayed with the other
+host. Seen 2026-11-17 with the Konnecta Keycloak: every `/login` reached the
+API on port 18082 directly, every `/callback` came through nginx on
+`localhost:18080`. Now the login redirects to `PUBLIC_BASE_URL` first, at most
+once ([README](README.md)). Ruff, format, mypy strict clean; 323 tests pass
+(2 new in `tests/test_sso.py`: another host is sent to the public one with no
+cookie set, another port on the same host is not; the redirect happens once).
+**Verified** on the local stack: a login at `127.0.0.1:18082` now answers
+`302` to `http://localhost:18080/api/v1/auth/sso/keycloak/login?…&canonical=1`.
+
+`apps/backend/`:
+
+- `src/surimi_backend/auth/router.py` — `sso_login` compares host names and
+  redirects; `sso.host_mismatch` warning.
+- `tests/test_sso.py` — the SSO client runs on `PUBLIC_BASE_URL`, like a browser
+  that opened the app there; the two new tests.
+
+---
+
 ## 2026-11-04 — Role from the `groups` claim
 
 Decided by the user, 2026-11-04: the role comes from the token's `groups`
