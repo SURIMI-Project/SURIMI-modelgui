@@ -1,0 +1,38 @@
+info:
+  name: get metrics
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{apiUrl}}/metrics"
+  headers:
+    - name: Authorization
+      value: "Bearer {{metricsToken}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get metrics
+
+  Prometheus metrics of the API, in the text format; no sign-in. Not under
+  `/api/v1` and not in the OpenAPI document: nginx does not forward it, so
+  call the API port directly (`apiUrl` of the `local` environment). `404`
+  when `METRICS_ENABLED=false`.
+
+  ## Before you run it
+
+  If the backend sets `METRICS_TOKEN`, put the same value in the secret
+  environment variable `metricsToken`; without it the answer is `401`
+  `not_authenticated`. With no `METRICS_TOKEN` the header is ignored. It is
+  not the user `accessToken`: `/metrics` has no user sign-in.
+
+  ## Notes
+
+  The worker serves its own on `WORKER_METRICS_PORT` (9102), inside the
+  compose network only. The metric list is in
+  `docs/features/observability-and-activity/README.md` § Metrics.

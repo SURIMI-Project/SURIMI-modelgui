@@ -58,7 +58,7 @@ Two ways to run it, with the same settings:
 | `DATABASE_URL` | unset | Overrides the pieces above when set |
 
 The URL is built in `core/config.py`. The bootstrap script is
-[deployments/postgres/bootstrap.sql](../../deployments/postgres/bootstrap.sql).
+[deployments/mounts/postgres/bootstrap.sql](../../deployments/mounts/postgres/bootstrap.sql).
 
 ### In the repo (compose, from phase 2)
 
@@ -67,7 +67,7 @@ The URL is built in `core/config.py`. The bootstrap script is
 - `postgres`: `postgres:17-alpine`, admin `POSTGRES_USER=postgres` with
   `POSTGRES_PASSWORD` from `.env`, named volume `postgres-data`, `pg_isready`
   healthcheck, published on `127.0.0.1:${POSTGRES_PORT:-15432}` only.
-- `db-bootstrap`: runs `deployments/postgres/bootstrap.sql` with the admin credentials.
+- `db-bootstrap`: runs `deployments/mounts/postgres/bootstrap.sql` with the admin credentials.
 - `migrate`: backend image, `alembic upgrade head` as `surimi_modelgui`.
 - `api` and `worker` connect as `surimi_modelgui` and wait for the other two
   with `depends_on: condition: service_completed_successfully`.

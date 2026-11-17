@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from surimi_backend.auth.dependencies import Principal
 from surimi_backend.experiments.models import (
+    FINAL_STATES,
     IN_FLIGHT_STATES,
     AppSetting,
     Experiment,
@@ -184,6 +185,29 @@ async def queued(db: AsyncSession, *, for_update: bool = False) -> list[Experime
 async def in_flight(db: AsyncSession) -> list[Experiment]:
     rows = await db.execute(select(Experiment).where(Experiment.status.in_(IN_FLIGHT_STATES)))
     return list(rows.scalars())
+
+
+@dataclass(frozen=True, slots=True)
+class ActiveCount:
+    status: ExperimentStatus
+    experiments: int
+    pods: int
+    stalled: int
+
+
+async def active_counts(db: AsyncSession) -> list[ActiveCount]:
+    """Experiments not in a final state, per status, for the worker's gauges."""
+    rows = await db.execute(
+        select(
+            Experiment.status,
+            func.count(),
+            func.coalesce(func.sum(Experiment.pods_required), 0),
+            func.count().filter(Experiment.stalled),
+        )
+        .where(Experiment.status.not_in(FINAL_STATES), Experiment.deleted_at.is_(None))
+        .group_by(Experiment.status)
+    )
+    return [ActiveCount(r[0], int(r[1]), int(r[2]), int(r[3])) for r in rows]
 
 
 async def owner_pods_in_flight(db: AsyncSession) -> dict[uuid.UUID, int]:

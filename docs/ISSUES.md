@@ -10,16 +10,7 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ## This repo
 
-### Intermittent controller TLS/timeout failures affect scenario availability
-
-**Severity:** Medium — the authenticated catalogue can temporarily fail while sessions remain valid.
-**Evidence:** Read from local API logs, 2026-11-06: `GET /api/v1/scenarios` returned 502 `controller_error` during `GetScenarioNames` because the SSL connection could not be established (request `613cad74d15d44dda1586b955db9ead4`, 14:51:08 UTC); the subsequent request succeeded. Earlier 504 `controller_timeout` events also exist.
-**Owner:** backend/controller/EDITO connection owners. No backend changes authorized here.
-
-The frontend now retries this safe catalogue read twice for network/502/503/504 failures and retains explicit terminal/stale-data states. This improves recovery; it does not repair the upstream TLS/timeout condition. Identify which upstream TLS connection failed and inspect certificate/service availability with the backend/controller owners if it recurs.
-
-
-### Denied SSO callback displays JSON instead of a frontend error page
+### Controller descriptor in the repo is out of date
 
 **Severity:** Low — access is denied correctly; recovery experience is incomplete.
 **Evidence:** Verified 2026-11-05 against local Keycloak: Carol (no mapped role) receives HTTP 403 `no_access` at `/api/v1/auth/sso/keycloak/callback`, with no SURIMI access/refresh cookies.
@@ -62,7 +53,7 @@ the lint step in `.github/workflows/ci.yml`.
 **Severity:** Low — the example fails at `CreateRegulations` after minutes of initialisation
 **Evidence:** Verified 2026-10-30
 **Owner:** this repo
-**Where:** `resources/bruno/surimi-modelgui/grpc-proxy/SubmitExperiment.yml`
+**Where:** `resources/bruno/surimi-modelgui/controller/SubmitExperiment.yml`
 
 The example includes `ANE` adult. The `northwestern_med` recruitment, quota
 and quota-share files cover only BOG, HKE (adult, juvenile), PIL (adult), MUT
@@ -79,6 +70,21 @@ before submitting ([features/experiments](features/experiments/README.md)).
 Controller facts below are **Read from source** in `SURIMI-controller` commit
 `a8a7f3a` (2026-10-22) unless marked otherwise; the full picture is in
 [ARCHITECTURE.md § Controller behaviour](ARCHITECTURE.md#controller-behaviour).
+
+### The controller has no authentication and is reachable from the internet
+
+**Severity:** High — anyone who knows the address can list every experiment and remove any of them
+**Evidence:** Read from source, 2026-11-03 (the protocol has no credentials); the Bruno `controller/` requests call `RemoveExperiment` on EDITO without any
+**Owner:** controller team
+**Where:** `surimi.v1.ControllerService` on `project-surimi-surimi-controller.lab.dive.edito.eu` and the personal namespaces
+
+Since 2026-11-17 this repo no longer exposes it: the gRPC-Web proxy (Envoy) and
+nginx's `/api/controller/` route are gone, and only the backend calls the
+controller. The controller's own public address remains.
+
+**Fix:** restrict the controller at network level so only the backend reaches
+it (an internal Service, or an ingress allowlist), or add authentication to the
+protocol.
 
 ### "No available pods" is not reported to the caller; the experiment silently never starts
 
@@ -351,6 +357,19 @@ can report) when the upload fails.
 
 ---
 
+### The OpenTelemetry SQLAlchemy instrumentation does not declare SQLAlchemy 2.1
+
+**Severity:** Low — SQL spans work, but only because the version check is skipped
+**Evidence:** Verified 2026-11-17: without the skip, the API logged "SQLAlchemyInstrumentor only instruments sqlalchemy >= 1.0.0, < 2.1.0" and Jaeger showed no SQL spans; with it, `tests/test_tracing.py::test_sql_statements_are_spans_under_the_caller` passes
+**Owner:** this repo
+**Where:** `apps/backend/src/surimi_backend/observability/tracing.py` (`skip_dep_check=True`)
+
+`opentelemetry-instrumentation-sqlalchemy` 0.66b2, the newest, declares
+`sqlalchemy < 2.1`; we run 2.1.6. It hooks only engine events, which 2.1 keeps.
+
+**Fix:** when a release declares 2.1, upgrade it and remove `skip_dep_check`;
+the SQL span test shows whether it still works.
+
 ### FastAPI's TestClient warns that `httpx` is deprecated for Starlette
 
 **Severity:** Low — tests pass; the warning will become an error in a later Starlette
@@ -443,3 +462,4 @@ the run goes to 2030.
 | Should admins' experiments jump the queue by default | User |
 | Confirmation of the retention periods in ADR 0013 by the project's data protection contact | User |
 | Retention of raw outputs in the bucket | Controller team |
+| Is there a Prometheus, Grafana, log store or OTLP collector on EDITO to send to? It decides what the phase 9 chart deploys ([observability-and-activity](features/observability-and-activity/README.md#open-questions)) | EDITO |

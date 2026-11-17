@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from surimi_backend.auth.models import LoginEvent, LoginMethod, LoginResult
 from surimi_backend.core.config import Settings
+from surimi_backend.observability import metrics
 
 MAX_USER_AGENT = 512
 
@@ -45,6 +46,7 @@ def record_login(
     result: LoginResult,
     provider: str | None = None,
 ) -> None:
+    metrics.LOGINS.labels(method.value, result.value).inc()
     db.add(
         LoginEvent(
             user_id=user_id,

@@ -6,6 +6,72 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-17 — gRPC-Web proxy (Envoy) removed
+
+**Status:** done (user, 2026-11-17, chosen over keeping it until phase 10).
+Only the backend calls the controller now. The current frontend still has its
+gRPC-Web client, so the web image is built with `MOCK=true` by default and
+shows canned scenarios and run statuses until phase 10; with `MOCK=false` those
+pages fail. **Verified** 2026-11-17 in a separate compose project: the web image
+builds; `GET /` 200, `POST /api/controller/...` 410, `GET /api/v1/auth/providers`
+200 through nginx; the rendered nginx config has no controller upstream.
+`docker compose config` is valid with every profile. Not checked: the old
+frontend's pages in a browser.
+
+- `deployments/compose.yml` — service `grpc-proxy` and `CONTROLLER_BASE_URL`
+  removed; build arg `MOCK` defaults to `true`; header comments.
+- `deployments/mounts/envoy/` — deleted (`envoy.yaml.template`, `entrypoint.sh`).
+- `deployments/nginx/default.conf.template` — `/api/controller/` returns `410`
+  instead of proxying.
+- `apps/frontend/Dockerfile` — `ARG MOCK=true`; no `CONTROLLER_BASE_URL`.
+- `apps/frontend/.env.example`, `deployments/.env.example` — `MOCK=true`;
+  `GRPC_PROXY_PORT`, `CONTROLLER_BASE_URL`, `CORS_ALLOWED_ORIGINS` and the
+  `grpc-proxy` section removed.
+- Bruno: folder `grpc-proxy/` renamed `controller/`, variable `urlGrpcProxy`
+  renamed `urlController`; `local` now calls the `project-surimi` controller
+  directly instead of Envoy on port 18081.
+- Docs: `ARCHITECTURE.md` (Part 1, deployment), `ISSUES.md` (the High item
+  "the browser can call the controller" is closed for this repo; what remains,
+  the controller's public unauthenticated address, moved to the controller
+  section), ADR 0001 and 0006, the plan's phase 10, `CLAUDE.md`, `README.md`,
+  the experiment-queue and monorepo-restructure READMEs, the `/bruno` skill.
+
+**Deploy:** rebuild the web image (`docker compose ... up --build -d`). A
+`grpc-proxy` container left from an earlier run is an orphan: add
+`--remove-orphans` once.
+
+---
+
+## 2026-11-17 — Mounted files under `deployments/mounts/`
+
+**Status:** done (user, 2026-11-17). Everything compose mounts into a
+container moved, with `git mv`, to `deployments/mounts/<service>/`:
+`postgres/`, `keycloak/`, `envoy/`, `observability/`. `nginx/` stays in
+`deployments/`: it is not mounted, the web image copies it at build time
+(`apps/frontend/Dockerfile`). **Verified** 2026-11-17: `docker compose config`
+resolves every bind mount into `deployments/mounts/` and each source exists;
+in a separate compose project `db-bootstrap` ran the moved `bootstrap.sql`
+(exit 0), Prometheus started with the moved config and Grafana loaded the
+dashboard. Envoy and Keycloak were not started.
+
+- `deployments/compose.yml` — the six bind mounts; a header comment on `mounts/`.
+- `.github/workflows/ci.yml` — backend path filter `deployments/mounts/postgres/**`.
+- `apps/backend/tests/conftest.py` — `BOOTSTRAP_DIR`, the folder the test PostgreSQL
+  container mounts. Missed in the first commit: CI failed (run 44076397150,
+  `/bootstrap/bootstrap.sql: No such file or directory`); fixed, and the full
+  suite passes again (321 tests, 118 against PostgreSQL in Docker).
+- `deployments/mounts/observability/grafana/provisioning/dashboards/dashboards.yml` — comment.
+- Docs: ADR 0001 (the layout rule), ADR 0006, ADR 0014, `CLAUDE.md`,
+  `docs/database/README.md`, `docs/ISSUES.md`, feature READMEs of
+  auth-and-users, backend-skeleton, monorepo-restructure,
+  observability-and-activity. Dated changelog entries keep the old paths.
+
+**Deploy:** nothing for a running stack: the next `docker compose up`
+mounts from the new paths. Named volumes (`postgres-data`, `prometheus-data`)
+are unchanged.
+
+---
+
 ## 2026-11-03 — LF line endings everywhere
 
 **Status:** done; all 599 text files in the working tree are LF (byte-level

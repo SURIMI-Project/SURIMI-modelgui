@@ -209,9 +209,11 @@ cancel button while one is possible.
 ## Observability
 
 `experiment.submitted|submit_failed|cancel_requested|cancelled` log events with
-`experiment_id`; counters `surimi_experiments_submitted_total{scenario}`;
-`surimi_controller_rpc_seconds{rpc,code}`; audit event when an admin acts on
-someone else's experiment.
+`experiment_id`; counters `surimi_experiments_submitted_total{scenario}` and
+`surimi_experiments_ended_total{scenario,status}`, histogram
+`surimi_controller_rpc_duration_seconds{rpc,code}` (built 2026-11-17,
+[observability-and-activity](../observability-and-activity/README.md#metrics));
+audit event when an admin acts on someone else's experiment.
 
 ---
 

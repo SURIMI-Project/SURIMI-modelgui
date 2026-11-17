@@ -1,6 +1,6 @@
 # Monorepo and backend for the SURIMI model GUI
 
-**Status:** In progress — phases 1 to 6 built on `develop` (4 to 6 on 2026-11-06); 7 and 9 next, 10 only if the user agrees
+**Status:** In progress — phases 1 to 7 built on `develop` (4 to 6 on 2026-11-06, 7 on 2026-11-17); 9 next, 10 only if the user agrees
 **Author:** written with Claude, 2026-11-03
 
 ## Goal
@@ -189,7 +189,7 @@ the user agrees when we get there**.
   was refused and his open session ended); tests as admin, member and
   anonymous for the admin and catalog routes; login events recorded. Not
   built from the design: `OIDC_RESYNC_ON_REFRESH`, back-channel logout, the
-  login metric. The DBML of the six new tables is edited by hand and checked
+  login metric (built in phase 7, 2026-11-17). The DBML of the six new tables is edited by hand and checked
   against the migrated database; regeneration with `db2dbml` waits until
   every designed table exists ([database/README](../database/README.md)).
   See [features/auth-and-users](../features/auth-and-users/CHANGELOG.md).
@@ -214,7 +214,7 @@ the user agrees when we get there**.
   [experiment-queue](../features/experiment-queue/README.md) and
   [notifications](../features/notifications/README.md). Worker, poller,
   status mapping, stall detection, queue dispatcher with fair order and
-  pod counting, retention purge task, events endpoint (SSE, then polling
+  pod counting, retention purge task (built in phase 7, 2026-11-17), events endpoint (SSE, then polling
   since 2026-11-12). No frontend changes
   (phase 10). Until this phase, phase 4 submits directly.
 - Exit: a status change on the controller shows in the browser within 20 s
@@ -235,13 +235,20 @@ the user agrees when we get there**.
   and map endpoints return its real numbers with the known data problems
   flagged, not hidden.
 
-### Phase 7 — Observability and activity
+### Phase 7 — Observability and activity (built 2026-11-17 on `develop`)
 
 - Scope: [observability-and-activity](../features/observability-and-activity/README.md).
   Metrics, OpenTelemetry, admin statistics endpoints, Grafana starter
   dashboard. No admin page (phase 10).
 - Exit: the admin statistics endpoints return sign-ins, last sign-in,
   completed and cancelled runs per user; `/metrics` scraped by the local Prometheus.
+  Met 2026-11-17: `/api/v1/admin/stats`, `/stats/users`,
+  `/users/{id}/activity` and `/audit-events` tested against PostgreSQL;
+  Prometheus in the compose profile `observability` scraped the API (two
+  processes) and the worker; Grafana's starter dashboard and Jaeger traces
+  (HTTP, SQL, worker cycles) checked there. Also built: the retention purge
+  listed in phase 5 (ADR 0013). ADR 0010 accepted. See
+  [features/observability-and-activity](../features/observability-and-activity/CHANGELOG.md).
 
 ### Phase 8 — moved to phase 10
 
@@ -263,9 +270,10 @@ of phase 10.
   typed from the OpenAPI document (`openapi-typescript`, `openapi-fetch`),
   TanStack Query, sign-in pages and SSO buttons, experiment and queue pages,
   notifications by polling, dashboards on the real chart and map endpoints, admin
-  pages (users, all experiments, statistics, audit). Then remove Envoy, the
-  `/api/controller` nginx location, connect-web, `apps/frontend/src/gen/`,
-  `apps/frontend/proto/` and the frontend `MOCK` mode.
+  pages (users, all experiments, statistics, audit). Then remove connect-web,
+  `apps/frontend/src/gen/`, `apps/frontend/proto/` and the frontend `MOCK`
+  mode. Envoy and the `/api/controller` nginx location were already removed on
+  2026-11-17 (user); until this phase the frontend is built with `MOCK=true`.
 - Exit: no browser request goes to the controller; the frontend uses only the
   backend API.
 

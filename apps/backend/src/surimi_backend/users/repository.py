@@ -76,6 +76,18 @@ async def free_username(db: AsyncSession, wanted: str) -> str:
     return candidate
 
 
+def matches(q: str) -> ColumnElement[bool]:
+    """Part of the e-mail, username or a name, case-insensitive."""
+    pattern = f"%{q.strip().lower()}%"
+    return or_(
+        func.lower(User.email).like(pattern),
+        func.lower(User.username).like(pattern),
+        func.lower(User.display_name).like(pattern),
+        func.lower(func.coalesce(User.first_name, "")).like(pattern),
+        func.lower(func.coalesce(User.last_name, "")).like(pattern),
+    )
+
+
 async def list_users(
     db: AsyncSession,
     *,
@@ -89,16 +101,7 @@ async def list_users(
 ) -> tuple[list[User], int]:
     conditions: list[ColumnElement[bool]] = [User.deleted_at.is_(None)]
     if q:
-        pattern = f"%{q.strip().lower()}%"
-        conditions.append(
-            or_(
-                func.lower(User.email).like(pattern),
-                func.lower(User.username).like(pattern),
-                func.lower(User.display_name).like(pattern),
-                func.lower(func.coalesce(User.first_name, "")).like(pattern),
-                func.lower(func.coalesce(User.last_name, "")).like(pattern),
-            )
-        )
+        conditions.append(matches(q))
     if role is not None:
         conditions.append(User.role == role)
     if role_source is not None:

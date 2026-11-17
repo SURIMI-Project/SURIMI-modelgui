@@ -1,0 +1,32 @@
+# Local Prometheus for the compose profile "observability"
+# (docs/features/observability-and-activity). Retention 15 days (ADR 0013) is
+# set on the command line in compose.yml.
+#
+# Every scrape sends `Authorization: Bearer <METRICS_TOKEN>`; compose writes the
+# token to /tmp/metrics_token at start. With METRICS_TOKEN unset the file is
+# empty and the backend asks for no token.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # DNS service discovery: every replica of the service is scraped, so several
+  # API containers or a standby worker show up as separate targets.
+  - job_name: surimi-api
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /tmp/metrics_token
+    dns_sd_configs:
+      - names: [api]
+        type: A
+        port: 8000
+  - job_name: surimi-worker
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /tmp/metrics_token
+    dns_sd_configs:
+      - names: [worker]
+        type: A
+        port: 9102

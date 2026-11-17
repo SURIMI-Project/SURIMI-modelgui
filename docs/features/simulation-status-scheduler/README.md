@@ -241,9 +241,14 @@ them.
 
 ## Observability
 
-`surimi_poll_duration_seconds`, `surimi_poll_errors_total{code}`,
-`surimi_active_experiments`, `surimi_stalled_experiments`; log
-`scheduler.status_changed` with old and new state; `scheduler.unknown_status`.
+On the worker's `/metrics` (built 2026-11-17,
+[observability-and-activity](../observability-and-activity/README.md#metrics)):
+`surimi_worker_leader`, `surimi_worker_cycle_duration_seconds`,
+`surimi_worker_step_failures_total{step}`, `surimi_experiments_active{status}`,
+`surimi_experiments_stalled`; controller errors are
+`surimi_controller_rpc_duration_seconds{rpc,code}` with `code` not `OK`. With
+tracing on, a span per cycle and per step. Log `scheduler.status_changed`
+with old and new state; `scheduler.unknown_status`.
 
 ---
 

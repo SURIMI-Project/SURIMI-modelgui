@@ -209,7 +209,7 @@ sequenceDiagram
 | File name | `<experiment name, slugified>_<first 8 of id>.nc` via `response-content-disposition` |
 | Local mode | `X-Accel-Redirect` to the `internal` nginx location `/protected-outputs/`, nginx mounts the outputs folder read-only |
 | Resume | `Range` supported in both modes |
-| Trace | `audit_events` `outputs.downloaded` with user, experiment, file; metric `surimi_downloads_total{file}` |
+| Trace | `audit_events` `outputs.downloaded` with user, experiment, file (`GET /api/v1/admin/audit-events?action=outputs.downloaded`). The metric `surimi_downloads_total{file}` of the first design is not built |
 | MSE runs | If the controller writes one file per simulation, the endpoint takes `&simulation=<n>` and the page lists one link per file (open question) |
 
 ### State

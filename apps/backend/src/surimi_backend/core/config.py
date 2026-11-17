@@ -12,7 +12,7 @@ import re
 from functools import cached_property
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL, make_url
 
@@ -59,6 +59,21 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: Literal["json", "console"] = "json"
     log_client_ip: bool = True
+
+    # --- metrics and traces (ADR 0010, docs/features/observability-and-activity) ---
+    # /metrics on the API, and the worker's metrics port.
+    metrics_enabled: bool = True
+    worker_metrics_port: int = Field(default=9102, ge=1, le=65535)
+    # When set (at least 32 characters), both answer only `Authorization: Bearer
+    # <token>`. Set it whenever the API port is reachable from outside the
+    # cluster or the compose network. Empty = no token asked.
+    metrics_token: SecretStr = SecretStr("")
+    # Multiprocess metrics folder when WEB_CONCURRENCY > 1 (read by prometheus-client
+    # itself too); empty = `serve` creates a temporary one. Emptied at start.
+    prometheus_multiproc_dir: str = ""
+    # OTLP/HTTP collector, e.g. http://jaeger:4318. Empty = tracing off. The SDK
+    # reads this and the other OTEL_* variables (service name, sampler) itself.
+    otel_exporter_otlp_endpoint: str = ""
 
     # --- HTTP server --------------------------------------------------------------
     host: str = "0.0.0.0"  # noqa: S104 - inside a container
@@ -167,8 +182,14 @@ class Settings(BaseSettings):
 
     # --- retention of personal data (ADR 0013) ----------------------------------------
     # 0 = never store the field at all.
-    retention_login_ip_days: int = 90
-    retention_login_user_agent_days: int = 90
+    retention_login_ip_days: int = Field(default=90, ge=0)
+    retention_login_user_agent_days: int = Field(default=90, ge=0)
+    # Purged by the worker leader (observability/retention.py); 0 = keep forever.
+    retention_purge_interval_hours: float = Field(default=24.0, gt=0)
+    retention_login_events_days: int = Field(default=395, ge=0)  # then monthly roll-up
+    retention_audit_days: int = Field(default=730, ge=0)
+    retention_sessions_days: int = Field(default=30, ge=0)  # after expiry or revocation
+    retention_deleted_experiments_days: int = Field(default=365, ge=0)
 
     # --- OIDC single sign-on (ADR 0004) ------------------------------------------------
     # Comma-separated provider keys, e.g. "keycloak"; each reads OIDC_<KEY>_*.
@@ -215,6 +236,13 @@ class Settings(BaseSettings):
                 raise ValueError(f"OIDC provider key {key!r}: use lower-case letters and digits")
             providers[key] = OidcProviderSettings(_env_prefix=f"OIDC_{key.upper()}_")  # type: ignore[call-arg]
         return providers
+
+    @field_validator("metrics_token")
+    @classmethod
+    def _metrics_token_long_enough(cls, value: SecretStr) -> SecretStr:
+        if 0 < len(value.get_secret_value()) < MIN_JWT_SECRET_LENGTH:
+            raise ValueError(f"METRICS_TOKEN must be at least {MIN_JWT_SECRET_LENGTH} characters")
+        return value
 
     def validate_for_api(self) -> None:
         """Checks that only the API needs (the migrate job builds Settings too)."""

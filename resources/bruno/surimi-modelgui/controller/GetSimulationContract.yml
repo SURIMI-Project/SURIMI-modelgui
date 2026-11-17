@@ -4,7 +4,7 @@ info:
   seq: 4
 
 grpc:
-  url: "{{urlGrpcProxy}}"
+  url: "{{urlController}}"
   method: /surimi.v1.ControllerService/GetSimulationContract
   methodType: unary
   message:

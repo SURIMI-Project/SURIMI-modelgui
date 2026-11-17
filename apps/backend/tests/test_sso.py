@@ -66,8 +66,10 @@ def sso(
         monkeypatch.setenv(f"OIDC_FAKE_{key}", value)
     settings = db_settings.model_copy(update={"oidc_providers": "fake"})
     http = httpx.AsyncClient(transport=idp.transport())
+    # On the public address, as a browser that opened the app there.
     with TestClient(
-        create_app(settings, controller=FakeControllerClient(), oidc_http=http)
+        create_app(settings, controller=FakeControllerClient(), oidc_http=http),
+        base_url=settings.public_base_url,
     ) as client:
         yield client
 
@@ -149,6 +151,36 @@ def test_no_matching_role_means_no_access(
     assert refused.json()["error"]["code"] == "no_access"
     assert sql("SELECT count(*) FROM users") == [(0,)]
     assert sql("SELECT result FROM login_events") == [("no_role",)]
+
+
+class _Recorder:
+    """Stands in for the service's structlog logger (cached on first use, so
+    structlog.testing.capture_logs cannot see it)."""
+
+    def __init__(self) -> None:
+        self.lines: list[dict[str, Any]] = []
+
+    def __getattr__(self, level: str) -> Callable[..., None]:
+        return lambda event, **fields: self.lines.append({"event": event, **fields})
+
+
+def test_a_refused_sign_in_logs_the_role_claim_it_received(
+    sso: TestClient, idp: FakeIdp, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keycloak's "Full group path" sends `/surimi-admins`, which does not match
+    `surimi-admins`: the log line shows both, so the mismatch is plain."""
+    from surimi_backend.auth import service
+
+    recorder = _Recorder()
+    monkeypatch.setattr(service, "log", recorder)
+    refused = round_trip(sso, idp, person("kc-8", "/surimi-admins"))
+    assert refused.status_code == 403
+    [line] = [e for e in recorder.lines if e["event"] == "auth.sso_no_role"]
+    assert line["role_claim"] == ROLE_CLAIM
+    assert line["role_claim_present"] is True
+    assert line["role_claim_values"] == ["/surimi-admins"]
+    assert line["admin_values"] == ["surimi-admins"]
+    assert line["member_values"] == ["surimi-members"]
 
 
 def test_access_removed_at_the_provider_refuses_the_next_sign_in_and_ends_sessions(
@@ -344,3 +376,36 @@ def test_local_and_sso_users_coexist(
     users("maria.k")
     round_trip(sso, idp, person("kc-1", "surimi-members"))
     assert sso.get("/api/v1/scenarios", headers=bearer(sso, "maria.k")).status_code == 200
+
+
+def test_a_login_on_another_host_starts_again_on_the_public_one(sso: TestClient) -> None:
+    """The flow cookie is kept per host name and the provider returns to
+    PUBLIC_BASE_URL (http://localhost:18080 here), so a login opened at
+    127.0.0.1 is sent there first, before any cookie is set."""
+    other = sso.get(
+        "http://127.0.0.1:18082/api/v1/auth/sso/fake/login",
+        params={"next": "/api/v1/console/"},
+        follow_redirects=False,
+    )
+    assert other.status_code == 302
+    assert other.headers["location"] == (
+        "http://localhost:18080/api/v1/auth/sso/fake/login"
+        "?next=%2Fapi%2Fv1%2Fconsole%2F&canonical=1"
+    )
+    assert "set-cookie" not in other.headers
+
+    # Another port on the same host name shares the cookie: no detour.
+    same = sso.get("http://localhost:18082/api/v1/auth/sso/fake/login", follow_redirects=False)
+    assert same.headers["location"].startswith(f"{ISSUER}/protocol/openid-connect/auth?")
+    assert "surimi_sso_flow=" in same.headers["set-cookie"]
+
+
+def test_the_host_redirect_happens_once(sso: TestClient) -> None:
+    """Behind a proxy that rewrites Host, the second try goes on instead of looping."""
+    again = sso.get(
+        "http://api:8000/api/v1/auth/sso/fake/login",
+        params={"canonical": "1"},
+        follow_redirects=False,
+    )
+    assert again.status_code == 302
+    assert again.headers["location"].startswith(f"{ISSUER}/protocol/openid-connect/auth?")

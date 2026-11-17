@@ -8,8 +8,9 @@
 
 ## Context
 
-- Today the browser speaks gRPC-Web to Envoy, which forwards native gRPC to the
-  controller (`envoy/envoy.yaml.template`, `src/lib/services/controller.ts`).
+- When this was written the browser spoke gRPC-Web to Envoy, which forwarded
+  native gRPC to the controller (`envoy/envoy.yaml.template`,
+  `src/lib/services/controller.ts`); Envoy was removed on 2026-11-17.
   **Read from source.**
 - The controller only speaks gRPC and has no authentication. **Read from
   source** (proto, and the Bruno collection calls it without credentials).
@@ -25,9 +26,10 @@
 - **Backend → controller:** native gRPC over HTTP/2 with TLS using `grpc.aio`,
   with a deadline on every call and retries on `UNAVAILABLE` for the read RPCs.
 - **Notifications:** Server-Sent Events, see ADR 0008.
-- Envoy, the `/api/controller` nginx location, the connect-web client and the
-  frontend's `apps/frontend/src/gen/` are removed once the frontend uses the
-  backend.
+- Envoy and the `/api/controller` nginx location were removed on 2026-11-17
+  (user), before the frontend moved: nginx answers that path with `410`, and
+  the current frontend is built with `MOCK=true` until phase 10. The
+  connect-web client and `apps/frontend/src/gen/` go in phase 10.
 
 ## Why
 

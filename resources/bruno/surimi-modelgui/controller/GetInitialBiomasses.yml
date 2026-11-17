@@ -1,11 +1,11 @@
 info:
-  name: GetInitialFishingMortalities
+  name: GetInitialBiomasses
   type: grpc
-  seq: 8
+  seq: 7
 
 grpc:
-  url: "{{urlGrpcProxy}}"
-  method: /surimi.v1.ControllerService/GetInitialFishingMortalities
+  url: "{{urlController}}"
+  method: /surimi.v1.ControllerService/GetInitialBiomasses
   methodType: unary
   message:
     - title: message 1

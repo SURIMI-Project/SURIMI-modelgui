@@ -1,0 +1,37 @@
+info:
+  name: get stats
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/stats?from=2026-01-01T00:00:00Z"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get stats
+
+  Platform totals for a period. Admin only.
+
+  ## Query
+
+  | Parameter | Meaning |
+  | --- | --- |
+  | `from`, `to` | Period: `from` inclusive, `to` exclusive; both optional |
+  | `scenario` | Experiments of one scenario only (`northwestern_med`, ...) |
+
+  ## Response
+
+  | Field | Meaning |
+  | --- | --- |
+  | `users` | Accounts now (`total`, `active`, `admins`, `members`, `sso`, `local`) and `active_in_period`: users with a successful sign-in in the period |
+  | `sign_ins` | `sign_ins` (successful) and `failed_sign_ins` (any other result, including logins that matched no user) |
+  | `experiments` | Submitted (entered the queue), completed, failed (with `submit_failed`), cancelled in the period; `experiments_active` now; `mean_run_seconds` of completed runs |
+  | `by_scenario` | The experiment counts per scenario |
+  | `by_week` | Per ISO week (Monday 00:00 UTC): successful sign-ins and experiments submitted |

@@ -1,10 +1,14 @@
 # Run from the repository root:
 #   docker compose -f deployments/compose.yml up --build -d     (or: npm run docker:up)
 # Variables come from deployments/.env (see deployments/.env.example).
+# Files mounted into containers (configuration, not data) are in mounts/:
+# postgres/, keycloak/, observability/. nginx/ is not mounted: the web
+# image copies it at build time (apps/frontend/Dockerfile).
 #
 # Start order: postgres (healthy) -> db-bootstrap -> migrate -> api and worker;
-# web (nginx) serves the SPA and proxies /api/v1/ to api and /api/controller/
-# to grpc-proxy (profile).
+# web (nginx) serves the SPA and proxies /api/v1/ to api. The browser no longer
+# reaches the controller (no gRPC-Web proxy since 2026-11-17). Profile
+# "observability" adds Prometheus, Grafana and Jaeger.
 
 # Keeps container and network names as before the move to deployments/.
 name: surimi-modelgui
@@ -42,6 +46,29 @@ x-runtime-env:
   PRESIGNED_URL_TTL_SECONDS: ${PRESIGNED_URL_TTL_SECONDS:-3600}
   # Largest species CSV an admin may import (MB); nginx allows 10 for that path.
   CATALOG_IMPORT_MAX_MB: ${CATALOG_IMPORT_MAX_MB:-10}
+  # --- metrics and traces (ADR 0010) ---
+  # /metrics on the API port and the worker's WORKER_METRICS_PORT; not routed by nginx.
+  METRICS_ENABLED: ${METRICS_ENABLED:-true}
+  WORKER_METRICS_PORT: ${WORKER_METRICS_PORT:-9102}
+  # When set (>= 32 characters), /metrics answers only `Authorization: Bearer <token>`.
+  METRICS_TOKEN: ${METRICS_TOKEN:-}
+  # Empty = tracing off. With --profile observability: http://jaeger:4318
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  # --- retention (ADR 0013): days; IP and user agent 0 = not stored, others 0 = keep ---
+  RETENTION_LOGIN_IP_DAYS: ${RETENTION_LOGIN_IP_DAYS:-90}
+  RETENTION_LOGIN_USER_AGENT_DAYS: ${RETENTION_LOGIN_USER_AGENT_DAYS:-90}
+  RETENTION_LOGIN_EVENTS_DAYS: ${RETENTION_LOGIN_EVENTS_DAYS:-395}
+  RETENTION_AUDIT_DAYS: ${RETENTION_AUDIT_DAYS:-730}
+  RETENTION_SESSIONS_DAYS: ${RETENTION_SESSIONS_DAYS:-30}
+  RETENTION_DELETED_EXPERIMENTS_DAYS: ${RETENTION_DELETED_EXPERIMENTS_DAYS:-365}
+  RETENTION_PURGE_INTERVAL_HOURS: ${RETENTION_PURGE_INTERVAL_HOURS:-24}
+
+# Container logs kept on the host: 5 files of 10 MB per container (ADR 0013).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
 
 x-backend: &backend
   build:
@@ -49,6 +76,7 @@ x-backend: &backend
     context: ..
     dockerfile: apps/backend/Dockerfile
   image: surimi-modelgui-backend:local
+  logging: *logging
 
 services:
   web:
@@ -56,6 +84,12 @@ services:
       # Repository root: the image needs the npm workspace lock file.
       context: ..
       dockerfile: apps/frontend/Dockerfile
+      args:
+        # The current frontend reads scenarios and run statuses from the
+        # controller over gRPC-Web, which no longer has a proxy (removed
+        # 2026-11-17): it shows canned data until phase 10 moves it onto the
+        # backend API. With MOCK=false those pages fail.
+        MOCK: ${MOCK:-true}
     ports:
       - "${SURIMI_PORT:-18080}:80"
     environment:
@@ -64,6 +98,7 @@ services:
     volumes:
       # Local outputs mode: nginx sends downloads from here (X-Accel-Redirect).
       - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
+    logging: *logging
     restart: unless-stopped
 
   # --- database (ADR 0014) --------------------------------------------------------
@@ -110,7 +145,7 @@ services:
       -v app_db="$$APP_DB" -v app_user="$$APP_USER" -v app_password="$$APP_PASSWORD"
       -f /bootstrap/bootstrap.sql'
     volumes:
-      - ./postgres/bootstrap.sql:/bootstrap/bootstrap.sql:ro,z
+      - ./mounts/postgres/bootstrap.sql:/bootstrap/bootstrap.sql:ro,z
     restart: "no"
 
   # --- backend (apps/backend) -----------------------------------------------------
@@ -166,9 +201,6 @@ services:
       OIDC_KEYCLOAK_ADMIN_VALUES: ${OIDC_KEYCLOAK_ADMIN_VALUES:-surimi-admins}
       OIDC_KEYCLOAK_MEMBER_VALUES: ${OIDC_KEYCLOAK_MEMBER_VALUES:-surimi-members}
       OIDC_KEYCLOAK_DEFAULT_ROLE: ${OIDC_KEYCLOAK_DEFAULT_ROLE:-deny}
-      # Days the sign-in history keeps the IP and the user agent; 0 = not stored (ADR 0013).
-      RETENTION_LOGIN_IP_DAYS: ${RETENTION_LOGIN_IP_DAYS:-90}
-      RETENTION_LOGIN_USER_AGENT_DAYS: ${RETENTION_LOGIN_USER_AGENT_DAYS:-90}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -191,14 +223,14 @@ services:
         condition: service_completed_successfully
     volumes:
       - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
-    # No HTTP port: the image's /healthz check does not apply.
+    # Only the metrics port, no /healthz: the image's health check does not apply.
     healthcheck:
       disable: true
     restart: unless-stopped
 
   # --- Keycloak for local SSO (profile "keycloak") ---------------------------------
   # Realm "surimi" with client surimi-modelgui and users alice (admin), bob
-  # (member), carol (no access); see deployments/keycloak/surimi-realm.json.
+  # (member), carol (no access); see deployments/mounts/keycloak/surimi-realm.json.
   # Browsers use http://localhost:18083; the API uses http://keycloak:8080.
   keycloak:
     image: quay.io/keycloak/keycloak:26.4
@@ -214,10 +246,62 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
     volumes:
-      - ./keycloak/surimi-realm.json:/opt/keycloak/data/import/surimi-realm.json:ro,z
+      - ./mounts/keycloak/surimi-realm.json:/opt/keycloak/data/import/surimi-realm.json:ro,z
     ports:
       - "127.0.0.1:${KEYCLOAK_PORT:-18083}:8080"
     restart: unless-stopped
 
+  # --- observability (profile "observability", docs/features/observability-and-activity) ---
+  #   docker compose --profile observability up -d
+  # Set OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318 in .env to send traces to Jaeger.
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    profiles: ["observability"]
+    # Prometheus reads the bearer token from a file, not from the environment:
+    # write METRICS_TOKEN to one, then start it. $$ keeps compose from
+    # interpolating; the shell reads the variable.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        printf '%s' "$$METRICS_TOKEN" > /tmp/metrics_token &&
+        exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml
+        --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d
+    environment:
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+    volumes:
+      - ./mounts/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-18090}:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    profiles: ["observability"]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin-local-only}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/surimi.json
+    volumes:
+      - ./mounts/observability/grafana/provisioning:/etc/grafana/provisioning:ro,z
+      - ./mounts/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro,z
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-18091}:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Jaeger v2 all-in-one: OTLP on 4317 (gRPC) and 4318 (HTTP), UI on 16686.
+  # Traces are kept in memory until the container restarts.
+  jaeger:
+    image: jaegertracing/jaeger:2.23.0
+    profiles: ["observability"]
+    ports:
+      - "127.0.0.1:${JAEGER_PORT:-18092}:16686"
+    restart: unless-stopped
+
 volumes:
   postgres-data:
+  prometheus-data:

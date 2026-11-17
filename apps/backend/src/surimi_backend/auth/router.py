@@ -4,7 +4,9 @@ current user, own password (ADR 0004)."""
 from __future__ import annotations
 
 from typing import Annotated, Any
+from urllib.parse import urlencode, urlsplit
 
+import structlog
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
@@ -32,6 +34,11 @@ from surimi_backend.integrations.oidc import OidcProvider
 from surimi_backend.users.schemas import UserOut
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+log = structlog.get_logger("surimi.auth")
+
+# Added to the SSO login URL when it is sent on to PUBLIC_BASE_URL, so the
+# redirect happens at most once.
+CANONICAL_MARK = "canonical"
 
 ERRORS: dict[int | str, dict[str, Any]] = {
     401: {"description": "Not signed in, or wrong credentials"},
@@ -186,10 +193,30 @@ async def sso_login(
     settings: AppSettings,
     next_path: Annotated[str | None, Query(alias="next", max_length=500)] = None,
 ) -> RedirectResponse:
+    public = urlsplit(settings.public_base_url)
+    if not _same_host(request.url.hostname, public.hostname):
+        if CANONICAL_MARK not in request.query_params:
+            # The flow cookie is kept by the browser for this host name only, and
+            # the provider sends the user back to PUBLIC_BASE_URL: start there.
+            query = urlencode([*request.query_params.multi_items(), (CANONICAL_MARK, "1")])
+            target = f"{settings.public_base_url.rstrip('/')}{request.url.path}?{query}"
+            return RedirectResponse(target, status_code=status.HTTP_302_FOUND)
+        # Already redirected once: a proxy rewrites Host. Go on rather than loop.
+        log.warning(
+            "sso.host_mismatch",
+            request_host=request.url.hostname,
+            public_host=public.hostname,
+            hint="the proxy must pass the original Host header, or set PUBLIC_BASE_URL to it",
+        )
     url, flow = await service.sso_start(settings, provider(request, provider_key), next_path)
     response = RedirectResponse(url, status_code=status.HTTP_302_FOUND)
     set_flow_cookie(response, settings, flow)
     return response
+
+
+def _same_host(a: str | None, b: str | None) -> bool:
+    """Host names as cookies see them: case-insensitive, the port ignored."""
+    return (a or "").lower() == (b or "").lower()
 
 
 @router.get(

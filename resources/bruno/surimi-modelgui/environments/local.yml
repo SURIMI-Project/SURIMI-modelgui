@@ -1,7 +1,8 @@
 name: local
 variables:
-  - name: urlGrpcProxy
-    value: http://localhost:18081
+  - name: urlController
+    value: https://project-surimi-surimi-controller.lab.dive.edito.eu/
+    description: "Controller called directly (native gRPC): the local stack has no gRPC-Web proxy since 2026-11-17. Same default as CONTROLLER_GRPC_URL in deployments/.env.example"
   - name: apiUrl
     value: http://localhost:18082
     description: "Backend API, published by deployments/compose.yml on 127.0.0.1 (API_PORT). Through nginx: http://localhost:18080"
@@ -14,6 +15,9 @@ variables:
   - secret: true
     name: newPassword
     description: New password for auth/post password
+  - secret: true
+    name: metricsToken
+    description: METRICS_TOKEN of the backend, for get metrics; empty when the backend sets none
   - secret: true
     name: accessToken
     description: Set by auth/post token; sent as Bearer by the api folder

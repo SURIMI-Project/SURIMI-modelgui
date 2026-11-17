@@ -19,6 +19,83 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-17
+
+### Change — The browser no longer reaches the controller (Envoy removed)
+
+The gRPC-Web proxy (Envoy, compose profile `grpc-proxy`) and nginx's
+`/api/controller/` route are removed; nginx answers that path with `410`. Only
+the backend calls the controller. The current frontend is built with
+`MOCK=true` by default and shows canned scenarios and run statuses until phase
+10 moves it onto the backend API. Bruno's `grpc-proxy/` folder is now
+`controller/` (variable `urlController`), calling the controller directly.
+See [monorepo-restructure](features/monorepo-restructure/CHANGELOG.md).
+
+> **Deploying this:** rebuild the web image; remove an old `grpc-proxy`
+> container with `docker compose -f deployments/compose.yml up -d --remove-orphans`.
+> `GRPC_PROXY_PORT`, `CONTROLLER_BASE_URL` and `CORS_ALLOWED_ORIGINS` are no
+> longer read.
+
+### Fix — SSO sign-in started on another host name
+
+Signing in with SSO from the console opened at an address other than
+`PUBLIC_BASE_URL` (for example `127.0.0.1` instead of `localhost`) failed with
+`sso_failed`, "the sign-in state is missing". The login now moves to
+`PUBLIC_BASE_URL` before it sets its cookie. See
+[auth-and-users](features/auth-and-users/CHANGELOG.md).
+
+> **Deploying this:** rebuild the API image. Proxies in front of the API must
+> pass the original `Host` header (nginx does: `proxy_set_header Host $host`).
+
+### Change — Mounted configuration under `deployments/mounts/`
+
+The files compose mounts into containers moved to
+`deployments/mounts/<service>/` (`postgres/`, `keycloak/`, `envoy/`,
+`observability/`), so everything a running container reads from the host is in
+one place. `deployments/nginx/` stays: the web image copies it at build time.
+See [monorepo-restructure](features/monorepo-restructure/CHANGELOG.md).
+
+> **Deploying this:** nothing; the next `docker compose up` uses the new
+> paths. Data volumes are unchanged.
+
+### Feature — Metrics, traces, activity statistics and retention (phase 7)
+
+- **Metrics.** The API serves Prometheus metrics at `/metrics` (outside
+  `/api/v1/`, not forwarded by nginx), and the worker on port 9102: requests by
+  route, sign-ins, experiments submitted and ended, controller call times,
+  experiments by state, pods in use, stalled runs, worker cycles. Several API
+  processes share their numbers. `METRICS_ENABLED=false` turns it off;
+  `METRICS_TOKEN` makes both answer only `Authorization: Bearer <token>`.
+- **Traces.** OpenTelemetry over OTLP/HTTP when `OTEL_EXPORTER_OTLP_ENDPOINT`
+  is set: requests, SQL, controller calls and worker cycles. Log lines inside a
+  span carry `trace_id` and `span_id`.
+- **Admin statistics and audit log.** `GET /api/v1/admin/stats`,
+  `/admin/stats/users`, `/admin/users/{id}/activity`, `/admin/audit-events`:
+  sign-ins, last sign-in, experiments submitted, completed, failed and
+  cancelled, per user and in total, for any period.
+- **Retention (ADR 0013).** The worker leader purges once a day: sign-ins
+  older than 13 months are rolled up by month, IPs and user agents nulled after
+  90 days, audit events deleted after 24 months, ended sessions after 30 days,
+  soft-deleted experiments after 12 months.
+- **Local dashboards.** Compose profile `observability`: Prometheus
+  (127.0.0.1:18090), Grafana with a starter dashboard (18091), Jaeger (18092).
+  Container logs rotate at 5 × 10 MB.
+
+See [features/observability-and-activity](features/observability-and-activity/README.md).
+ADR 0010 accepted.
+
+> **Deploying this:** no migration. New settings, all optional, in
+> `deployments/.env.example`: `METRICS_ENABLED`, `WORKER_METRICS_PORT`,
+> `METRICS_TOKEN`, `PROMETHEUS_MULTIPROC_DIR`, `OTEL_EXPORTER_OTLP_ENDPOINT` (and the standard
+> `OTEL_*`), `RETENTION_PURGE_INTERVAL_HOURS`, `RETENTION_LOGIN_EVENTS_DAYS`,
+> `RETENTION_AUDIT_DAYS`, `RETENTION_SESSIONS_DAYS`,
+> `RETENTION_DELETED_EXPERIMENTS_DAYS`. The purge starts when the new worker
+> first leads; set a period to 0 to keep those rows. Keep `/metrics` off any
+> public ingress, and set `METRICS_TOKEN` (given to the scraper too) wherever
+> the API port is reachable from outside.
+
+---
+
 ## 2026-11-16
 
 ### Feature — Several API processes (`WEB_CONCURRENCY`)

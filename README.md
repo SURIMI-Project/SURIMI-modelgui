@@ -11,7 +11,7 @@ This repository is a monorepo, built in phases following the
 | [apps/backend/](apps/backend/) | FastAPI backend (Python 3.13, uv): REST API under `/api/v1` |
 | [apps/frontend/](apps/frontend/) | React + Vite + TypeScript app |
 | [packages/proto/](packages/proto/) | Python stubs of the SURIMI controller protocol, generated |
-| [deployments/](deployments/) | `compose.yml`, PostgreSQL bootstrap and nginx configuration, `.env.example` |
+| [deployments/](deployments/) | `compose.yml`, nginx configuration, files mounted into containers (`mounts/`), `.env.example` |
 | [resources/bruno/](resources/bruno/) | Bruno API collection |
 | [docs/](docs/README.md) | Architecture, plans, decisions, features, open issues |
 
@@ -51,7 +51,18 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
   routes such as `/scenario/...` survive a refresh.
 - Settings go in `deployments/.env` (copy `deployments/.env.example`). For a
   one-off change: `SURIMI_PORT=19090 docker compose -f deployments/compose.yml up --build -d`.
-- The frontend uses the backend REST API for authentication and scenario availability. Scientific inputs/results remain a fixed demo. Only the backend contacts the controller through native gRPC.
+- To use a real controller, set `CONTROLLER_MODE=grpc` and `CONTROLLER_GRPC_URL`:
+  the backend calls it in native gRPC. The browser never does (the gRPC-Web
+  proxy was removed on 2026-11-17); until phase 10 the web app is built with
+  `MOCK=true` and shows canned scenarios and run statuses.
+- Metrics, dashboards and traces: `docker compose -f deployments/compose.yml
+  --profile observability up --build -d` adds Prometheus
+  (<http://localhost:18090>), Grafana with the dashboard "SURIMI model GUI"
+  (<http://localhost:18091>, user `admin`, password `GRAFANA_ADMIN_PASSWORD`,
+  `admin-local-only` by default) and Jaeger (<http://localhost:18092>); set
+  `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318` in `deployments/.env` for
+  traces. The API's own metrics are at <http://localhost:18082/metrics>
+  ([observability-and-activity](docs/features/observability-and-activity/README.md)).
 
 ### Sign in to the API
 

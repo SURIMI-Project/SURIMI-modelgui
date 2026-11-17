@@ -112,6 +112,18 @@ Providers are listed in `OIDC_PROVIDERS` (comma-separated keys); each key
 | `OIDC_<K>_ADMIN_VALUES`, `OIDC_<K>_MEMBER_VALUES` | empty | Comma-separated claim values |
 | `OIDC_<K>_DEFAULT_ROLE` | `deny` | `deny` or `member`, for users with no matching value |
 
+**Host of the login (2026-11-17).** The flow cookie is host-only, so the
+browser keeps it for the host name the login ran on (the port does not count),
+while the provider always returns to `PUBLIC_BASE_URL`. A login started on
+another host name (the console opened at `127.0.0.1`, a LAN address, the API
+port under another name) came back without the cookie: `400 sso_failed`,
+"the sign-in state is missing". So the login first redirects to the same path
+on `PUBLIC_BASE_URL` when the host names differ, before it sets any cookie.
+It does so at most once (marker `canonical=1`): behind a proxy that rewrites
+`Host` it goes on and logs `sso.host_mismatch` instead of looping. nginx passes
+`Host $host`. Rejected: a `Domain` attribute on the cookie, which cannot span
+`localhost` and `127.0.0.1` and would widen the cookie to subdomains.
+
 Env vars rather than a YAML file so Helm can set them from values and Secrets.
 The redirect URI to register at the provider is
 `<PUBLIC_BASE_URL>/api/v1/auth/sso/<K>/callback`. Example:
@@ -264,9 +276,10 @@ other table uses; e-mail and username are unique ways to find a user, and an
 SSO user is found by `identities (provider, subject)`.
 Sign-in history keeps the IP for `RETENTION_LOGIN_IP_DAYS` and the user agent
 for `RETENTION_LOGIN_USER_AGENT_DAYS` (90 each; 0 means never stored, ADR
-0013); a client address that is not an IP is stored as NULL. The job that
-clears them after the retention period is the retention purge task of
-phase 5.
+0013); a client address that is not an IP is stored as NULL. The worker
+leader clears them after that period, and rolls up sign-ins older than 13
+months by month ([retention purge](../observability-and-activity/README.md#retention),
+built 2026-11-17).
 
 ---
 
@@ -279,7 +292,7 @@ phase 5.
 | POST | `/api/v1/auth/token` | public | `{login, password}` | `{access_token, token_type, expires_in}` | 401, 403, 429 |
 | POST | `/api/v1/auth/refresh` | refresh cookie | `X-CSRF-Token` | 204 + cookies | 401, 403 csrf |
 | POST | `/api/v1/auth/logout` | any | — | 204 | 401 |
-| GET | `/api/v1/auth/sso/{provider}/login` | public | `?next=` (a path on this site) | 302 to provider + flow cookie | 404 unknown provider, 502 |
+| GET | `/api/v1/auth/sso/{provider}/login` | public | `?next=` (a path on this site) | 302 to provider + flow cookie; on a host name other than `PUBLIC_BASE_URL`'s, first a 302 to the same path there (`&canonical=1`, at most once) | 404 unknown provider, 502 |
 | GET | `/api/v1/auth/sso/{provider}/callback` | public | `?code&state` | 302 to `PUBLIC_BASE_URL` + `next`, cookies | 400, 403 `no_access`, `account_inactive`, `email_not_verified` or `email_taken`, 502 |
 | GET | `/api/v1/auth/me` | any | — | `UserOut` (incl. `first_name`, `last_name`, `display_name`, `account`, `role`, `role_source`, `has_password`) | 401 |
 | POST | `/api/v1/auth/password` | local users | `{current_password, new_password}` | 204, other sessions end | 401, 409 SSO-only, 422 weak |
@@ -327,7 +340,7 @@ They are built only in phase 10, the last phase, if the user agrees then
 | Backend | `src/surimi_backend/cli.py` | `create-admin` (`--email`, `--username`, `--first-name`, `--last-name`, `--from-env`, `--reset-password`) |
 | Backend | `migrations/versions/20261103_0002_auth.py` | The six tables, their enums and indexes |
 | Backend | `migrations/versions/20261104_0003_user_names.py` | `first_name`, `last_name`, `display_name` not null, `login_result` value `email_rejected` |
-| Deploy | `deployments/keycloak/surimi-realm.json` | Dev realm: client `surimi-modelgui` with a Group Membership mapper (`groups`, full path off), groups `surimi-admins` and `surimi-members`, test users alice (admin), bob (member), carol (no role) with fixed ids, so their `sub` survives a re-import |
+| Deploy | `deployments/mounts/keycloak/surimi-realm.json` | Dev realm: client `surimi-modelgui` with a Group Membership mapper (`groups`, full path off), groups `surimi-admins` and `surimi-members`, test users alice (admin), bob (member), carol (no role) with fixed ids, so their `sub` survives a re-import |
 | Deploy | `deployments/compose.yml` | `keycloak` service (profile `keycloak`, port 18083), auth settings on `api`, `create-admin --from-env` in `migrate` |
 | Frontend (phase 10) | `apps/frontend/src/features/auth/` | Sign-in page with one button per provider, session context, 401-refresh-retry with `X-CSRF-Token`, route guards, "no access" page, forced password change |
 | Frontend (phase 10) | `apps/frontend/src/features/admin/users/` | Users table with role source and account badges, create and edit dialogs; names and e-mail of SSO users read-only |
@@ -344,9 +357,10 @@ attempt, success or not, is a `login_events` row (`result` `success`,
 `bad_credentials`, `locked` (rate limit), `inactive`, `no_role`,
 `email_rejected`, `error`). Audit events: `user.created`, `user.updated`,
 `user.password_reset`, `user.password_changed`, `user.admin_ensured`,
-`role.synced`, `profile.synced`, `access.removed`. The metric
-`surimi_logins_total{method,provider,result}` is not built; it comes with the
-observability feature.
+`role.synced`, `profile.synced`, `access.removed`. Metric
+`surimi_logins_total{method,result}`, one per `login_events` row (built
+2026-11-17 with [observability-and-activity](../observability-and-activity/README.md#metrics);
+no `provider` label: `login_events.provider` holds it for each attempt).
 
 ---
 

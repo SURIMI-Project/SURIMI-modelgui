@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 
 import grpc
 import pytest
+from prometheus_client import REGISTRY
 from surimi.v1 import (
     controller_service_pb2_grpc,
     get_initial_biomasses_pb2,
@@ -315,3 +316,22 @@ async def test_submit_sends_the_request_in_kg_and_is_never_retried(
         assert servicer.removed == [submission.experiment_id]
     finally:
         await client.close()
+
+
+async def test_every_attempt_is_timed_by_rpc_and_code(server: tuple[Servicer, str]) -> None:
+    servicer, url = server
+
+    def seen(code: str) -> float:
+        labels = {"rpc": "GetScenarioNames", "code": code}
+        return (
+            REGISTRY.get_sample_value("surimi_controller_rpc_duration_seconds_count", labels) or 0
+        )
+
+    ok, unavailable = seen("OK"), seen("UNAVAILABLE")
+    servicer.unavailable_left = 1
+    client = GrpcControllerClient(url, timeout=2, read_retries=2)
+    try:
+        await client.get_scenario_names()
+    finally:
+        await client.close()
+    assert (seen("OK"), seen("UNAVAILABLE")) == (ok + 1, unavailable + 1)

@@ -1,0 +1,15 @@
+info:
+  name: controller
+  type: folder
+  seq: 1
+
+request: {}
+
+docs: |-
+  # Controller
+
+  `surimi.v1.ControllerService` called directly, in native gRPC, at
+  `{{urlController}}` of the environment. The gRPC-Web proxy (Envoy) was
+  removed on 2026-11-17: only the backend and these requests reach the
+  controller. On `project-surimi` server reflection is off, so Bruno needs the
+  `.proto` files from `buf.build/surimi/surimi-protocol`.

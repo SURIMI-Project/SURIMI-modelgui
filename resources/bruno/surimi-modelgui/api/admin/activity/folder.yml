@@ -1,0 +1,28 @@
+info:
+  name: activity
+  type: folder
+  seq: 5
+
+request:
+  auth: inherit
+
+docs: |-
+  # Activity
+
+  Usage statistics and the audit log, admin only
+  (`docs/features/observability-and-activity/README.md`).
+  Counts are exact, computed from the database at request time.
+
+  | Request | Use it to |
+  | --- | --- |
+  | `get stats` | Platform totals for a period: users, sign-ins, experiments, by scenario and by week |
+  | `get stats users` | Sign-ins and experiments per user |
+  | `get user activity` | One user (`userId`): statistics, the last 20 sign-ins and experiments |
+  | `get audit events` | Who did what to whom, newest first |
+
+  ## Notes
+
+  Every request takes `from` (inclusive) and `to` (exclusive), ISO 8601; no
+  time zone means UTC; `422` `invalid_input` when `from` is not before `to`.
+  Sign-ins older than 13 months exist only as monthly counts: they are in the
+  totals of every period that overlaps their month, not in `by_week`.

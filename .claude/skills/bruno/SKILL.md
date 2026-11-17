@@ -13,7 +13,7 @@ a bug.
 
 | Folder | Holds |
 | --- | --- |
-| `grpc-proxy/` | Controller RPCs (`surimi.v1.ControllerService`), `type: grpc`. Called directly or through Envoy |
+| `controller/` | Controller RPCs (`surimi.v1.ControllerService`), `type: grpc`, called directly (no gRPC-Web proxy since 2026-11-17) |
 | `api/` | Backend REST requests, `type: http`, one sub-folder per router (`auth/`, `experiments/`, `admin/`, …), created with the backend |
 | `environments/` | One file per target: `local`, `user-<controller-team>`, … |
 
@@ -28,7 +28,7 @@ info:
   seq: <next free number>
 
 grpc:
-  url: "{{urlGrpcProxy}}"
+  url: "{{urlController}}"
   method: /surimi.v1.ControllerService/GetSimulationStatuses
   methodType: unary
   message:
@@ -71,7 +71,7 @@ settings:
 
 - File name is lower case, verb first: `get experiments.yml`,
   `post experiment cancel.yml`.
-- Base URLs come from environment variables (`{{apiUrl}}`, `{{urlGrpcProxy}}`).
+- Base URLs come from environment variables (`{{apiUrl}}`, `{{urlController}}`).
   Never a literal host.
 - Auth is set on the `api/` folder (`folder.yml`: `request.auth` with
   `type: bearer`, `token: "{{accessToken}}"`) and inherited with

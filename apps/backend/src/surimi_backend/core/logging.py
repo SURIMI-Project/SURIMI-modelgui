@@ -16,10 +16,12 @@ import structlog
 from starlette.datastructures import MutableHeaders
 
 from surimi_backend.core.config import Settings
+from surimi_backend.observability import metrics
+from surimi_backend.observability.tracing import add_trace_ids
 
 _SENSITIVE = ("password", "secret", "token", "authorization", "cookie")
 _REQUEST_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
-_QUIET_PATHS = ("/healthz", "/readyz")
+_QUIET_PATHS = ("/healthz", "/readyz", "/metrics")
 
 log = structlog.get_logger("surimi.http")
 
@@ -37,6 +39,7 @@ def configure_logging(settings: Settings) -> None:
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
+        add_trace_ids,
         _drop_sensitive,
         structlog.processors.format_exc_info,
     ]
@@ -78,7 +81,8 @@ ASGIApp = Callable[[Scope, Receive, Send], Awaitable[None]]
 
 class RequestContextMiddleware:
     """Pure ASGI middleware (safe for streaming responses such as SSE): binds a
-    request id, returns it as X-Request-ID, and logs one line per request."""
+    request id, returns it as X-Request-ID, logs one line per request and
+    records the HTTP metrics (observability/metrics.py)."""
 
     def __init__(self, app: ASGIApp, *, log_client_ip: bool) -> None:
         self.app = app
@@ -107,12 +111,18 @@ class RequestContextMiddleware:
         try:
             await self.app(scope, receive, send_with_id)
         finally:
-            route = scope.get("route")
+            elapsed = time.perf_counter() - start
+            template: str | None = getattr(scope.get("route"), "path", None)
+            method = metrics.method_label(scope["method"])
+            # Metrics take the template only: a raw path would be one series per id.
+            route = template or metrics.UNMATCHED_ROUTE
+            metrics.HTTP_REQUESTS.labels(method, route, str(status)).inc()
+            metrics.HTTP_DURATION.labels(method, route).observe(elapsed)
             fields: dict[str, Any] = {
                 "method": scope["method"],
-                "path": getattr(route, "path", None) or scope["path"],
+                "path": template or scope["path"],
                 "status": status,
-                "duration_ms": round((time.perf_counter() - start) * 1000, 1),
+                "duration_ms": round(elapsed * 1000, 1),
             }
             if self.log_client_ip and scope.get("client"):
                 fields["client_ip"] = scope["client"][0]

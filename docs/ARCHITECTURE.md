@@ -9,9 +9,10 @@ backend target. Diagram conventions: [DIAGRAMS.md](DIAGRAMS.md).
 ```mermaid
 flowchart LR
     user(("User"))
-    subgraph web [This repo]
-        nginx["nginx: SPA and /api/controller proxy"]
-        envoy["Envoy grpc-proxy"]
+    subgraph web [This repo, branch develop]
+        nginx["nginx: SPA; /api/v1/ to the API"]
+        api["backend API and worker"]
+        db[("PostgreSQL")]
     end
     subgraph edito [EDITO datalab, owned by the controller team]
         ctrl["SURIMI controller: surimi.v1.ControllerService"]
@@ -19,17 +20,23 @@ flowchart LR
         s3[("S3 bucket project-surimi")]
     end
     user -->|HTTPS| nginx
-    nginx -->|"gRPC-Web over HTTP/1.1"| envoy
-    envoy -->|"gRPC over HTTP/2, TLS"| ctrl
+    nginx -->|"REST/JSON"| api
+    api --> db
+    api -->|"gRPC over HTTP/2, TLS"| ctrl
     ctrl -->|gRPC| models
     models -->|"writes .nc and .bin"| s3
     style edito stroke-dasharray: 5 5
 ```
 
-The browser calls the controller directly through Envoy. There are no users,
-no database and no server-side state: the runs page lists every experiment on
-the controller, and the output dashboards show mock data
-(`apps/frontend/src/features/ScenarioOutputs/MockData/`). **Read from source.**
+The browser no longer reaches the controller: the gRPC-Web proxy (Envoy) and
+nginx's `/api/controller/` route were removed on 2026-11-17 (user), and nginx
+answers that path with `410`. Only the backend calls the controller. The
+current frontend still has its gRPC-Web client, so it is built with
+`MOCK=true` (the compose and image default) and shows canned scenarios, run
+statuses and mock output dashboards
+(`apps/frontend/src/features/ScenarioOutputs/MockData/`) until phase 10 moves
+it onto the backend API. **Verified** 2026-11-17 in compose: `POST
+/api/controller/...` → 410, `/api/v1/` → the API.
 
 On branch `develop` (not merged into `main`), the first part of
 Part 2 runs beside this in compose: `api` (FastAPI), `worker`, `postgres`,
@@ -135,6 +142,7 @@ flowchart LR
     sys -->|"OIDC, HTTPS"| kc
     sys -->|"S3 API or filesystem"| store
     obs -->|"scrape /metrics"| sys
+    sys -->|"OTLP/HTTP traces, when configured"| obs
     style ext stroke-dasharray: 5 5
 ```
 
@@ -174,8 +182,8 @@ flowchart TB
 | --- | --- | --- | --- |
 | nginx | nginx 1.27 | Serves the built SPA; proxies `/api/` to the API; one origin so cookies need no CORS | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
 | frontend | React 19, Vite, Mantine, TanStack Query, client generated from OpenAPI | UI; no tokens in JavaScript | [0006](decisions/0006-protocols-rest-sse-grpc.md) |
-| backend API | Python 3.13, FastAPI, SQLAlchemy 2 async, grpcio `aio` | REST API, auth, RBAC, events to poll | [0002](decisions/0002-backend-python-fastapi.md) |
-| backend worker | Same image, `surimi-backend worker`; one leader by PostgreSQL advisory lock | Polls the controller, dispatches the experiment queue, waits for the results of finished runs in the bucket and indexes them (`copying_results` → `completed`), detects stalls. Purges by retention: not built yet (phase 7) | [0019](decisions/0019-worker-row-driven-with-advisory-lock.md), [0015](decisions/0015-experiment-admission-queue.md) |
+| backend API | Python 3.13, FastAPI, SQLAlchemy 2 async, grpcio `aio` | REST API, auth, RBAC, events to poll, admin activity statistics and audit log; `/metrics` outside `/api/v1/`, not forwarded by nginx | [0002](decisions/0002-backend-python-fastapi.md) |
+| backend worker | Same image, `surimi-backend worker`; one leader by PostgreSQL advisory lock | Polls the controller, dispatches the experiment queue, waits for the results of finished runs in the bucket and indexes them (`copying_results` → `completed`), detects stalls, purges rows past their retention once a day (ADR 0013). Serves its own `/metrics` on port 9102 | [0019](decisions/0019-worker-row-driven-with-advisory-lock.md), [0015](decisions/0015-experiment-admission-queue.md) |
 | PostgreSQL | PostgreSQL 17, database `surimi_modelgui_db` | Users, sessions, harvest control rules, experiments and their queue, simulations, events, output metadata (chunk index, quality report). No output values | [0003](decisions/0003-postgresql-sqlalchemy-alembic.md), [0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |
 | Output storage | S3 API or local folder through `fsspec` | Raw `.nc` and `.bin` written by the output creator; read in place by chunk, never copied | [0009](decisions/0009-output-storage-and-ingestion.md) |
 
@@ -190,6 +198,8 @@ flowchart TB
 | Browser → storage | A presigned S3 GET, from a `302` (`/outputs/download`) or as JSON (`/outputs/download-url`), `.nc`/`.bin` only (nginx `X-Accel-Redirect` in local mode) | The API only authorises; no file bytes through it; resumable. [ADR 0009](decisions/0009-output-storage-and-ingestion.md) |
 | Backend → storage | S3 range requests (`s3fs`) or filesystem, through our own chunk index ([ADR 0020](decisions/0020-own-chunk-index-built-with-h5py.md)) | Same code for both through `fsspec`; only the chunks a view needs are read. [ADR 0009](decisions/0009-output-storage-and-ingestion.md) |
 | API ↔ worker | PostgreSQL rows (`experiments`, `experiment_outputs`, `experiment_events`) and `NOTIFY surimi_dispatch` (wakes the worker) | No extra broker to run. [ADR 0019](decisions/0019-worker-row-driven-with-advisory-lock.md), [ADR 0021](decisions/0021-notifications-by-polling.md) |
+| Prometheus → API, worker | Prometheus text format, `GET /metrics` (API port; worker port 9102), with `Authorization: Bearer <METRICS_TOKEN>` when that is set; with `WEB_CONCURRENCY` > 1 the API processes share values through `prometheus-client` multiprocess files | The format every scraper reads; per-user numbers stay in the database. [ADR 0010](decisions/0010-observability-and-activity-tracking.md) |
+| API, worker → trace collector | OTLP over HTTP/protobuf (`<OTEL_EXPORTER_OTLP_ENDPOINT>/v1/traces`), batched; off unless the endpoint is set | Vendor-neutral; one exporter every collector accepts. [ADR 0010](decisions/0010-observability-and-activity-tracking.md) |
 
 ### Backend modules
 
@@ -201,11 +211,11 @@ flowchart LR
         users["users"]
         catalog["catalog: scenarios, contracts, scenario catalogs, admin workbook (ADR 0017, 0023)"]
         exp["experiments"]
-        sched["scheduler: poller, stall detection, retention"]
+        sched["scheduler: poller, stall detection"]
         queue["queue: dispatcher, fair order, capacity"]
         outputs["outputs: storage, chunk index, charts, maps"]
         notif["notifications: events to poll"]
-        obs["observability: metrics, audit, stats"]
+        obs["observability: metrics, traces, stats, retention; audit log (ADR 0010, 0013)"]
         ctrlc["integrations/controller: grpc and fake"]
     end
     auth --> users
@@ -500,5 +510,5 @@ checks one thing. [ADR 0004](decisions/0004-authentication-local-and-oidc.md).
 
 | Environment | How | Database |
 | --- | --- | --- |
-| Local | `deployments/compose.yml`: nginx, api, worker, migrate, postgres; profiles `keycloak` (dev realm), `minio` (S3 stand-in), `observability` (Prometheus, Grafana). `CONTROLLER_MODE=fake` runs without the controller | `postgres:17-alpine`, database `surimi_modelgui_db`, named volume |
+| Local | `deployments/compose.yml`: nginx, api, worker, migrate, postgres; profiles `keycloak` (dev realm), `observability` (Prometheus, Grafana with the starter dashboard, Jaeger for traces). `CONTROLLER_MODE=fake` runs without the controller | `postgres:17-alpine`, database `surimi_modelgui_db`, named volume |
 | EDITO datalab | Images pushed by GitHub Actions; Helm chart for frontend, api, worker, migrate Job | `postgresql.enabled: true` runs PostgreSQL in the chart (official image, PVC, backup CronJob); `false` connects to `externalDatabase`. [ADR 0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |

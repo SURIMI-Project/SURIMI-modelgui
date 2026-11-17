@@ -1,0 +1,27 @@
+info:
+  name: get user activity
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/users/{{userId}}/activity"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get user activity
+
+  One user's statistics for a period (`from`, `to`), their last 20 sign-ins
+  (any result, with IP and user agent while they are kept, 90 days) and their
+  last 20 experiments (`deleted` marks soft-deleted ones). Admin only.
+
+  ## Before you run it
+
+  Set `userId`: `admin/users/post user` stores it, or copy an id from
+  `get stats users`. `404` for an unknown or deleted user.

@@ -32,7 +32,7 @@ from surimi_backend.users.models import Role, RoleSource, User
 from tests.world import make_world  # noqa: F401 - fixture for experiment tests
 
 JWT_SECRET = "test-only-jwt-secret-0123456789-abcdefghijklmnop"
-BOOTSTRAP_DIR = Path(__file__).resolve().parents[3] / "deployments" / "postgres"
+BOOTSTRAP_DIR = Path(__file__).resolve().parents[3] / "deployments" / "mounts" / "postgres"
 APP_DB_PASSWORD = "app-test-password"
 PASSWORD = "a-long-test-password-1"  # passes the policy; for users made by `users`
 
@@ -44,6 +44,15 @@ TABLES = (
 
 
 # --- unit tests ---------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def no_multiprocess_metrics(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`serve` with WEB_CONCURRENCY > 1 writes PROMETHEUS_MULTIPROC_DIR into the
+    environment for the processes it starts; in the test process that would make
+    every later app read an empty metrics folder. Set through monkeypatch, the
+    variable is put back after each test."""
+    monkeypatch.setenv("PROMETHEUS_MULTIPROC_DIR", "")
 
 
 @pytest.fixture

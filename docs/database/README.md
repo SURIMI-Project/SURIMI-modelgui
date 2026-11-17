@@ -2,14 +2,14 @@
 
 | File | What it is |
 | --- | --- |
-| [deployments/postgres/bootstrap.sql](../../deployments/postgres/bootstrap.sql) | Creates the database and the application user, run once as the instance admin; safe to re-run |
+| [deployments/mounts/postgres/bootstrap.sql](../../deployments/mounts/postgres/bootstrap.sql) | Creates the database and the application user, run once as the instance admin; safe to re-run |
 | [indexes.sql](indexes.sql) | Exact definitions of the indexes DBML cannot express (partial, `DESC`, `INCLUDE`, GIN) |
 | [schema.dbml](schema.dbml) | Full schema: tables, columns, types, defaults, indexes, enums, relations, notes. Open it in [dbdiagram.io](https://dbdiagram.io) (paste) or the VS Code "DBML" extension for a diagram |
 | [ARCHITECTURE.md § Data model](../ARCHITECTURE.md#data-model) | Overview as a Mermaid ER diagram, rendered on GitHub |
 
 PostgreSQL 17, no extensions. One application user, `surimi_modelgui`, owns
 the schema, runs the migrations and is used by the API and the worker; the
-instance admin, when we have it, is used only by `deployments/postgres/bootstrap.sql`. Decisions:
+instance admin, when we have it, is used only by `deployments/mounts/postgres/bootstrap.sql`. Decisions:
 [0003](../decisions/0003-postgresql-sqlalchemy-alembic.md) (engine, ORM,
 migrations), [0014](../decisions/0014-postgresql-in-repo-bundled-or-external.md)
 (names, compose, Helm bundled or external),
@@ -123,7 +123,7 @@ in `indexes.sql`.
 
 Also on 2026-11-03, on `postgres:17-alpine` (**Verified**):
 
-- `deployments/postgres/bootstrap.sql` run twice as the admin: second run changes nothing.
+- `deployments/mounts/postgres/bootstrap.sql` run twice as the admin: second run changes nothing.
 - Same day, on the compose stack: changing `DB_PASSWORD` and restarting
   updates the user's password and the API reconnects; custom `DB_USER` and
   `DB_NAME` create that user (not superuser, cannot create databases) and

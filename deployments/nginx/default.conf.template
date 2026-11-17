@@ -12,8 +12,17 @@ server {
   root /usr/share/nginx/html;
   index index.html;
 
-  # Retain the same-origin backend REST proxy for the later frontend integration.
-  # Resolve per request so nginx starts without a running API.
+  # The browser no longer reaches the controller: the gRPC-Web proxy (Envoy) was
+  # removed on 2026-11-17, and only the backend talks to the controller. An old
+  # frontend build that still calls here gets a plain 410 instead of the SPA.
+  location /api/controller/ {
+    return 410;
+  }
+
+  # Backend REST API (apps/backend). The upstream goes through a variable so its
+  # hostname is resolved per request: nginx still starts when the API is not
+  # running. NGINX_LOCAL_RESOLVERS is filled from /etc/resolv.conf by the image
+  # entrypoint. The original URI is kept.
   location /api/v1/ {
     resolver ${NGINX_LOCAL_RESOLVERS} valid=30s;
     set $api_upstream ${API_BASE_URL};

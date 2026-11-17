@@ -1,6 +1,6 @@
 name: project-surimi
 variables:
-  - name: urlGrpcProxy
+  - name: urlController
     value: https://project-surimi-surimi-controller.lab.dive.edito.eu/
     description: "Controller of the project-surimi namespace on EDITO (server reflection is off: Bruno needs the .proto from buf.build/surimi/surimi-protocol)"
   - name: apiUrl
@@ -15,6 +15,9 @@ variables:
   - secret: true
     name: newPassword
     description: New password for auth/post password
+  - secret: true
+    name: metricsToken
+    description: METRICS_TOKEN of the backend, for get metrics; empty when the backend sets none
   - secret: true
     name: accessToken
     description: Set by auth/post token; sent as Bearer by the api folder
