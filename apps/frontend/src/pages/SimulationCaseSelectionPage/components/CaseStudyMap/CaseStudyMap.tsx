@@ -4,8 +4,21 @@ import Button from "../../../../components/ui/Button/Button";
 // import UseCaseSelector from "../../../../components/presentational/UseCaseSelector/UseCaseSelector";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, Outlet, useLocation, useNavigate, useMatch, useSearchParams } from "react-router-dom";
-import { FiArrowLeft, FiArrowRight, FiCompass, FiLayers, FiList } from "react-icons/fi";
+import {
+  Link,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useMatch,
+  useSearchParams,
+} from "react-router-dom";
+import {
+  FiArrowLeft,
+  FiArrowRight,
+  FiCompass,
+  FiLayers,
+  FiList,
+} from "react-icons/fi";
 import {
   aegeanStudyArea,
   northwesternStudyArea,
@@ -34,7 +47,11 @@ export type AvailabilityState = {
   onRetry?: () => void;
   requestId?: string;
 };
-type Props = { scenarios: ScenariosResponse; status?: ReactNode; availability?: AvailabilityState };
+type Props = {
+  scenarios: ScenariosResponse;
+  status?: ReactNode;
+  availability?: AvailabilityState;
+};
 const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -81,10 +98,18 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
         setSearchParams(next);
       } else if (available.has(id)) {
         if (selection) navigate(`/scenario/${id}`);
-        else setPreviewCase(previous => previous === id ? null : id);
+        else setPreviewCase((previous) => (previous === id ? null : id));
       }
     },
-    [available, navigate, listView, searchParams, setSearchParams, selection, setPreviewCase],
+    [
+      available,
+      navigate,
+      listView,
+      searchParams,
+      setSearchParams,
+      selection,
+      setPreviewCase,
+    ],
   );
   const transition = {
     duration: reducedMotion ? 0 : 0.65,
@@ -98,7 +123,6 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
         ? northwesternStudyArea
         : null;
 
-
   return (
     <main
       className={styles.page}
@@ -106,116 +130,200 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
       data-list={listView || undefined}
       data-bay={selected === "anchovy-bay"}
     >
-      <div className={styles.sceneContent} data-loading={availability?.pending || undefined} inert={Boolean(availability)} aria-hidden={availability ? true : undefined} aria-busy={availability?.pending || undefined}>
-      <GeographicMap
-        enablePlacementTools={false}
-        backgroundOnly={listView}
-        selected={selected}
-        available={available}
-        onSelect={select}
-        reducedMotion={reducedMotion}
-      />
-      <div className={styles.mapGlow} aria-hidden="true" />
-      <AnimatePresence>
-        {selected === "anchovy-bay" ? (
-          <motion.div className={styles.bayBackground} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reducedMotion ? 0 : 0.4 }} aria-hidden="true">
-            <img src="/anchovy-bay-bg.png" alt="" />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-      <div className={styles.scrim} aria-hidden="true" />
+      <div
+        className={styles.sceneContent}
+        data-loading={availability?.pending || undefined}
+        inert={Boolean(availability)}
+        aria-hidden={availability ? true : undefined}
+        aria-busy={availability?.pending || undefined}
+      >
+        <GeographicMap
+          enablePlacementTools={false}
+          backgroundOnly={listView}
+          selected={selected}
+          available={available}
+          onSelect={select}
+          reducedMotion={reducedMotion}
+        />
+        <div className={styles.mapGlow} aria-hidden="true" />
+        <AnimatePresence>
+          {selected === "anchovy-bay" ? (
+            <motion.div
+              className={styles.bayBackground}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.4 }}
+              aria-hidden="true"
+            >
+              <img src="/anchovy-bay-bg.png" alt="" />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+        <div className={styles.scrim} aria-hidden="true" />
 
-      <header className={styles.header}>
-        <Link to="/scenarios" className={styles.brand} aria-label="SURIMI Model Explorer · All scenarios">
-          <Logo className={styles.logo} />
-          <div className={styles.brandText}><span>MODEL USER INTERFACE</span></div>
-        </Link>
-        <SessionMenu avatar />
-      </header>
+        <header className={styles.header}>
+          <Link
+            to="/scenarios"
+            className={styles.brand}
+            aria-label="SURIMI Model Explorer · All scenarios"
+          >
+            <Logo className={styles.logo} />
+            <div className={styles.brandText}>
+              <span>MODEL USER INTERFACE</span>
+            </div>
+          </Link>
+          <SessionMenu avatar />
+        </header>
 
-      {listView ? <motion.div className={styles.runsWorkspace} initial={{ opacity: 0, y: reducedMotion ? 0 : 16 }} animate={{ opacity: 1, y: 0 }} transition={transition}><Outlet /></motion.div> : <AnimatePresence mode="wait">
-        {!selected ? (
-          <motion.section
-            key="overview"
-            className={styles.introduction}
-            initial={false}
+        {listView ? (
+          <motion.div
+            className={styles.runsWorkspace}
+            initial={{ opacity: 0, y: reducedMotion ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
             transition={transition}
           >
-            <h1 className={styles.explorePrompt}>Select a place<br />to explore</h1>
-          </motion.section>
-        ) : place ? (
-          <motion.section
-            key={selected}
-            ref={preview}
-            tabIndex={-1}
-            className={immersive ? styles.immersivePreview : styles.preview}
-            aria-labelledby="selected-case-title"
-            onAnimationComplete={(definition) => {
-              if (
-                typeof definition === "object" &&
-                "opacity" in definition &&
-                definition.opacity === 1
-              ) {
-                preview.current?.focus({ preventScroll: true });
-              }
-            }}
-            initial={{ opacity: 0, x: -24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={transition}
-          >
-            <section className={styles.caseInformation} aria-labelledby="selected-case-title">
-              <div className={styles.caseInformationScroll}>
-                <h1 id="selected-case-title">{scenarioWorldContent[selected!].worldTitle}</h1>
-                <h2>{scenarioWorldContent[selected!].aboutTitle.toUpperCase()}</h2>
-                {scenarioWorldContent[selected!].description.map(paragraph => <p key={paragraph} className={styles.caseParagraph}>{paragraph}</p>)}
-              </div>
-            </section>
-            <nav className={styles.caseDetailActions} aria-label={`${place.title} actions`}>
-              <SheetTrigger isOpen={modelsView && !availability} onOpenChange={open => navigate(`/scenario/${selected}${open ? "?view=models" : ""}`, { replace: !open })}>
-                <Button variant="primary-outlined"><FiLayers aria-hidden="true" />ABOUT THE MODELS</Button>
-                <CaseModelsSheet key={selected} caseId={selected!} onClose={() => navigate(`/scenario/${selected}`, { replace: true })} />
-              </SheetTrigger>
-              <Button variant="primary-outlined" onPress={() => navigate(`/scenario-runs?case=${selected}`)}><FiList aria-hidden="true" />COMPARE SCENARIOS</Button>
-            </nav>
-          </motion.section>
+            <Outlet />
+          </motion.div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {!selected ? (
+              <motion.section
+                key="overview"
+                className={styles.introduction}
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={transition}
+              >
+                <h1 className={styles.explorePrompt}>
+                  Select
+                  <br />
+                  A Case Study
+                  <br />
+                  To Explore
+                </h1>
+              </motion.section>
+            ) : place ? (
+              <motion.section
+                key={selected}
+                ref={preview}
+                tabIndex={-1}
+                className={immersive ? styles.immersivePreview : styles.preview}
+                aria-labelledby="selected-case-title"
+                onAnimationComplete={(definition) => {
+                  if (
+                    typeof definition === "object" &&
+                    "opacity" in definition &&
+                    definition.opacity === 1
+                  ) {
+                    preview.current?.focus({ preventScroll: true });
+                  }
+                }}
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -12 }}
+                transition={transition}
+              >
+                <section
+                  className={styles.caseInformation}
+                  aria-labelledby="selected-case-title"
+                >
+                  <div className={styles.caseInformationScroll}>
+                    <h1 id="selected-case-title">
+                      {scenarioWorldContent[selected!].worldTitle}
+                    </h1>
+                    <h2>
+                      {scenarioWorldContent[selected!].aboutTitle.toUpperCase()}
+                    </h2>
+                    {scenarioWorldContent[selected!].description.map(
+                      (paragraph) => (
+                        <p key={paragraph} className={styles.caseParagraph}>
+                          {paragraph}
+                        </p>
+                      ),
+                    )}
+                  </div>
+                </section>
+                <nav
+                  className={styles.caseDetailActions}
+                  aria-label={`${place.title} actions`}
+                >
+                  <SheetTrigger
+                    isOpen={modelsView && !availability}
+                    onOpenChange={(open) =>
+                      navigate(
+                        `/scenario/${selected}${open ? "?view=models" : ""}`,
+                        { replace: !open },
+                      )
+                    }
+                  >
+                    <Button variant="primary-outlined">
+                      <FiLayers aria-hidden="true" />
+                      ABOUT THE MODELS
+                    </Button>
+                    <CaseModelsSheet
+                      key={selected}
+                      caseId={selected!}
+                      onClose={() =>
+                        navigate(`/scenario/${selected}`, { replace: true })
+                      }
+                    />
+                  </SheetTrigger>
+                  <Button
+                    variant="primary-outlined"
+                    onPress={() => navigate(`/scenario-runs?case=${selected}`)}
+                  >
+                    <FiList aria-hidden="true" />
+                    COMPARE SCENARIOS
+                  </Button>
+                </nav>
+              </motion.section>
+            ) : null}
+          </AnimatePresence>
+        )}
+
+        {!listView && !selected ? (
+          <div className={styles.mobileCaseCards}>
+            {simulationCaseStudies
+              .filter((item) => item.id !== "anchovy-bay")
+              .map((item) => (
+                <MarineCaseIdentity
+                  key={item.id}
+                  caseId={item.id}
+                  disabled={!available.has(item.id)}
+                  onSelect={() => select(item.id)}
+                />
+              ))}
+          </div>
         ) : null}
-      </AnimatePresence>}
 
-      {!listView && !selected ? (
-        <div className={styles.mobileCaseCards}>
-          {simulationCaseStudies.filter(item => item.id !== "anchovy-bay").map(item => (
-            <MarineCaseIdentity key={item.id} caseId={item.id} disabled={!available.has(item.id)}
-              onSelect={() => select(item.id)} />
-          ))}
-        </div>
-      ) : null}
+        {!listView && !selected ? (
+          <div className={styles.bayCard}>
+            <Button
+              variant="secondary-outlined"
+              className={styles.bayInset}
+              aria-label="Preview Anchovy Bay"
+              aria-haspopup="dialog"
+              isDisabled={!available.has("anchovy-bay")}
+              onPress={() => select("anchovy-bay")}
+            >
+              <img
+                src="/useCasesInfo/anchovy-bay-one-river.svg"
+                alt="Illustration of Anchovy Bay"
+              />
+              <span className={styles.insetTitle}>
+                <span>ANCHOVY BAY</span>
+                <span className={styles.insetCategory}>
+                  Educational Case Study
+                </span>
+              </span>
+            </Button>
+          </div>
+        ) : null}
 
-      {!listView && !selected ? (
-        <div className={styles.bayCard}>
-        <Button
-          variant="secondary-outlined"
-          className={styles.bayInset}
-          aria-label="Preview Anchovy Bay"
-          aria-haspopup="dialog"
-          isDisabled={!available.has("anchovy-bay")}
-          onPress={() => select("anchovy-bay")}
-        >
-          <img src="/useCasesInfo/anchovy-bay-one-river.svg" alt="Illustration of Anchovy Bay" />
-          <span className={styles.insetTitle}>
-            <span>ANCHOVY BAY</span>
-            <span className={styles.insetCategory}>Educational Case Study</span>
-          </span>
-
-        </Button>
-
-        </div>
-      ) : null}
-
-      <div className={styles.selectorPosition}>
-        {/* Original selector retained for reference.
+        <div className={styles.selectorPosition}>
+          {/* Original selector retained for reference.
         <UseCaseSelector
           showNumbers={false}
           ref={selector}
@@ -235,45 +343,67 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
         />
         */}
 
+          {!listView && !availability && available.size === 0 ? (
+            <p className={styles.empty} role="status">
+              No case studies are currently available.
+            </p>
+          ) : null}
+        </div>
+        {status ? (
+          <div className={styles.availabilityNotice}>{status}</div>
+        ) : null}
 
-        {!listView && !availability && available.size === 0 ? (
-          <p className={styles.empty} role="status">
-            No case studies are currently available.
-          </p>
-        ) : null}
-      </div>
-      {status ? (
-        <div className={styles.availabilityNotice}>{status}</div>
-      ) : null}
-
-      <footer className={styles.footer}>
-        {boundary ? (
-          <a href={boundary.source} target="_blank" rel="noreferrer">
-            {boundary.credit}
-          </a>
-        ) : null}
-        {selected !== "anchovy-bay" ? (
-          <a
-            href="https://www.naturalearthdata.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Map context: Natural Earth
-          </a>
-        ) : null}
-      </footer>
+        <footer className={styles.footer}>
+          {boundary ? (
+            <a href={boundary.source} target="_blank" rel="noreferrer">
+              {boundary.credit}
+            </a>
+          ) : null}
+          {selected !== "anchovy-bay" ? (
+            <a
+              href="https://www.naturalearthdata.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Map context: Natural Earth
+            </a>
+          ) : null}
+        </footer>
       </div>
       {selected ? (
         <nav className={styles.detailActions} aria-label="Case study actions">
-          <Button variant="primary-outlined" onPress={() => navigate("/scenarios")}><FiArrowLeft aria-hidden="true" />BACK TO CASE STUDIES</Button>
-          <Button isDisabled={Boolean(availability) || !available.has(selected)} onPress={() => setSetupOpen(true)}>SET UP SCENARIO</Button>
+          <Button
+            variant="primary-outlined"
+            onPress={() => navigate("/scenarios")}
+          >
+            <FiArrowLeft aria-hidden="true" />
+            BACK TO CASE STUDIES
+          </Button>
+          <Button
+            isDisabled={Boolean(availability) || !available.has(selected)}
+            onPress={() => setSetupOpen(true)}
+          >
+            SET UP SCENARIO
+          </Button>
         </nav>
       ) : null}
-      <CasePreviewModal caseId={!selected && !listView && !availability ? previewCase : null}
+      <CasePreviewModal
+        caseId={!selected && !listView && !availability ? previewCase : null}
         onClose={() => setPreviewCase(null)}
-        onExplore={id => navigate(`/scenario/${id}`)}
-        onCompare={id => navigate(`/scenario-runs?case=${id}`)} />
-      {selected && InputsFlow ? <InputsFlow key={selected} isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => { setSetupOpen(false); navigate(`/scenario-runs?case=${selected}`); }} /> : null}
+        onExplore={(id) => navigate(`/scenario/${id}`)}
+        onCompare={(id) => navigate(`/scenario-runs?case=${id}`)}
+      />
+      {selected && InputsFlow ? (
+        <InputsFlow
+          key={selected}
+          isOpen={setupOpen}
+          onClose={() => setSetupOpen(false)}
+          onComplete={() => {
+            setSetupOpen(false);
+            navigate(`/scenario-runs?case=${selected}`);
+          }}
+        />
+      ) : null}
       <AnimatePresence>
         {availability ? (
           <motion.div
@@ -285,13 +415,37 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             exit={{ opacity: 0 }}
             transition={{ duration: reducedMotion ? 0 : 0.15 }}
           >
-            <section className={styles.loadingContent} role={availability.pending ? "status" : "alert"} aria-live="polite" aria-atomic="true">
-              {availability.pending ? <span className={styles.loadingOrbit} aria-hidden="true"><FiCompass /></span> : <FiCompass className={styles.loadingErrorIcon} aria-hidden="true" />}
+            <section
+              className={styles.loadingContent}
+              role={availability.pending ? "status" : "alert"}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {availability.pending ? (
+                <span className={styles.loadingOrbit} aria-hidden="true">
+                  <FiCompass />
+                </span>
+              ) : (
+                <FiCompass
+                  className={styles.loadingErrorIcon}
+                  aria-hidden="true"
+                />
+              )}
               <p className={styles.loadingEyebrow}>SURIMI MODEL EXPLORER</p>
               <h2>{availability.title}</h2>
               <p>{availability.message}</p>
-              {availability.onRetry ? <Button autoFocus isDisabled={availability.pending} onPress={availability.onRetry}>Try again <FiArrowRight /></Button> : null}
-              {availability.requestId ? <small>Reference: {availability.requestId}</small> : null}
+              {availability.onRetry ? (
+                <Button
+                  autoFocus
+                  isDisabled={availability.pending}
+                  onPress={availability.onRetry}
+                >
+                  Try again <FiArrowRight />
+                </Button>
+              ) : null}
+              {availability.requestId ? (
+                <small>Reference: {availability.requestId}</small>
+              ) : null}
               {!availability.pending ? <SessionMenu /> : null}
             </section>
           </motion.div>
