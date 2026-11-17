@@ -72,9 +72,9 @@ Single app at the root: `src/`, `public/`, `index.html`, `vite.config.ts`,
 │                            eslint.config.js, buf.gen.yaml, package.json
 │                            (@surimi/frontend), Dockerfile, .env.example
 ├── deployments/
-│   ├── compose.yml          project surimi-modelgui: web, grpc-proxy (profile)
+│   ├── compose.yml          project surimi-modelgui: web, grpc-proxy (profile; removed 2026-11-17)
 │   ├── nginx/               default.conf.template
-│   ├── envoy/               until phase 10
+│   ├── envoy/               removed 2026-11-17 (mounted files now under mounts/)
 │   └── .env.example
 ├── resources/bruno/surimi-modelgui/
 ├── docs/
@@ -117,8 +117,9 @@ Phase 2 adds `apps/backend/`, `packages/proto/`, `pyproject.toml`, and
 2. `npm run build` passes; `npm run lint` shows the same 25 problems as `main`.
 3. `docker compose -f deployments/compose.yml up --build -d`: the app on
    <http://localhost:18080>, container `surimi-modelgui-web-1`.
-4. With `CONTROLLER_GRPC_URL` set: `docker compose -f deployments/compose.yml
-   --profile grpc-proxy up -d`, then the runs page loads data.
+4. (Until 2026-11-17, when Envoy was removed.) With `CONTROLLER_GRPC_URL` set:
+   `docker compose -f deployments/compose.yml --profile grpc-proxy up -d`, then
+   the runs page loaded data.
 5. `git log --follow apps/frontend/src/App.tsx` shows the old history.
 
 ---
@@ -142,7 +143,7 @@ Phase 2 adds `apps/backend/`, `packages/proto/`, `pyproject.toml`, and
   container serves `/`, `/scenario-runs`, `/scenario/anchovy_bay` (client
   routes) and `/favicon.ico` with 200; container name `surimi-modelgui-web-1`
   as before.
-- With the `grpc-proxy` profile, Envoy starts from `deployments/mounts/envoy/` and
+- (Until 2026-11-17, when Envoy was removed.) With the `grpc-proxy` profile, Envoy started from `deployments/envoy/` and
   forwards to the controller; the reply was the same `404` that a direct call
   to the controller gives, because **both EDITO controllers (`user-<controller-team>` and
   `project-surimi`) answered 404 to every gRPC call on 2026-11-03**. A

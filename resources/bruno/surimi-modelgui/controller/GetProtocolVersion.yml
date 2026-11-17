@@ -4,7 +4,7 @@ info:
   seq: 1
 
 grpc:
-  url: "{{urlGrpcProxy}}"
+  url: "{{urlController}}"
   method: /surimi.v1.ControllerService/GetProtocolVersion
   methodType: unary
   message:

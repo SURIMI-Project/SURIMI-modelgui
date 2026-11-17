@@ -1,6 +1,6 @@
 name: rikkert
 variables:
-  - name: urlGrpcProxy
+  - name: urlController
     value: https://user-rikkert-surimi-controller.lab.dive.edito.eu/
     description: ""
   - name: experimentId

@@ -4,7 +4,7 @@ info:
   seq: 3
 
 grpc:
-  url: "{{urlGrpcProxy}}"
+  url: "{{urlController}}"
   method: /surimi.v1.ControllerService/GetAllSimulationStatuses
   methodType: unary
   message:

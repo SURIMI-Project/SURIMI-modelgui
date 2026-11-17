@@ -21,6 +21,21 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-17
 
+### Change — The browser no longer reaches the controller (Envoy removed)
+
+The gRPC-Web proxy (Envoy, compose profile `grpc-proxy`) and nginx's
+`/api/controller/` route are removed; nginx answers that path with `410`. Only
+the backend calls the controller. The current frontend is built with
+`MOCK=true` by default and shows canned scenarios and run statuses until phase
+10 moves it onto the backend API. Bruno's `grpc-proxy/` folder is now
+`controller/` (variable `urlController`), calling the controller directly.
+See [monorepo-restructure](features/monorepo-restructure/CHANGELOG.md).
+
+> **Deploying this:** rebuild the web image; remove an old `grpc-proxy`
+> container with `docker compose -f deployments/compose.yml up -d --remove-orphans`.
+> `GRPC_PROXY_PORT`, `CONTROLLER_BASE_URL` and `CORS_ALLOWED_ORIGINS` are no
+> longer read.
+
 ### Fix — SSO sign-in started on another host name
 
 Signing in with SSO from the console opened at an address other than

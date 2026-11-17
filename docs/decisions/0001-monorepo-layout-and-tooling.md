@@ -22,7 +22,7 @@ apps/frontend/      React app (moved from src/ with git mv)
 apps/backend/       FastAPI API and worker, one Python package, uv
 packages/proto/     controller stubs, generated (ADR 0011)
 deployments/        compose.yml, .env.example, nginx/ (copied into the web image)
-deployments/mounts/ files compose mounts into containers: postgres/, keycloak/, envoy/, observability/
+deployments/mounts/ files compose mounts into containers: postgres/, keycloak/, observability/
 resources/bruno/    Bruno collection
 docs/               documentation
 package.json        npm workspaces: ["apps/frontend"], delegating scripts

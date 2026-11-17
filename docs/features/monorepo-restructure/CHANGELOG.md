@@ -6,6 +6,42 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-17 — gRPC-Web proxy (Envoy) removed
+
+**Status:** done (user, 2026-11-17, chosen over keeping it until phase 10).
+Only the backend calls the controller now. The current frontend still has its
+gRPC-Web client, so the web image is built with `MOCK=true` by default and
+shows canned scenarios and run statuses until phase 10; with `MOCK=false` those
+pages fail. **Verified** 2026-11-17 in a separate compose project: the web image
+builds; `GET /` 200, `POST /api/controller/...` 410, `GET /api/v1/auth/providers`
+200 through nginx; the rendered nginx config has no controller upstream.
+`docker compose config` is valid with every profile. Not checked: the old
+frontend's pages in a browser.
+
+- `deployments/compose.yml` — service `grpc-proxy` and `CONTROLLER_BASE_URL`
+  removed; build arg `MOCK` defaults to `true`; header comments.
+- `deployments/mounts/envoy/` — deleted (`envoy.yaml.template`, `entrypoint.sh`).
+- `deployments/nginx/default.conf.template` — `/api/controller/` returns `410`
+  instead of proxying.
+- `apps/frontend/Dockerfile` — `ARG MOCK=true`; no `CONTROLLER_BASE_URL`.
+- `apps/frontend/.env.example`, `deployments/.env.example` — `MOCK=true`;
+  `GRPC_PROXY_PORT`, `CONTROLLER_BASE_URL`, `CORS_ALLOWED_ORIGINS` and the
+  `grpc-proxy` section removed.
+- Bruno: folder `grpc-proxy/` renamed `controller/`, variable `urlGrpcProxy`
+  renamed `urlController`; `local` now calls the `project-surimi` controller
+  directly instead of Envoy on port 18081.
+- Docs: `ARCHITECTURE.md` (Part 1, deployment), `ISSUES.md` (the High item
+  "the browser can call the controller" is closed for this repo; what remains,
+  the controller's public unauthenticated address, moved to the controller
+  section), ADR 0001 and 0006, the plan's phase 10, `CLAUDE.md`, `README.md`,
+  the experiment-queue and monorepo-restructure READMEs, the `/bruno` skill.
+
+**Deploy:** rebuild the web image (`docker compose ... up --build -d`). A
+`grpc-proxy` container left from an earlier run is an orphan: add
+`--remove-orphans` once.
+
+---
+
 ## 2026-11-17 — Mounted files under `deployments/mounts/`
 
 **Status:** done (user, 2026-11-17). Everything compose mounts into a

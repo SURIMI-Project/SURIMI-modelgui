@@ -1,6 +1,6 @@
 name: project-surimi
 variables:
-  - name: urlGrpcProxy
+  - name: urlController
     value: https://project-surimi-surimi-controller.lab.dive.edito.eu/
     description: "Controller of the project-surimi namespace on EDITO (server reflection is off: Bruno needs the .proto from buf.build/surimi/surimi-protocol)"
   - name: apiUrl

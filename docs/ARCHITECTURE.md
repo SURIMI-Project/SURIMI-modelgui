@@ -13,9 +13,10 @@ today. Part 2 is the target of the
 ```mermaid
 flowchart LR
     user(("User"))
-    subgraph web [This repo]
-        nginx["nginx: SPA and /api/controller proxy"]
-        envoy["Envoy grpc-proxy"]
+    subgraph web [This repo, branch develop]
+        nginx["nginx: SPA; /api/v1/ to the API"]
+        api["backend API and worker"]
+        db[("PostgreSQL")]
     end
     subgraph edito [EDITO datalab, owned by the controller team]
         ctrl["SURIMI controller: surimi.v1.ControllerService"]
@@ -23,17 +24,23 @@ flowchart LR
         s3[("S3 bucket project-surimi")]
     end
     user -->|HTTPS| nginx
-    nginx -->|"gRPC-Web over HTTP/1.1"| envoy
-    envoy -->|"gRPC over HTTP/2, TLS"| ctrl
+    nginx -->|"REST/JSON"| api
+    api --> db
+    api -->|"gRPC over HTTP/2, TLS"| ctrl
     ctrl -->|gRPC| models
     models -->|"writes .nc and .bin"| s3
     style edito stroke-dasharray: 5 5
 ```
 
-The browser calls the controller directly through Envoy. There are no users,
-no database and no server-side state: the runs page lists every experiment on
-the controller, and the output dashboards show mock data
-(`apps/frontend/src/features/ScenarioOutputs/MockData/`). **Read from source.**
+The browser no longer reaches the controller: the gRPC-Web proxy (Envoy) and
+nginx's `/api/controller/` route were removed on 2026-11-17 (user), and nginx
+answers that path with `410`. Only the backend calls the controller. The
+current frontend still has its gRPC-Web client, so it is built with
+`MOCK=true` (the compose and image default) and shows canned scenarios, run
+statuses and mock output dashboards
+(`apps/frontend/src/features/ScenarioOutputs/MockData/`) until phase 10 moves
+it onto the backend API. **Verified** 2026-11-17 in compose: `POST
+/api/controller/...` → 410, `/api/v1/` → the API.
 
 On branch `develop` (not merged into `main`), the first part of
 Part 2 runs beside this in compose: `api` (FastAPI), `worker`, `postgres`,
@@ -507,5 +514,5 @@ checks one thing. [ADR 0004](decisions/0004-authentication-local-and-oidc.md).
 
 | Environment | How | Database |
 | --- | --- | --- |
-| Local | `deployments/compose.yml`: nginx, api, worker, migrate, postgres; profiles `keycloak` (dev realm), `grpc-proxy` (Envoy, until phase 10), `observability` (Prometheus, Grafana with the starter dashboard, Jaeger for traces). `CONTROLLER_MODE=fake` runs without the controller | `postgres:17-alpine`, database `surimi_modelgui_db`, named volume |
+| Local | `deployments/compose.yml`: nginx, api, worker, migrate, postgres; profiles `keycloak` (dev realm), `observability` (Prometheus, Grafana with the starter dashboard, Jaeger for traces). `CONTROLLER_MODE=fake` runs without the controller | `postgres:17-alpine`, database `surimi_modelgui_db`, named volume |
 | EDITO datalab | Images pushed by GitHub Actions; Helm chart for frontend, api, worker, migrate Job | `postgresql.enabled: true` runs PostgreSQL in the chart (official image, PVC, backup CronJob); `false` connects to `externalDatabase`. [ADR 0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |

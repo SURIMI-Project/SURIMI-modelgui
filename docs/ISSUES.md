@@ -10,20 +10,6 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ## This repo
 
-### The browser can call the controller, which has no authentication
-
-**Severity:** High — anyone who can load the app can list every experiment and remove any of them
-**Evidence:** Read from source, 2026-11-03
-**Owner:** this repo, with the controller team
-**Where:** `deployments/nginx/default.conf.template` (`/api/controller/`), `deployments/mounts/envoy/envoy.yaml.template`
-
-nginx forwards `/api/controller/*` to Envoy and on to the controller. The
-controller protocol has no credentials, and the Bruno collection calls
-`RemoveExperiment` without any.
-
-**Fix:** phase 10 of the plan (frontend refactor) removes the browser path; the controller is then
-reached only by the backend, and should be restricted at network level.
-
 ### Controller descriptor in the repo is out of date
 
 **Severity:** Medium — the generated client lacks `GetSimulationStatuses`
@@ -58,7 +44,7 @@ the lint step in `.github/workflows/ci.yml`.
 **Severity:** Low — the example fails at `CreateRegulations` after minutes of initialisation
 **Evidence:** Verified 2026-10-30
 **Owner:** this repo
-**Where:** `resources/bruno/surimi-modelgui/grpc-proxy/SubmitExperiment.yml`
+**Where:** `resources/bruno/surimi-modelgui/controller/SubmitExperiment.yml`
 
 The example includes `ANE` adult. The `northwestern_med` recruitment, quota
 and quota-share files cover only BOG, HKE (adult, juvenile), PIL (adult), MUT
@@ -75,6 +61,21 @@ before submitting ([features/experiments](features/experiments/README.md)).
 Controller facts below are **Read from source** in `SURIMI-controller` commit
 `a8a7f3a` (2026-10-22) unless marked otherwise; the full picture is in
 [ARCHITECTURE.md § Controller behaviour](ARCHITECTURE.md#controller-behaviour).
+
+### The controller has no authentication and is reachable from the internet
+
+**Severity:** High — anyone who knows the address can list every experiment and remove any of them
+**Evidence:** Read from source, 2026-11-03 (the protocol has no credentials); the Bruno `controller/` requests call `RemoveExperiment` on EDITO without any
+**Owner:** controller team
+**Where:** `surimi.v1.ControllerService` on `project-surimi-surimi-controller.lab.dive.edito.eu` and the personal namespaces
+
+Since 2026-11-17 this repo no longer exposes it: the gRPC-Web proxy (Envoy) and
+nginx's `/api/controller/` route are gone, and only the backend calls the
+controller. The controller's own public address remains.
+
+**Fix:** restrict the controller at network level so only the backend reaches
+it (an internal Service, or an ingress allowlist), or add authentication to the
+protocol.
 
 ### "No available pods" is not reported to the caller; the experiment silently never starts
 

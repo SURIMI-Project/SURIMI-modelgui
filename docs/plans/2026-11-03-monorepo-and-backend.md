@@ -270,9 +270,10 @@ of phase 10.
   typed from the OpenAPI document (`openapi-typescript`, `openapi-fetch`),
   TanStack Query, sign-in pages and SSO buttons, experiment and queue pages,
   notifications by polling, dashboards on the real chart and map endpoints, admin
-  pages (users, all experiments, statistics, audit). Then remove Envoy, the
-  `/api/controller` nginx location, connect-web, `apps/frontend/src/gen/`,
-  `apps/frontend/proto/` and the frontend `MOCK` mode.
+  pages (users, all experiments, statistics, audit). Then remove connect-web,
+  `apps/frontend/src/gen/`, `apps/frontend/proto/` and the frontend `MOCK`
+  mode. Envoy and the `/api/controller` nginx location were already removed on
+  2026-11-17 (user); until this phase the frontend is built with `MOCK=true`.
 - Exit: no browser request goes to the controller; the frontend uses only the
   backend API.
 

@@ -30,4 +30,4 @@ docs: |-
   ## Notes
 
   Same errors as `get initial biomasses`. The gRPC call itself:
-  `grpc-proxy/GetInitialFishingMortalities`.
+  `controller/GetInitialFishingMortalities`.

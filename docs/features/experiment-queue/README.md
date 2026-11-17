@@ -175,7 +175,7 @@ ORDER BY owner_pods_in_flight, e.priority DESC, e.queued_at;
 ```
 
 The controller's own view of pods is `GetAllSimulationStatuses` in Bruno
-(`grpc-proxy/`): count the simulations whose status is not `Finished` or
+(`controller/`): count the simulations whose status is not `Finished` or
 `Canceled`.
 
 ---

@@ -32,4 +32,4 @@ docs: |-
 
   Only `northwestern_med` has the files (91 rows); `anchovy_bay` and
   `aegean_sea` answer `502` `controller_error`. Unknown scenario: `404`.
-  The gRPC call itself: `grpc-proxy/GetInitialBiomasses`.
+  The gRPC call itself: `controller/GetInitialBiomasses`.

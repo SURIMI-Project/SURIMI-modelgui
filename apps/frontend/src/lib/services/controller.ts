@@ -7,7 +7,8 @@ import { createMockControllerTransport } from "./controllerMock";
 // Client for the gRPC service `surimi.v1.ControllerService`.
 //
 // The controller only speaks native gRPC, which browsers cannot send, so we use
-// gRPC-Web and the Envoy grpc-proxy (see envoy/) translates it. The client is
+// gRPC-Web; its translating proxy (Envoy) was removed on 2026-11-17, so only
+// MOCK=true works until phase 10 replaces this client. The client is
 // generated from the controller's reflection descriptors: `npm run proto:pull`
 // then `npm run proto:gen`. Failed calls reject with a ConnectError.
 //
