@@ -1,5 +1,5 @@
 import { FiAnchor } from "react-icons/fi";
-import { simulationCaseStudies, type SimulationCaseId } from "../../../../data/simulationCases";
+import { simulationCaseStudies, type SimulationCaseId } from "../../../data/simulationCases";
 import styles from "./MarineCaseIdentity.module.css";
 
 type Props = { caseId: SimulationCaseId; disabled?: boolean; onSelect: () => void };

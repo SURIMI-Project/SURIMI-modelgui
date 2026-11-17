@@ -1,4 +1,4 @@
-export type WesternPlaceholderContent = {
+export type CaseModelIllustration = {
   title: string;
   subtitle: string;
   imageSrc: string;

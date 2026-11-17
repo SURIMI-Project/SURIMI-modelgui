@@ -1,3 +1,4 @@
+import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
 import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   BarElement,
@@ -76,6 +77,7 @@ const LandingsStackedBarChart = ({
   className,
 }: LandingsStackedBarChartProps) => {
   const chartTheme = readChartTheme();
+  const reducedMotion = usePrefersReducedMotion();
   const currentLandingsValue = landingsValues[selectedIndex] ?? 0;
   const currentDiscardsValue = discardsValues[selectedIndex] ?? 0;
   const currentComparisonLandingsValue =
@@ -203,9 +205,10 @@ const LandingsStackedBarChart = ({
           }}
           options={{
             responsive: true,
+            font: { family: chartTheme.fontFamily, size: chartTheme.fontSize },
             maintainAspectRatio: false,
             animation: {
-              duration: 420,
+              duration: reducedMotion ? 0 : chartTheme.duration,
             },
             interaction: {
               mode: "index",
@@ -224,14 +227,14 @@ const LandingsStackedBarChart = ({
                   color: chartTheme.muted,
                   boxWidth: 10,
                   boxHeight: 10,
-                  padding: 18,
+                  padding: chartTheme.spacing,
                   usePointStyle: true,
                   pointStyle: "rectRounded",
                 },
               },
               tooltip: {
                 backgroundColor: chartTheme.surface,
-                borderColor: "rgba(121, 214, 255, 0.3)",
+                borderColor: chartTheme.grid,
                 borderWidth: 1,
                 callbacks: {
                   label: (context: TooltipItem<"bar">) => {
@@ -274,7 +277,7 @@ const LandingsStackedBarChart = ({
                       text: yAxisLabel,
                       color: chartTheme.muted,
                       font: {
-                        size: 12,
+                        size: chartTheme.fontSize,
                         weight: 600,
                       },
                     }

@@ -70,5 +70,5 @@ function SimulationForm({ config, onClose, onComplete }: Props) {
   </form>;
 }
 export default function CreateSimulationModal(props: Props) {
-  return <Modal appearance="marine" opened={props.isOpen} onClose={props.onClose} title={props.config.modalTitle} size="min(1280px, 96vw)" bodyClassName={styles.modalBody} closeOnClickOutside={false}>{props.isOpen ? <SimulationForm {...props} /> : null}</Modal>;
+  return <Modal appearance="marine" opened={props.isOpen} onClose={props.onClose} title={props.config.modalTitle} size="var(--layout-setup-max)" bodyClassName={styles.modalBody} closeOnClickOutside={false}>{props.isOpen ? <SimulationForm {...props} /> : null}</Modal>;
 }

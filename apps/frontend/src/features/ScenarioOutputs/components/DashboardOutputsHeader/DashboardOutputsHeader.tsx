@@ -1,6 +1,7 @@
-import Pill from "../../../../components/ui/Tag/Tag";
+import Card from "../../../../components/ui/Card/Card";
+import Tag from "../../../../components/ui/Tag/Tag";
 import type { CSSProperties, ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import ButtonLink from "../../../../components/ui/Button/ButtonLink";
 import { FiChevronLeft } from "react-icons/fi";
 import DashboardLayout from "../DashboardLayout/DashboardLayout";
 import FunctionalGroupDropdown from "../FunctionalGroupDropdown/FunctionalGroupDropdown";
@@ -12,6 +13,8 @@ import styles from "../ScenarioOutputsShared/ScenarioOutputsShared.module.css";
 
 type DashboardOutputsHeaderProps = DashboardHeaderModel & {
   children: ReactNode;
+  backHref: string;
+  isDemonstration?: boolean;
 };
 
 const DashboardOutputsHeader = ({
@@ -29,31 +32,27 @@ const DashboardOutputsHeader = ({
   indicatorPanel,
   compareLegendItems,
   children,
+  backHref,
+  isDemonstration = false,
 }: DashboardOutputsHeaderProps) => {
-  const { scenario, caseId } = useParams();
-  const backHref = `/scenario-runs?case=${scenario ?? caseId ?? "anchovy-bay"}`;
 
   return (
     <DashboardLayout
       title={title}
-      subtitle={subtitle}
-      headerLayout="split"
-      showKicker={false}
-      headerCopyClassName={styles.headerCopy}
-      titleClassName={styles.pageTitle}
-      subtitleClassName={styles.pageSubtitle}
-      headerLeft={
-        <div className={styles.headerCard}>
+      isDemonstration={isDemonstration}
+      header={
+        <Card appearance="glass" className={styles.headerCard}>
           <div className={styles.headerCopy}>
             <div className={styles.titleRow}>
-              <Link
+              <ButtonLink
                 to={backHref}
-                className={styles.backLink}
+                variant="ghost"
+                size="sm"
                 aria-label="Back to scenario runs"
               >
-                <FiChevronLeft size={16} />
+                <FiChevronLeft aria-hidden="true" />
                 <span>Back</span>
-              </Link>
+              </ButtonLink>
               <h1 className={styles.pageTitle}>{title}</h1>
             </div>
             <p className={styles.pageSubtitle}>{subtitle}</p>
@@ -115,9 +114,9 @@ const DashboardOutputsHeader = ({
               {selectedSpeciesLabels.length > 0 ? (
                 <div className={styles.selectedSpeciesPills}>
                   {selectedSpeciesLabels.map((label) => (
-                    <Pill key={label} className={styles.selectedSpeciesPill}>
+                    <Tag key={label} tone="primary">
                       {label}
-                    </Pill>
+                    </Tag>
                   ))}
                 </div>
               ) : (
@@ -127,9 +126,9 @@ const DashboardOutputsHeader = ({
               )}
             </div>
           </div>
-        </div>
+        </Card>
       }
-      headerRight={
+      aside={
         <SpiderDiagram
           className={styles.indicatorPanel}
           title={indicatorPanel.title}

@@ -1,3 +1,4 @@
+import AnchovyBayCard from "../../../../components/presentational/CaseStudyCard/AnchovyBayCard";
 import { SheetTrigger } from "react-aria-components/Sheet";
 import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
 import Button from "../../../../components/ui/Button/Button";
@@ -25,7 +26,7 @@ import {
   caseMapPlaces,
 } from "../../../../../mock-data/caseMap";
 import CasePreviewModal from "./CasePreviewModal";
-import MarineCaseIdentity from "./MarineCaseIdentity";
+import MarineCaseIdentity from "../../../../components/presentational/CaseStudyCard/MarineCaseIdentity";
 import Logo from "../../../../components/Logo/Logo";
 import SessionMenu from "../../../../features/auth/SessionMenu";
 import {
@@ -300,25 +301,7 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
 
         {!listView && !selected ? (
           <div className={styles.bayCard}>
-            <Button
-              variant="secondary-outlined"
-              className={styles.bayInset}
-              aria-label="Preview Anchovy Bay"
-              aria-haspopup="dialog"
-              isDisabled={!available.has("anchovy-bay")}
-              onPress={() => select("anchovy-bay")}
-            >
-              <img
-                src="/useCasesInfo/anchovy-bay-one-river.svg"
-                alt="Illustration of Anchovy Bay"
-              />
-              <span className={styles.insetTitle}>
-                <span>ANCHOVY BAY</span>
-                <span className={styles.insetCategory}>
-                  Educational Case Study
-                </span>
-              </span>
-            </Button>
+            <AnchovyBayCard isDisabled={!available.has("anchovy-bay")} onSelect={() => select("anchovy-bay")} />
           </div>
         ) : null}
 

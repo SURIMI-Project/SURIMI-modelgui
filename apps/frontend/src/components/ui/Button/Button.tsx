@@ -4,9 +4,11 @@ import {
   type ButtonProps as AriaButtonProps,
 } from "react-aria-components";
 import styles from "../../../styles/aria/button/Button.module.css";
+export type ButtonVariant = "primary" | "primary-outlined" | "ghost";
+export type ButtonSize = "sm" | "md" | "lg";
 export type ButtonProps = AriaButtonProps & {
-  variant?: "primary" | "primary-outlined" | "secondary" | "secondary-outlined";
-  size?: "sm" | "md" | "lg";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   iconOnly?: boolean;
 };
 export default function Button({

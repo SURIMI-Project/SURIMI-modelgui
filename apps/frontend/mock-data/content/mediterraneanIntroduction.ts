@@ -1,6 +1,6 @@
-import type { WesternPlaceholderContent } from "../../src/features/InformationalScenarios/westernMediterranean/types";
+import type { CaseModelIllustration } from "../../src/data/caseModels";
 
-export const westernPlaceholderContent: WesternPlaceholderContent = {
+export const westernPlaceholderContent: CaseModelIllustration = {
   title: "SURIMI Models: Linking Ecology, Fisheries, and Economy",
   subtitle:
     "An Integrated Overview of the SURIMI Modelling Framework in the Northwestern Mediterranean",

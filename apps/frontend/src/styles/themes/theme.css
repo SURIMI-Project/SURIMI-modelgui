@@ -96,6 +96,20 @@
     --color-brandBlue: #6173b0;
     --color-brandInk: var(--palette-neutral-900);
     --color-brandPaper: var(--palette-neutral-0);
+    --color-report-background: radial-gradient(ellipse at top left, var(--color-setup-panel), transparent 65%), var(--color-background);
+    --color-chart-baseline: #ffb36b;
+    --color-chart-primary: #74dbff;
+    --color-chart-comparison: #83f2c8;
+    --color-chart-simulation: #8f1f1c;
+    --color-chart-heat-low: #3b88ff;
+    --color-chart-heat-cool: #30d2f2;
+    --color-chart-heat-mid: #7df275;
+    --color-chart-heat-warm: #f9e64f;
+    --color-chart-heat-high: #ff6f4d;
+    --color-chart-heat-stroke: #59d4ff;
+    --shadow-sm: 0 2px 8px rgb(0 15 28 / 12%);
+    --shadow-md: 0 12px 40px rgb(0 15 28 / 24%);
+    --shadow-lg: 0 24px 80px rgb(0 15 28 / 40%);
     --app-font-family: var(--font-sans);
   }
 }

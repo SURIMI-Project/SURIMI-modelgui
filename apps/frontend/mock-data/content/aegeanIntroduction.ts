@@ -1,6 +1,6 @@
-import type { AegeanPlaceholderContent } from "../../src/features/InformationalScenarios/aegeanSea/types";
+import type { CaseModelIllustration } from "../../src/data/caseModels";
 
-export const aegeanPlaceholderContent: AegeanPlaceholderContent = {
+export const aegeanPlaceholderContent: CaseModelIllustration = {
   title: "SURIMI Models: Linking Ecology, Fisheries, and Economy",
   subtitle:
     "An Integrated Overview of the SURIMI Modelling Framework in the Aegean Sea",

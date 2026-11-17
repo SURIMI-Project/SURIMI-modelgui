@@ -11,9 +11,18 @@
     background: var(--color-surface-muted);
     color: var(--color-text-muted);
     white-space: nowrap;
+    line-height: var(--line-height-body);
+  }
+  .tag[data-dot]::before {
+    content: "";
+    inline-size: var(--spacing-xs);
+    block-size: var(--spacing-xs);
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    background: currentColor;
   }
   .tag[data-tone="primary"] {
-    color: var(--color-primary);
+    color: var(--color-primary-ink);
     background: var(--color-primary-surface);
   }
   .tag[data-tone="secondary"] {

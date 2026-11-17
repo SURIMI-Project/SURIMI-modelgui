@@ -2,15 +2,15 @@
   .wrapper {
     display: grid;
     justify-items: center;
-    gap: 8px;
-    padding: 10px;
-    margin: -10px;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-smd);
+    margin: calc(-1 * var(--spacing-smd));
   }
 
   .wheel {
     position: relative;
-    width: min(76vw, 320px);
-    height: min(76vw, 320px);
+    width: min(76vw, var(--year-wheel-size, var(--report-wheel-size)));
+    aspect-ratio: 1;
     border-radius: 50%;
     touch-action: none;
     user-select: none;
@@ -67,8 +67,8 @@
     stroke: var(--color-surface);
     stroke-width: 2.4px;
     paint-order: stroke;
-    font-size: 10.5px;
-    font-weight: 800;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0.04em;
   }
 
@@ -87,8 +87,8 @@
     position: absolute;
     inset: 50% auto auto 50%;
     transform: translate(-50%, -50%);
-    width: 6.75rem;
-    height: 6.75rem;
+    width: var(--report-hub-size);
+    height: var(--report-hub-size);
     border-radius: var(--radius-roundedFull);
     border: var(--border-default);
     background: var(--color-surface);
@@ -106,16 +106,16 @@
 
   .hubYear {
     position: relative;
-    top: -2px;
-    font-size: 1rem;
-    font-weight: 800;
+    top: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0.09em;
     color: var(--color-text);
   }
 
   .hint {
     margin: 0;
-    font-size: 0.76rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-muted);
     letter-spacing: 0.03em;
   }

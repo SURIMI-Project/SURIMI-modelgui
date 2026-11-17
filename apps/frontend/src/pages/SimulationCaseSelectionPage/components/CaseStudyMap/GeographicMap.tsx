@@ -1,6 +1,6 @@
 import { createRoot, type Root } from "react-dom/client";
 import { createElement } from "react";
-import MarineCaseIdentity from "./MarineCaseIdentity";
+import MarineCaseIdentity from "../../../../components/presentational/CaseStudyCard/MarineCaseIdentity";
 import AnimatedWaterLayer from "./water/AnimatedWaterLayer";
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map as LibreMap } from "maplibre-gl";

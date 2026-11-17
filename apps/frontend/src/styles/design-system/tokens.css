@@ -1,6 +1,7 @@
 @layer reset, tokens, base, aria, components;
 @import "./colors.css";
 @import "./spacing.css";
+@import "./layout.css";
 @import "./typography.css";
 @import "./radii.css";
 @import "./borders.css";

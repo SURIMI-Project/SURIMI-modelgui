@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { FiArrowLeft, FiArrowRight, FiPlus } from "react-icons/fi";
+import Tag from "../../components/ui/Tag/Tag";
 import Button from "../../components/ui/Button/Button";
 import Table, { TableHeader, Column, TableBody, Row, Cell } from "../../components/ui/Table/Table";
 import { scenarioWorldContent } from "../../../mock-data/content/caseIntroductions";
@@ -36,7 +37,7 @@ export default function ScenarioRunsPage() {
       <div className={styles.tableRegion}>
         <Table className={styles.table} aria-label="Example simulations by use case">
           <TableHeader><Column isRowHeader>Simulation</Column><Column>Use case</Column><Column>Period</Column><Column>Example date</Column><Column>Status</Column><Column>Results</Column></TableHeader>
-          <TableBody items={cases}>{item => <Row id={item.id}><Cell><strong>{exampleSimulation.title}</strong></Cell><Cell>{item.simulationTitle}</Cell><Cell>{exampleSimulation.period}</Cell><Cell>{new Intl.DateTimeFormat("en", {dateStyle: "medium", timeZone: "UTC"}).format(new Date(exampleSimulation.createdAt))}</Cell><Cell><span className={styles.badge}>{exampleSimulation.status}</span></Cell><Cell><Button variant="primary-outlined" size="sm" aria-label={`View ${item.simulationTitle} example results`} onPress={() => navigate(`/scenario-outputs/${item.id}`)}>View results<FiArrowRight aria-hidden="true" /></Button></Cell></Row>}</TableBody>
+          <TableBody items={cases}>{item => <Row id={item.id}><Cell><strong>{exampleSimulation.title}</strong></Cell><Cell>{item.simulationTitle}</Cell><Cell>{exampleSimulation.period}</Cell><Cell>{new Intl.DateTimeFormat("en", {dateStyle: "medium", timeZone: "UTC"}).format(new Date(exampleSimulation.createdAt))}</Cell><Cell><Tag dot>{exampleSimulation.status}</Tag></Cell><Cell><Button variant="primary-outlined" size="sm" aria-label={`View ${item.simulationTitle} example results`} onPress={() => navigate(`/scenario-outputs/${item.id}`)}>View results<FiArrowRight aria-hidden="true" /></Button></Cell></Row>}</TableBody>
         </Table>
         <footer className={styles.footer}>1 shared example report · {cases.length} use {cases.length === 1 ? "case" : "cases"}</footer>
       </div>

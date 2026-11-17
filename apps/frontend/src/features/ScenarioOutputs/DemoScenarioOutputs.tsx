@@ -1,8 +1,5 @@
 import type { SimulationCaseId } from "../../data/simulationCases";
-import DashboardOutputsHeader from "./components/DashboardOutputsHeader/DashboardOutputsHeader";
-import MapBiomassAndLandingsPanel from "./components/MapBiomassAndLandingsPanel/MapBiomassAndLandingsPanel";
-import MarketIndicatorsPanel from "./components/MarketIndicatorsPanel/MarketIndicatorsPanel";
-import YearRingDock from "./components/YearRingDock/YearRingDock";
+import ScenarioOutputsView from "./ScenarioOutputsView";
 import { exampleReport } from "../../../mock-data/outputs/report";
 import { useScenarioDashboardState } from "./hooks/useScenarioDashboardState";
 import {
@@ -12,7 +9,6 @@ import {
   buildYearDockModel,
 } from "./utils/scenarioPanelModels";
 import { buildScenarioSeriesBundle } from "./utils/scenarioSeriesBundle";
-import styles from "./components/ScenarioOutputsShared/ScenarioOutputsShared.module.css";
 
 type DemoScenarioOutputsProps = {
   caseId?: SimulationCaseId;
@@ -63,26 +59,10 @@ const DemoScenarioOutputs = ({
   });
   const yearDock = buildYearDockModel(state);
 
-  return (
-    <div data-case-id={caseId}>
-      <DashboardOutputsHeader {...headerModel}>
-        <div className={styles.layout}>
-          <MapBiomassAndLandingsPanel {...primaryPanel} />
-          <MarketIndicatorsPanel {...marketPanel} />
-        </div>
-      </DashboardOutputsHeader>
+  return <ScenarioOutputsView header={headerModel} primaryPanel={primaryPanel}
+    marketPanel={marketPanel} yearDock={yearDock}
+    backHref={`/scenario-runs?case=${caseId}`} isDemonstration />;
 
-      <YearRingDock
-        years={yearDock.years}
-        currentYear={yearDock.currentYear}
-        isPlaying={yearDock.isPlaying}
-        isOpen={yearDock.isOpen}
-        onTogglePlay={yearDock.onTogglePlay}
-        onSelectYear={yearDock.onSelectYear}
-        onToggleOpen={yearDock.onToggleOpen}
-      />
-    </div>
-  );
 };
 
 export default DemoScenarioOutputs;

@@ -1,18 +1,18 @@
 @layer components {
   .body { padding: 0; background: var(--color-map-water-deep); }
-  .tabs { justify-content: center; gap: 2rem; border: 0; }
-  .tabs [role="tab"] { padding: 0.75rem 0; font-size: 0.75rem; letter-spacing: 0.06em; text-align: center; }
+  .tabs { justify-content: center; gap: var(--spacing-xl); border: 0; }
+  .tabs [role="tab"] { padding: var(--spacing-smd) 0; text-align: center; }
   .ecosystemPanel { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 0; }
-  .subtitle { flex-shrink: 0; margin: 0; padding: 1rem; border-bottom: 1px solid var(--color-map-card-border); color: var(--color-map-detail-text); font-size: 1rem; text-align: center; letter-spacing: 0; }
+  .subtitle { flex-shrink: 0; margin: 0; padding: var(--spacing-md); border-bottom: 1px solid var(--color-map-card-border); color: var(--color-map-detail-text); font-size: var(--font-size-lg); text-align: center; letter-spacing: 0; }
   .illustration { display: flex; flex-direction: column; flex: 1; min-height: 0; margin: 0; }
   .illustration img { display: block; flex: 1; min-height: 0; height: 0; width: 100%; object-fit: contain; }
-  .illustration figcaption { flex-shrink: 0; padding: 0.875rem 1.5rem; background: var(--color-map-card-surface); color: var(--color-map-detail-text); border-top: 1px solid var(--color-map-card-border); font-size: 0.8125rem; line-height: 1.5; text-align: center; }
-  .connectionsPanel { display: flex; flex: 1; min-height: 0; padding: 1.5rem; }
+  .illustration figcaption { flex-shrink: 0; padding: var(--spacing-md) var(--spacing-lg); background: var(--color-map-card-surface); color: var(--color-map-detail-text); border-top: 1px solid var(--color-map-card-border); font-size: var(--font-size-sm); line-height: 1.5; text-align: center; }
+  .connectionsPanel { display: flex; flex: 1; min-height: 0; padding: var(--spacing-lg); }
   .connectionsPanel > * { flex: 1; min-width: 0; }
   @media (max-width: 47.4375rem) {
-    .tabs { gap: 0.875rem; }
-    .tabs [role="tab"] { flex: 1; min-width: 0; font-size: 0.625rem; letter-spacing: 0; white-space: normal; }
-    .subtitle { font-size: 0.875rem; padding: 0.75rem; }
-    .connectionsPanel { padding: 0.75rem; }
+    .tabs { gap: var(--spacing-md); }
+    .tabs [role="tab"] { flex: 1; min-width: 0; font-size: var(--font-size-xs); letter-spacing: 0; white-space: normal; }
+    .subtitle { font-size: var(--font-size-md); padding: var(--spacing-smd); }
+    .connectionsPanel { padding: var(--spacing-smd); }
   }
 }

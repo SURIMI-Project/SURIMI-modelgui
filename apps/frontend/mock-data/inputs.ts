@@ -1,7 +1,7 @@
-import type { SelectableCardOption } from "../src/components/SelectableCards/SelectableCards";
+import type { ScenarioChoiceOption } from "../src/features/CreateSimulationModal/types";
 import type { SpeciesInputPreset } from "../src/features/CreateSimulationModal/components/HarvestControlInputs/types";
 
-export const YEAR_OPTIONS: SelectableCardOption[] = [
+export const YEAR_OPTIONS: ScenarioChoiceOption[] = [
   { value: "5", title: "5 years", description: "Short calibration window." },
   {
     value: "10",
@@ -20,7 +20,7 @@ export const YEAR_OPTIONS: SelectableCardOption[] = [
   },
 ];
 
-export const IPCC_OPTIONS: SelectableCardOption[] = [
+export const IPCC_OPTIONS: ScenarioChoiceOption[] = [
   {
     value: "ssp1-1.9",
     title: "SSP1-1.9",

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import RadioGroup, { Radio } from "../../../../components/ui/RadioGroup/RadioGroup";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import InformationLegendsPopover from "../InformationLegends/InformationLegendsPopover";
 import LandingsStackedBarChart from "../LandingsStackedBarChart/LandingsStackedBarChart";
 import OutputsMapPanel from "../OutputsMapPanel/OutputsMapPanel";
@@ -27,11 +28,7 @@ const MapBiomassAndLandingsPanel = ({
     "primary",
   );
 
-  useEffect(() => {
-    if (!comparisonMap) {
-      setSelectedMapView("primary");
-    }
-  }, [comparisonMap]);
+  const reducedMotion = useReducedMotion();
 
   const activeMap =
     comparisonMap && selectedMapView === "comparison" ? comparisonMap : map;
@@ -50,7 +47,7 @@ const MapBiomassAndLandingsPanel = ({
         valueDomain={activeMap.valueDomain}
         headerCenter={
           comparisonMap ? (
-            <div className={mapStyles.compareToggle} role="tablist" aria-label="Switch compared scenario map">
+            <RadioGroup label="Scenario map" className={mapStyles.compareToggle} value={selectedMapView} onChange={value => { if (value === "primary" || value === "comparison") setSelectedMapView(value); }}>
               {[
                 {
                   value: "primary" as const,
@@ -63,33 +60,21 @@ const MapBiomassAndLandingsPanel = ({
                   color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
                 },
               ].map((option) => {
-                const isActive = selectedMapView === option.value;
-
                 return (
-                  <button
+                  <Radio
                     key={option.value}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={[
-                      mapStyles.compareToggleButton,
-                      isActive ? mapStyles.compareToggleButtonActive : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
+                    value={option.value}
+                    className={mapStyles.compareToggleButton}
                     style={
                       { "--toggle-color": option.color } as CSSProperties
                     }
-                    onClick={() => {
-                      setSelectedMapView(option.value);
-                    }}
                   >
                     <span className={mapStyles.compareToggleSwatch} aria-hidden="true" />
                     <span>{option.label}</span>
-                  </button>
+                  </Radio>
                 );
               })}
-            </div>
+            </RadioGroup>
           ) : undefined
         }
         className={styles.pageMapPanel}
@@ -104,7 +89,7 @@ const MapBiomassAndLandingsPanel = ({
             initial={{ opacity: 0, x: 18, filter: "blur(6px)" }}
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: -18, filter: "blur(6px)" }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: reducedMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
           >
             <OutputsTrendPanel
               className={styles.primaryChartPanel}
@@ -139,7 +124,7 @@ const MapBiomassAndLandingsPanel = ({
             initial={{ opacity: 0, x: 18, filter: "blur(6px)" }}
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: -18, filter: "blur(6px)" }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: reducedMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
           >
             <LandingsStackedBarChart
               className={styles.primaryChartPanel}

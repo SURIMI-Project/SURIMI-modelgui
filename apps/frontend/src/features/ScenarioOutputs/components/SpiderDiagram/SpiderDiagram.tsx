@@ -1,3 +1,4 @@
+import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
 import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   Chart as ChartJS,
@@ -46,6 +47,7 @@ const SpiderDiagram = ({
   className,
 }: SpiderDiagramProps) => {
   const chartTheme = readChartTheme();
+  const reducedMotion = usePrefersReducedMotion();
   const baseDataset = datasets[0];
   const labels = baseDataset?.data.map((entry) => entry.label) ?? [];
   const tooltipLabels =
@@ -80,15 +82,16 @@ const SpiderDiagram = ({
               pointRadius: 3.6,
               pointHoverRadius: 5,
               pointBackgroundColor: dataset.pointBackgroundColor,
-              pointBorderColor: "#f6fcff",
+              pointBorderColor: chartTheme.text,
               pointBorderWidth: 1.2,
             })),
           }}
           options={{
             responsive: true,
+            font: { family: chartTheme.fontFamily, size: chartTheme.fontSize },
             maintainAspectRatio: false,
             animation: {
-              duration: 520,
+              duration: reducedMotion ? 0 : chartTheme.duration,
             },
             plugins: {
               legend: {
@@ -99,14 +102,14 @@ const SpiderDiagram = ({
                   color: chartTheme.muted,
                   boxWidth: 12,
                   boxHeight: 12,
-                  padding: 16,
+                  padding: chartTheme.spacing,
                   usePointStyle: true,
                   pointStyle: "rectRounded",
                 },
               },
               tooltip: {
                 backgroundColor: chartTheme.surface,
-                borderColor: "rgba(121, 214, 255, 0.3)",
+                borderColor: chartTheme.grid,
                 borderWidth: 1,
                 callbacks: {
                   title: (items) => {
@@ -137,7 +140,7 @@ const SpiderDiagram = ({
                 pointLabels: {
                   color: chartTheme.muted,
                   font: {
-                    size: 12,
+                    size: chartTheme.fontSize,
                     weight: 600,
                   },
                 },

@@ -14,27 +14,6 @@ type InformationLegendsProps = {
   className?: string;
 };
 
-const withAlpha = (hexColor: string, alpha: number) => {
-  const normalized = hexColor.replace("#", "");
-  const expanded =
-    normalized.length === 3
-      ? normalized
-          .split("")
-          .map((part) => `${part}${part}`)
-          .join("")
-      : normalized;
-
-  if (expanded.length !== 6) {
-    return `rgba(116, 219, 255, ${alpha})`;
-  }
-
-  const red = Number.parseInt(expanded.slice(0, 2), 16);
-  const green = Number.parseInt(expanded.slice(2, 4), 16);
-  const blue = Number.parseInt(expanded.slice(4, 6), 16);
-
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-};
-
 const InformationLegends = ({
   title = "Information Legends",
   items,
@@ -51,8 +30,6 @@ const InformationLegends = ({
               const style: CSSProperties | undefined = item.color
                 ? ({
                     "--legend-color": item.color,
-                    "--legend-color-soft": withAlpha(item.color, 0.22),
-                    "--legend-color-strong": withAlpha(item.color, 0.54),
                   } as CSSProperties)
                 : undefined;
 

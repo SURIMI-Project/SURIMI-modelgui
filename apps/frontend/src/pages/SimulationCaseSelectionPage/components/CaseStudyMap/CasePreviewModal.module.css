@@ -1,15 +1,15 @@
 @layer components {
-  .overlay { position: fixed; inset: 0; z-index: 5000; display: grid; place-items: center; padding: 1.25rem; background: color-mix(in srgb, var(--color-map-water-deep) 45%, transparent); backdrop-filter: blur(3px); }
-  .modal { width: min(36rem, 100%); max-height: calc(100dvh - 2.5rem); overflow-y: auto; border: 1px solid var(--color-map-card-border); border-radius: var(--radius-lg); background: var(--color-map-card-surface); color: var(--color-sea-on-background); box-shadow: var(--shadow-lg); scrollbar-width: thin; }
+  .overlay { position: fixed; inset: 0; z-index: 5000; display: grid; place-items: center; padding: var(--spacing-mdl); background: color-mix(in srgb, var(--color-map-water-deep) 45%, transparent); backdrop-filter: blur(3px); }
+  .modal { width: min(var(--layout-preview-width), 100%); max-height: calc(100dvh - 2.5rem); overflow-y: auto; border: 1px solid var(--color-map-card-border); border-radius: var(--radius-lg); background: var(--color-map-card-surface); color: var(--color-sea-on-background); box-shadow: var(--shadow-lg); scrollbar-width: thin; }
   .dialog { position: relative; outline: none; }
-  .hero { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 13rem; padding: 3.5rem 2rem 1.5rem; background-size: cover; background-position: center 40%; }
-  .close { position: absolute; top: 1rem; right: 1rem; z-index: 2; }
+  .hero { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 13rem; padding: calc(var(--spacing-2xl) + var(--spacing-sm)) var(--spacing-xl) var(--spacing-lg); background-size: cover; background-position: center 40%; }
+  .close { position: absolute; top: var(--spacing-md); right: var(--spacing-md); z-index: 2; }
   .title { margin: 0; font-size: clamp(1.75rem, 4vw, 2.25rem); line-height: 1.15; letter-spacing: -0.03em; }
-  .subtitle { margin: 0.75rem 0 0; color: var(--color-map-detail-text); font-size: 0.875rem; }
-  .body { padding: 0.5rem 2rem 2rem; }
-  .descriptionTitle { margin: 1rem 0 0.75rem; font-size: 1rem; line-height: 1.4; letter-spacing: 0.04em; }
-  .description { margin: 0; color: var(--color-map-detail-text); font-size: 1rem; line-height: 1.75; }
-  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 2rem; }
+  .subtitle { margin: var(--spacing-smd) 0 0; color: var(--color-map-detail-text); font-size: var(--font-size-md); }
+  .body { padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-xl); }
+  .descriptionTitle { margin: var(--spacing-md) 0 var(--spacing-smd); font-size: var(--font-size-lg); line-height: 1.4; letter-spacing: 0.04em; }
+  .description { margin: 0; color: var(--color-map-detail-text); font-size: var(--font-size-lg); line-height: 1.75; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-smd); margin-top: var(--spacing-xl); }
   .actions button { font-size: 0.8125rem; }
   .overlay[data-entering] { animation: backdropIn 200ms ease-out; }
   .overlay[data-exiting] { animation: backdropIn 240ms ease-in reverse; }
@@ -17,6 +17,6 @@
   .modal[data-exiting] { animation: modalIn 200ms ease-in reverse; }
   @keyframes backdropIn { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(3px); } }
   @keyframes modalIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  @media (max-width: 34rem) { .actions { grid-template-columns: 1fr; } .hero { padding-inline: 1.25rem; } .body { padding-inline: 1.25rem; } }
+  @media (max-width: 34rem) { .actions { grid-template-columns: 1fr; } .hero { padding-inline: var(--spacing-mdl); } .body { padding-inline: var(--spacing-mdl); } }
   @media (prefers-reduced-motion: reduce) { .overlay[data-entering], .overlay[data-exiting], .modal[data-entering], .modal[data-exiting] { animation: none; } }
 }

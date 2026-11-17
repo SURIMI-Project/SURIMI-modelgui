@@ -1,361 +1,152 @@
-import UseCaseSelector from "../../components/presentational/UseCaseSelector/UseCaseSelector";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { FiArrowRight, FiArrowUpRight, FiPlus } from "react-icons/fi";
+import { useState, type CSSProperties } from "react";
+import { FiArrowLeft, FiX } from "react-icons/fi";
 import Logo from "../../components/Logo/Logo";
-import { SheetTrigger } from "react-aria-components/Sheet";
-import Sheet from "../../components/ui/Sheet/Sheet";
-import Modal from "../../components/ui/Modal/Modal";
-import FloatingActionButton from "../../components/ui/FloatingActionButton/FloatingActionButton";
 import Button from "../../components/ui/Button/Button";
+import ButtonLink from "../../components/ui/Button/ButtonLink";
+import Card from "../../components/ui/Card/Card";
+import ComboBox from "../../components/ui/ComboBox/ComboBox";
 import Input from "../../components/ui/Input/Input";
 import Select from "../../components/ui/Select/Select";
 import Tag from "../../components/ui/Tag/Tag";
-import Card from "../../components/ui/Card/Card";
-import Table, {
-  TableHeader,
-  Column,
-  TableBody,
-  Row,
-  Cell,
-} from "../../components/ui/Table/Table";
 import Tabs, { TabList, Tab, TabPanel } from "../../components/ui/Tabs/Tabs";
+import Table, { TableHeader, Column, TableBody, Row, Cell } from "../../components/ui/Table/Table";
+import RadioGroup, { Radio } from "../../components/ui/RadioGroup/RadioGroup";
 import SessionMenu from "../../features/auth/SessionMenu";
 import ReportComponentPreview from "../../features/designSystem/ReportComponentPreview";
-import { designSystemPreview as preview } from "../../../mock-data/designSystem";
+import AegeanSeaCreateSimulationModal from "../../features/CreateSimulationModal/cases/AegeanSeaCreateSimulationModal";
+import CasePreviewModal from "../SimulationCaseSelectionPage/components/CaseStudyMap/CasePreviewModal";
+import CaseModelsSheet from "../SimulationCaseSelectionPage/components/CaseStudyMap/models/AegeanModelsSheet";
+import AnchovyBayCard from "../../components/presentational/CaseStudyCard/AnchovyBayCard";
+import MarineCaseIdentity from "../../components/presentational/CaseStudyCard/MarineCaseIdentity";
+import { simulationCaseStudies, type SimulationCaseId } from "../../data/simulationCases";
 import styles from "./DesignSystemPage.module.css";
 
+const cases = simulationCaseStudies.map(study => ({ value: study.id, label: study.seaName }));
 const palette = [
-  {
-    name: "Primary",
-    detail: "Red · main actions",
-    token: "primary",
-    className: "primary",
-  },
-  {
-    name: "Secondary",
-    detail: "Orange · supporting actions",
-    token: "secondary",
-    className: "secondary",
-  },
-  {
-    name: "Pink",
-    detail: "Brand accent",
-    token: "brand-pink",
-    className: "pink",
-  },
-  {
-    name: "Canvas",
-    detail: "Page background",
-    token: "background",
-    className: "canvas",
-  },
-  {
-    name: "Surface",
-    detail: "Cards & controls",
-    token: "surface",
-    className: "surface",
-  },
-  { name: "Ink", detail: "Primary text", token: "text", className: "ink" },
+  ["Canvas", "--color-background"], ["Surface", "--color-surface"],
+  ["Raised surface", "--color-surface-muted"], ["Primary action", "--color-primary"],
+  ["Outlined action", "--color-primary-outlined-surface"], ["Readable accent", "--color-primary-ink"],
+  ["Text", "--color-text"], ["Muted text", "--color-text-muted"],
 ] as const;
-function ThemePreview() {
-  return (
-    <div className={styles.sections}>
-      <section>
-        <div className={styles.sectionHeading}>
-          <span>01</span>
-          <h2>Brand & surfaces</h2>
-          <p>Warm, clear, distinctly SURIMI.</p>
-        </div>
-        <div className={styles.palette}>
-          {palette.map((colour) => (
-            <div key={colour.name} className={styles.swatchCard}>
-              <div className={`${styles.swatch} ${styles[colour.className]}`} />
-              <div className={styles.swatchCopy}>
-                <h3>{colour.name}</h3>
-                <p>{colour.detail}</p>
-                <code>--color-{colour.token}</code>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className={styles.statusRow}>
-          <Tag tone="success">Success</Tag>
-          <Tag tone="secondary">Attention</Tag>
-          <Tag tone="danger">Error</Tag>
-          <Tag>Neutral</Tag>
-        </div>
-      </section>
-      <div className={styles.twoColumns}>
-        <section>
-          <div className={styles.sectionHeading}>
-            <span>02</span>
-            <h2>Typography</h2>
-            <p>Sora · a shared voice.</p>
-          </div>
-          <Card className={styles.typeCard}>
-            <span className={styles.eyebrow}>A connected ocean</span>
-            <h3>
-              Science for a<br />
-              shared future.
-            </h3>
-            <p>
-              Clear information. Considered decisions. A visual language that
-              gives our ocean data room to breathe.
-            </p>
-            <small>
-              ABCDEFGHIJKLMNOPQRSTUVWXYZ
-              <br />
-              abcdefghijklmnopqrstuvwxyz · 0123456789
-            </small>
-          </Card>
-        </section>
-        <section>
-          <div className={styles.sectionHeading}>
-            <span>03</span>
-            <h2>Shape & rhythm</h2>
-            <p>Consistent foundations, quietly applied.</p>
-          </div>
-          <Card className={styles.rhythmCard}>
-            <h3>Spacing</h3>
-            <div className={styles.spacingScale}>
-              {["xs", "sm", "md", "lg", "xl", "2xl"].map((size) => (
-                <div key={size}>
-                  <span className={styles[`space${size}`]} />
-                  <code>{size}</code>
-                </div>
-              ))}
-            </div>
-            <h3>Radii</h3>
-            <div className={styles.radiusScale}>
-              <span className={styles.radiusSmall}>Small</span>
-              <span className={styles.radiusMedium}>Medium</span>
-              <span className={styles.radiusLarge}>Large</span>
-            </div>
-            <h3>Elevation</h3>
-            <div className={styles.elevationScale}>
-              <span>Rest</span>
-              <span>Raised</span>
-              <span>Floating</span>
-            </div>
-          </Card>
-        </section>
-      </div>
-    </div>
-  );
-}
-function UiPreview() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [floatingVisible, setFloatingVisible] = useState(false);
-  const [selected, setSelected] = useState<string>("aegean");
-  return (
-    <div className={styles.sections}>
-      <section>
-        <div className={styles.sectionHeading}><h2>Dialogs and floating actions</h2><p>Theme tokens, keyboard focus management and a persistent primary action.</p></div>
-        <Card><Button onPress={() => setDialogOpen(true)}>Open themed dialog</Button> <SheetTrigger isOpen={sheetOpen} onOpenChange={setSheetOpen}><Button variant="primary-outlined">Open bottom sheet</Button><Sheet onClose={() => setSheetOpen(false)} title="A SURIMI bottom sheet"><p>Swipe down, press Escape, or use the close button to dismiss this wide, accessible sheet.</p></Sheet></SheetTrigger> <Button variant="primary-outlined" onPress={() => setFloatingVisible(value => !value)}>{floatingVisible ? "Hide" : "Preview"} floating action</Button></Card>
-        {floatingVisible ? <FloatingActionButton icon={<FiPlus aria-hidden="true" />} onPress={() => setDialogOpen(true)}>Set up scenario</FloatingActionButton> : null}
-        <Modal opened={dialogOpen} onClose={() => setDialogOpen(false)} title="A themed dialog" size="min(640px, 94vw)"><p>Dialogs use shared SURIMI surfaces, type, spacing and buttons. Tab stays inside the dialog; Escape closes it and returns focus to the trigger.</p><Button onPress={() => setDialogOpen(false)}>Done</Button></Modal>
-      </section>
 
-      <section>
-        <div className={styles.sectionHeading}>
-          <span>01</span>
-          <h2>Buttons</h2>
-          <p>Four variants. One interaction language.</p>
-        </div>
-        <Card className={styles.buttonGrid}>
-          {(
-            [
-              "primary",
-              "primary-outlined",
-              "secondary",
-              "secondary-outlined",
-            ] as const
-          ).map((variant) => (
-            <div className={styles.buttonExample} key={variant}>
-              <p>{variant.replaceAll("-", " ")}</p>
-              <Button variant={variant}>
-                Explore case study
-                <FiArrowRight />
-              </Button>
-              <Button variant={variant} size="sm">
-                Small action
-              </Button>
-              <Button variant={variant} isDisabled>
-                Unavailable
-              </Button>
-            </div>
-          ))}
-        </Card>
-        <div className={styles.statusRow}>
-          <Button isPending>Signing in…</Button>
-          <Button iconOnly aria-label="Add example">
-            <FiPlus />
-          </Button>
-          <span className={styles.caption}>
-            Keyboard focus, hover and press use the real control states.
-          </span>
-        </div>
-      </section>
-      <div className={styles.twoColumns}>
-        <section>
-          <div className={styles.sectionHeading}>
-            <span>02</span>
-            <h2>Fields & select</h2>
-          </div>
-          <Card className={styles.fieldStack}>
-            <Input
-              label="Username or email"
-              placeholder="you@example.org"
-              description="Use the account provided by your team."
-            />
-            <Select
-              label="Case study"
-              options={preview.options}
-              selectedKey={selected}
-              onSelectionChange={(key) => setSelected(String(key))}
-            />
-            <Input
-              label="Email address"
-              defaultValue="something missing"
-              isInvalid
-              errorMessage="Enter a valid email address."
-            />
-            <Input
-              label="Unavailable field"
-              defaultValue="Read the example"
-              isDisabled
-            />
-          </Card>
-        </section>
-        <section>
-          <div className={styles.sectionHeading}>
-            <span>03</span>
-            <h2>Tags & main card</h2>
-          </div>
-          <div className={styles.statusRow}>
-            <Tag>Draft</Tag>
-            <Tag tone="primary">Selected</Tag>
-            <Tag tone="secondary">Running</Tag>
-            <Tag tone="success">Ready</Tag>
-            <Tag tone="danger">Failed</Tag>
-          </div>
-          <Card className={styles.exampleCard}>
-            <Tag tone="primary">{preview.card.label}</Tag>
-            <h3>{preview.card.title}</h3>
-            <p>{preview.card.description}</p>
-            <Button variant="primary-outlined">
-              View study
-              <FiArrowUpRight />
-            </Button>
-          </Card>
-        </section>
+function Foundations() {
+  return <div className={styles.sections}>
+    <section>
+      <div className={styles.sectionHeading}><h2>Theme</h2><p>Current application tokens.</p></div>
+      <div className={styles.palette}>
+        {palette.map(([label, token]) => <Card key={token} className={styles.swatchCard}>
+          <span className={styles.swatch} style={{ background: `var(${token})` }} />
+          <strong>{label}</strong><code>{token}</code>
+        </Card>)}
       </div>
-      <section>
-        <div className={styles.sectionHeading}>
-          <span>04</span>
-          <h2>Table</h2>
-          <p>Readable, calm and keyboard accessible.</p>
+    </section>
+    <div className={styles.twoColumns}>
+      <Card className={styles.typeScale}>
+        <h2>Typography</h2>
+        <p className={styles.sampleTitle}>Select a place to explore</p>
+        <p className={styles.sampleHeading}>Aegean Sea</p>
+        <p>Body text uses the shared Sora font and readable line height.</p>
+        <small>Labels and supporting information</small>
+      </Card>
+      <Card className={styles.typeScale}>
+        <h2>Spacing and surfaces</h2>
+        <div className={styles.spacingScale}>
+          {["xs", "sm", "smd", "md", "lg", "xl", "2xl"].map(size => <div key={size}>
+            <span style={{ width: `var(--spacing-${size})` } as CSSProperties} /><code>{size}</code>
+          </div>)}
         </div>
-        <Card className={styles.tableCard}>
-          <Table aria-label="Example simulations">
-            <TableHeader>
-              <Column isRowHeader>Case study</Column>
-              <Column>Species</Column>
-              <Column>Status</Column>
-            </TableHeader>
-            <TableBody items={preview.rows}>
-              {(row) => (
-                <Row id={row.id}>
-                  <Cell>{row.name}</Cell>
-                  <Cell>{row.species}</Cell>
-                  <Cell>
-                    <Tag
-                      tone={
-                        row.status === "Ready"
-                          ? "success"
-                          : row.status === "Running"
-                            ? "secondary"
-                            : "neutral"
-                      }
-                    >
-                      {row.status}
-                    </Tag>
-                  </Cell>
-                </Row>
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-      </section>
+        <Card appearance="glass">Glass surface used over the map.</Card>
+      </Card>
     </div>
-  );
+  </div>;
 }
-export default function DesignSystemPage() {
-  const [previewCase, setPreviewCase] = useState("aegean");
-  return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <Link className={styles.brand} to="/">
-          <Logo className={styles.logo} />
-          <span>
-            SURIMI<span className={styles.brandDetail}>Design system</span>
-          </span>
-        </Link>
-        <div className={styles.headerActions}>
-          <Link to="/">Back to explorer</Link>
-          <SessionMenu />
-        </div>
-      </header>
-      <div className={styles.container}>
-        <div className={styles.intro}>
-          <div>
-            <p className={styles.eyebrow}>SURIMI / Visual foundations</p>
-            <h1>A shared language.</h1>
-            <p>{preview.introduction}</p>
-          </div>
-          <Tag tone="primary">Light theme · First edition</Tag>
-        </div>
-        <Tabs defaultSelectedKey="theme">
-          <TabList aria-label="Design system sections">
-            <Tab id="theme">Theme</Tab>
-            <Tab id="ui">UI components</Tab>
-            <Tab id="presentational">Presentational components</Tab>
-          </TabList>
-          <TabPanel id="theme">
-            <ThemePreview />
-          </TabPanel>
-          <TabPanel id="ui">
-            <UiPreview />
-          </TabPanel>
-          <TabPanel id="presentational">
-            <p className={styles.previewNote}>
-              Actual report components · fixed demonstration data
-            </p>
-            <section className={styles.selectorSection}>
-              <div className={styles.sectionHeading}>
-                <h2>Use-case selector</h2>
-              </div>
-              <div className={styles.selectorPreview}>
-                <UseCaseSelector
-                  options={preview.options.map((option) => ({
-                    id: option.value,
-                    title: option.label,
-                    available: true,
-                  }))}
-                  selectedId={previewCase}
-                  onSelect={setPreviewCase}
-                />
-              </div>
-            </section>
-            <ReportComponentPreview />
-          </TabPanel>
-        </Tabs>
-        <footer className={styles.footer}>
-          SURIMI Model GUI <span>Built from shared foundations.</span>
-        </footer>
+
+function Components() {
+  const [selectedCase, setSelectedCase] = useState<SimulationCaseId>("aegean-sea");
+  const [duration, setDuration] = useState("10");
+  const [previewCase, setPreviewCase] = useState<SimulationCaseId | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [modelsOpen, setModelsOpen] = useState(false);
+  return <div className={styles.sections}>
+    <section>
+      <div className={styles.sectionHeading}><h2>Actions</h2><p>Shared button and navigation styles. Hover or focus each control.</p></div>
+      <Card className={styles.buttonGrid}>
+        {(["primary", "primary-outlined", "ghost"] as const).map(variant => <div className={styles.buttonExample} key={variant}>
+          <code>{variant}</code>
+          <Button variant={variant}>EXPLORE SCENARIO</Button>
+          <Button variant={variant} size="sm">VIEW RESULTS</Button>
+          <Button variant={variant} isDisabled>UNAVAILABLE</Button>
+        </div>)}
+      </Card>
+      <div className={styles.controlRow}>
+        <Button isPending>CREATING SCENARIO</Button>
+        <Button variant="primary-outlined" size="sm" iconOnly aria-label="Example close button"><FiX aria-hidden="true" /></Button>
+        <ButtonLink to="/scenarios" variant="ghost" size="sm"><FiArrowLeft aria-hidden="true" />Back to case studies</ButtonLink>
       </div>
-    </main>
-  );
+    </section>
+    <div className={styles.twoColumns}>
+      <Card className={styles.fieldStack}>
+        <h2>Fields and selection</h2>
+        <Input label="Simulation name" placeholder="My simulation" description="Text input with a single focus indicator." />
+        <Select label="Case study" options={cases} selectedKey={selectedCase} onSelectionChange={key => setSelectedCase(String(key) as SimulationCaseId)} />
+        <ComboBox label="Searchable case study" options={cases} selectedKey={selectedCase} onSelectionChange={key => { if (key) setSelectedCase(String(key) as SimulationCaseId); }} />
+        <Input label="Invalid field" defaultValue="" isInvalid errorMessage="Enter a value." />
+        <Input label="Disabled field" defaultValue="Unavailable" isDisabled />
+      </Card>
+      <Card className={styles.fieldStack}>
+        <h2>Choice cards and tags</h2>
+        <RadioGroup label="Run duration" value={duration} onChange={setDuration}>
+          <Radio value="5">5 years</Radio><Radio value="10">10 years</Radio>
+        </RadioGroup>
+        <div className={styles.controlRow}>
+          <Tag dot>Example results</Tag><Tag tone="primary">Selected species</Tag>
+          <Tag tone="secondary" dot>Running</Tag><Tag tone="success" dot>Ready</Tag><Tag tone="danger" dot>Failed</Tag>
+        </div>
+      </Card>
+    </div>
+    <section>
+      <div className={styles.sectionHeading}><h2>Case cards and overlays</h2><p>Application components with local preview state.</p></div>
+      <div className={styles.caseCards}>
+        {(["northwestern-mediterranean", "aegean-sea"] as const).map(caseId => <MarineCaseIdentity key={caseId} caseId={caseId} onSelect={() => setPreviewCase(caseId)} />)}
+        <AnchovyBayCard onSelect={() => setPreviewCase("anchovy-bay")} />
+      </div>
+      <div className={styles.controlRow}>
+        <Button onPress={() => setSetupOpen(true)}>SET UP SCENARIO</Button>
+        <Button variant="primary-outlined" onPress={() => setModelsOpen(true)}>ABOUT THE MODELS</Button>
+      </div>
+      <CasePreviewModal caseId={previewCase} onClose={() => setPreviewCase(null)} onExplore={() => setPreviewCase(null)} onCompare={() => setPreviewCase(null)} />
+      <AegeanSeaCreateSimulationModal isOpen={setupOpen} onClose={() => setSetupOpen(false)} onComplete={() => setSetupOpen(false)} />
+      <CaseModelsSheet caseId="aegean-sea" opened={modelsOpen} onClose={() => setModelsOpen(false)} />
+    </section>
+    <section>
+      <div className={styles.sectionHeading}><h2>Runs table</h2><p>Shared table, tags and actions.</p></div>
+      <Card className={styles.tableCard}>
+        <Table aria-label="Design system example runs">
+          <TableHeader><Column isRowHeader>Simulation</Column><Column>Use case</Column><Column>Status</Column><Column>Results</Column></TableHeader>
+          <TableBody items={simulationCaseStudies}>{study => <Row id={study.id}>
+            <Cell>Example simulation</Cell><Cell>{study.seaName}</Cell><Cell><Tag dot>Example results</Tag></Cell>
+            <Cell><Button size="sm" variant="primary-outlined">VIEW RESULTS</Button></Cell>
+          </Row>}</TableBody>
+        </Table>
+      </Card>
+    </section>
+  </div>;
+}
+
+export default function DesignSystemPage() {
+  return <main className={styles.page}>
+    <header className={styles.header}>
+      <div className={styles.brand}><Logo className={styles.logo} /><span>MODEL USER INTERFACE</span></div>
+      <div className={styles.headerActions}><ButtonLink to="/scenarios" variant="ghost" size="sm"><FiArrowLeft aria-hidden="true" />Case studies</ButtonLink><SessionMenu /></div>
+    </header>
+    <div className={styles.container}>
+      <div className={styles.intro}><div><h1>Design system</h1><p>Shared components used by the application.</p></div><Tag>Dark theme</Tag></div>
+      <Tabs defaultSelectedKey="components">
+        <TabList aria-label="Design system sections"><Tab id="foundations">Foundations</Tab><Tab id="components">Components</Tab><Tab id="outputs">Output panels</Tab></TabList>
+        <TabPanel id="foundations"><Foundations /></TabPanel>
+        <TabPanel id="components"><Components /></TabPanel>
+        <TabPanel id="outputs"><p className={styles.previewNote}>Actual output components. Demonstration data only.</p><ReportComponentPreview /></TabPanel>
+      </Tabs>
+    </div>
+  </main>;
 }

@@ -23,9 +23,9 @@ const InformationLegendsPopover = ({
   return (
     <DialogTrigger>
       <Button
-        variant="primary-outlined"
+        variant="ghost"
         size="sm"
-        className={[styles.trigger, className].filter(Boolean).join(" ")}
+        className={className}
         aria-label="Open biomass graph legend"
       >
         <FiInfo aria-hidden="true" />

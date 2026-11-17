@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { readChartTheme, withAlpha } from "../../../../styles/chartTheme";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import maplibregl, {
   type GeoJSONSource,
   type Map as MapLibreMap,
@@ -97,11 +98,14 @@ const HeatMap = ({
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const sourceData = useMemo(() => toFeatureCollection(points, valueDomain), [points, valueDomain]);
 
+  const latestSourceData = useEffectEvent(() => sourceData);
+
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) {
       return;
     }
 
+    const theme = readChartTheme();
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
@@ -125,7 +129,7 @@ const HeatMap = ({
     map.on("load", () => {
       map.addSource(HEAT_SOURCE_ID, {
         type: "geojson",
-        data: sourceData,
+        data: latestSourceData(),
       });
 
       map.addLayer({
@@ -173,17 +177,17 @@ const HeatMap = ({
             ["linear"],
             ["heatmap-density"],
             0,
-            "rgba(56, 128, 255, 0)",
+            withAlpha(theme.heatLow ?? "", 0),
             0.2,
-            "rgba(56, 128, 255, 0.58)",
+            withAlpha(theme.heatLow ?? "", 0.58),
             0.4,
-            "rgba(48, 210, 242, 0.76)",
+            withAlpha(theme.heatCool ?? "", 0.76),
             0.6,
-            "rgba(125, 242, 117, 0.86)",
+            withAlpha(theme.heatMid ?? "", 0.86),
             0.8,
-            "rgba(249, 230, 79, 0.94)",
+            withAlpha(theme.heatWarm ?? "", 0.94),
             1,
-            "rgba(255, 111, 77, 1)",
+            theme.heatHigh ?? "",
           ],
         },
       });
@@ -198,17 +202,17 @@ const HeatMap = ({
             ["linear"],
             ["coalesce", ["get", "weight"], 0],
             0,
-            "#3b88ff",
+            theme.heatLow ?? "",
             0.2,
-            "#30d2f2",
+            theme.heatCool ?? "",
             0.45,
-            "#7df275",
+            theme.heatMid ?? "",
             0.7,
-            "#f9e64f",
+            theme.heatWarm ?? "",
             1,
-            "#ff6f4d",
+            theme.heatHigh ?? "",
           ],
-          "circle-stroke-color": "#59d4ff",
+          "circle-stroke-color": theme.heatStroke,
           "circle-stroke-width": 0.6,
           "circle-radius": [
             "interpolate",
@@ -269,7 +273,11 @@ const HeatMap = ({
       });
     });
 
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(mapContainerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -302,7 +310,7 @@ const HeatMap = ({
       {tooltip ? (
         <div
           className={styles.tooltip}
-          style={{ left: tooltip.x + 14, top: tooltip.y + 14 }}
+          style={{ left: tooltip.x, top: tooltip.y }}
           role="status"
           aria-live="polite"
         >

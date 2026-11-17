@@ -271,62 +271,6 @@
     color: var(--color-primary);
     text-decoration: underline;
   }
-  .bayInset {
-    position: absolute;
-    z-index: 5;
-    width: 13rem;
-    height: 12rem;
-    right: var(--spacing-3xl);
-    bottom: 3rem;
-    padding: 0;
-    display: block;
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    border: var(--border-default);
-    background: var(--color-surface);
-    color: var(--color-text);
-    text-align: left;
-    box-shadow: var(--shadow-md);
-  }
-  .bayInset img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: var(--color-map-water-shallow);
-  }
-  .bayInset::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(0deg, var(--color-surface), transparent 65%);
-  }
-  .insetCategory {
-    position: absolute;
-    z-index: 1;
-    top: var(--spacing-smd);
-    left: var(--spacing-smd);
-    padding: var(--spacing-xs);
-    background: var(--color-surface);
-    border-radius: var(--radius-xs);
-    font-size: 0.4375rem;
-    color: var(--color-brand-pink);
-    letter-spacing: 0.08em;
-  }
-  .insetTitle {
-    position: absolute;
-    z-index: 1;
-    left: var(--spacing-md);
-    right: var(--spacing-md);
-    bottom: var(--spacing-md);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-  }
-  .insetTitle svg {
-    margin-left: auto;
-  }
 
   .page a:focus-visible,
   .mapMarker:focus-visible {
@@ -365,12 +309,6 @@
     .introduction h1 {
       font-size: 3.5rem;
     }
-    .bayInset {
-      right: var(--spacing-xl);
-      bottom: 8rem;
-      width: 11rem;
-      height: 10.5rem;
-    }
   }
   @media (min-width: 47.5rem) and (max-height: 53.125rem) {
     .introduction {
@@ -404,7 +342,7 @@
     .introduction {
       top: 7rem;
       left: var(--spacing-lg);
-      width: 19rem;
+      width: var(--layout-case-card-width);
     }
     .introduction h1 {
       font-size: 3rem;
@@ -437,24 +375,6 @@
       left: var(--spacing-lg);
       right: auto;
       max-width: calc(100% - var(--spacing-2xl));
-    }
-    .bayInset {
-      bottom: 8rem;
-      right: var(--spacing-mdl);
-      width: 8.5rem;
-      height: 7.5rem;
-      border-radius: var(--radius-md);
-    }
-    .insetCategory {
-      font-size: 0.3125rem;
-      left: var(--spacing-sm);
-      top: var(--spacing-sm);
-    }
-    .insetTitle {
-      font-size: 0.625rem;
-      left: var(--spacing-smd);
-      right: var(--spacing-smd);
-      bottom: var(--spacing-smd);
     }
     .footer {
       left: auto;
@@ -765,15 +685,12 @@
 @layer components {
   .markerLabel { padding:0; border:0; background:none; box-shadow:none; left:-145px; bottom:100px; }
   .markerLabel strong { white-space:normal; }
-  .bayInset { width:290px; height:auto; overflow:visible; background:none; border:0; box-shadow:none; border-radius:0.875rem; }
-  .bayInset::after { display:none; }
   .page[data-selected="aegean-sea"] .caseInformation { top:10rem; }
   @media(max-width:75rem), (max-height:52rem) {
     .page[data-selected="aegean-sea"] .caseInformation { top:auto; }
   }
   @media(max-width:47.4375rem) {
     .markerLabel { left:-105px; bottom:90px; }
-    .bayInset { width:170px; bottom:7.5rem; }
   }
 }
 @layer components {
@@ -788,13 +705,6 @@
   }
 }
 @layer components {
-  .bayInset { width:13rem; height:12rem; overflow:hidden; border:var(--border-default); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-md); }
-  .bayInset::after { display:block; }
-  .bayInset img { width:100%; height:100%; object-fit:cover; }
-  @media (min-width:47.5rem) and (max-width:65.625rem) { .bayInset { width:11rem; height:10.5rem; } }
-  @media (max-width:47.4375rem) { .bayInset { width:8.5rem; height:7.5rem; bottom:8rem; } }
-}
-@layer components {
   .mapMarker .markerLabel { left:-125px; }
   @media(max-width:47.4375rem) {
     .mapMarker .markerLabel { left:-72px; }
@@ -802,29 +712,9 @@
 }
 @layer components {
   .mapMarker .markerLabel { left:-110px; }
-  .bayInset { width:17rem; height:16rem; transition:opacity 180ms, box-shadow 180ms; }
-  .bayInset .insetTitle {
-    top:50%; bottom:auto; left:50%; right:auto; transform:translate(-50%, -50%);
-    width:max-content; max-width:calc(100% - 1.5rem); justify-content:center;
-    flex-direction:column; gap:0.375rem;
-    padding:0; color:white;
-    font-size:1.125rem; font-weight:var(--font-weight-semibold);
-    text-align:center;
-    text-shadow:0 1px 2px #002b3d, 0 2px 6px rgb(0 20 35 / 95%), 0 0 14px rgb(0 20 35 / 85%);
-  }
-  .bayInset .insetTitle .insetCategory {
-    position:static; padding:0; background:none; border-radius:0;
-    color:white; font-size:0.8125rem; line-height:1.4;
-    font-weight:var(--font-weight-medium); letter-spacing:0.03em;
-    text-shadow:inherit;
-  }
-  @media (min-width:47.5rem) and (max-width:65.625rem) { .bayInset { width:15rem; height:14rem; } }
   @media(max-width:47.4375rem) {
     .mapMarker .markerLabel { left:-72px; }
-    .bayInset { width:11rem; height:10rem; }
-    .bayInset .insetTitle { font-size:0.9375rem; }
   }
-  @media(prefers-reduced-motion:reduce) { .bayInset { transition:none; } }
 }
 @layer components {
   @media(min-width:47.5rem) {
@@ -922,22 +812,18 @@
 @layer components {
   .brand .brandText { text-align: center; }
   .brand .brandText span { font-size: 0.6875rem; line-height: 1.5; letter-spacing: 0.08em; }
-  .page[data-selected="overview"] .introduction { width: 19rem; }
+  .page[data-selected="overview"] .introduction { width: var(--layout-case-card-width); }
   .page[data-selected="overview"] .introduction h1 { font-size: clamp(2.5rem, 3.5vw, 4rem); line-height: 1.1; letter-spacing: -0.04em; }
   .mapMarker .markerLabel { width: 20rem; left: -10rem; bottom: 4rem; max-width: none; white-space: normal; }
   .mapMarker .markerLabel strong { white-space: normal; font-size: 0.9375rem; line-height: 1.35; }
-  .page .bayInset { width: 20rem; height: auto; padding: 0; display: block; background: transparent; border: 0; overflow: visible; }
-  .page .bayInset strong { font-size: 0.9375rem; }
   @media (max-width: 75rem), (max-height: 52rem) {
     .mapMarker .markerLabel { width: 17rem; left: -8.5rem; bottom: 3rem; }
-    .page .bayInset { width: 17rem; }
   }
   @media (max-width: 47.4375rem) {
     .page[data-selected="overview"] { height: auto; min-height: 100svh; overflow: visible; }
     .page[data-selected="overview"] .sceneContent { position: relative; min-height: 100svh; padding: 7rem 1rem 9rem; display: flex; flex-direction: column; gap: 1rem; }
     .page[data-selected="overview"] .introduction { position: relative; top: auto; left: auto; width: auto; }
     .page[data-selected="overview"] .mapMarker { display: none; }
-    .page[data-selected="overview"] .bayInset { position: relative; inset: auto; width: 100%; }
     .page[data-selected="overview"] .selectorPosition { position: relative; inset: auto; transform: none; width: 100%; max-width: none; }
   }
 }
@@ -950,31 +836,10 @@
 }
 
 @layer components {
-  .page .bayInset {
-    width: 17rem;
-    height: 20rem;
-    overflow: hidden;
-    border: 1px solid var(--color-map-card-border);
-    border-radius: var(--radius-lg);
-    background: var(--color-map-water-deep);
-    box-shadow: var(--shadow-md);
-    opacity: 1;
-  }
-  .page .bayInset img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .page .bayInset::after {
-    display: block;
-    background: linear-gradient(0deg, var(--color-map-card-surface), transparent 75%);
-    pointer-events: none;
-  }
-  .page .bayInset .insetTitle { top: 42%; z-index: 2; }
-  .mapMarker .markerLabel { width: 19rem; left: -9.5rem; }
+  .mapMarker .markerLabel { width: var(--layout-case-card-width); left: -9.5rem; }
   .mapMarker .markerLabel strong { font-size: 0.9375rem; }
   @media (max-width: 75rem), (max-height: 52rem) {
     .mapMarker .markerLabel { width: 17rem; left: -8.5rem; }
-    .page .bayInset { width: 15rem; height: 19rem; }
-  }
-  @media (max-width: 47.4375rem) {
-    .page[data-selected="overview"] .bayInset { width: 100%; height: 20rem; }
   }
 }
 
@@ -991,18 +856,13 @@
   }
   .mapMarker .markerLabel { width: 21rem; left: -10.5rem; }
   .mapMarker .markerLabel strong { font-size: 1.125rem; line-height: 1.35; }
-  .page .bayInset { width: 21rem; height: 21rem; }
-  .page .bayInset .insetTitle { top: 30%; }
-  .page .bayInset[aria-pressed="true"] { outline: 2px solid var(--color-map-study-boundary); outline-offset: 4px; }
   @media (max-width: 75rem), (max-height: 52rem) {
     .page[data-selected="overview"] .introduction { top: 8rem; }
     .mapMarker .markerLabel { width: 18rem; left: -9rem; }
-    .page .bayInset { width: 19rem; height: 20rem; }
   }
   @media (max-width: 47.4375rem) {
     .page[data-selected="overview"] .introduction { top: auto; width: 100%; }
     .page[data-selected="overview"] .introduction .explorePrompt { font-size: 2.5rem; }
-    .page[data-selected="overview"] .bayInset { width: 100%; }
   }
 }
 
@@ -1011,11 +871,7 @@
   .header .brand .logo { width: 4.25rem; height: 4.25rem; padding: 0.75rem; box-sizing: border-box; border: 1px solid var(--color-border); background: var(--color-floating-control-surface); border-radius: var(--radius-md); }
   .header .brand .brandText span { font-size: 0.6875rem; letter-spacing: 0.17em; color: var(--color-map-card-muted); white-space: nowrap; }
   .bayCard { position: absolute; z-index: 6; right: var(--spacing-3xl); bottom: 3rem; width: 21rem; border-radius: var(--radius-lg); overflow: hidden; background: var(--color-map-card-surface); border: 1px solid var(--color-map-card-border); }
-  .page .bayCard .bayInset { position: relative; inset: auto; width: 100%; height: 21rem; border: 0; border-radius: 0; }
-  .page .bayCard .insetTitle { top: 22%; }
-  .page .bayCard .insetTitle > span:first-child { font-size: 1.375rem; }
-  .page .bayCard .insetTitle .insetCategory { font-size: 0.9375rem; }
-  @media (max-width: 75rem), (max-height: 52rem) { .bayCard { width: 19rem; } .page .bayCard .bayInset { height: 19rem; } }
+  @media (max-width: 75rem), (max-height: 52rem) { .bayCard { width: var(--layout-case-card-width); } }
   @media (max-width: 47.4375rem) {
     .header .brand .brandText span { font-size: 0.5625rem; letter-spacing: 0.1em; }
     .header .brand .logo { width: 3.5rem; height: 3.5rem; padding: 0.5rem; }
@@ -1108,7 +964,7 @@
 
 @layer components {
   .detailActions { position: fixed; z-index: 10; bottom: 3rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem; border-radius: var(--radius-lg); border: 1px solid var(--color-map-card-border); background: var(--color-map-card-surface); backdrop-filter: blur(16px); }
-  .detailActions button { white-space: nowrap; font-size: 0.75rem; }
+  .detailActions button { white-space: normal; }
   .footer { position: absolute; right: 1.5rem; bottom: 0.75rem; left: auto; z-index: 10; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem 1rem; color: var(--color-sea-on-background); }
   .footer a { color: var(--color-sea-on-background); font-size: 0.6875rem; text-shadow: 0 1px 3px var(--color-map-water-deep); }
   .mapConnector { position: absolute; width: 2px; background: var(--color-sea-on-background); transform-origin: top center; pointer-events: none; z-index: 0; }
@@ -1116,7 +972,6 @@
   .mapMarker .markerDot { z-index: 2; }
   @media (max-width: 47.4375rem) {
     .detailActions { bottom: 2.5rem; width: calc(100% - 2rem); box-sizing: border-box; justify-content: center; gap: 0.5rem; padding: 0.5rem; }
-    .detailActions button { font-size: 0.625rem; padding-inline: 0.5rem; }
   }
 }
 
@@ -1128,26 +983,20 @@
   .page:not([data-selected="overview"]) .caseInformation { width: min(38rem, 40vw); }
   .caseInformation .caseParagraph { color: var(--color-map-detail-text); }
   .bayCard { width: 16rem; max-height: none; overflow: hidden; transition: width 360ms ease; }
-  .page .bayCard .bayInset { height: 14rem; transition: height 360ms ease; }
-  .page .bayCard .insetTitle { top: 50%; transition: top 360ms ease; }
   @media (max-width: 75rem) {
-    .mapMarker .markerLabel { width: 19rem; }
+    .mapMarker .markerLabel { width: var(--layout-case-card-width); }
   }
   @media (max-width: 47.4375rem) {
     .page:not([data-selected="overview"]) .caseInformation { width: auto; }
     .bayCard { width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bayCard, .page .bayCard .bayInset, .page .bayCard .insetTitle { transition: none; }
+    .bayCard { transition: none; }
   }
 }
 
 @layer components {
   .bayCard { left: auto; right: var(--spacing-3xl); width: 17rem; transition: none; }
-  .page .bayCard .bayInset { height: 16rem; transition: none; }
-  .page .bayCard .insetTitle { top: 50%; transition: none; }
-  .page .bayCard .insetTitle > span:first-child { font-size: 1.125rem; }
-  .page .bayCard .insetTitle .insetCategory { font-size: 0.8125rem; }
   @media (max-width: 47.4375rem) {
     .bayCard { position: relative; inset: auto; width: 100%; }
   }
@@ -1156,7 +1005,6 @@
 @layer components {
   .page .footer { left: 1.5rem; right: auto; justify-content: flex-start; }
   .bayCard { width: 15rem; right: 1.5rem; bottom: 1.5rem; }
-  .page .bayCard .bayInset { height: 14rem; }
   .cardDragHandle { display: block; width: 100%; padding: 0.375rem 0.75rem; border: 0; border-radius: var(--radius-sm); background: var(--color-map-card-surface); color: var(--color-map-card-muted); font: inherit; font-size: 0.6875rem; text-align: center; cursor: grab; touch-action: none; user-select: none; }
   .cardDragHandle:active { cursor: grabbing; }
   .cardDragHandle:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
@@ -1164,7 +1012,7 @@
 }
 
 @layer components {
-  .mapMarker[data-case] .markerLabel { width: 19rem; }
+  .mapMarker[data-case] .markerLabel { width: var(--layout-case-card-width); }
   .mapMarker .markerLabel > div > button { transition: outline-color 180ms ease, box-shadow 180ms ease; }
   .detailActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(32rem, calc(100% - 2rem)); }
   .detailActions button { width: 100%; min-width: 0; }
@@ -1173,10 +1021,8 @@
 
 @layer components {
   .page .bayCard { transition: border-color 180ms ease, box-shadow 180ms ease; }
-  .page .bayCard .bayInset { opacity: 1; transition: filter 180ms ease; }
   .page .bayCard:hover, .page .bayCard:focus-within { border-color: var(--color-map-study-boundary); box-shadow: 0 0 0 2px var(--color-map-study-boundary), var(--shadow-lg); }
-  .page .bayCard:hover .bayInset, .page .bayCard:focus-within .bayInset { filter: brightness(1.08); }
-  @media (prefers-reduced-motion: reduce) { .page .bayCard, .page .bayCard .bayInset { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .page .bayCard { transition: none; } }
 }
 
 @layer components {
@@ -1189,7 +1035,6 @@
   }
   .mapMarker .markerLabel > div > button { transition: box-shadow 100ms ease; }
   .page .bayCard { transition: box-shadow 100ms ease; }
-  .page .bayCard .bayInset { transition: filter 100ms ease; }
 }
 
 @layer components {
@@ -1231,7 +1076,6 @@
     .mobileCaseCards { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.25rem; }
     .mobileCaseCards > * { flex-shrink: 0; }
     .page[data-selected="overview"] .bayCard { position: relative; inset: auto; width: 100%; }
-    .page[data-selected="overview"] .bayCard .bayInset { height: clamp(7rem, 20dvh, 10rem); }
     .page[data-selected="overview"] .selectorPosition:empty { display: none; }
     .page[data-list="true"] .runsWorkspace { width: calc(100% - 2rem); padding-top: 6rem; padding-bottom: 2.5rem; }
     .page:not([data-selected="overview"]):not([data-list="true"]) .caseInformation { top: 5.25rem; bottom: 10.5rem; }
@@ -1239,11 +1083,10 @@
 }
 
 @layer components {
-  .caseDetailActions { position: absolute; top: 6.5rem; right: var(--spacing-2xl); display: grid; gap: 0.625rem; pointer-events: auto; }
-  .caseDetailActions button { min-width: 15rem; min-height: 3.25rem; padding: 0.875rem 1.25rem; font-size: 0.8125rem; letter-spacing: 0.045em; }
-  .caseDetailActions svg { width: 1.125rem; height: 1.125rem; flex-shrink: 0; }
+  .caseDetailActions { position: absolute; top: 6.5rem; right: var(--spacing-2xl); display: grid; width: var(--layout-action-width); gap: var(--spacing-smd); pointer-events: auto; }
+  .caseDetailActions button { width: 100%; }
   @media (max-width: 47.4375rem) {
-    .caseDetailActions { top: auto; bottom: 6rem; left: 1rem; right: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .caseDetailActions button { min-width: 0; min-height: 3rem; padding: 0.625rem; font-size: 0.6875rem; }
+    .caseDetailActions { top: auto; bottom: 6rem; left: var(--spacing-md); right: var(--spacing-md); width: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .caseDetailActions button { min-width: 0; }
   }
 }
