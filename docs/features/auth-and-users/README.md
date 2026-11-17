@@ -328,7 +328,7 @@ They are built only in phase 10, the last phase, if the user agrees then
 | Backend | `src/surimi_backend/cli.py` | `create-admin` (`--email`, `--username`, `--first-name`, `--last-name`, `--from-env`, `--reset-password`) |
 | Backend | `migrations/versions/20261103_0002_auth.py` | The six tables, their enums and indexes |
 | Backend | `migrations/versions/20261104_0003_user_names.py` | `first_name`, `last_name`, `display_name` not null, `login_result` value `email_rejected` |
-| Deploy | `deployments/keycloak/surimi-realm.json` | Dev realm: client `surimi-modelgui` with a Group Membership mapper (`groups`, full path off), groups `surimi-admins` and `surimi-members`, test users alice (admin), bob (member), carol (no role) with fixed ids, so their `sub` survives a re-import |
+| Deploy | `deployments/mounts/keycloak/surimi-realm.json` | Dev realm: client `surimi-modelgui` with a Group Membership mapper (`groups`, full path off), groups `surimi-admins` and `surimi-members`, test users alice (admin), bob (member), carol (no role) with fixed ids, so their `sub` survives a re-import |
 | Deploy | `deployments/compose.yml` | `keycloak` service (profile `keycloak`, port 18083), auth settings on `api`, `create-admin --from-env` in `migrate` |
 | Frontend (phase 10) | `apps/frontend/src/features/auth/` | Sign-in page with one button per provider, session context, 401-refresh-retry with `X-CSRF-Token`, route guards, "no access" page, forced password change |
 | Frontend (phase 10) | `apps/frontend/src/features/admin/users/` | Users table with role source and account badges, create and edit dialogs; names and e-mail of SSO users read-only |

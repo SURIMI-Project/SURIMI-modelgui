@@ -35,7 +35,7 @@ jobs:
               - 'pyproject.toml'
               - 'uv.lock'
               - '.python-version'
-              - 'deployments/postgres/**'
+              - 'deployments/mounts/postgres/**'
               - '.dockerignore'
               - '.github/workflows/ci.yml'
 

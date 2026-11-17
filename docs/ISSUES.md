@@ -15,7 +15,7 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 **Severity:** High — anyone who can load the app can list every experiment and remove any of them
 **Evidence:** Read from source, 2026-11-03
 **Owner:** this repo, with the controller team
-**Where:** `deployments/nginx/default.conf.template` (`/api/controller/`), `deployments/envoy/envoy.yaml.template`
+**Where:** `deployments/nginx/default.conf.template` (`/api/controller/`), `deployments/mounts/envoy/envoy.yaml.template`
 
 nginx forwards `/api/controller/*` to Envoy and on to the controller. The
 controller protocol has no credentials, and the Bruno collection calls

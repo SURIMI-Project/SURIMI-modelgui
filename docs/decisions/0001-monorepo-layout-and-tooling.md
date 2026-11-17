@@ -21,7 +21,8 @@
 apps/frontend/      React app (moved from src/ with git mv)
 apps/backend/       FastAPI API and worker, one Python package, uv
 packages/proto/     controller stubs, generated (ADR 0011)
-deployments/        compose.yml, nginx/, envoy/, postgres/, .env.example
+deployments/        compose.yml, .env.example, nginx/ (copied into the web image)
+deployments/mounts/ files compose mounts into containers: postgres/, keycloak/, envoy/, observability/
 resources/bruno/    Bruno collection
 docs/               documentation
 package.json        npm workspaces: ["apps/frontend"], delegating scripts
@@ -37,6 +38,12 @@ Root scripts keep simple names (`npm run dev`, `npm run build`,
 - `apps/` holds what is deployed, `packages/` what is shared, `deployments/`
   how it runs: three questions, three places, so a new member of the team
   finds things without reading the build files.
+- Inside `deployments/`, everything a container mounts as a volume is under
+  `mounts/<service>/` (user, 2026-11-17), so the files a running container reads
+  from the host are in one place, apart from what is built into an image
+  (`nginx/`) and from compose's own files. Data the stack writes is not in the
+  repo: named volumes (`postgres-data`, `prometheus-data`) and the git-ignored
+  `output_folder/`.
 - npm workspaces and uv workspaces are the native tools of each ecosystem: no
   extra build system to learn, one lock file per language, shared settings at
   the root (Ruff, Node version).

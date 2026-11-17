@@ -31,10 +31,11 @@ exists.
 | `apps/frontend/` | React 19 + Vite + TypeScript + Mantine app, npm workspace `@surimi/frontend`. No feature work until phase 10 |
 | `apps/frontend/src/gen/` | TypeScript stubs from `apps/frontend/proto/surimi.binpb` (`npm run proto:gen`). Do not edit. Removed in phase 10 |
 | `apps/frontend/src/lib/services/controller.ts` | gRPC-Web client for the controller; `controllerMock.ts` is the `MOCK=true` stand-in |
-| `deployments/compose.yml` | Project `surimi-modelgui`: `web`, `postgres`, `db-bootstrap`, `migrate` (also `seed-species`), `api`, `worker`, `keycloak` (profile), `grpc-proxy` (profile) and `prometheus`, `grafana`, `jaeger` (profile `observability`, config in `deployments/observability/`) |
-| `deployments/keycloak/surimi-realm.json` | Local Keycloak realm `surimi`: client `surimi-modelgui`, groups, test users alice (admin), bob (member), carol (no access) |
-| `deployments/postgres/bootstrap.sql` | Creates `surimi_modelgui_db` and its application user |
-| `deployments/nginx/`, `deployments/envoy/` | nginx (SPA, `/api/v1/` to the API, `/api/controller/` to Envoy); gRPC-Web bridge until phase 10 |
+| `deployments/compose.yml` | Project `surimi-modelgui`: `web`, `postgres`, `db-bootstrap`, `migrate` (also `seed-species`), `api`, `worker`, `keycloak` (profile), `grpc-proxy` (profile) and `prometheus`, `grafana`, `jaeger` (profile `observability`, config in `deployments/mounts/observability/`) |
+| `deployments/mounts/` | Files compose mounts into containers, one folder per service: `postgres/`, `keycloak/`, `envoy/`, `observability/` |
+| `deployments/mounts/keycloak/surimi-realm.json` | Local Keycloak realm `surimi`: client `surimi-modelgui`, groups, test users alice (admin), bob (member), carol (no access) |
+| `deployments/mounts/postgres/bootstrap.sql` | Creates `surimi_modelgui_db` and its application user |
+| `deployments/nginx/`, `deployments/mounts/envoy/` | nginx (SPA, `/api/v1/` to the API, `/api/controller/` to Envoy; copied into the web image, not mounted); gRPC-Web bridge until phase 10 |
 | `deployments/.env.example`, `apps/frontend/.env.example` | Compose settings; Vite settings for `npm run dev` |
 | `pyproject.toml`, `uv.lock` | uv workspace root, Ruff config |
 | `package.json`, `package-lock.json` | npm workspace root; scripts delegate to the apps |
@@ -57,7 +58,7 @@ Ruff rules are in the root `pyproject.toml`, mypy strict in `apps/backend/pyproj
 | `docs/features/<name>/README.md` | Design of one feature. Opens with a **Decisions** table (decision, why, ADR or "this file"), then use cases, behaviour, API, open questions |
 | `docs/features/<name>/CHANGELOG.md` | Every change made for that feature, newest first |
 | `docs/features/README.md` | Index of features with their status |
-| `docs/database/` | Database `surimi_modelgui_db`: `schema.dbml` (full schema), `indexes.sql` (exact indexes), README with the query behind every index. The database and user are created by `deployments/postgres/bootstrap.sql` |
+| `docs/database/` | Database `surimi_modelgui_db`: `schema.dbml` (full schema), `indexes.sql` (exact indexes), README with the query behind every index. The database and user are created by `deployments/mounts/postgres/bootstrap.sql` |
 | `docs/ISSUES.md` | Defects and open questions that are still open. Nothing else |
 | `docs/CHANGELOG.md` | Notable user-visible changes and deploy steps, newest first |
 | `docs/DIAGRAMS.md` | Which Mermaid diagram to use for what, with templates |

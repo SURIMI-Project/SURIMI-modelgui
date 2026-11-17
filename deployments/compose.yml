@@ -1,6 +1,9 @@
 # Run from the repository root:
 #   docker compose -f deployments/compose.yml up --build -d     (or: npm run docker:up)
 # Variables come from deployments/.env (see deployments/.env.example).
+# Files mounted into containers (configuration, not data) are in mounts/:
+# postgres/, keycloak/, envoy/, observability/. nginx/ is not mounted: the web
+# image copies it at build time (apps/frontend/Dockerfile).
 #
 # Start order: postgres (healthy) -> db-bootstrap -> migrate -> api and worker;
 # web (nginx) serves the SPA and proxies /api/v1/ to api and /api/controller/
@@ -140,7 +143,7 @@ services:
       -v app_db="$$APP_DB" -v app_user="$$APP_USER" -v app_password="$$APP_PASSWORD"
       -f /bootstrap/bootstrap.sql'
     volumes:
-      - ./postgres/bootstrap.sql:/bootstrap/bootstrap.sql:ro,z
+      - ./mounts/postgres/bootstrap.sql:/bootstrap/bootstrap.sql:ro,z
     restart: "no"
 
   # --- backend (apps/backend) -----------------------------------------------------
@@ -220,7 +223,7 @@ services:
 
   # --- Keycloak for local SSO (profile "keycloak") ---------------------------------
   # Realm "surimi" with client surimi-modelgui and users alice (admin), bob
-  # (member), carol (no access); see deployments/keycloak/surimi-realm.json.
+  # (member), carol (no access); see deployments/mounts/keycloak/surimi-realm.json.
   # Browsers use http://localhost:18083; the API uses http://keycloak:8080.
   keycloak:
     image: quay.io/keycloak/keycloak:26.4
@@ -236,7 +239,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
     volumes:
-      - ./keycloak/surimi-realm.json:/opt/keycloak/data/import/surimi-realm.json:ro,z
+      - ./mounts/keycloak/surimi-realm.json:/opt/keycloak/data/import/surimi-realm.json:ro,z
     ports:
       - "127.0.0.1:${KEYCLOAK_PORT:-18083}:8080"
     restart: unless-stopped
@@ -255,7 +258,7 @@ services:
       CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-.*}
     volumes:
-      - ./envoy:/etc/envoy:ro,z
+      - ./mounts/envoy:/etc/envoy:ro,z
     ports:
       - "${GRPC_PROXY_PORT:-18081}:8080"
     restart: unless-stopped
@@ -278,7 +281,7 @@ services:
     environment:
       METRICS_TOKEN: ${METRICS_TOKEN:-}
     volumes:
-      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+      - ./mounts/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
       - prometheus-data:/prometheus
     ports:
       - "127.0.0.1:${PROMETHEUS_PORT:-18090}:9090"
@@ -294,8 +297,8 @@ services:
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/surimi.json
     volumes:
-      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro,z
-      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro,z
+      - ./mounts/observability/grafana/provisioning:/etc/grafana/provisioning:ro,z
+      - ./mounts/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro,z
     ports:
       - "127.0.0.1:${GRAFANA_PORT:-18091}:3000"
     depends_on:

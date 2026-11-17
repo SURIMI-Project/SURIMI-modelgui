@@ -395,7 +395,7 @@ They are built only in phase 10, the last phase, if the user agrees then
 | Backend | `auth/history.py`, `experiments/events.py`, `integrations/controller/grpc_client.py` | Sign-in, experiment and controller metrics, each at the one place that change happens |
 | Backend | `scheduler/worker.py`, `experiments/repository.py` (`active_counts`) | Worker metrics server, gauges, cycle spans, daily purge |
 | Backend | `cli.py`, `main.py`, `core/config.py`, `core/db.py`, `startup.py`, `users/repository.py` (`matches`) | Multiprocess folder in `serve`; tracing and routes in the app; settings; engine created through its module so the instrumentation applies; user search shared with the statistics |
-| Deploy | `deployments/observability/` | Prometheus config (DNS discovery of every replica), Grafana data sources and the starter dashboard `surimi.json` |
+| Deploy | `deployments/mounts/observability/` | Prometheus config (DNS discovery of every replica), Grafana data sources and the starter dashboard `surimi.json` |
 | Deploy | `deployments/compose.yml`, `deployments/.env.example` | Profile `observability`: `prometheus` (v3.16.0), `grafana` (13.3.0), `jaeger` (2.23.0); metrics, OTLP and retention settings for `api` and `worker`; container log rotation (ADR 0013) |
 | Bruno | `api/admin/activity/`, `api/get metrics.yml` | The four admin requests and `/metrics` |
 | Frontend (phase 10) | `apps/frontend/src/features/admin/activity/` | Activity table, user detail drawer, totals cards, audit log |

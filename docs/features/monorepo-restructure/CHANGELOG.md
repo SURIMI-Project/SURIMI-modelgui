@@ -6,6 +6,32 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-17 — Mounted files under `deployments/mounts/`
+
+**Status:** done (user, 2026-11-17). Everything compose mounts into a
+container moved, with `git mv`, to `deployments/mounts/<service>/`:
+`postgres/`, `keycloak/`, `envoy/`, `observability/`. `nginx/` stays in
+`deployments/`: it is not mounted, the web image copies it at build time
+(`apps/frontend/Dockerfile`). **Verified** 2026-11-17: `docker compose config`
+resolves every bind mount into `deployments/mounts/` and each source exists;
+in a separate compose project `db-bootstrap` ran the moved `bootstrap.sql`
+(exit 0), Prometheus started with the moved config and Grafana loaded the
+dashboard. Envoy and Keycloak were not started.
+
+- `deployments/compose.yml` — the six bind mounts; a header comment on `mounts/`.
+- `.github/workflows/ci.yml` — backend path filter `deployments/mounts/postgres/**`.
+- `deployments/mounts/observability/grafana/provisioning/dashboards/dashboards.yml` — comment.
+- Docs: ADR 0001 (the layout rule), ADR 0006, ADR 0014, `CLAUDE.md`,
+  `docs/database/README.md`, `docs/ISSUES.md`, feature READMEs of
+  auth-and-users, backend-skeleton, monorepo-restructure,
+  observability-and-activity. Dated changelog entries keep the old paths.
+
+**Deploy:** nothing for a running stack: the next `docker compose up`
+mounts from the new paths. Named volumes (`postgres-data`, `prometheus-data`)
+are unchanged.
+
+---
+
 ## 2026-11-03 — LF line endings everywhere
 
 **Status:** done; all 599 text files in the working tree are LF (byte-level

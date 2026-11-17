@@ -21,6 +21,17 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-17
 
+### Change — Mounted configuration under `deployments/mounts/`
+
+The files compose mounts into containers moved to
+`deployments/mounts/<service>/` (`postgres/`, `keycloak/`, `envoy/`,
+`observability/`), so everything a running container reads from the host is in
+one place. `deployments/nginx/` stays: the web image copies it at build time.
+See [monorepo-restructure](features/monorepo-restructure/CHANGELOG.md).
+
+> **Deploying this:** nothing; the next `docker compose up` uses the new
+> paths. Data volumes are unchanged.
+
 ### Feature — Metrics, traces, activity statistics and retention (phase 7)
 
 - **Metrics.** The API serves Prometheus metrics at `/metrics` (outside

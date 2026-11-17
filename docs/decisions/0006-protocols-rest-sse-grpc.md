@@ -7,7 +7,7 @@
 ## Context
 
 - Today the browser speaks gRPC-Web to Envoy, which forwards native gRPC to the
-  controller (`envoy/envoy.yaml.template`, `src/lib/services/controller.ts`).
+  controller (`deployments/mounts/envoy/envoy.yaml.template`, `src/lib/services/controller.ts`).
   **Read from source.**
 - The controller only speaks gRPC and has no authentication. **Read from
   source** (proto, and the Bruno collection calls it without credentials).
