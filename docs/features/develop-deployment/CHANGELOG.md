@@ -6,6 +6,58 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-17 — Outputs folder under `mounts/experiments`
+
+**Status:** built (user: the outputs are mounted, so they belong under
+`mounts/`). The default `OUTPUTS_LOCAL_DIR` is now `./mounts/experiments`
+(was `../output_folder/experiments`) in both compose files. `mounts/` now holds
+configuration, synced from the repo, and runtime data folders
+(`RUNTIME_DIRS="experiments"` in `deploy.sh`), which the sync never copies,
+deletes or prunes, and whose content is not chowned. **Verified** 2026-11-17
+against a scratch `DEPLOY_PATH`: the first deploy created
+`mounts/experiments`; an output file and an empty run folder put there
+survived the next deploy and were visible in the api and web containers at
+`/data/experiments`; a config file deleted from the repo (`mounts/postgres/
+old.sql`) was still removed. Found and fixed on the way: `find -delete` turns
+on depth-first order, where `-prune` does nothing, so the empty-folder
+cleanup excludes the data folders by path. The two compose files are still
+in step.
+
+- `.github/scripts/deploy.sh` — runtime data folders kept out of the sync and the chown.
+- `deployments/compose.yml`, `deployments/compose.local.yml` — the default outputs path.
+- `.gitignore`, `.dockerignore` — `deployments/mounts/experiments`.
+- `deployments/.env.example` — `OUTPUTS_LOCAL_DIR` and how to mount `output_folder/` instead.
+- Docs: ADR 0001, this feature's README, `CLAUDE.md`, `README.md`.
+
+**Deploy:** on the server, outputs written to `$DEPLOY_PATH/output_folder/experiments`
+before this change stay there; move them to
+`$DEPLOY_PATH/deployments/mounts/experiments` (or set `OUTPUTS_LOCAL_DIR` to
+the old folder). With `OUTPUTS_URI=s3://…` the folder is unused. Locally, to
+keep using the copies in `output_folder/`, set
+`OUTPUTS_LOCAL_DIR=../output_folder/experiments` in `deployments/.env`.
+
+---
+
+## 2026-11-17 — TLS proxy on the develop server
+
+**Status:** documented and one fix built. The server's nginx terminates TLS for
+`modelgui-dev.surimi.konnecta.io` and proxies to `web` on `127.0.0.1:18081`
+(the server's `SURIMI_PORT`; the API stays on `127.0.0.1:18082`, not proxied)
+(README § TLS in front). The stack's nginx used to overwrite
+`X-Forwarded-Proto` with its own `http`, so behind TLS the API would build
+`http://` redirects; it now keeps the value a proxy in front sent
+(`map $http_x_forwarded_proto $surimi_forwarded_proto`). **Verified**: the
+rendered template passes `nginx -t` (nginx 1.27); `SURIMI_PORT=127.0.0.1:18080`
+gives `web` the port `127.0.0.1:18080:80` (`docker compose config`). **Not
+verified:** the server's nginx and certificate.
+
+- `deployments/nginx/default.conf.template` — the `map` and both
+  `X-Forwarded-Proto` lines.
+- `resources/bruno/surimi-modelgui/environments/develop.yml` — new: `apiUrl`
+  `https://modelgui-dev.surimi.konnecta.io`, the same variables as the others.
+
+---
+
 ## 2026-11-17 — Deploy `develop` from the self-hosted runner
 
 **Status:** built; asked by the user 2026-11-17, modelled on BrocoMatuRisk's

@@ -52,8 +52,8 @@ The two files are identical apart from `image` and `build`; CI checks it.
 - The worker polls the controller, sends queued experiments when enough
   Ecopath pods are free, and indexes finished runs' outputs. Set
   `ECOPATH_PODS` and `CONTROLLER_MSE_SIMULATIONS` to the controller's own
-  values. Outputs are read from `OUTPUTS_URI`: the local
-  `output_folder/experiments` by default, or an S3 bucket with `S3_*`
+  values. Outputs are read from `OUTPUTS_URI`: the local folder
+  `deployments/mounts/experiments` by default (`OUTPUTS_LOCAL_DIR`), or an S3 bucket with `S3_*`
   (see `deployments/.env.example`; keep credentials in `deployments/.env`,
   which git ignores).
 - The API answers under <http://localhost:18080/api/v1/> (OpenAPI docs at

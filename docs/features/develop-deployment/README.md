@@ -30,6 +30,7 @@ whose image or mounted files changed are restarted.
 | CI never writes the server's `.env` except `BACKEND_TAG` / `WEB_TAG` (kept at `develop`, with a comment naming the commit) | It holds the secrets | this file |
 | Files under `DEPLOY_PATH` owned by `DEPLOY_OWNER` (`deployer:deployer`); `sudo -n` only for what the runner user cannot do | The runner may run with sudo (user, 2026-11-17); the stack's files stay with the deployer | this file |
 | Mounted files synced in place (copy over, delete extras), then the service using them recreated | A single-file bind mount keeps its inode; the recreate picks up directories | this file |
+| Outputs in `mounts/experiments/`, a runtime data folder the sync never copies, deletes or chowns into | Everything mounted lives under `mounts/` (user, 2026-11-17); the sync would otherwise delete data that is not in the repo | [ADR 0001](../../decisions/0001-monorepo-layout-and-tooling.md), this file |
 | Logs `json-file` 5 × 10 MB on every service; 5 commit tags per image; 7 days of build cache | The disk does not fill: logs, old images and build cache are the three that grow | [ADR 0013](../../decisions/0013-data-retention.md), this file |
 
 ---
@@ -45,6 +46,7 @@ whose image or mounted files changed are restarted.
 | `deployments/mounts/keycloak/` | — | `keycloak`, if running |
 | `deployments/mounts/observability/prometheus/` | — | `prometheus`, if running |
 | `deployments/mounts/observability/grafana/` | — | `grafana`, if running |
+| `deployments/mounts/experiments/` (outputs, data) | — | never synced: not in git; on the server it is created once and left alone |
 | anything else (docs, tests only, Bruno) | — | nothing |
 
 An image is also built when its `:develop` is missing on the server (first
@@ -99,6 +101,75 @@ sequenceDiagram
    `/etc/docker/daemon.json`:
    `{"log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "5"}}`
    and restart Docker.
+
+## TLS in front: the server's nginx
+
+The develop server's own nginx terminates TLS for
+`modelgui-dev.surimi.konnecta.io` and proxies to the stack's `web` container,
+which listens on `127.0.0.1` only. In the server's `.env` (the develop server
+uses 18081 for web and 18082 for the API):
+
+```
+SURIMI_PORT=127.0.0.1:18081
+API_PORT=18082
+PUBLIC_BASE_URL=https://modelgui-dev.surimi.konnecta.io
+COOKIE_SECURE=true
+```
+
+`/etc/nginx/sites-available/modelgui-dev.surimi.konnecta.io`, linked into
+`sites-enabled`:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name modelgui-dev.surimi.konnecta.io;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name modelgui-dev.surimi.konnecta.io;
+
+    # Must cover modelgui-dev.surimi.konnecta.io (a *.surimi.konnecta.io
+    # wildcard, or that name in the certificate).
+    ssl_certificate /etc/letsencrypt/live/surimi.konnecta.io/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/surimi.konnecta.io/privkey.pem;
+
+    client_max_body_size 50m;
+
+    location / {
+        # The web container (SURIMI_PORT); it forwards /api/v1/ to the API itself.
+        proxy_pass http://127.0.0.1:18081;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Output downloads and long chart requests stream through.
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+    }
+}
+```
+
+The stack's nginx passes `Host` and the incoming `X-Forwarded-Proto` on to the
+API (2026-11-17), so the API sees `https://modelgui-dev.surimi.konnecta.io`:
+the SSO host check matches `PUBLIC_BASE_URL`, and redirects stay on https. The
+SSO client in Keycloak needs the redirect URI
+`https://modelgui-dev.surimi.konnecta.io/api/v1/auth/sso/keycloak/callback`.
+The app uses no WebSockets, so no `Upgrade` headers are needed.
+
+The backend needs nothing more: the stack's nginx routes `/api/v1/` to the
+API, so `https://modelgui-dev.surimi.konnecta.io/api/v1/` is the API (docs at
+`/api/v1/docs`, console at `/api/v1/console/`), on the same origin as the app
+(cookies without CORS, ADR 0006). The API's own port (`API_PORT`, 18082) is
+published on `127.0.0.1` only, for Bruno or curl on the server: it is not in the
+host nginx, which would bypass the web container's `/protected-outputs/`
+downloads and its 10 MB import limit. `/metrics` and `/healthz` are not
+forwarded.
+Bruno: environment `develop`.
 
 ---
 

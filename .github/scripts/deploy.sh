@@ -216,28 +216,40 @@ mount_changed() { # $1 = path under mounts/: which service reads it
     *) warn "mounts/$1 changed and no service is mapped to it: reconciling the whole stack"; COMPOSE_CHANGED=true ;;
   esac
 }
+# mounts/ holds configuration from the repo, synced below, and runtime data
+# folders (git-ignored), which the sync never copies, deletes or prunes.
+# experiments/ is the local outputs folder compose mounts by default.
+RUNTIME_DIRS="experiments"
+is_runtime() { # $1 = path under mounts/
+  local d; for d in $RUNTIME_DIRS; do case "$1" in "$d" | "$d"/*) return 0 ;; esac; done; return 1
+}
+
 # In place: files are copied over (same inode), files gone from the repo removed.
 while IFS= read -r -d '' f; do
   rel="${f#"$SRC/mounts/"}"
+  if is_runtime "$rel"; then continue; fi # a local working copy's data, not configuration
   if [ -n "$(copy_if_changed "$f" "$TARGET/mounts/$rel")" ]; then log "mounts/$rel updated"; mount_changed "$rel"; fi
 done < <(find "$SRC/mounts" -type f -print0)
 if as test -d "$TARGET/mounts"; then
+  prune=(); for d in $RUNTIME_DIRS; do prune+=(-path "$TARGET/mounts/$d" -prune -o); done
   while IFS= read -r -d '' f; do
     rel="${f#"$TARGET/mounts/"}"
     if [ ! -e "$SRC/mounts/$rel" ]; then as rm -f "$f"; log "mounts/$rel removed"; mount_changed "$rel"; fi
-  done < <(as find "$TARGET/mounts" -type f -print0)
-  as find "$TARGET/mounts" -mindepth 1 -type d -empty -delete
+  done < <(as find "$TARGET/mounts" "${prune[@]}" -type f -print0)
+  # -delete works depth-first, where -prune has no effect: exclude by path instead.
+  keep=(); for d in $RUNTIME_DIRS; do keep+=(-not -path "$TARGET/mounts/$d" -not -path "$TARGET/mounts/$d/*"); done
+  as find "$TARGET/mounts" -mindepth 1 -type d -empty "${keep[@]}" -delete
 fi
 
-# The local outputs folder compose mounts by default; created here (and handed to
-# DEPLOY_OWNER below) so Docker does not create it as root.
-OUTPUTS_DIR=""
-if [ -z "$(read_var OUTPUTS_LOCAL_DIR)" ]; then
-  OUTPUTS_DIR="$DEPLOY_PATH/output_folder"; as mkdir -p "$OUTPUTS_DIR/experiments"
-fi
+# The outputs folder, created here (and handed to DEPLOY_OWNER below) so Docker
+# does not create it as root. Not when OUTPUTS_LOCAL_DIR points elsewhere.
+if [ -z "$(read_var OUTPUTS_LOCAL_DIR)" ]; then as mkdir -p "$TARGET/mounts/experiments"; fi
 
-# Everything this script wrote under DEPLOY_PATH belongs to DEPLOY_OWNER.
-as chown -R "$OWNER" "$TARGET" ${OUTPUTS_DIR:+"$OUTPUTS_DIR"} 2>/dev/null \
+# Everything this script wrote under DEPLOY_PATH belongs to DEPLOY_OWNER. The
+# runtime data folders only get their top folder chowned: their content can be
+# large and belongs to whoever writes it.
+data_prune=(); for d in $RUNTIME_DIRS; do data_prune+=(-path "$TARGET/mounts/$d/*" -prune -o); done
+as find "$TARGET" "${data_prune[@]}" -exec chown "$OWNER" {} + 2>/dev/null \
   || warn "chown $OWNER failed under $DEPLOY_PATH (does the user exist?): files left as $(id -un)"
 
 # --- 4. roll ---------------------------------------------------------------------------

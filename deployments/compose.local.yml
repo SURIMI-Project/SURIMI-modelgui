@@ -106,7 +106,7 @@ services:
       API_BASE_URL: ${API_BASE_URL:-http://api:8000}
     volumes:
       # Local outputs mode: nginx sends downloads from here (X-Accel-Redirect).
-      - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
+      - ${OUTPUTS_LOCAL_DIR:-./mounts/experiments}:/data/experiments:ro,z
     logging: *logging
     restart: unless-stopped
 
@@ -214,7 +214,7 @@ services:
       # Direct access for Bruno and debugging, local machine only.
       - "127.0.0.1:${API_PORT:-18082}:8000"
     volumes:
-      - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
+      - ${OUTPUTS_LOCAL_DIR:-./mounts/experiments}:/data/experiments:ro,z
     restart: unless-stopped
 
   # Polls the controller, dispatches the queue, indexes outputs (ADR 0019).
@@ -228,7 +228,7 @@ services:
       migrate:
         condition: service_completed_successfully
     volumes:
-      - ${OUTPUTS_LOCAL_DIR:-../output_folder/experiments}:/data/experiments:ro,z
+      - ${OUTPUTS_LOCAL_DIR:-./mounts/experiments}:/data/experiments:ro,z
     # Only the metrics port, no /healthz: the image's health check does not apply.
     healthcheck:
       disable: true
