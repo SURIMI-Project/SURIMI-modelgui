@@ -1,0 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap");
+
+/* Only these legacy routes unlock document scrolling for the original /test intro. */
+html[data-cmsy-page],
+html[data-cmsy-page] body,
+html[data-cmsy-page] #root {
+  width: 100%;
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+html[data-cmsy-page] { color-scheme: light; background: #f8fafc; }
+html[data-cmsy-page] body { background: #f8fafc; }
+
+[data-cmsy-presentation] {
+  --cmsy-container-width: 1320px;
+  --cmsy-space-xs: 10px;
+  --cmsy-space-sm: 12px;
+  --cmsy-space-md: 16px;
+  --cmsy-space-lg: 20px;
+  --cmsy-space-xl: 32px;
+  --cmsy-radius-sm: 4px;
+  --cmsy-radius-md: 8px;
+  --cmsy-radius-lg: 16px;
+  --cmsy-radius-xl: 32px;
+  --cmsy-font-xs: 12px;
+  --cmsy-font-sm: 14px;
+  --cmsy-font-md: 16px;
+  --cmsy-font-lg: 18px;
+  --cmsy-h3: 22px;
+  --cmsy-dimmed: #868e96;
+  --app-font-family: Sora, Montserrat, Avenir Next, Segoe UI, sans-serif;
+  min-height: 100vh;
+  width: 100%;
+  color-scheme: light;
+  color: var(--color-brandInk);
+  background: var(--color-surfaceMuted);
+  font-family: var(--app-font-family);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+[data-cmsy-presentation] *,
+[data-cmsy-presentation] *::before,
+[data-cmsy-presentation] *::after { box-sizing: border-box; user-select: auto; }
+[data-cmsy-presentation] :is(h1, h2, h3, h4, h5, h6, [data-cmsy-heading]) {
+  font-weight: 800;
+  letter-spacing: -0.018em;
+}

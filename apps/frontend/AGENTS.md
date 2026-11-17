@@ -53,6 +53,15 @@ workflow or documentation policy.
 - Keep changes within the requested scope. Preparing a service or hook does
   not authorize integrating it into pages.
 
+## CMSY presentation exception
+
+- `/test`, `/cmsy-input` and `/cmsy-output` live entirely under `src/pages/cmsy/`.
+- Preserve their original `dev` presentation, including the light theme and
+  `/test` scroll animation. Do not apply the main application's dark design.
+- Keep their components, styles, data, hooks and assets inside that folder.
+- Do not import main-app UI components or theme tokens into these pages.
+- Scope their styles and popovers so they cannot change the main application.
+
 ## Work logs
 
 - Work logs live only in `apps/frontend/docs/work-logs/`.

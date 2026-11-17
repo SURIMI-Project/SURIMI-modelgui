@@ -3,13 +3,14 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import RequireSession from "./features/auth/RequireSession";
 import PasswordChangePage from "./pages/PasswordChangePage/PasswordChangePage";
 import LoginPage from "./pages/LoginPage/LoginPage";
-import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
 import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
 import { useCurrentUser } from "./serverState/auth/useCurrentUser";
 import SessionGate from "./features/auth/SessionGate";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
 
 const ScenarioOutputsPage = lazy(() => import("./pages/ScenarioOutputsPage/ScenarioOutputsPage"));
+const MsyModelPage = lazy(() => import("./pages/cmsy/test/MsyModelPage"));
+const CmsyPresentation = lazy(() => import("./pages/cmsy/CmsyPresentation"));
 const CmsyInputPage = lazy(() => import("./pages/cmsy/input/CmsyInputPage"));
 const CmsyOutputPage = lazy(() => import("./pages/cmsy/output/CmsyOutputPage"));
 
@@ -35,7 +36,7 @@ const App = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route path="/change-password" element={<PasswordChangePage />} />
-    <Route path="/test" element={<MsyModelPage />} />
+    <Route path="/test" element={<Suspense fallback={null}><CmsyPresentation><MsyModelPage /></CmsyPresentation></Suspense>} />
     <Route path="/" element={<HomeRedirect />} />
     <Route element={<SimulationCaseSelectionPage />}>
       <Route path="/scenarios" Component={MapSceneRoute} />
@@ -52,8 +53,8 @@ const App = () => (
 
     </Route>
     <Route element={<RequireSession />}>
-      <Route path="/cmsy-input" element={<Suspense fallback={<p>Loading CMSY inputs…</p>}><CmsyInputPage /></Suspense>} />
-      <Route path="/cmsy-output" element={<Suspense fallback={<p>Loading CMSY outputs…</p>}><CmsyOutputPage /></Suspense>} />
+      <Route path="/cmsy-input" element={<Suspense fallback={<p>Loading CMSY inputs…</p>}><CmsyPresentation><CmsyInputPage /></CmsyPresentation></Suspense>} />
+      <Route path="/cmsy-output" element={<Suspense fallback={<p>Loading CMSY outputs…</p>}><CmsyPresentation><CmsyOutputPage /></CmsyPresentation></Suspense>} />
       <Route
         path="/design-system"
         element={

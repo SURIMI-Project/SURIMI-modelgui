@@ -37,8 +37,9 @@
 - Each case has its own fixed pair; unknown run IDs show an unavailable state.
 - Charts and map controls retain the selected run names.
 - Shared `ui/Checkbox` supplies run selection and its showcase examples.
-- `/cmsy-input`: case/species selection and the original catch CSV from `dev`.
+- `/cmsy-input`: original light case/species selection and catch CSV from `dev`.
 - `/cmsy-output`: four CMSY sample charts and stock indicators.
-- CMSY uses shared controls, theme tokens and existing Chart.js dependencies.
-- CMSY output indicators remain European hake sample data; no model is executed.
+- CMSY and `/test` are independent of the main design system.
+- Their local React Aria controls, original light layouts, data and assets live in `src/pages/cmsy/`.
+- CMSY indicators remain sample data; no model is executed.
 - Routes load lazily. API integration remains separate.
