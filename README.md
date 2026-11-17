@@ -20,17 +20,30 @@ This repository is a monorepo, built in phases following the
 Docker Desktop must be running. From the repository root:
 
 ```bash
-docker compose -f deployments/compose.yml up --build -d
+docker compose -f deployments/compose.local.yml up --build -d
 ```
 
 Open <http://localhost:18080>. To stop it:
 
 ```bash
-docker compose -f deployments/compose.yml down
+docker compose -f deployments/compose.local.yml down
 ```
 
 With npm installed, the same as shortcuts: `npm run docker:up`,
 `npm run docker:down`, `npm run docker:logs`.
+
+There are two compose files; use one or the other, never both together:
+
+- `deployments/compose.local.yml` builds the images from this checkout
+  (`ghcr.io/surimi-project/surimi-modelgui-backend-api:local`,
+  `ghcr.io/surimi-project/surimi-modelgui-web:local`): for local work.
+- `deployments/compose.yml` runs images by name and tag (`BACKEND_IMAGE`,
+  `BACKEND_TAG`, `WEB_IMAGE`, `WEB_TAG` in `.env`, tag `develop`): what the
+  develop server runs. A push to `develop` deploys there automatically: CI builds only the
+  images that changed and restarts only the services that changed
+  ([develop-deployment](docs/features/develop-deployment/README.md)).
+
+The two files are identical apart from `image` and `build`; CI checks it.
 
 - The stack is the web app (nginx), the backend API, the worker, and
   PostgreSQL. On start, the database and its user are created and migrated,
@@ -50,12 +63,12 @@ With npm installed, the same as shortcuts: `npm run docker:up`,
 - The app is built once into static files and served by nginx; client-side
   routes such as `/scenario/...` survive a refresh.
 - Settings go in `deployments/.env` (copy `deployments/.env.example`). For a
-  one-off change: `SURIMI_PORT=19090 docker compose -f deployments/compose.yml up --build -d`.
+  one-off change: `SURIMI_PORT=19090 docker compose -f deployments/compose.local.yml up --build -d`.
 - To use a real controller, set `CONTROLLER_MODE=grpc` and `CONTROLLER_GRPC_URL`:
   the backend calls it in native gRPC. The browser never does (the gRPC-Web
   proxy was removed on 2026-11-17); until phase 10 the web app is built with
   `MOCK=true` and shows canned scenarios and run statuses.
-- Metrics, dashboards and traces: `docker compose -f deployments/compose.yml
+- Metrics, dashboards and traces: `docker compose -f deployments/compose.local.yml
   --profile observability up --build -d` adds Prometheus
   (<http://localhost:18090>), Grafana with the dashboard "SURIMI model GUI"
   (<http://localhost:18091>, user `admin`, password `GRAFANA_ADMIN_PASSWORD`,
@@ -109,7 +122,7 @@ uv run pytest -q -m "not integration"        # without Docker
 ```
 
 Run it against the compose database:
-`docker compose -f deployments/compose.yml up -d postgres db-bootstrap migrate`,
+`docker compose -f deployments/compose.local.yml up -d postgres db-bootstrap migrate`,
 then `DB_PORT=15432 DB_PASSWORD=surimi-local-only CONTROLLER_MODE=fake JWT_SECRET=<32+ characters> COOKIE_SECURE=false uv run surimi-backend serve`
 (the compose `api` service is the same thing in a container). The controller
 stubs are regenerated with
@@ -140,7 +153,7 @@ controller. It defaults to `false` and is read at build time:
 
 ```bash
 MOCK=true npm run dev
-MOCK=true docker compose -f deployments/compose.yml up --build -d
+MOCK=true docker compose -f deployments/compose.local.yml up --build -d
 ```
 
 ## Pastebin

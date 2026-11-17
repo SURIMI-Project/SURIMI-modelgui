@@ -31,7 +31,7 @@ exists.
 | `apps/frontend/` | React 19 + Vite + TypeScript + Mantine app, npm workspace `@surimi/frontend`. No feature work until phase 10 |
 | `apps/frontend/src/gen/` | TypeScript stubs from `apps/frontend/proto/surimi.binpb` (`npm run proto:gen`). Do not edit. Removed in phase 10 |
 | `apps/frontend/src/lib/services/controller.ts` | gRPC-Web client for the controller, unreachable since its proxy was removed (2026-11-17); the frontend is built with `MOCK=true` (`controllerMock.ts`) until phase 10 |
-| `deployments/compose.yml` | Project `surimi-modelgui`: `web`, `postgres`, `db-bootstrap`, `migrate` (also `seed-species`), `api`, `worker`, `keycloak` (profile) and `prometheus`, `grafana`, `jaeger` (profile `observability`, config in `deployments/mounts/observability/`) |
+| `deployments/compose.yml`, `deployments/compose.local.yml` | Run one or the other: `compose.yml` runs images (`BACKEND_IMAGE`:`BACKEND_TAG` = `ghcr.io/surimi-project/surimi-modelgui-backend-api:develop`, `WEB_IMAGE`:`WEB_TAG` = `ghcr.io/surimi-project/surimi-modelgui-web:develop`; the develop server; not pushed), `compose.local.yml` builds them from source (`:local`, local work). Identical otherwise; CI checks it (ADR 0026). Project `surimi-modelgui`: `web`, `postgres`, `db-bootstrap`, `migrate` (also `seed-species`), `api`, `worker`, `keycloak` (profile) and `prometheus`, `grafana`, `jaeger` (profile `observability`, config in `deployments/mounts/observability/`) |
 | `deployments/mounts/` | Files compose mounts into containers, one folder per service: `postgres/`, `keycloak/`, `observability/` |
 | `deployments/mounts/keycloak/surimi-realm.json` | Local Keycloak realm `surimi`: client `surimi-modelgui`, groups, test users alice (admin), bob (member), carol (no access) |
 | `deployments/mounts/postgres/bootstrap.sql` | Creates `surimi_modelgui_db` and its application user |
@@ -40,7 +40,7 @@ exists.
 | `pyproject.toml`, `uv.lock` | uv workspace root, Ruff config |
 | `package.json`, `package-lock.json` | npm workspace root; scripts delegate to the apps |
 | `resources/bruno/surimi-modelgui/` | Bruno: `controller/` (native gRPC, `{{urlController}}`), `api/` (backend; run `api/auth/post token` first) |
-| `.github/workflows/ci.yml` | Frontend build, lint (report only), image; backend lint, mypy, tests, image; stub drift check |
+| `.github/workflows/ci.yml`, `.github/scripts/` | Frontend build, lint (report only), image; backend lint, mypy, tests, image; stub drift check; compose files in step; `deploy-develop` on the self-hosted runner (`deploy.sh`, docs/features/develop-deployment) |
 | `docs/` | Documentation, described below |
 | `output_folder/` | Local copies of experiment outputs, 1.7 GB, git-ignored |
 

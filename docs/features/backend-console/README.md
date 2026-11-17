@@ -279,7 +279,7 @@ sign-ins are recorded by the auth routes (`login_events`, audit).
 
 ## How to test
 
-1. `docker compose -f deployments/compose.yml up -d`, with `ADMIN_*` set in
+1. `docker compose -f deployments/compose.local.yml up -d`, with `ADMIN_*` set in
    `deployments/.env` (or `--profile keycloak` for SSO).
 2. Open `http://localhost:18080/api/v1/console/`.
 3. Sign in as the admin: the home screen shows the account, the scenarios and

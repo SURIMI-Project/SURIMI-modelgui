@@ -514,5 +514,6 @@ checks one thing. [ADR 0004](decisions/0004-authentication-local-and-oidc.md).
 
 | Environment | How | Database |
 | --- | --- | --- |
-| Local | `deployments/compose.yml`: nginx, api, worker, migrate, postgres; profiles `keycloak` (dev realm), `observability` (Prometheus, Grafana with the starter dashboard, Jaeger for traces). `CONTROLLER_MODE=fake` runs without the controller | `postgres:17-alpine`, database `surimi_modelgui_db`, named volume |
+| Local | `deployments/compose.local.yml` (builds from source): nginx, api, worker, migrate, postgres; profiles `keycloak` (dev realm), `observability` (Prometheus, Grafana with the starter dashboard, Jaeger for traces). `CONTROLLER_MODE=fake` runs without the controller | `postgres:17-alpine`, database `surimi_modelgui_db`, named volume |
+| Develop server | `deployments/compose.yml` in `$DEPLOY_PATH/deployments`; a push to `develop` deploys through the self-hosted runner: changed images built on the host as `:develop` (plus a commit tag), only changed services restarted ([develop-deployment](features/develop-deployment/README.md), [ADR 0026](decisions/0026-develop-deployment-self-hosted-runner-compose.md)) | the stack's own `postgres:17-alpine`, named volume |
 | EDITO datalab | Images pushed by GitHub Actions; Helm chart for frontend, api, worker, migrate Job | `postgresql.enabled: true` runs PostgreSQL in the chart (official image, PVC, backup CronJob); `false` connects to `externalDatabase`. [ADR 0014](decisions/0014-postgresql-in-repo-bundled-or-external.md) |

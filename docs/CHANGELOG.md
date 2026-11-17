@@ -21,6 +21,25 @@ What changed and why. Link to the feature folder.
 
 ## 2026-11-17
 
+### Feature — Automatic deployment of `develop`
+
+A push to `develop` whose checks pass is deployed to the develop server by
+its self-hosted GitHub runner: only the images whose sources changed are
+built there (`ghcr.io/surimi-project/surimi-modelgui-backend-api:develop`,
+`ghcr.io/surimi-project/surimi-modelgui-web:develop`, plus a commit tag for
+rollback; not pushed), only the deployment files that differ are copied to
+`$DEPLOY_PATH/deployments`, and only the services whose image or mounted files
+changed are restarted. Every container's logs rotate at 5 × 10 MB; old images
+and build cache are pruned. `deployments/compose.yml` now runs images by name
+and tag (`BACKEND_IMAGE`, `BACKEND_TAG`, `WEB_IMAGE`, `WEB_TAG`);
+`deployments/compose.local.yml` builds them from source. See
+[develop-deployment](features/develop-deployment/README.md), ADR 0026.
+
+> **Deploying this:** locally use `docker compose -f deployments/compose.local.yml
+> up --build -d` (`npm run docker:up`); the images are now the same names
+> with tag `:local`. Server
+> setup: [develop-deployment § Server setup](features/develop-deployment/README.md#server-setup-once).
+
 ### Change — The browser no longer reaches the controller (Envoy removed)
 
 The gRPC-Web proxy (Envoy, compose profile `grpc-proxy`) and nginx's
