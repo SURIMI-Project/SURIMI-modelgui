@@ -1,5 +1,4 @@
 import { buildPriceSeriesFromAverages, buildSalesSeriesFromAverages } from "../../../../mock-data/outputs/chartSeries";
-import { exampleSimulation } from "../../../../mock-data/simulation";
 import type { SimulationCaseId } from "../../../data/simulationCases";
 import {
   SCENARIO_COMPARE_COLORS,
@@ -125,11 +124,11 @@ export const buildScenarioSeriesBundle = ({
   );
 
   const primaryRunLabel =
-    (primaryDataset ? exampleSimulation.title : undefined) ??
+    primaryDataset?.title ??
     primaryDataset?.runId ??
     SCENARIO_ONE_LABEL;
   const comparisonRunLabel =
-
+    comparisonDataset?.title ??
     comparisonDataset?.runId ??
     SCENARIO_TWO_LABEL;
 

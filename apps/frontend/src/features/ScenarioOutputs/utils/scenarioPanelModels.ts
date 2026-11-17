@@ -12,8 +12,6 @@ import type { ScenarioDashboardState } from "../hooks/useScenarioDashboardState"
 import {
   BASELINE_LABEL,
   SCENARIO_COMPARE_COLORS,
-  SCENARIO_ONE_LABEL,
-  SCENARIO_TWO_LABEL,
 } from "../scenarioCompare";
 import {
   buildBaselineIndicatorData,
@@ -73,9 +71,7 @@ export const buildDashboardHeaderModel = (
         pointBackgroundColor: SCENARIO_COMPARE_COLORS.baseline.point,
       },
       {
-        label: context.comparisonDataset
-          ? SCENARIO_ONE_LABEL
-          : context.seriesBundle.primaryRunLabel,
+        label: context.seriesBundle.primaryRunLabel,
         data: scenarioIndicatorData,
         borderColor: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
         backgroundColor: SCENARIO_COMPARE_COLORS.scenarioOne.fill,
@@ -84,7 +80,7 @@ export const buildDashboardHeaderModel = (
       ...(context.comparisonDataset
         ? [
             {
-              label: SCENARIO_TWO_LABEL,
+              label: context.seriesBundle.comparisonRunLabel,
               data: comparisonIndicatorData,
               borderColor: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               backgroundColor: SCENARIO_COMPARE_COLORS.scenarioTwo.fill,
@@ -111,15 +107,13 @@ export const buildDashboardHeaderModel = (
     indicatorPanel,
     compareLegendItems: [
       {
-        label: context.comparisonDataset
-          ? SCENARIO_ONE_LABEL
-          : context.seriesBundle.primaryRunLabel || SCENARIO_ONE_LABEL,
+        label: context.seriesBundle.primaryRunLabel,
         color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
       },
       ...(context.comparisonDataset
         ? [
             {
-              label: SCENARIO_TWO_LABEL,
+              label: context.seriesBundle.comparisonRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
             },
           ]
@@ -191,22 +185,19 @@ export const buildMapBiomassAndLandingsPanelModel = (
   const activeYearGrid =
     context.seriesBundle.primarySpeciesOutput?.annual_grids.find(
       (yearGrid) => yearGrid.year === context.state.currentYear,
-    ) ??
-    context.seriesBundle.primarySpeciesOutput?.annual_grids[0] ??
-    null;
+    ) ?? null;
   const comparisonActiveYearGrid =
     context.seriesBundle.comparisonSpeciesOutput?.annual_grids.find(
       (yearGrid) => yearGrid.year === context.state.currentYear,
-    ) ??
-    context.seriesBundle.comparisonSpeciesOutput?.annual_grids[0] ??
-    null;
+    ) ?? null;
 
   return {
     metric: context.state.metric,
     map: {
+      runLabel: context.seriesBundle.primaryRunLabel,
       subtitle: context.primaryDataset?.mapSubtitle ?? context.subtitle,
       kicker: context.comparisonDataset
-        ? `Year · ${context.state.currentYear} · ${SCENARIO_ONE_LABEL}`
+        ? `Year · ${context.state.currentYear} · ${context.seriesBundle.primaryRunLabel}`
         : `Year · ${context.state.currentYear}`,
       speciesCode: context.seriesBundle.activeSpeciesLabel,
       year: context.state.currentYear,
@@ -228,8 +219,9 @@ export const buildMapBiomassAndLandingsPanelModel = (
     },
     comparisonMap: comparisonActiveYearGrid
       ? {
-          subtitle: context.primaryDataset?.mapSubtitle ?? context.subtitle,
-          kicker: `Year · ${context.state.currentYear} · ${SCENARIO_TWO_LABEL}`,
+          runLabel: context.seriesBundle.comparisonRunLabel,
+          subtitle: context.comparisonDataset?.mapSubtitle ?? context.subtitle,
+          kicker: `Year · ${context.state.currentYear} · ${context.seriesBundle.comparisonRunLabel}`,
           speciesCode: context.seriesBundle.activeSpeciesLabel,
           year: context.state.currentYear,
           points: comparisonActiveYearGrid.cells.map((cell) => ({
@@ -240,10 +232,10 @@ export const buildMapBiomassAndLandingsPanelModel = (
           })),
           metricLabel: `${metricMeta[context.state.metric].label} (${metricMeta[context.state.metric].unit})`,
           bounds: [
-            context.primaryDataset?.simulationMetadata.bounds.xmin ?? 0,
-            context.primaryDataset?.simulationMetadata.bounds.ymin ?? 0,
-            context.primaryDataset?.simulationMetadata.bounds.xmax ?? 1,
-            context.primaryDataset?.simulationMetadata.bounds.ymax ?? 1,
+            context.comparisonDataset?.simulationMetadata.bounds.xmin ?? 0,
+            context.comparisonDataset?.simulationMetadata.bounds.ymin ?? 0,
+            context.comparisonDataset?.simulationMetadata.bounds.xmax ?? 1,
+            context.comparisonDataset?.simulationMetadata.bounds.ymax ?? 1,
           ],
           valueDomain: mapMetricDomain,
         }
@@ -262,14 +254,14 @@ export const buildMapBiomassAndLandingsPanelModel = (
       series: context.comparisonDataset
         ? [
             {
-              label: SCENARIO_ONE_LABEL,
+              label: context.seriesBundle.primaryRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
               historicalValues: historicalBiomassSeries,
               simulatedHistoricalValues: simulatedHistoricalBiomassSeries,
               futureValues: futureBiomassSeries,
             },
             {
-              label: SCENARIO_TWO_LABEL,
+              label: context.seriesBundle.comparisonRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               historicalValues: comparisonHistoricalBiomassSeries,
               simulatedHistoricalValues: comparisonSimulatedHistoricalBiomassSeries,
@@ -283,12 +275,13 @@ export const buildMapBiomassAndLandingsPanelModel = (
       legendItems: buildBiomassLegendItems(),
     },
     landings: {
+      runLabel: context.seriesBundle.primaryRunLabel,
       labels: context.state.years.map(String),
       landingsValues: context.seriesBundle.catchesSeries,
       discardsValues: context.seriesBundle.discardsSeries,
       comparison: context.comparisonDataset
         ? {
-            label: SCENARIO_TWO_LABEL,
+            label: context.seriesBundle.comparisonRunLabel,
             landingsValues: context.seriesBundle.comparisonCatchesSeries,
             discardsValues: context.seriesBundle.comparisonDiscardsSeries,
           }
@@ -322,12 +315,12 @@ export const buildMarketIndicatorsPanelModel = (
       series: context.comparisonDataset
         ? [
             {
-              label: SCENARIO_ONE_LABEL,
+              label: context.seriesBundle.primaryRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
               values: context.seriesBundle.salesSeries,
             },
             {
-              label: SCENARIO_TWO_LABEL,
+              label: context.seriesBundle.comparisonRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               values: context.seriesBundle.comparisonSalesSeries,
             },
@@ -349,12 +342,12 @@ export const buildMarketIndicatorsPanelModel = (
       series: context.comparisonDataset
         ? [
             {
-              label: SCENARIO_ONE_LABEL,
+              label: context.seriesBundle.primaryRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
               values: context.seriesBundle.priceSeries,
             },
             {
-              label: SCENARIO_TWO_LABEL,
+              label: context.seriesBundle.comparisonRunLabel,
               color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
               values: context.seriesBundle.comparisonPriceSeries,
             },

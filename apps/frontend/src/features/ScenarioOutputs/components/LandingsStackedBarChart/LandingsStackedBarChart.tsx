@@ -16,6 +16,7 @@ import styles from "./LandingsStackedBarChart.module.css";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 type LandingsStackedBarChartProps = {
+  runLabel?: string;
   title: string;
   subtitle: string;
   labels: string[];
@@ -64,6 +65,7 @@ const COMPARISON_DISCARDS_ACTIVE_COLOR = withAlpha(
 
 const LandingsStackedBarChart = ({
   title,
+  runLabel = "Scenario",
   subtitle,
   labels,
   landingsValues,
@@ -120,7 +122,7 @@ const LandingsStackedBarChart = ({
             labels,
             datasets: [
               {
-                label: comparison ? "Scenario 1 landings" : "landings",
+                label: comparison ? `${runLabel} landings` : "landings",
                 data: landingsValues,
                 stack: "primary",
                 backgroundColor: landingsValues.map((_, index) =>
@@ -139,7 +141,7 @@ const LandingsStackedBarChart = ({
                 categoryPercentage: 0.84,
               },
               {
-                label: comparison ? "Scenario 1 discards" : "discards",
+                label: comparison ? `${runLabel} discards` : "discards",
                 data: discardsValues,
                 stack: "primary",
                 backgroundColor: discardsValues.map((_, index) =>

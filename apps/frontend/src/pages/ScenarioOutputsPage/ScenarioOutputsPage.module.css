@@ -1,0 +1,4 @@
+@layer components {
+  .emptyState { display: grid; place-content: center; justify-items: center; gap: var(--spacing-lg); width: 100%; height: 100dvh; padding: var(--layout-page-gutter); overflow: auto; text-align: center; color: var(--color-text); background: var(--color-report-background); }
+  .emptyState p { color: var(--color-text-muted); }
+}

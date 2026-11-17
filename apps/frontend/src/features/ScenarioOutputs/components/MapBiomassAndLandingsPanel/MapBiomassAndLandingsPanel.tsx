@@ -9,8 +9,6 @@ import OutputsTrendPanel from "../OutputsTrendPanel/OutputsTrendPanel";
 import { type MapBiomassAndLandingsPanelModel } from "../../dashboardPanelModels";
 import {
   SCENARIO_COMPARE_COLORS,
-  SCENARIO_ONE_LABEL,
-  SCENARIO_TWO_LABEL,
 } from "../../scenarioCompare";
 import mapStyles from "../OutputsMapPanel/OutputsMapPanel.module.css";
 import styles from "../ScenarioOutputsShared/ScenarioOutputsShared.module.css";
@@ -51,12 +49,12 @@ const MapBiomassAndLandingsPanel = ({
               {[
                 {
                   value: "primary" as const,
-                  label: SCENARIO_ONE_LABEL,
+                  label: map.runLabel,
                   color: SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
                 },
                 {
                   value: "comparison" as const,
-                  label: SCENARIO_TWO_LABEL,
+                  label: comparisonMap.runLabel,
                   color: SCENARIO_COMPARE_COLORS.scenarioTwo.stroke,
                 },
               ].map((option) => {
@@ -134,6 +132,7 @@ const MapBiomassAndLandingsPanel = ({
               landingsValues={landings.landingsValues}
               discardsValues={landings.discardsValues}
               comparison={landings.comparison}
+              runLabel={landings.runLabel}
               selectedIndex={landings.selectedIndex}
               onSelectIndex={landings.onSelectIndex}
               currentLabel={landings.currentLabel}

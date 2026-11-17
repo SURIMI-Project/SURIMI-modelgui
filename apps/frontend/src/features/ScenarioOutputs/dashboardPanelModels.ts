@@ -46,6 +46,7 @@ export type BiomassPanelModel = {
 };
 
 export type LandingsPanelModel = {
+  runLabel: string;
   labels: string[];
   landingsValues: number[];
   discardsValues: number[];
@@ -62,6 +63,7 @@ export type LandingsPanelModel = {
 };
 
 export type MapPanelModel = {
+  runLabel: string;
   subtitle: string;
   kicker: string;
   speciesCode: string;

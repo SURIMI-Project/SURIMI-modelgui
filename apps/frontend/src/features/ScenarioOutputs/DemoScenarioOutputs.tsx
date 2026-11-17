@@ -1,6 +1,7 @@
+import { scenarioWorldContent } from "../../../mock-data/content/caseIntroductions";
 import type { SimulationCaseId } from "../../data/simulationCases";
 import ScenarioOutputsView from "./ScenarioOutputsView";
-import { exampleReport } from "../../../mock-data/outputs/report";
+import type { ScenarioOutputsDataset } from "./types";
 import { useScenarioDashboardState } from "./hooks/useScenarioDashboardState";
 import {
   buildDashboardHeaderModel,
@@ -11,15 +12,16 @@ import {
 import { buildScenarioSeriesBundle } from "./utils/scenarioSeriesBundle";
 
 type DemoScenarioOutputsProps = {
-  caseId?: SimulationCaseId;
+  caseId: SimulationCaseId;
+  primaryDataset: ScenarioOutputsDataset;
+  comparisonDataset: ScenarioOutputsDataset | null;
 };
 
 const DemoScenarioOutputs = ({
-  caseId = "anchovy-bay",
+  caseId, primaryDataset, comparisonDataset,
 }: DemoScenarioOutputsProps) => {
-  const primaryDataset = exampleReport;
-  const comparisonDataset = null;
-  const title = primaryDataset.title;
+  const runTitle = comparisonDataset ? `${primaryDataset.title} vs ${comparisonDataset.title}` : primaryDataset.title;
+  const title = `${scenarioWorldContent[caseId].worldTitle} · ${runTitle}`;
   const subtitle = primaryDataset.subtitle;
   const state = useScenarioDashboardState({
     dataset: primaryDataset,

@@ -55,12 +55,12 @@ workflow or documentation policy.
 
 ## Work logs
 
-- Work logs live only in `apps/frontend/docs/`.
+- Work logs live only in `apps/frontend/docs/work-logs/`.
 - Create or update a work log only when the user explicitly asks for one.
   Completing a task, changing code or preparing a commit is not such a request.
 - When requested, use the current date in the user's timezone
   (`Europe/Athens` unless the user specifies another) and the exact filename
-  `YYYY-MM-DD.md`.
+  `YYYY-MM-DD.md` inside that folder.
 - If that day's file exists, update it and preserve its existing entries.
   Otherwise create that day's file. Do not create multiple logs for one day.
 - Record the work performed, relevant frontend paths, verification actually

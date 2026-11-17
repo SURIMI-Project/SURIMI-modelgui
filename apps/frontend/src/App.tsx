@@ -4,11 +4,14 @@ import RequireSession from "./features/auth/RequireSession";
 import PasswordChangePage from "./pages/PasswordChangePage/PasswordChangePage";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
-import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage";
 import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
 import { useCurrentUser } from "./serverState/auth/useCurrentUser";
 import SessionGate from "./features/auth/SessionGate";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
+
+const ScenarioOutputsPage = lazy(() => import("./pages/ScenarioOutputsPage/ScenarioOutputsPage"));
+const CmsyInputPage = lazy(() => import("./pages/cmsy/input/CmsyInputPage"));
+const CmsyOutputPage = lazy(() => import("./pages/cmsy/output/CmsyOutputPage"));
 
 const DesignSystemPage = lazy(
   () => import("./pages/DesignSystemPage/DesignSystemPage"),
@@ -49,6 +52,8 @@ const App = () => (
 
     </Route>
     <Route element={<RequireSession />}>
+      <Route path="/cmsy-input" element={<Suspense fallback={<p>Loading CMSY inputs…</p>}><CmsyInputPage /></Suspense>} />
+      <Route path="/cmsy-output" element={<Suspense fallback={<p>Loading CMSY outputs…</p>}><CmsyOutputPage /></Suspense>} />
       <Route
         path="/design-system"
         element={
@@ -59,9 +64,9 @@ const App = () => (
       />
       <Route
         path="/scenario-outputs/:scenario"
-        element={<ScenarioOutputsPage />}
+        element={<Suspense fallback={<p>Loading scenario outputs…</p>}><ScenarioOutputsPage /></Suspense>}
       />
-      <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
+      <Route path="/outputs/:caseId" element={<Suspense fallback={<p>Loading scenario outputs…</p>}><ScenarioOutputsPage /></Suspense>} />
       <Route
         path="/netcdf-lab"
         element={

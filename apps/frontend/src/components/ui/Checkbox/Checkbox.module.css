@@ -1,0 +1,7 @@
+@layer components {
+  .checkbox { display: inline-flex; align-items: center; gap: var(--spacing-sm); color: var(--color-text); font-size: var(--font-size-sm); cursor: pointer; }
+  .indicator { display: grid; place-items: center; width: var(--icon-size-md); height: var(--icon-size-md); border: var(--border-default); border-radius: var(--radius-xs); background: var(--color-input); }
+  .checkbox[data-selected] .indicator { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+  .checkbox[data-focus-visible] .indicator { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+  .checkbox[data-disabled] { opacity: 0.45; cursor: default; }
+}

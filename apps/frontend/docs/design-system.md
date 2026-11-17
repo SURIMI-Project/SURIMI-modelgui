@@ -29,3 +29,16 @@
 - Scientific scales, SVG geometry and data calculations remain separate from theme tokens.
 - Dashboard content scrolls inside its viewport; the document stays fixed.
 - New server-state hooks remain disconnected from the UI.
+
+## Demo routes
+
+- `/scenario-runs?case=aegean-sea`: Scenario 1 and Scenario 2, with comparison selection.
+- `/scenario-outputs/aegean-sea?run=1&run=2`: compare the explicit demo pair.
+- Each case has its own fixed pair; unknown run IDs show an unavailable state.
+- Charts and map controls retain the selected run names.
+- Shared `ui/Checkbox` supplies run selection and its showcase examples.
+- `/cmsy-input`: case/species selection and the original catch CSV from `dev`.
+- `/cmsy-output`: four CMSY sample charts and stock indicators.
+- CMSY uses shared controls, theme tokens and existing Chart.js dependencies.
+- CMSY output indicators remain European hake sample data; no model is executed.
+- Routes load lazily. API integration remains separate.

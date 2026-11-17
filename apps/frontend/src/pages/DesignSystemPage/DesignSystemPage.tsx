@@ -3,6 +3,7 @@ import { FiArrowLeft, FiX } from "react-icons/fi";
 import Logo from "../../components/Logo/Logo";
 import Button from "../../components/ui/Button/Button";
 import ButtonLink from "../../components/ui/Button/ButtonLink";
+import Checkbox from "../../components/ui/Checkbox/Checkbox";
 import Card from "../../components/ui/Card/Card";
 import ComboBox from "../../components/ui/ComboBox/ComboBox";
 import Input from "../../components/ui/Input/Input";
@@ -98,6 +99,7 @@ function Components() {
         <RadioGroup label="Run duration" value={duration} onChange={setDuration}>
           <Radio value="5">5 years</Radio><Radio value="10">10 years</Radio>
         </RadioGroup>
+        <div className={styles.controlRow}><Checkbox defaultSelected>Scenario 1</Checkbox><Checkbox>Scenario 2</Checkbox><Checkbox isDisabled>Unavailable</Checkbox></div>
         <div className={styles.controlRow}>
           <Tag dot>Example results</Tag><Tag tone="primary">Selected species</Tag>
           <Tag tone="secondary" dot>Running</Tag><Tag tone="success" dot>Ready</Tag><Tag tone="danger" dot>Failed</Tag>
