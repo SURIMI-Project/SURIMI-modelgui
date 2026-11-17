@@ -373,7 +373,7 @@ no `provider` label: `login_events.provider` holds it for each attempt).
   provider (PKCE, Basic auth, signature, nonce, audience, issuer, expiry,
   userinfo, e-mail refusal, profile sync).
 - Against the real Keycloak:
-  `docker compose -f deployments/compose.yml --profile keycloak up --build -d`,
+  `docker compose -f deployments/compose.local.yml --profile keycloak up --build -d`,
   then open `http://localhost:18080/api/v1/auth/sso/keycloak/login` and sign
   in as alice, bob or carol (passwords in `deployments/.env.example`). Move a
   user between groups in the Keycloak admin console

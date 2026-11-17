@@ -172,7 +172,7 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run pytest -q                    # all; -m "not integration" without Docker
 ```
 
-Stack: `docker compose -f deployments/compose.yml up --build -d`, then the
+Stack: `docker compose -f deployments/compose.local.yml up --build -d`, then the
 `api/` requests in Bruno (environment `local`), or
 `curl http://localhost:18080/api/v1/scenarios`.
 

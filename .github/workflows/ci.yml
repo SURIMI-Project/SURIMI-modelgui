@@ -4,10 +4,18 @@ on:
   pull_request:
   push:
     branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      redeploy_all:
+        description: "develop only: rebuild both images and reconcile the whole stack"
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded pull request runs are cancelled; branch runs queue, so a deploy
+  # is never cut off half-way.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   changes:
@@ -134,3 +142,41 @@ jobs:
       - run: uv run --package surimi-protocol python packages/proto/generate.py
       - name: Committed stubs match the pinned protocol
         run: git diff --exit-code -- packages/proto
+
+  compose-files:
+    # deployments/compose.yml (images) and compose.local.yml (built from source)
+    # must describe the same stack apart from image and build (ADR 0026).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: compose.yml and compose.local.yml in step
+        run: python3 .github/scripts/check-compose-files.py
+
+  deploy-develop:
+    # Builds the changed images on the develop server and rolls only what changed
+    # (ADR 0026, docs/features/develop-deployment). Runs on the self-hosted runner
+    # of that server, after the checks above, for pushes to develop and manual runs.
+    needs: [changes, frontend, frontend-image, backend, backend-image, proto-stubs, compose-files]
+    if: >-
+      always()
+      && github.ref == 'refs/heads/develop'
+      && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && !contains(needs.*.result, 'failure')
+      && !contains(needs.*.result, 'cancelled')
+    # The develop server's runner (labels self-hosted, Linux, X64).
+    runs-on: [self-hosted, Linux, X64]
+    environment: develop
+    concurrency:
+      group: deploy-develop
+      cancel-in-progress: false
+    env:
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      DEPLOY_KEEP_IMAGES: ${{ vars.DEPLOY_KEEP_IMAGES || '5' }}
+      FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.redeploy_all }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The diff reaches back to the commit last deployed.
+          fetch-depth: 0
+      - name: Build, sync and roll
+        run: bash .github/scripts/deploy.sh
