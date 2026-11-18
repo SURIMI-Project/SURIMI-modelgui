@@ -50,7 +50,9 @@
   `UPDATE`, a read needs no join, and the stored form is the same as in an
   experiment's request. `jsonb` is core PostgreSQL, no extension (ADR 0014).
 - Every write goes through the API, whose request models check each rule's
-  bounds (`0 < limit < base ≤ 3.3e12`, `0 < f_max ≤ 100`), eligibility and
+  bounds (`0 < limit ≤ 3.3e12`, `0 < base ≤ 3.3e12`, `0 < f_max ≤ 100`; the
+  limit and the base are not compared since 2026-11-18, see the
+  [harvest control rules README](../features/harvest-control-rules/README.md#how-the-fisheries-authority-uses-the-values)), eligibility and
   uniqueness before saving, so the database checks lost with the per-rule
   columns had no other writer to guard against.
 
