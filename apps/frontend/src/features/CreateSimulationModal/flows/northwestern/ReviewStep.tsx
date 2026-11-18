@@ -6,8 +6,8 @@ import type { HcrConfiguration } from "../../../../network/services/hcrConfigura
 import { getRunDurations, type SimulationFormValues, type HcrMode } from "./form";
 import styles from "./NorthwesternSimulationFlow.module.css";
 
-type Props = { options: ExperimentOptions; mode: HcrMode; configuration?: HcrConfiguration };
-export default function ReviewStep({ options, mode, configuration }: Props) {
+type Props = { caseLabel: string; options: ExperimentOptions; mode: HcrMode; configuration?: HcrConfiguration };
+export default function ReviewStep({ caseLabel, options, mode, configuration }: Props) {
   const { control } = useFormContext<SimulationFormValues>();
   const values = useWatch({ control });
   const duration = getRunDurations(options).find(item => item.end && values.end_date_time && new Date(item.end).getTime() === new Date(values.end_date_time).getTime());
@@ -18,7 +18,7 @@ export default function ReviewStep({ options, mode, configuration }: Props) {
       <section className={styles.reviewSummary} aria-label="Your selections">
         <header className={styles.reviewCase}>
           <span>Case study</span>
-          <h3>Northwestern Mediterranean Sea</h3>
+          <h3>{caseLabel}</h3>
         </header>
         <dl className={styles.review}>
           <div><dt>Run duration</dt><dd>{duration ? `${duration.years} years` : "Unavailable"}<small>Until {endDate} (UTC)</small></dd></div>
@@ -30,7 +30,7 @@ export default function ReviewStep({ options, mode, configuration }: Props) {
         <Controller control={control} name="name" render={({ field }) =>
           <Input className={styles.nameField} label="Simulation name *" value={field.value} onChange={field.onChange} onBlur={field.onBlur}
             name={field.name} isRequired maxLength={24}
-            placeholder="e.g. Hake recovery study" description={`${field.value.length} / 24 characters`} />
+            placeholder="Give your simulation a name" description={`${field.value.length} / 24 characters`} />
         } />
         <p className={styles.note}>Your simulation will be added to the run queue.</p>
       </section>

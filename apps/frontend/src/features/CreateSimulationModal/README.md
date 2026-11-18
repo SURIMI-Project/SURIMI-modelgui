@@ -1,12 +1,17 @@
 # Simulation creation
 
 - `CreateSimulationModal.tsx`: shared dark modal shell; blocks closing during submission.
-- `cases/`: one entry component per case. Each owns its options query and creation lifecycle.
-- `flows/northwestern/`: independent HCR, settings and review screens with local styles.
+- `cases/`: one entry component per case, passing its backend identifier and display label to `ScenarioCreateSimulationModal.tsx`.
+- `ScenarioCreateSimulationModal.tsx` owns options loading and the create mutation, scoped to the selected case.
+- `flows/ScenarioSimulationFlow.tsx` owns shared navigation, validation and submission. Payloads and saved-configuration queries use `options.scenario_name`.
+- `flows/northwestern/` currently houses the reusable HCR, duration, climate and review sections and styles; the previous Northwestern flow entry re-exports the shared flow.
 - React Hook Form owns the draft; Zod validates against the options used to open it.
 - Services and server-state hooks own HTTP requests and cache updates.
 - `scenarioWorldConfig.creationEnabled` controls setup availability on details and runs pages.
-- Northwestern Mediterranean is enabled. Aegean Sea and Anchovy Bay remain disabled.
+- All three case creation entry points are enabled. Backend scenario availability still controls access.
+- Skip HCR setup when options contain no eligible entries; submit an empty rule list. Skip climate selection only when the backend supplies no climate choices.
+- Live local options checked on 2026-11-18: Northwestern has 6 eligible HCR entries and 3 RCP choices; Aegean has no eligible HCR entries and no climate choices; Anchovy Bay has no eligible HCR entries but has 3 RCP choices. Both newly enabled cases have 2013–2050 date limits. No experiment was submitted during this verification.
+- Aegean remains based on the current species contract. Functional-group-targeted HCR creation is not implemented or inferred.
 
 ## Northwestern inputs
 
