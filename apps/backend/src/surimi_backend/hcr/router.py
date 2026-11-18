@@ -26,7 +26,8 @@ ERRORS: dict[int | str, dict[str, Any]] = {
     409: {"description": "Name already used for this scenario, or 50 configurations already"},
     422: {
         "description": "An entry not HCR-eligible in this scenario or given twice (every "
-        "problem and the eligible entries are listed), limit not below base, or a bad name"
+        "problem and the eligible entries are listed), a value out of the protocol's bounds, "
+        "or a bad name"
     },
 }
 

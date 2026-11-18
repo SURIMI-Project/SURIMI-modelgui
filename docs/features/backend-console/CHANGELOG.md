@@ -6,6 +6,21 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-18 — A biomass base at or below the limit is allowed, with a note
+
+**Status:** built. `node --check app.js` passes. **Not run in a browser or
+jsdom** (jsdom is not installed in this checkout).
+
+- `app.js` (`collectRules`): the error "the biomass base must be above the
+  biomass limit" (2026-11-16) is replaced by "the biomass base must be above
+  0 t"; the API accepts a base at or below the limit since 2026-11-18
+  ([harvest control rules](../harvest-control-rules/CHANGELOG.md)).
+- `app.js` (`addRuleRow`): under the base input, a note appears while the
+  base is at or below the limit: "Base at or below the limit: full fishing
+  mortality above the limit, no fishing at or below it."
+
+---
+
 ## 2026-11-16 — Clearer message for a biomass base below the limit
 
 **Status:** built. `node --check app.js` passes; the jsdom check of the tab

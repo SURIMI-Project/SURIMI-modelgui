@@ -501,17 +501,33 @@ function addRuleRow(index, rule) {
     fillSpeciesPicker();
     showRulesState();
   });
-  const cell = (node) => {
+  const cell = (...nodes) => {
     const td = el("td");
-    td.append(node);
+    td.append(...nodes);
     return td;
   };
+  // A base at or below the limit is allowed: the fisheries authority then runs
+  // the rule as all-or-nothing at the limit (see the HCR README).
+  const switchNote = el("div", "", "muted small");
+  const showSwitchNote = () => {
+    const [limit, base] = [inputs[0].value.trim(), inputs[1].value.trim()];
+    const on = limit !== "" && base !== "" && Number(base) <= Number(limit);
+    switchNote.textContent = on
+      ? "Base at or below the limit: full fishing mortality above the limit, no fishing at or below it."
+      : "";
+    switchNote.hidden = !on;
+  };
+  inputs[0].addEventListener("input", showSwitchNote);
+  inputs[1].addEventListener("input", showSwitchNote);
+  showSwitchNote();
   tr.append(
     species,
     el("td", row.functional_group_name || row.functional_group || "—", "wrap"),
     el("td", fmt(row.initial_biomass, 1)),
     el("td", fmt(row.initial_fishing_mortality, 3)),
-    ...inputs.map(cell),
+    cell(inputs[0]),
+    cell(inputs[1], switchNote),
+    cell(inputs[2]),
     cell(remove),
   );
   $("exp-hcr").append(tr);
@@ -601,12 +617,7 @@ function collectRules() {
       return { error: `${label}: fill in the biomass limit, the biomass base and the fishing mortality, or remove it.` };
     }
     if (!(limit > 0)) return { error: `${label}: the biomass limit must be above 0 t.` };
-    if (!(base > limit)) {
-      return {
-        error: `${label}: the biomass base (${base} t) must be above the biomass limit (${limit} t): ` +
-          "below the limit no catch is allowed, above the base the full fishing mortality applies.",
-      };
-    }
+    if (!(base > 0)) return { error: `${label}: the biomass base must be above 0 t.` };
     if (!(fmax > 0 && fmax <= 100)) return { error: `${label}: the fishing mortality must be above 0 and at most 100.` };
     rules.push({
       species_code: row.species_code,

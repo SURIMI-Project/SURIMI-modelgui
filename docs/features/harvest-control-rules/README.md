@@ -1,6 +1,6 @@
 # Harvest control rules
 
-**Status:** Built 2026-11-06 (backend and API) on `develop`, not merged into `main`; scenario defaults removed 2026-11-16; several named configurations per scenario, rules in `jsonb`, 2026-11-16. Frontend in phase 10; the backend console's New experiment tab uses the configurations today
+**Status:** Built 2026-11-06 (backend and API) on `develop`, not merged into `main`; scenario defaults removed 2026-11-16; several named configurations per scenario, rules in `jsonb`, 2026-11-16; a limit at or above the base accepted, 2026-11-18. Frontend in phase 10; the backend console's New experiment tab uses the configurations today
 **Plan:** [2026-11-05-scenario-catalog-hcr-experiments](../../plans/2026-11-05-scenario-catalog-hcr-experiments.md), step 4b
 **ADRs:** [0018](../../decisions/0018-harvest-control-rules-per-user-and-scenario.md), [0024](../../decisions/0024-harvest-control-rules-only-per-user-no-defaults.md), [0025](../../decisions/0025-several-named-hcr-configurations-per-scenario-in-jsonb.md), [0022](../../decisions/0022-hcr-biomass-in-kg-tonnes-only-in-the-ui.md), [0017](../../decisions/0017-scenario-catalog-from-partner-config.md)
 
@@ -29,7 +29,8 @@ initial biomass and fishing mortality, come from the controller.
 | An experiment takes `harvest_control_rules` or `hcr_configuration_id` (rules copied, with the configuration's id and name), not both; neither: no rules | Past experiments must not change when a configuration is edited (ADR 0018); no defaults to fall back on | [ADR 0025](../../decisions/0025-several-named-hcr-configurations-per-scenario-in-jsonb.md) |
 | Biomass in kg in the database, the API and the controller request (`biomass_limit_kg`, `biomass_base_kg`); tonnes only in the UI | One unit from the database to the controller (user, 2026-11-13). The controller takes kg (**Confirmed by the controller team, 2026-10-16**) | [ADR 0022](../../decisions/0022-hcr-biomass-in-kg-tonnes-only-in-the-ui.md) |
 | Only HCR-eligible catalog entries accepted | Others fail at `CreateRegulations` minutes later (**Verified** 2026-10-30) | [ADR 0017](../../decisions/0017-scenario-catalog-from-partner-config.md) |
-| The protocol's bounds checked by the API: `0 < biomass_limit_kg < biomass_base_kg ≤ 3.3e12` and `0 < f_max ≤ 100` | The protocol declares them (`buf.validate` on `TargetFishingMortality`; **Read from source**, SURIMI-protocol `0c4b6c4`), but the controller does not enforce them (**Read from source**, SURIMI-controller `117e604`), so ours is the only check; since ADR 0025 it is the request models only, as the API is the only writer of the `jsonb` | this file |
+| The protocol's bounds checked by the API, field by field: `0 < biomass_limit_kg ≤ 3.3e12`, `0 < biomass_base_kg ≤ 3.3e12`, `0 < f_max ≤ 100` | The protocol declares them (`buf.validate` on `TargetFishingMortality`; **Read from source**, SURIMI-protocol `250f617`), but the controller does not enforce them (**Read from source**, SURIMI-controller `141b7de` and `multi_core` `1705b2c`), so ours is the only check; since ADR 0025 it is the request models only, as the API is the only writer of the `jsonb` | this file |
+| The limit and the base are **not** compared: a limit at or above the base is accepted | The protocol has no such rule, and the fisheries authority runs it as a valid all-or-nothing rule at the limit (see [How the fisheries authority uses the values](#how-the-fisheries-authority-uses-the-values)); the user wants to be able to set it (user, 2026-11-18). Rejected: keep refusing it (the check until 2026-11-18), which forbids a rule the models run | this file |
 | Reference values (initial biomass and initial F per species) come from the controller on every request (`GET …/experiment-options`), not stored with the rules | The values change when Ecopath's spin-up files are regenerated (user, 2026-11-12); see [scenario catalog](../scenario-catalog/README.md#initial-biomass-and-fishing-mortality) | this file |
 | A rule that became ineligible stays in its configuration, flagged `eligible: false`, refused when the configuration is used, and must go before the configuration is saved again | Do not change users' data because a partner file changed, but never send a rule that will fail | this file |
 | Configuration changes are not audited | They are the user's own data; the audit log records actions on other people's data and admin actions | this file |
@@ -84,10 +85,55 @@ simulated year. The first year uses the species' initial TAC from its
 quota calculator with the three values and the species' biomass over the whole
 model area. Each TAC is split between fleets by `quotashare.csv`. A species
 needs a row in all three fisheries authority files, which is why only those
-are HCR-eligible (ADR 0017). Between the limit and the base the fishing
-mortality presumably rises from 0 to the maximum, but that formula is in the
-EwECore package, which is not open here: **Open question** to the controller
-team, see [ISSUES.md](../../ISSUES.md).
+are HCR-eligible (ADR 0017). The formula is below.
+
+### How the fisheries authority uses the values
+
+**Read from source**, 2026-11-18. Neither the controller nor the fisheries
+authority checks the values: the controller passes `TargetFishingMortality`
+on unchanged (SURIMI-controller `141b7de`, `multi_core` `1705b2c`,
+`SimulationManager.RunSimulationAsync`), and the fisheries authority copies
+`biomass_limit` to `Blim`, `biomass_base` to `Bbase` and `f_max` to `Fopt`
+(SURIMI-fisheries-authority `a68715a`, `QuotaCalculationService.cs`). It
+leaves EwE's other rule types (fixed TAC, fixed escapement, fixed F) and
+`Fmin` at 0, so every species with a rule uses EwE's target fishing mortality
+rule. From the second simulated year, EwE computes, per species
+(Official-EwE/Eii.Ecopath `3faddf1`, EwECore 6.7.130,
+`Sources/EwECore/MSE/Model/cMSEQuotaCalculator.vb`, `UpdateQuotas`):
+
+```text
+range   = Bbase - Blim, or 1e-20 when that is 0 or less
+F       = Fopt × (Bestimate - Blim) / range, then held between Fmin (0) and Fopt
+TAC     = F × Bestimate × a random factor (log-normal, CV 0.2)
+```
+
+`Bestimate` is the biomass estimate of the year just ended: the species'
+biomass over the whole model area with a random error (CV 0.2). So:
+
+| Rule | Estimated biomass | F used for the TAC |
+| --- | --- | --- |
+| Limit below base (the usual "hockey stick") | at or below the limit | 0: no catch |
+| | between the limit and the base | rises in a straight line from 0 to `f_max` |
+| | at or above the base | `f_max` |
+| Limit at or above the base (accepted since 2026-11-18) | above the limit | `f_max` |
+| | at or below the limit | 0: no catch |
+
+With the limit at or above the base, the base plays no part: the rule is an
+**all-or-nothing switch at the limit**. As the estimate is noisy, a stock near
+its limit can swing between no catch and the full `f_max` from one year to
+the next; nothing tells the user, the run neither fails nor warns. EwE's own
+test `TargetF_DegenerateBrange_UsesFallback_ClampsToFopt`
+(`cMSEQuotaCalculatorTests.cs`) expects this. The backend console notes it
+beside the row; the phase 10 editor should too.
+
+The versions above are the ones `project-surimi` on EDITO is set to run
+(service-playground branch `Surimi`, `41d617b`, 2026-11-17): fisheries
+authority image `surimifisheriesauthority:latest`, built 2026-10-15 from
+`a68715a`, with EwECore 6.7.130 (`+3faddf1`, read from the `EwECore.dll` in
+the image); controller image `surimicontroller:multicore`, built 2026-11-18,
+newer than any pushed `multi_core` commit. `cMSEQuotaCalculator.vb` has not
+changed since 2026-08-27 (EwE `551689e`), so `3faddf1` and EwE's latest
+(`80ff6cb`) agree. Which image the running pods started from was not checked.
 
 **Several configurations (ADR 0025).** A user names each configuration
 (1 to 100 characters, trimmed, unique among theirs for the scenario without
@@ -216,7 +262,7 @@ were rebuilt one per feature before any release).
 | Backend | `src/surimi_backend/catalog/species_import.py` | Codes in use read from the configurations' `jsonb` |
 | Console | `console/static/` | Configuration picker, Save, Save as new, Delete; species added to the rules list from a dropdown of every contract species |
 | Bruno | `api/hcr-configurations/*` | Requests |
-| Frontend (phase 10) | HCR editor in the experiment form | Configuration picker; table in tonnes of every contract species, only eligible ones editable, initial biomass and F beside each row; one shared helper turns typed tonnes into kg for the API and kg into rounded tonnes for display (ADR 0022) |
+| Frontend (phase 10) | HCR editor in the experiment form | Configuration picker; table in tonnes of every contract species, only eligible ones editable, initial biomass and F beside each row; a note on a row whose base is at or below its limit (all-or-nothing at the limit); one shared helper turns typed tonnes into kg for the API and kg into rounded tonnes for display (ADR 0022) |
 
 ---
 
@@ -234,7 +280,7 @@ create or a change. No audit events (see Decisions).
 name, get, rename and replace, delete), per user and per scenario (same name
 elsewhere is fine; someone else's or another scenario's is 404), all or
 nothing with every problem and the eligible entries listed, bounds and name
-checks, unique names without case and the 50 cap, the old routes gone, the
+checks, a limit above or equal to the base saved and read back, unique names without case and the 50 cap, the old routes gone, the
 `jsonb` column. `tests/test_experiments.py`: an experiment from
 `hcr_configuration_id`, neither (no rules), both (422), someone else's (404).
 

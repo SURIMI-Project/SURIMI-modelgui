@@ -96,7 +96,10 @@ The decisions above, in detail:
 - **Validation rules:** scenario in `GetScenarioNames`; each HCR's species
   and life stage in the catalog's `hcr_eligible` (life stage compared
   case-insensitively, the contract's spelling sent); at most one HCR per
-  species and life stage; `0 < biomass_limit_kg < biomass_base_kg ≤ 3.3e12`;
+  species and life stage; `0 < biomass_limit_kg ≤ 3.3e12`,
+  `0 < biomass_base_kg ≤ 3.3e12` (not compared with each other since
+  2026-11-18: a base at or below the limit is an all-or-nothing rule, see
+  [harvest control rules](../harvest-control-rules/README.md#how-the-fisheries-authority-uses-the-values));
   `0 < f_max ≤ 100`;
   `end_date_time` after the contract's `start_date_time` and not after
   `maximum_end_date_time`; `climate_scenario` one of the contract's
