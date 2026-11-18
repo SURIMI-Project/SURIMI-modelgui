@@ -43,11 +43,11 @@ export const createExperimentSchemaForOptions = (options: ExperimentOptions) =>
     } else if (body.climate_scenario) {
       issue(["climate_scenario"], "This case does not accept a climate scenario.");
     }
-    const eligible = new Set(options.species.filter((s) => s.hcr_eligible)
+    const eligible = new Set(options.species.filter(species => species.hcr_eligible)
       .map((s) => speciesEntryKey(s.species_code, s.life_stage)));
     body.harvest_control_rules?.forEach((rule, index) => {
       if (!eligible.has(speciesEntryKey(rule.species_code, rule.life_stage)))
-        issue(["harvest_control_rules", index, "species_code"], "This entry cannot carry an HCR.");
+        issue(["harvest_control_rules", index, "species_code"], "This entry is not eligible for harvest control rules in this scenario.");
     });
     if (body.hcr_configuration_id && !options.hcr_configurations.some((c) => c.id === body.hcr_configuration_id))
       issue(["hcr_configuration_id"], "Select one of this case's saved configurations.");

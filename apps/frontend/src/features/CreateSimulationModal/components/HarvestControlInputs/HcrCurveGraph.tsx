@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { createTacHoverPlugin } from "./tacHoverPlugin";
 import {
   type ActiveElement,
@@ -49,6 +49,11 @@ const HcrCurveGraph = ({
   onDrag,
   onDragEnd,
 }: HcrCurveGraphProps) => {
+  const chartRef = useRef<ChartJS<"line", GraphPoint[]> | null>(null);
+  const curve = (limit: number, base: number, mortality: number) => [
+    { x: 0, y: 0 }, { x: limit / 1000, y: 0 },
+    { x: Math.max(limit, base) / 1000, y: mortality }, { x: xMax / 1000, y: mortality },
+  ];
   const theme = getComputedStyle(document.documentElement);
   const token = (name: string) => theme.getPropertyValue(name).trim();
   const text = token("--color-map-detail-text");
@@ -68,7 +73,7 @@ const HcrCurveGraph = ({
     },
     onHover: (_event: ChartEvent, activeElements: ActiveElement[], chart) => {
       const isHandleHovered = activeElements.some(
-        (element) => element.index === 1 || element.index === 2,
+        (element) => element.datasetIndex === 1,
       );
 
       chart.canvas.style.cursor = isReadOnly ? "default" : isDraggingHandle
@@ -117,6 +122,7 @@ const HcrCurveGraph = ({
     plugins: {
       legend: {
         labels: {
+          filter: item => item.datasetIndex === 0,
           color: text,
         },
       },
@@ -135,21 +141,22 @@ const HcrCurveGraph = ({
     round: 4,
     onDragStart: (
       _event: unknown,
-      _datasetIndex: number,
+      datasetIndex: number,
       pointIndex: number,
     ) => {
-      const allowed = onDragStart(pointIndex);
+      const allowed = datasetIndex === 1 && onDragStart(pointIndex + 1);
       tacHoverPlugin.setDragging(allowed);
       return allowed;
     },
     onDrag: (
       _event: unknown,
-      _datasetIndex: number,
+      datasetIndex: number,
       pointIndex: number,
       value: unknown,
     ) => {
       const dragged = value as GraphPoint;
-      const nextPoint = onDrag(pointIndex, { x: dragged.x * 1000, y: dragged.y });
+      if (datasetIndex !== 1) return false;
+      const nextPoint = onDrag(pointIndex + 1, { x: dragged.x * 1000, y: dragged.y });
 
       if (!nextPoint) {
         return false;
@@ -158,11 +165,17 @@ const HcrCurveGraph = ({
       const point = value as GraphPoint;
       point.x = nextPoint.x / 1000;
       point.y = nextPoint.y;
+      const chart = chartRef.current;
+      if (chart) chart.data.datasets[0].data = curve(
+        pointIndex === 0 ? nextPoint.x : activeRow.biomassLimit,
+        pointIndex === 1 ? nextPoint.x : activeRow.biomassBase,
+        pointIndex === 1 ? nextPoint.y : activeRow.fMax,
+      );
       return true;
     },
-    onDragEnd: (_event: unknown, _datasetIndex: number, pointIndex: number) => {
+    onDragEnd: (_event: unknown, datasetIndex: number, pointIndex: number) => {
       tacHoverPlugin.setDragging(false);
-      onDragEnd(pointIndex);
+      if (datasetIndex === 1) onDragEnd(pointIndex + 1);
     },
   };
 
@@ -170,32 +183,30 @@ const HcrCurveGraph = ({
     datasets: [
       {
         label: activeRow.label,
-        data: graphPoints.map(point => ({ x: point.x / 1000, y: point.y })),
+        data: curve(activeRow.biomassLimit, activeRow.biomassBase, activeRow.fMax),
         parsing: false as const,
         borderColor: primary,
         backgroundColor: primary,
         borderWidth: 3,
         clip: false as const,
-        pointRadius: [0, 8, 8, 0],
-        pointHoverRadius: [0, 9, 9, 0],
-        pointHitRadius: [0, 26, 26, 0],
-        pointBackgroundColor: [
-          "transparent",
-          primary,
-          surface,
-          "transparent",
-        ],
-        pointBorderColor: primary,
-        pointBorderWidth: [0, 3, 3, 0],
+        pointRadius: 0,
+        pointHitRadius: 0,
         tension: 0,
         segment: {
           borderColor: () => primary,
         },
       },
+      {
+        label: "Control points",
+        data: graphPoints.slice(1, 3).map(point => ({ x: point.x / 1000, y: point.y })),
+        parsing: false as const, showLine: false, pointRadius: 8, pointHoverRadius: 9,
+        pointHitRadius: 26, pointBackgroundColor: [primary, surface],
+        pointBorderColor: primary, pointBorderWidth: 3, clip: false as const,
+      },
     ],
   };
 
-  return <Line plugins={[tacHoverPlugin]} options={chartOptions} data={chartData} role="img" aria-label={`${activeRow.label}: biomass limit ${activeRow.biomassLimit / 1000} tonnes, biomass base ${activeRow.biomassBase / 1000} tonnes, fishing mortality ${activeRow.fMax} per year. Annual TAC at the biomass base: ${activeRow.biomassBase / 1000 * activeRow.fMax} tonnes per year`} />;
+  return <Line ref={chartRef} plugins={[tacHoverPlugin]} options={chartOptions} data={chartData} role="img" aria-label={`${activeRow.label}: biomass limit ${activeRow.biomassLimit / 1000} tonnes, biomass base ${activeRow.biomassBase / 1000} tonnes, fishing mortality ${activeRow.fMax} per year. Annual TAC at the biomass base: ${activeRow.biomassBase <= activeRow.biomassLimit ? 0 : activeRow.biomassBase / 1000 * activeRow.fMax} tonnes per year`} />;
 };
 
 export default HcrCurveGraph;

@@ -21,7 +21,7 @@ type Props = {
 };
 
 export default function Modal({ appearance = "default", opened, onClose, title, children, size = "var(--layout-modal-max)", zIndex = 5000, closeOnClickOutside = true, closeOnEscape = true, withCloseButton = true, fullScreen = false, bodyClassName, compactHeader = false }: Props) {
-  return <ModalOverlay isOpen={opened} onOpenChange={open => { if (!open) onClose(); }} isDismissable={closeOnClickOutside} isKeyboardDismissDisabled={!closeOnEscape} className={styles.overlay} style={{ zIndex }}>
+  return <ModalOverlay isOpen={opened} onOpenChange={open => { if (!open) onClose(); }} isDismissable={closeOnClickOutside} isKeyboardDismissDisabled={!closeOnEscape} className={styles.overlay} style={{ zIndex, padding: fullScreen ? 0 : undefined }}>
     <AriaModal className={`${styles.modal} ${fullScreen ? styles.fullScreen : ""} ${appearance === "marine" ? styles.marine : ""}`} style={{ "--modal-width": typeof size === "number" ? `${size}px` : size } as CSSProperties}>
       <Dialog className={styles.dialog} aria-label={title ? undefined : "Dialog"}>
         <header className={`${styles.header} ${compactHeader ? styles.compactHeader : ""}`}>

@@ -8,7 +8,7 @@ type OutputsTrendPanelProps = {
   title: string;
   subtitle: string;
   metricLabel: string;
-  currentValue: number;
+  currentValue: number | null;
   currentValueLabel: string;
   selectionCopy?: string;
   labels?: string[];
@@ -25,6 +25,8 @@ type OutputsTrendPanelProps = {
   headerAside?: ReactNode;
   className?: string;
   compact?: boolean;
+  isRecorded?: boolean;
+  statusMessage?: string;
 };
 
 const OutputsTrendPanel = ({
@@ -48,6 +50,8 @@ const OutputsTrendPanel = ({
   headerAside,
   className,
   compact = false,
+  isRecorded = false,
+  statusMessage,
 }: OutputsTrendPanelProps) => {
   return (
     <ChartCard
@@ -58,7 +62,7 @@ const OutputsTrendPanel = ({
       aside={headerAside}
       footer={
         !compact
-          ? (selectionCopy ?? `Selected year value: ${currentValue.toFixed(2)}`)
+          ? (selectionCopy ?? `Selected year value: ${currentValue?.toFixed(2) ?? "—"}`)
           : undefined
       }
       className={className}
@@ -78,6 +82,8 @@ const OutputsTrendPanel = ({
         selectedIndex={selectedIndex}
         onSelectIndex={onSelectIndex}
         compact={compact}
+        isRecorded={isRecorded}
+        statusMessage={statusMessage}
       />
     </ChartCard>
   );

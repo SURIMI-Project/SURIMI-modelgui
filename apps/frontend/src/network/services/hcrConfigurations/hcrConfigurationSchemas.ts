@@ -7,8 +7,6 @@ export const hcrRulePayloadSchema = z.strictObject({
   biomass_limit_kg: z.number().positive().max(3.3e12),
   biomass_base_kg: z.number().positive().max(3.3e12),
   f_max: z.number().positive().max(100),
-}).refine((rule) => rule.biomass_limit_kg < rule.biomass_base_kg, {
-  path: ["biomass_base_kg"], message: "Biomass base must exceed biomass limit.",
 });
 
 export const speciesEntryKey = (code: string, stage: string) =>

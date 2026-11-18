@@ -39,7 +39,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
     return rule ? [rule] : [];
   };
   const hasHcr = options.species.some(species => species.hcr_eligible);
-  const firstStep: Screen = hasHcr ? "hcr" : "settings";
+  const firstStep: Screen = "hcr";
   const [screen, setScreen] = useState<Screen>(firstStep);
   const controls = useAnimationControls();
   const reducedMotion = useReducedMotion();
@@ -61,7 +61,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
   const hasIssue = (fields: string[]) => draftIssues.some(issue => fields.includes(String(issue.path[0])));
   const configurationId = useWatch({ control: form.control, name: "hcr_configuration_id" });
   const configuration = useHcrConfiguration(options.scenario_name, configurationId ?? "", mode === "saved");
-  const savedReady = mode !== "saved" || Boolean(configurationId && configuration.data && !configuration.isError && !configuration.isFetching && configuration.data.rules.every(rule => rule.eligible && rule.biomass_base_kg <= MAX_HCR_BIOMASS_KG && rule.f_max <= MAX_HCR_FISHING_MORTALITY));
+  const savedReady = mode !== "saved" || Boolean(configurationId && configuration.data && !configuration.isError && !configuration.isFetching && configuration.data.rules.every(rule => rule.eligible && options.species.some(entry => entry.hcr_eligible && speciesEntryKey(entry.species_code, entry.life_stage) === speciesEntryKey(rule.species_code, rule.life_stage)) && rule.biomass_limit_kg > 0 && rule.biomass_limit_kg <= MAX_HCR_BIOMASS_KG && rule.biomass_base_kg > 0 && rule.biomass_base_kg <= MAX_HCR_BIOMASS_KG && rule.f_max > 0 && rule.f_max <= MAX_HCR_FISHING_MORTALITY));
   const submitting = form.formState.isSubmitting;
   const datesAvailable = Boolean(options.start_date_time && options.maximum_end_date_time);
   const canSubmit = datesAvailable && savedReady;
@@ -69,7 +69,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
     : !datesAvailable ? "Simulation date limits are unavailable. Try reopening the setup."
     : !savedReady ? "Choose a supported saved configuration and wait for it to finish loading."
     : screen === "hcr" && mode === "custom" && !draftValues.harvest_control_rules?.length ? "Configure at least one rule, or choose Continue without configuration."
-    : screen === "hcr" && hasIssue(["harvest_control_rules", "hcr_configuration_id"]) ? "Complete each rule: positive biomass limit below biomass base, within 3,300,000,000 tonnes, and fishing mortality greater than 0 and up to 100 per year."
+    : screen === "hcr" && hasIssue(["harvest_control_rules", "hcr_configuration_id"]) ? "Complete each rule: positive biomass limit and biomass base, within 3,300,000,000 tonnes, and fishing mortality greater than 0 and up to 100 per year."
     : screen === "settings" && hasIssue(["end_date_time"]) ? "Select a run duration to continue."
     : screen === "climate" && hasIssue(["climate_scenario"]) ? "Select a climate scenario to continue."
     : screen === "review" && hasIssue(["name"]) ? "Enter a simulation name using 1–24 characters. Spaces alone are not a name."
@@ -128,7 +128,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
       }
       if (savedReady && await form.trigger(["harvest_control_rules", "hcr_configuration_id"])) void goToScreen("settings");
     } else if (screen === "settings") {
-      if (savedReady && await form.trigger(["end_date_time", "harvest_control_rules", "hcr_configuration_id"])) void goToScreen(options.climate_scenarios.length ? "climate" : "review");
+      if (savedReady && await form.trigger(["end_date_time", "harvest_control_rules", "hcr_configuration_id"])) void goToScreen("climate");
     } else if (screen === "climate") {
       if (await form.trigger("climate_scenario")) void goToScreen("review");
     }
@@ -164,9 +164,9 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
         {screen !== "hcr" ? <div className={styles.headingRow}><div className={styles.heading}><h2 ref={heading} tabIndex={-1}>{headings[screen]}</h2></div></div> : null}
         <fieldset className={local.fieldset} data-screen={screen} disabled={submitting || transitioning}>
           <div hidden={screen !== "settings"}><RunSettingsStep options={options} /></div>
-          {hasHcr ? <div className={local.hcrStep} hidden={screen !== "hcr"}><HcrRulesStep headingRef={heading} options={options} mode={mode} onModeChange={changeMode}
+          <div className={local.hcrStep} hidden={screen !== "hcr"}><HcrRulesStep headingRef={heading} options={options} mode={mode} onModeChange={changeMode}
             configuration={configuration.data} configurationLoading={mode === "saved" && Boolean(configurationId) && configuration.isFetching}
-            configurationError={configuration.isError} retryConfiguration={() => { void configuration.refetch(); }} /></div> : null}
+            configurationError={configuration.isError} retryConfiguration={() => { void configuration.refetch(); }} /></div>
           {screen === "climate" ? <ClimateScenarioStep options={options} /> : null}
           {screen === "review" ? <ReviewStep caseLabel={caseLabel} options={options} mode={mode} configuration={configuration.data} /> : null}
         </fieldset>
@@ -181,13 +181,13 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
         <Button variant="primary-outlined" type="button" isDisabled={submitting} aria-disabled={transitioning || submitting || undefined} onPress={() => {
           if (transitionLock.current) return;
           if (screen === firstStep) onClose();
-          else if (screen === "review") void goToScreen(options.climate_scenarios.length ? "climate" : "settings");
+          else if (screen === "review") void goToScreen("climate");
           else if (screen === "climate") void goToScreen("settings");
-          else { if (mode === "none") changeMode("custom"); void goToScreen("hcr"); }
+          else { if (hasHcr && mode === "none") changeMode("custom"); void goToScreen("hcr"); }
         }}>{screen === firstStep ? "CANCEL" : "PREVIOUS"}</Button>
         {submitting ? <p className={styles.notice} role="status">Submitting simulation…</p> : null}
         <div className={styles.footerActions}>
-          {screen === "hcr" ? <Button variant="ghost" size="sm" type="button" isDisabled={submitting || transitioning || !datesAvailable}
+          {screen === "hcr" && hasHcr ? <Button variant="ghost" size="sm" type="button" isDisabled={submitting || transitioning || !datesAvailable}
             onPress={() => { changeMode("none"); void goToScreen("settings"); }}>Continue without configuration</Button> : null}
           <TooltipTrigger delay={250} isDisabled={!blockedReason || transitioning}>
             <DisabledTooltipTarget label={actionLabel} isDisabled={actionDisabled}>{actionButton}</DisabledTooltipTarget>

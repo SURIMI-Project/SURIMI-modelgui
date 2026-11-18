@@ -34,7 +34,7 @@ export default function HcrRulesStep({ headingRef, options, mode, onModeChange, 
   const [resetValues, setResetValues] = useState(() => new Map<string, HcrRulePayload>());
   const eligible = options.species.filter(species => species.hcr_eligible);
   const rows: HcrRuleTableRow[] = mode === "saved" ? configuration?.rules.map(rule => ({
-    key: entryKey(rule), label: speciesLabel(rule), eligible: rule.eligible, rule: copyRule(rule),
+    key: entryKey(rule), label: speciesLabel(rule), eligible: rule.eligible && eligible.some(species => entryKey(species) === entryKey(rule)), rule: copyRule(rule),
   })) ?? [] : [
     ...eligible.map(species => ({ key: entryKey(species), label: speciesLabel(species), eligible: true, rule: rules.find(rule => entryKey(rule) === entryKey(species)) })),
     // Keep unsupported entries visible so validation does not silently discard them.
@@ -101,6 +101,12 @@ export default function HcrRulesStep({ headingRef, options, mode, onModeChange, 
     } />;
   } : undefined;
 
+  if (eligible.length === 0) return <div className={styles.hcrContent}>
+    <HcrIntroduction headingRef={headingRef}>
+      <p className={styles.note} role="status">No species or life stages are currently eligible for harvest control rules in this scenario. Choose Next to continue without configuration.</p>
+    </HcrIntroduction>
+  </div>;
+
   return <div className={styles.hcrContent}>
     <HcrIntroduction headingRef={headingRef}>
       {options.hcr_configurations.length > 0 ? <Select className={styles.configurationSelect} label="Rule source" selectedKey={mode}
@@ -130,7 +136,7 @@ export default function HcrRulesStep({ headingRef, options, mode, onModeChange, 
       {mode === "custom" && errors.harvest_control_rules ? <p className={styles.error} role="alert">Configure at least one rule and complete its values, or choose Continue without configuration.</p> : null}
       {mode === "saved" && configuration?.rules.some(rule => rule.f_max > MAX_HCR_FISHING_MORTALITY) ? <p className={styles.error} role="alert">This configuration exceeds the fishing mortality limit of 100 per year. Edit a copy to adjust its values.</p> : null}
       {mode === "saved" && configuration?.rules.some(rule => rule.biomass_base_kg > MAX_HCR_BIOMASS_KG) ? <p className={styles.error} role="alert">This configuration exceeds the biomass limit of 3,300,000,000 tonnes. Edit a copy to adjust its values.</p> : null}
-      {mode === "saved" && configuration?.rules.some(rule => !rule.eligible) ? <p className={styles.error} role="alert">Some entries are no longer eligible. Choose another configuration or start a new configuration.</p> : null}
+      {mode === "saved" && configuration?.rules.some(rule => !rule.eligible || !eligible.some(species => entryKey(species) === entryKey(rule))) ? <p className={styles.error} role="alert">Some entries are no longer eligible for harvest control rules. Choose another configuration or start a new configuration.</p> : null}
     </> : null}
   </div>;
 }

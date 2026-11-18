@@ -1,19 +1,36 @@
 @layer components {
   .page, .container { width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: column; color: var(--color-text); }
   .header { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-lg); padding-bottom: var(--spacing-mdl); flex-shrink: 0; }
+  .heading { display: flex; align-items: center; gap: var(--spacing-smd); min-width: 0; }
   .header h1 { min-width: 0; margin: 0; font-size: clamp(var(--font-size-xl), 1.7vw, var(--font-size-2xl)); font-weight: var(--font-weight-medium); text-wrap: balance; }
   .actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-smd); flex-shrink: 0; }
   .tableRegion { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; border: var(--border-default); border-radius: var(--radius-lg); backdrop-filter: blur(var(--blur-surface)); background: var(--color-glass-surface); box-shadow: var(--shadow-md); }
   .tableRegion > div:first-child { flex: 1; min-height: 0; overflow: auto; }
   .table { background: transparent; border-collapse: separate; border-spacing: 0; }
-  .table th { position: sticky; top: 0; z-index: 1; background: var(--color-surface-muted); padding: var(--spacing-md) var(--spacing-lg); font-size: var(--font-size-xs); letter-spacing: var(--letter-spacing-eyebrow); text-transform: uppercase; border-bottom: var(--border-default); }
-  .table td { padding: var(--spacing-lg); }
+  .table th { position: sticky; top: 0; z-index: 1; background: var(--color-surface-muted); padding: var(--spacing-smd) var(--spacing-md); font-size: var(--font-size-xs); letter-spacing: var(--letter-spacing-eyebrow); text-transform: uppercase; border-bottom: var(--border-default); }
+  .table td { padding: var(--spacing-sm) var(--spacing-md); vertical-align: middle; }
+  .table td:is(:first-child, :nth-child(2)) { white-space: normal; overflow-wrap: anywhere; }
+  .table td:first-child { max-width: 22rem; }
+  .table td:nth-child(2) { max-width: 18rem; }
+  .table th:nth-last-child(-n+2), .table td:nth-last-child(-n+2) { width: 1%; text-align: center; }
+  .table tbody tr:last-child td { border-bottom: 0; }
+  .resultsButton { width: var(--control-height-sm); height: var(--control-height-sm); padding: var(--spacing-sm); font-size: var(--font-size-md); color: var(--color-primary-ink); border-color: var(--color-danger); background: var(--color-primary-surface); animation: resultsPulse 2.4s ease-out 3; }
+  .resultsButton:is([data-hovered], [data-focus-visible]) { border-color: var(--color-primary-ink); background: var(--color-primary-surface); }
+  @keyframes resultsPulse {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    25% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger) 25%, transparent); }
+    70% { box-shadow: 0 0 0 5px transparent; }
+  }
   .table tr { transition: background var(--motion-fast); }
   .table tbody tr:hover { background: var(--color-surface-hover); }
-  .footer { flex-shrink: 0; border-top: var(--border-default); background: var(--color-surface-muted); padding: var(--spacing-md) var(--spacing-lg); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  .footer { flex-shrink: 0; border-top: var(--border-default); background: var(--color-surface-muted); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .footer > p { margin: 0 0 var(--spacing-smd); }
   .emptyState { padding: var(--spacing-xl); text-align: center; color: var(--color-text-muted); }
   .emptyState p { margin-bottom: var(--spacing-md); }
-  .status { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm); font-size: var(--font-size-sm); }
+  .status { display: flex; align-items: center; gap: var(--spacing-sm); font-size: var(--font-size-xs); }
   @media (max-width: 64rem) { .header { flex-wrap: wrap; gap: var(--spacing-md); } }
-  @media (prefers-reduced-motion: reduce) { .table tr { transition: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .table tr { transition: none; }
+    .resultsButton { animation: none; }
+  }
 }

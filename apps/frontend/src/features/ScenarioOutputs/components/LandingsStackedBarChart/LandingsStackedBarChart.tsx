@@ -20,12 +20,12 @@ type LandingsStackedBarChartProps = {
   title: string;
   subtitle: string;
   labels: string[];
-  landingsValues: number[];
-  discardsValues: number[];
+  landingsValues: (number | null)[];
+  discardsValues: (number | null)[];
   comparison?: {
     label: string;
-    landingsValues: number[];
-    discardsValues: number[];
+    landingsValues: (number | null)[];
+    discardsValues: (number | null)[];
   };
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
@@ -33,6 +33,7 @@ type LandingsStackedBarChartProps = {
   valueSuffix?: string;
   yAxisLabel?: string;
   className?: string;
+  statusMessage?: string;
 };
 
 const LANDINGS_COLOR = withAlpha(
@@ -77,15 +78,16 @@ const LandingsStackedBarChart = ({
   valueSuffix = "",
   yAxisLabel = "",
   className,
+  statusMessage,
 }: LandingsStackedBarChartProps) => {
   const chartTheme = readChartTheme();
   const reducedMotion = usePrefersReducedMotion();
-  const currentLandingsValue = landingsValues[selectedIndex] ?? 0;
-  const currentDiscardsValue = discardsValues[selectedIndex] ?? 0;
+  const currentLandingsValue = landingsValues[selectedIndex] ?? null;
+  const currentDiscardsValue = discardsValues[selectedIndex] ?? null;
   const currentComparisonLandingsValue =
-    comparison?.landingsValues[selectedIndex] ?? 0;
+    comparison?.landingsValues[selectedIndex] ?? null;
   const currentComparisonDiscardsValue =
-    comparison?.discardsValues[selectedIndex] ?? 0;
+    comparison?.discardsValues[selectedIndex] ?? null;
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -98,18 +100,18 @@ const LandingsStackedBarChart = ({
         <div className={styles.valueBlock}>
           {currentLabel ? <span>{currentLabel}</span> : null}
           <strong>
-            {currentLandingsValue.toFixed(2)}
+            {currentLandingsValue?.toFixed(2) ?? "—"}
             {valueSuffix}
           </strong>
           <small>
-            discards {currentDiscardsValue.toFixed(2)}
+            discards {currentDiscardsValue?.toFixed(2) ?? "—"}
             {valueSuffix}
           </small>
           {comparison ? (
             <small>
-              {comparison.label}: {currentComparisonLandingsValue.toFixed(2)}
+              {comparison.label}: {currentComparisonLandingsValue?.toFixed(2) ?? "—"}
               {valueSuffix} · discards{" "}
-              {currentComparisonDiscardsValue.toFixed(2)}
+              {currentComparisonDiscardsValue?.toFixed(2) ?? "—"}
               {valueSuffix}
             </small>
           ) : null}
@@ -117,7 +119,7 @@ const LandingsStackedBarChart = ({
       </div>
 
       <div className={styles.chartWrap}>
-        <Bar
+        {statusMessage || ![...landingsValues, ...discardsValues, ...(comparison?.landingsValues ?? []), ...(comparison?.discardsValues ?? [])].some(value => value !== null && Number.isFinite(value)) ? <p role="status">{statusMessage ?? "No values are available for this selection."}</p> : <Bar
           data={{
             labels,
             datasets: [
@@ -287,7 +289,7 @@ const LandingsStackedBarChart = ({
               },
             },
           }}
-        />
+        />}
       </div>
     </section>
   );

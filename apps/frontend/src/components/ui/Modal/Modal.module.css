@@ -8,12 +8,12 @@
   .compactHeader .title { font-size: var(--font-size-lg); }
   .close { flex-shrink: 0; }
   .body { min-width: 0; padding: var(--spacing-xl); overflow: auto; min-height: 0; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; }
-  .fullScreen { width: 100%; height: calc(100dvh - 2 * var(--spacing-lg)); }
-  .marine { height: min(var(--layout-modal-height), calc(100dvh - 2 * var(--spacing-lg))); }
+  .fullScreen { width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+  .marine:not(.fullScreen) { height: min(var(--layout-modal-height), calc(100dvh - 2 * var(--spacing-lg))); }
   @media (max-width: 48rem) {
     .overlay { padding: var(--spacing-sm); }
-    .modal { max-height: calc(100dvh - 2 * var(--spacing-sm)); }
-    .marine, .fullScreen { height: calc(100dvh - 2 * var(--spacing-sm)); }
+    .modal:not(.fullScreen) { max-height: calc(100dvh - 2 * var(--spacing-sm)); }
+    .marine:not(.fullScreen) { height: calc(100dvh - 2 * var(--spacing-sm)); }
     .header, .body { min-width: 0; padding: var(--spacing-md); }
   }
 }

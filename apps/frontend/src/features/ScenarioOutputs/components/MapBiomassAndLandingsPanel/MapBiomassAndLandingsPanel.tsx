@@ -43,6 +43,9 @@ const MapBiomassAndLandingsPanel = ({
         metricLabel={activeMap.metricLabel}
         bounds={activeMap.bounds}
         valueDomain={activeMap.valueDomain}
+        isLoading={activeMap.isLoading}
+        error={activeMap.error}
+        onRetry={activeMap.onRetry}
         headerCenter={
           comparisonMap ? (
             <RadioGroup label="Scenario map" className={mapStyles.compareToggle} value={selectedMapView} onChange={value => { if (value === "primary" || value === "comparison") setSelectedMapView(value); }}>
@@ -104,6 +107,9 @@ const MapBiomassAndLandingsPanel = ({
                 />
               }
               selectionCopy={biomass.selectionCopy}
+              labels={biomass.labels}
+              isRecorded={biomass.isRecorded}
+              statusMessage={biomass.statusMessage}
               historicalLabels={biomass.historicalLabels}
               historicalValues={biomass.historicalValues}
               simulatedHistoricalValues={biomass.simulatedHistoricalValues}
@@ -138,6 +144,7 @@ const MapBiomassAndLandingsPanel = ({
               currentLabel={landings.currentLabel}
               valueSuffix={landings.valueSuffix}
               yAxisLabel={landings.yAxisLabel}
+              statusMessage={landings.statusMessage}
             />
           </motion.div>
         )}

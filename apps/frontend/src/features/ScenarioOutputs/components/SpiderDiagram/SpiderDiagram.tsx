@@ -36,6 +36,7 @@ type SpiderDiagramProps = {
   maxValue?: number;
   valueSuffix?: string;
   className?: string;
+  emptyMessage?: string;
 };
 
 const SpiderDiagram = ({
@@ -45,6 +46,7 @@ const SpiderDiagram = ({
   maxValue = 100,
   valueSuffix = "",
   className,
+  emptyMessage,
 }: SpiderDiagramProps) => {
   const chartTheme = readChartTheme();
   const reducedMotion = usePrefersReducedMotion();
@@ -69,7 +71,7 @@ const SpiderDiagram = ({
       </div>
 
       <div className={styles.chartWrap}>
-        <Radar
+        {!datasets.length ? <p role="status">{emptyMessage ?? "Indicator data is unavailable."}</p> : <Radar
           data={{
             labels,
             datasets: datasets.map((dataset) => ({
@@ -147,7 +149,7 @@ const SpiderDiagram = ({
               },
             },
           }}
-        />
+        />}
       </div>
     </section>
   );

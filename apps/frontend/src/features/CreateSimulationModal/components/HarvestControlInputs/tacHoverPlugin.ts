@@ -25,6 +25,9 @@ export function createTacHoverPlugin(theme: { text: string; surface: string; bor
           const end = pixels[index + 1];
           const dx = end.x - start.x;
           const dy = end.y - start.y;
+          // A switch jumps immediately above the limit; intermediate F values
+          // on its vertical drawing segment are not part of the rule.
+          if (dx === 0 && dy !== 0) continue;
           const lengthSquared = dx * dx + dy * dy;
           const ratio = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((x - start.x) * dx + (y - start.y) * dy) / lengthSquared));
           const distance = Math.hypot(x - start.x - ratio * dx, y - start.y - ratio * dy);

@@ -72,7 +72,7 @@ export default function ReportComponentPreview() {
           <h2>Indicators & time control</h2>
         </div>
         <div className={styles.twoColumns}>
-          <SpiderDiagram {...header.indicatorPanel} />
+          {header.indicatorPanel ? <SpiderDiagram {...header.indicatorPanel} /> : null}
           <div className={styles.wheelPreview}>
             <YearControls
               years={state.years}

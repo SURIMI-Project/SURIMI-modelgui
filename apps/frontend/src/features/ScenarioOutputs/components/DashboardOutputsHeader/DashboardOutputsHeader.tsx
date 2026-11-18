@@ -1,3 +1,4 @@
+import Button from "../../../../components/ui/Button/Button";
 import Card from "../../../../components/ui/Card/Card";
 import Tag from "../../../../components/ui/Tag/Tag";
 import type { CSSProperties, ReactNode } from "react";
@@ -15,6 +16,8 @@ type DashboardOutputsHeaderProps = DashboardHeaderModel & {
   children: ReactNode;
   backHref: string;
   isDemonstration?: boolean;
+  embedded?: boolean;
+  onBack?: () => void;
 };
 
 const DashboardOutputsHeader = ({
@@ -30,21 +33,26 @@ const DashboardOutputsHeader = ({
   onSpeciesChange,
   selectedSpeciesLabels,
   indicatorPanel,
+  showTitle = true,
+  showSelectedSpecies = true,
   compareLegendItems,
   children,
   backHref,
   isDemonstration = false,
+  embedded = false,
+  onBack,
 }: DashboardOutputsHeaderProps) => {
 
   return (
     <DashboardLayout
       title={title}
       isDemonstration={isDemonstration}
+      embedded={embedded}
       header={
         <Card appearance="glass" className={styles.headerCard}>
           <div className={styles.headerCopy}>
-            <div className={styles.titleRow}>
-              <ButtonLink
+            {showTitle ? <div className={styles.titleRow}>
+              {onBack ? <Button variant="ghost" size="sm" onPress={onBack} aria-label="Back to scenario runs"><FiChevronLeft aria-hidden="true" /><span>Back</span></Button> : <ButtonLink
                 to={backHref}
                 variant="ghost"
                 size="sm"
@@ -52,9 +60,9 @@ const DashboardOutputsHeader = ({
               >
                 <FiChevronLeft aria-hidden="true" />
                 <span>Back</span>
-              </ButtonLink>
+              </ButtonLink>}
               <h1 className={styles.pageTitle}>{title}</h1>
-            </div>
+            </div> : null}
             <p className={styles.pageSubtitle}>{subtitle}</p>
           </div>
 
@@ -103,7 +111,7 @@ const DashboardOutputsHeader = ({
               </div>
             </div>
 
-            <div className={styles.selectedSpeciesSection}>
+            {showSelectedSpecies ? <div className={styles.selectedSpeciesSection}>
               <div className={styles.controlCardHeader}>
                 <p className={styles.controlCardTitle}>Selected Fish</p>
                 <p className={styles.controlCardSubtitle}>
@@ -124,18 +132,19 @@ const DashboardOutputsHeader = ({
                   No species are currently selected.
                 </p>
               )}
-            </div>
+            </div> : null}
           </div>
         </Card>
       }
-      aside={
+      aside={indicatorPanel ?
         <SpiderDiagram
           className={styles.indicatorPanel}
           title={indicatorPanel.title}
           subtitle={indicatorPanel.subtitle}
           datasets={indicatorPanel.datasets}
           valueSuffix={indicatorPanel.valueSuffix}
-        />
+          emptyMessage={indicatorPanel.emptyMessage}
+        /> : undefined
       }
     >
       {children}

@@ -4,9 +4,10 @@ type MapLegendProps = {
   metricLabel: string;
   min: number;
   max: number;
+  formatValue?: (value: number) => string;
 };
 
-const MapLegend = ({ metricLabel, min, max }: MapLegendProps) => {
+const MapLegend = ({ metricLabel, min, max, formatValue = value => value.toFixed(2) }: MapLegendProps) => {
   return (
     <div className={styles.legend}>
       <div className={styles.headerRow}>
@@ -15,8 +16,8 @@ const MapLegend = ({ metricLabel, min, max }: MapLegendProps) => {
       </div>
       <div className={styles.gradientBar} aria-hidden="true" />
       <div className={styles.valueRow}>
-        <span>{min.toFixed(2)}</span>
-        <span>{max.toFixed(2)}</span>
+        <span>{formatValue(min)}</span>
+        <span>{formatValue(max)}</span>
       </div>
     </div>
   );

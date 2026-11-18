@@ -1,6 +1,5 @@
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Button from "../Button/Button";
-import Select from "../Select/Select";
 import styles from "./Pagination.module.css";
 
 type Props = {
@@ -13,7 +12,7 @@ type Props = {
   isDisabled?: boolean;
   label?: string;
 };
-const defaultPageSizes = [10, 20, 50, 100] as const;
+const defaultPageSizes = [20, 50, 100] as const;
 
 export default function Pagination({
   page, pageSize, total, onPageChange, onPageSizeChange,
@@ -29,10 +28,6 @@ export default function Pagination({
 
   return <nav className={styles.pagination} aria-label={label}>
     <p className={styles.summary} role="status">{start}–{end} of {total}</p>
-    {onPageSizeChange ? <Select className={styles.pageSize} label="Rows per page"
-      selectedKey={String(pageSize)} isDisabled={isDisabled}
-      options={sizes.map(size => ({ value: String(size), label: String(size) }))}
-      onSelectionChange={key => { if (key !== null) onPageSizeChange(Number(key)); }} /> : null}
     <div className={styles.pages}>
       <Button variant="ghost" size="sm" iconOnly aria-label="Previous page"
         isDisabled={isDisabled || current <= 1} onPress={() => onPageChange(current - 1)}>
@@ -49,5 +44,11 @@ export default function Pagination({
         <FiChevronRight aria-hidden="true" />
       </Button>
     </div>
+    {onPageSizeChange ? <div className={styles.pageSize} role="group" aria-label="Rows per page">
+      <span>Rows per page</span>
+      {sizes.map(size => <Button key={size} variant="ghost" size="sm" aria-label={`${size} rows per page`}
+        aria-pressed={size === pageSize} isDisabled={isDisabled}
+        onPress={() => { if (size !== pageSize) onPageSizeChange(size); }}>{size}</Button>)}
+    </div> : null}
   </nav>;
 }

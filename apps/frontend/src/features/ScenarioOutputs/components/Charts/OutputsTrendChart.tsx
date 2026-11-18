@@ -29,7 +29,7 @@ ChartJS.register(
 
 type OutputsTrendChartProps = {
   labels?: string[];
-  values?: number[];
+  values?: (number | null)[];
   historicalLabels?: string[];
   historicalValues?: number[];
   simulatedHistoricalValues?: number[];
@@ -41,6 +41,8 @@ type OutputsTrendChartProps = {
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
   compact?: boolean;
+  isRecorded?: boolean;
+  statusMessage?: string;
 };
 
 export type OutputsTrendChartSeries = {
@@ -48,7 +50,7 @@ export type OutputsTrendChartSeries = {
   color: string;
   boundColor?: string;
   boundOpacity?: number;
-  values?: number[];
+  values?: (number | null)[];
   historicalValues?: number[];
   simulatedHistoricalValues?: number[];
   futureValues?: number[];
@@ -170,6 +172,8 @@ const OutputsTrendChart = ({
   selectedIndex,
   onSelectIndex,
   compact = false,
+  isRecorded = false,
+  statusMessage,
 }: OutputsTrendChartProps) => {
   const chartTheme = readChartTheme();
   const reducedMotion = usePrefersReducedMotion();
@@ -213,10 +217,10 @@ const OutputsTrendChart = ({
     }))
     .map((entry) => ({
       ...entry,
-      displayValues: smoothSeries(entry.rawValues),
+      displayValues: isRecorded ? entry.rawValues : smoothSeries(entry.rawValues.map(value => value ?? NaN)),
     }));
 
-  const resolvedValues = resolvedSeries.flatMap((entry) => entry.rawValues);
+  const resolvedValues = resolvedSeries.flatMap((entry) => entry.rawValues).filter((value): value is number => value !== null && Number.isFinite(value));
 
   const hasMultipleSeries = resolvedSeries.length > 1;
 
@@ -226,9 +230,9 @@ const OutputsTrendChart = ({
       : 1;
 
   const enrichedSeries = resolvedSeries.map((entry) => {
-    const bandValues = computeBandValues(
-      entry.rawValues,
-      entry.displayValues,
+    const bandValues = isRecorded ? [] : computeBandValues(
+      entry.rawValues.map(value => value ?? NaN),
+      entry.displayValues.map(value => value ?? NaN),
       overallValueRange,
     );
     return {
@@ -329,10 +333,10 @@ const OutputsTrendChart = ({
         const fillOpacity =
           entry.boundOpacity ?? (hasMultipleSeries ? 0.42 : 0.28);
         const lowerBoundValues = entry.displayValues.map((value, index) => {
-          return value - (entry.bandValues[index] ?? overallValueRange * 0.06);
+          return value === null ? null : value - (entry.bandValues[index] ?? overallValueRange * 0.06);
         });
         const upperBoundValues = entry.displayValues.map((value, index) => {
-          return value + (entry.bandValues[index] ?? overallValueRange * 0.06);
+          return value === null ? null : value + (entry.bandValues[index] ?? overallValueRange * 0.06);
         });
 
         const lineDataset = {
@@ -340,7 +344,7 @@ const OutputsTrendChart = ({
           data: entry.displayValues,
           borderColor: entry.color,
           borderWidth: hasSplitSeries ? 2.4 : 2.2,
-          tension: hasSplitSeries ? 0.2 : 0.4,
+          tension: isRecorded ? 0 : hasSplitSeries ? 0.2 : 0.4,
           pointRadius: (context: ScriptableContext<"line">) => {
             if (context.dataIndex === selectedIndex) {
               return compact
@@ -404,7 +408,7 @@ const OutputsTrendChart = ({
           order: 2,
         };
 
-        if (!hasSplitSeries) {
+        if (!hasSplitSeries || isRecorded) {
           return [lineDataset];
         }
 
@@ -627,6 +631,8 @@ const OutputsTrendChart = ({
       dragData?: boolean;
     }
   ).dragData = false;
+
+  if (statusMessage || !resolvedValues.length) return <div className={[styles.chartWrap, compact ? styles.chartWrapCompact : ""].filter(Boolean).join(" ")}><p role="status">{statusMessage ?? "No values are available for this selection."}</p></div>;
 
   return (
     <div

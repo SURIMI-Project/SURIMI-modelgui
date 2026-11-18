@@ -22,7 +22,7 @@ export default function ReviewStep({ caseLabel, options, mode, configuration }: 
         </header>
         <dl className={styles.review}>
           <div><dt>Run duration</dt><dd>{duration ? `${duration.years} years` : "Unavailable"}<small>Until {endDate} (UTC)</small></dd></div>
-          <div><dt>Climate scenario</dt><dd>{values.climate_scenario ? getClimateScenarioContent(values.climate_scenario).title : "Not required"}</dd></div>
+          <div><dt>Climate scenario</dt><dd>{values.climate_scenario ? getClimateScenarioContent(values.climate_scenario).title : options.climate_scenarios.length === 0 ? "No options available" : "Not selected"}</dd></div>
           <div><dt>Harvest control rules</dt><dd>{mode === "none" ? "None" : `${ruleCount} ${ruleCount === 1 ? "rule" : "rules"}`}<small>{mode === "saved" ? configuration?.name : mode === "custom" ? "Custom configuration" : "Without configuration"}</small></dd></div>
         </dl>
       </section>

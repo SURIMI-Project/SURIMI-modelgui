@@ -21,12 +21,12 @@ export const useSaveHcrConfiguration = (scenarioName: string) => {
       validateRequest(hcrConfigurationPayloadSchema, payload);
       const options = await client.fetchQuery(experimentOptionsQueryOptions(userId, scenarioName));
       requireCurrentSession(client, userId);
-      const eligible = new Set(options.species.filter((s) => s.hcr_eligible)
+      const eligible = new Set(options.species.filter(species => species.hcr_eligible)
         .map((s) => speciesEntryKey(s.species_code, s.life_stage)));
       const schema = hcrConfigurationPayloadSchema.superRefine((body, context) => {
         body.rules.forEach((rule, index) => {
           if (!eligible.has(speciesEntryKey(rule.species_code, rule.life_stage))) context.addIssue({
-            code: "custom", path: ["rules", index, "species_code"], message: "This entry cannot carry an HCR.",
+            code: "custom", path: ["rules", index, "species_code"], message: "This entry is not eligible for harvest control rules in this scenario.",
           });
         });
       });
