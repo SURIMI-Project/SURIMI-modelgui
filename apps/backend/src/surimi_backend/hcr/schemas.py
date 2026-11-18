@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Self
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 # The protocol's bounds (`buf.validate` on `surimi.v1.TargetFishingMortality`,
-# SURIMI-protocol `0c4b6c4`): biomass in (0, 3.3e12] kg, f_max in (0, 100].
+# SURIMI-protocol `250f617`): biomass in (0, 3.3e12] kg, f_max in (0, 100].
+# The limit and the base are not compared: a base at or below the limit is a
+# valid all-or-nothing rule in the fisheries authority (see the HCR README).
 MAX_BIOMASS_KG = 3.3e12
 MAX_F = 100.0
 # More than any scenario has HCR-eligible entries (northwestern_med: 6).
@@ -27,16 +28,13 @@ class HcrValues(BaseModel):
     biomass_base_kg: float = Field(
         gt=0,
         le=MAX_BIOMASS_KG,
-        description="Kilograms, above the limit and at most 3.3e12",
+        description=(
+            "Kilograms, at most 3.3e12. Normally above the limit; at or below it the rule "
+            "is all-or-nothing: f_max above the limit, no fishing at or below it"
+        ),
         examples=[16000000.0],
     )
     f_max: float = Field(gt=0, le=MAX_F, description="At most 100", examples=[0.3])
-
-    @model_validator(mode="after")
-    def _limit_below_base(self) -> Self:
-        if self.biomass_limit_kg >= self.biomass_base_kg:
-            raise ValueError("biomass_limit_kg must be below biomass_base_kg")
-        return self
 
 
 class HcrIn(HcrValues):

@@ -6,6 +6,50 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-18 — A biomass limit at or above the base is accepted
+
+**Status:** built (backend and console). Ruff, format, mypy strict clean;
+**325 tests pass, integration tests included** (PostgreSQL 17), 2026-11-18,
+on a branch from `develop` (`d709998`). **Not run** on the compose stack; the
+console note **not seen in a browser**.
+
+Asked by the user, 2026-11-18: allow a limit that passes the base, and record
+what it means. Before, the API refused `biomass_limit_kg >= biomass_base_kg`
+as one of "the protocol's bounds"; the protocol has no such rule (only
+per-field bounds, SURIMI-protocol `250f617`). Read from source what the
+models do with it: the controller passes the values on unchanged, the
+fisheries authority hands them to EwE's `cMSEQuotaCalculator`, which with
+`Bbase ≤ Blim` uses a range of 1e-20, so F is `f_max` above the limit and 0
+at or below it. The README's new section "How the fisheries authority uses the
+values" has the formula, the commits and the `project-surimi` image versions
+(service-playground `Surimi` `41d617b`; fisheries authority built from
+`a68715a` with EwECore 6.7.130 = Eii.Ecopath `3faddf1`).
+
+`apps/backend/`:
+
+- `src/surimi_backend/hcr/schemas.py`: `_limit_below_base` removed (with the
+  unused `model_validator` and `Self` imports); the base's description says
+  what a base at or below the limit does; the comment cites SURIMI-protocol
+  `250f617` instead of `0c4b6c4`.
+- `src/surimi_backend/hcr/router.py`: the 422 description no longer lists
+  "limit not below base".
+- `tests/test_hcr.py`: the limit-above-base case left the 422 list, a zero
+  limit joined it; new `test_a_limit_at_or_above_the_base_is_accepted` saves
+  a limit above and one equal to the base and reads them back.
+- `src/surimi_backend/console/static/app.js`: see the backend console
+  changelog.
+
+Docs: this README (Decisions, new section, status, how to test, phase 10
+row), `docs/ARCHITECTURE.md` (how an HCR becomes a TAC: the formula, the
+open question answered), `docs/ISSUES.md` (question on `UpdateQuotas`
+removed), `docs/features/experiments/README.md` (validation rules), ADR 0022
+and 0025 (the bounds they quote, with a dated note), Bruno
+`api/hcr-configurations/post hcr configuration.yml`, `docs/CHANGELOG.md`.
+
+No migration: the rules are `jsonb` and the database never compared the two.
+
+---
+
 ## 2026-11-16 — Several named configurations per scenario, rules in jsonb
 
 **Status:** built (backend and console). Ruff, format, mypy strict clean; **286 tests pass, all integration tests included** (PostgreSQL 17 in Docker), 2026-11-16. Migration
