@@ -12,6 +12,7 @@ local development HCR presets are labeled and excluded from production form defa
 | `simulation.ts` | The one fixed example simulation shown in the library |
 | `defaultConfigureRules.ts` | Development-only HCR thresholds in kg for real eligible Northwestern entries; not scientific defaults |
 | `content/` | Case introductions, model-flow descriptions, legend descriptions and reference-page concepts |
+| `content/climateScenarios.ts` | Static RCP/SSP explanatory copy and source links; availability always comes from backend experiment options |
 | `species/` | Reference species rows/taxonomy and the prototype species mapper |
 | `outputs/report.ts` | The single shared example report configuration |
 | `outputs/createExampleDataset.ts` | Deterministically expands that configuration once into fixture grids/series; never uses form inputs or generates runs |

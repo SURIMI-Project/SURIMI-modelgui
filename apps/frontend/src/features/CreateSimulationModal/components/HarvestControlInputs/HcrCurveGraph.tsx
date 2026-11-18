@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { createTacHoverPlugin } from "./tacHoverPlugin";
 import {
   type ActiveElement,
   Chart as ChartJS,
@@ -11,7 +13,6 @@ import {
 } from "chart.js";
 import dragDataPlugin from "chartjs-plugin-dragdata";
 import { Line } from "react-chartjs-2";
-const CHART_POINT_LABELS = ["Origin", "Biomass limit", "Biomass base", "Maximum fishing mortality"];
 import type { GraphPoint, HcrCurveRow } from "./types";
 
 ChartJS.register(
@@ -27,6 +28,7 @@ type HcrCurveGraphProps = {
   activeRow: HcrCurveRow;
   graphPoints: GraphPoint[];
   xMax: number;
+  yMax: number;
   isDraggingHandle: boolean;
   isReadOnly?: boolean;
   onDragStart: (pointIndex: number) => boolean;
@@ -40,6 +42,7 @@ const HcrCurveGraph = ({
   activeRow,
   graphPoints,
   xMax,
+  yMax,
   isDraggingHandle,
   isReadOnly = false,
   onDragStart,
@@ -52,6 +55,9 @@ const HcrCurveGraph = ({
   const border = token("--color-map-card-border");
   const primary = token("--color-primary");
   const surface = token("--color-setup-panel");
+  const tooltipSurface = token("--color-surface");
+  const font = token("--font-sans");
+  const tacHoverPlugin = useMemo(() => createTacHoverPlugin({ text, surface: tooltipSurface, border, primary, font }), [text, tooltipSurface, border, primary, font]);
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -75,7 +81,7 @@ const HcrCurveGraph = ({
       x: {
         type: "linear",
         min: 0,
-        max: xMax,
+        max: xMax / 1000,
         ticks: {
           color: text,
           callback: (value) => formatDisplayValue(Number(value)),
@@ -85,14 +91,14 @@ const HcrCurveGraph = ({
         },
         title: {
           display: true,
-          text: "Biomass (kg)",
+          text: "Biomass (tonnes)",
           color: text,
-          font: { size: 14, weight: 600 },
+          font: { size: 12, weight: 400 },
         },
       },
       y: {
         min: 0,
-        max: Math.min(100, Math.max(1, activeRow.fMax * 1.25)),
+        max: yMax,
         ticks: {
           color: text,
           callback: (value) => formatDisplayValue(Number(value)),
@@ -102,9 +108,9 @@ const HcrCurveGraph = ({
         },
         title: {
           display: true,
-          text: "Fishing mortality (catch/biomass)",
+          text: "Fishing mortality (per year)",
           color: text,
-          font: { size: 14, weight: 600 },
+          font: { size: 12, weight: 400 },
         },
       },
     },
@@ -114,16 +120,7 @@ const HcrCurveGraph = ({
           color: text,
         },
       },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const point = context.raw as GraphPoint;
-            const pointLabel = CHART_POINT_LABELS[context.dataIndex] ?? "Control";
-
-            return `${pointLabel}: x=${formatDisplayValue(point.x)}, y=${formatDisplayValue(point.y)}`;
-          },
-        },
-      },
+      tooltip: { enabled: false },
     },
   };
 
@@ -134,14 +131,16 @@ const HcrCurveGraph = ({
   ).dragData = {
     dragX: !isReadOnly,
     dragY: !isReadOnly,
-    showTooltip: true,
+    showTooltip: false,
     round: 4,
     onDragStart: (
       _event: unknown,
       _datasetIndex: number,
       pointIndex: number,
     ) => {
-      return onDragStart(pointIndex);
+      const allowed = onDragStart(pointIndex);
+      tacHoverPlugin.setDragging(allowed);
+      return allowed;
     },
     onDrag: (
       _event: unknown,
@@ -149,18 +148,20 @@ const HcrCurveGraph = ({
       pointIndex: number,
       value: unknown,
     ) => {
-      const nextPoint = onDrag(pointIndex, value as GraphPoint);
+      const dragged = value as GraphPoint;
+      const nextPoint = onDrag(pointIndex, { x: dragged.x * 1000, y: dragged.y });
 
       if (!nextPoint) {
         return false;
       }
 
       const point = value as GraphPoint;
-      point.x = nextPoint.x;
+      point.x = nextPoint.x / 1000;
       point.y = nextPoint.y;
       return true;
     },
     onDragEnd: (_event: unknown, _datasetIndex: number, pointIndex: number) => {
+      tacHoverPlugin.setDragging(false);
       onDragEnd(pointIndex);
     },
   };
@@ -169,7 +170,7 @@ const HcrCurveGraph = ({
     datasets: [
       {
         label: activeRow.label,
-        data: graphPoints,
+        data: graphPoints.map(point => ({ x: point.x / 1000, y: point.y })),
         parsing: false as const,
         borderColor: primary,
         backgroundColor: primary,
@@ -177,7 +178,7 @@ const HcrCurveGraph = ({
         clip: false as const,
         pointRadius: [0, 8, 8, 0],
         pointHoverRadius: [0, 9, 9, 0],
-        pointHitRadius: [0, 20, 20, 0],
+        pointHitRadius: [0, 26, 26, 0],
         pointBackgroundColor: [
           "transparent",
           primary,
@@ -194,7 +195,7 @@ const HcrCurveGraph = ({
     ],
   };
 
-  return <Line options={chartOptions} data={chartData} role="img" aria-label={`${activeRow.label}: biomass limit ${activeRow.biomassLimit} kg, biomass base ${activeRow.biomassBase} kg, maximum fishing mortality ${activeRow.fMax} per year`} />;
+  return <Line plugins={[tacHoverPlugin]} options={chartOptions} data={chartData} role="img" aria-label={`${activeRow.label}: biomass limit ${activeRow.biomassLimit / 1000} tonnes, biomass base ${activeRow.biomassBase / 1000} tonnes, fishing mortality ${activeRow.fMax} per year. Annual TAC at the biomass base: ${activeRow.biomassBase / 1000 * activeRow.fMax} tonnes per year`} />;
 };
 
 export default HcrCurveGraph;

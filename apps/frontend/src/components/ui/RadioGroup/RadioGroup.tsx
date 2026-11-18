@@ -10,10 +10,12 @@ import field from "../../../styles/aria/field/Field.module.css";
 import styles from "../../../styles/aria/radio-group/RadioGroup.module.css";
 type Props = Omit<RadioGroupProps, "children"> & {
   label: string;
+  labelVisuallyHidden?: boolean;
   children: React.ReactNode;
 };
 export default function RadioGroup({
   label,
+  labelVisuallyHidden = false,
   children,
   className,
   ...props
@@ -26,7 +28,7 @@ export default function RadioGroup({
         (value) => `${field.field} ${value ?? ""}`,
       )}
     >
-      <Label className={field.label}>{label}</Label>
+      <Label className={`${field.label} ${labelVisuallyHidden ? styles.visuallyHidden : ""}`}>{label}</Label>
       {children}
     </AriaRadioGroup>
   );

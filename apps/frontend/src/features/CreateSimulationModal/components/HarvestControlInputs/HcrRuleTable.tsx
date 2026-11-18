@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FiX } from "react-icons/fi";
+import { FiRotateCcw } from "react-icons/fi";
 import Table, { TableHeader, Column, TableBody, Row, Cell } from "../../../../components/ui/Table/Table";
 import Button from "../../../../components/ui/Button/Button";
 import type { HcrRuleTableRow } from "./types";
@@ -11,14 +11,19 @@ type Props = {
   selectedKey: string | null;
   onSelect: (key: string) => void;
   renderEditor?: (row: HcrRuleTableRow, column: HcrValueColumn) => ReactNode;
-  onRemove?: (key: string) => void;
+  resettableKeys: ReadonlySet<string>;
+  onReset?: (key: string) => void;
 };
 const format = (value: number | undefined) => value !== undefined && Number.isFinite(value)
   ? value.toLocaleString("en", { maximumSignificantDigits: 8 }) : "—";
 
-export default function HcrRuleTable({ rows, selectedKey, onSelect, renderEditor, onRemove }: Props) {
+export default function HcrRuleTable({ rows, selectedKey, onSelect, renderEditor, resettableKeys, onReset }: Props) {
+  const displayValue = (row: HcrRuleTableRow, column: HcrValueColumn) => {
+    const number = row.rule?.[column];
+    return format(number === undefined ? undefined : number / (column === "f_max" ? 1 : 1000));
+  };
   const value = (row: HcrRuleTableRow, column: HcrValueColumn) =>
-    renderEditor?.(row, column) ?? <span title={format(row.rule?.[column])}>{format(row.rule?.[column])}</span>;
+    <div className={styles.valueSlot}>{renderEditor?.(row, column) ?? <span className={styles.readValue} title={displayValue(row, column)}>{displayValue(row, column)}</span>}</div>;
   return <Table className={styles.table} aria-label="Harvest control rules by species and life stage" selectionMode="single" selectionBehavior="replace"
     selectedKeys={new Set(selectedKey ? [selectedKey] : [])} onSelectionChange={keys => {
       if (keys === "all") return;
@@ -26,15 +31,18 @@ export default function HcrRuleTable({ rows, selectedKey, onSelect, renderEditor
       if (key !== undefined) onSelect(String(key));
     }}>
     <TableHeader>
-      <Column isRowHeader>Species / life stage</Column><Column>Biomass limit (kg)</Column>
-      <Column>F min</Column><Column>Biomass base (kg)</Column><Column>F max</Column><Column aria-label="Rule actions"><span className={styles.srOnly}>Actions</span></Column>
+      <Column isRowHeader>Species / life stage</Column><Column>Biomass limit (tonnes)</Column>
+      <Column>Biomass base (tonnes)</Column><Column>Fishing mortality (per year)</Column>
     </TableHeader>
-    <TableBody items={rows} dependencies={[selectedKey, renderEditor, onRemove]} renderEmptyState={() => "No rules in this configuration."}>
+    <TableBody items={rows} dependencies={[selectedKey, renderEditor, resettableKeys, onReset]} renderEmptyState={() => "No rules in this configuration."}>
       {row => <Row id={row.key}>
-        <Cell><span className={styles.species}>{row.label}</span>{!row.eligible ? <small>No longer eligible</small> : !row.rule ? <small>Not configured</small> : null}</Cell>
-        <Cell>{value(row, "biomass_limit_kg")}</Cell><Cell>{row.rule ? "0" : "—"}</Cell>
-        <Cell>{value(row, "biomass_base_kg")}</Cell><Cell>{value(row, "f_max")}</Cell>
-        <Cell>{onRemove && row.rule ? <Button size="sm" variant="ghost" iconOnly aria-label={`Remove rule for ${row.label}`} onPress={() => onRemove(row.key)}><FiX aria-hidden="true" /></Button> : null}</Cell>
+        <Cell><span className={styles.species}>{row.label}</span><small>{!row.eligible ? "No longer eligible" : !row.rule ? "Not configured" : " "}</small></Cell>
+        <Cell>{value(row, "biomass_limit_kg")}</Cell>
+        <Cell>{value(row, "biomass_base_kg")}</Cell>
+        <Cell><div className={styles.valueWithReset}>{value(row, "f_max")}
+          <span className={styles.resetSlot}>{onReset && resettableKeys.has(row.key) ? <Button size="sm" variant="ghost" iconOnly
+            aria-label={`Reset to opening values for ${row.label}`} onPress={() => onReset(row.key)}><FiRotateCcw aria-hidden="true" /></Button> : null}</span>
+        </div></Cell>
       </Row>}
     </TableBody>
   </Table>;

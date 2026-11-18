@@ -13,7 +13,7 @@ type Props = {
 // Presentation only. Each case owns its form, screens and submission lifecycle.
 export default function CreateSimulationModal({ isOpen, onClose, title, isSubmitting = false, children }: Props) {
   return <Modal appearance="marine" opened={isOpen} onClose={() => { if (!isSubmitting) onClose(); }}
-    title={title} size="var(--layout-setup-max)" bodyClassName={styles.modalBody}
+    compactHeader title={title} size="var(--layout-setup-max)" bodyClassName={styles.modalBody}
     closeOnClickOutside={false} closeOnEscape={!isSubmitting} withCloseButton={!isSubmitting}>
     {isOpen ? children : null}
   </Modal>;

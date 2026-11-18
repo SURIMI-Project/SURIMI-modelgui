@@ -1,18 +1,32 @@
 @layer components {
-  .modalBody { display: flex; flex: 1; min-height: 0; overflow: hidden; padding: 0; }
-  .root { display: flex; flex-direction: column; min-height: 0; width: 100%; color: var(--color-text); }
-  .formBody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--spacing-mdl); scrollbar-width: thin; }
+  .modalBody { display: flex; flex: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 0; scrollbar-gutter: auto; }
+  .root { display: flex; flex-direction: column; min-width: 0; min-height: 0; width: 100%; color: var(--color-text); }
+  .formBody { flex: 1; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: var(--spacing-mdl); scrollbar-width: thin; scrollbar-gutter: stable both-edges; }
+  .formBody[data-screen="review"] .headingRow { text-align: center; }
+  .stepContent { min-width: 0; }
   .headingRow { margin-bottom: var(--spacing-smd); }
   .heading h2 { margin: 0; font-size: var(--font-size-xl); line-height: var(--line-height-tight); outline: none; }
+  .scenarioBackground { flex-shrink: 0; padding: var(--spacing-sm) var(--spacing-mdl); background: var(--color-surface); color: var(--color-text-muted); font-size: var(--font-size-xs); line-height: var(--line-height-body); text-align: start; }
+  .scenarioBackground a { color: var(--color-text); text-underline-offset: 0.2em; }
   .footer { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-lg); padding: var(--spacing-md) var(--spacing-mdl); border-top: var(--border-default); background: var(--color-surface); }
   .notice { max-width: 26rem; margin: 0 auto; color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: var(--line-height-body); text-align: center; }
+  .footerActions { display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); flex-wrap: wrap; min-width: 0; }
+  .footerActions button { white-space: normal; }
   .footer button { flex-shrink: 0; }
   .chartSurface { height: var(--setup-chart-height); min-width: 0; }
   .curvePlaceholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--spacing-md); padding: var(--spacing-lg); text-align: center; }
+  .loadingContent { display: flex; flex-direction: column; gap: var(--spacing-md); }
+  .loadingChart { height: var(--setup-chart-height); display: grid; place-items: center; border: var(--border-default); border-radius: var(--radius-md); background: var(--color-surface-muted); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  .loadingTable { height: 10rem; border: var(--border-default); border-radius: var(--radius-md); background: var(--color-surface-muted); }
   .hint { margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-body); color: var(--color-text-muted); }
-  @media (min-width: 75rem) and (min-height: 48rem) { .formBody[data-screen="hcr"] { display: flex; flex-direction: column; overflow: hidden; } }
+  @media (max-width: 64rem) {
+    .footer { flex-wrap: wrap; }
+    .notice { order: 3; flex-basis: 100%; max-width: none; }
+    .footerActions { margin-inline-start: auto; }
+  }
   @media (max-width: 40rem) {
     .formBody { padding: var(--spacing-md); }
+    .scenarioBackground { padding-inline: var(--spacing-md); }
     .footer { padding: var(--spacing-md); gap: var(--spacing-smd); flex-wrap: wrap; }
     .notice { order: 3; flex-basis: 100%; max-width: none; }
   }

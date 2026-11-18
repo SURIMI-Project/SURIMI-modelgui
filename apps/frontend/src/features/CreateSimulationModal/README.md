@@ -10,30 +10,45 @@
 
 ## Northwestern inputs
 
-- Simulation name: required, up to 200 characters.
-- End date/time: UTC, after the case start and within its maximum end.
-- Run type: single simulation or MSE.
-- Climate: only choices returned by `experiment-options`; required when supported.
-- HCR mode: none, manually configured rules, or an existing saved configuration.
-- Manual rule: eligible species/life stage, biomass limit/base in kg, positive F max.
-- Production rules start empty. Initial biomass has unconfirmed units and is reference data only.
-- Local Vite development loads `mock-data/defaultConfigureRules.ts` for matching eligible Northwestern entries.
-- Mock values are labeled, are never used in production, and can be disabled with `VITE_MOCK_HCR_DEFAULTS=false`.
-- The first screen preserves the PM explanation and shares one graph, species selector and synchronized rule table.
-- Desktop uses a wider modal with the graph beside the table; small screens retain internal scrolling.
+- Simulation name: collected only in the final review step, required and up to 24 characters, with a constrained-width React Aria field and character counter. Step two contains duration only; step three contains climate selection; the final step collects the name and review.
+- Simulation horizon: six shared `YearlyDurationCard` radio cards in a three-column grid, using supported year choices derived from the case date limits calculate UTC `end_date_time` from the fixed start in `experiment-options`. Only durations within the maximum end are shown; cases supporting fewer than six whole years show fewer choices. Calendar-year addition preserves the time and clamps a leap-day anniversary to the end of February. The review shows both duration and end date.
+- Run type: single simulation only for now; submission always sends `is_mse_run: false`.
+- Climate: a separate climate step includes shared `IpccScenarioCard` radios with descriptive content from `mock-data/content/climateScenarios.ts`. Only choices returned by `experiment-options` appear; original backend identifiers are submitted unchanged. The climate section is omitted if no choices exist.
+- RCP and SSP identifiers have separate descriptions. SSP headings, categories, descriptions and warming ranges reproduce the PM-approved screenshot verbatim. Its long-horizon wording is presentation copy; it does not override backend climate requirements for shorter runs. Unknown identifiers retain the backend label with neutral copy; no inferred pathway mapping or duration-based climate default is applied.
+- HCR editor opens directly. Next requires at least one configured rule; Continue without configuration clears rules and advances to settings.
+- Existing saved configurations remain available through the Rule source selector when present.
+- Manual rule: eligible species/life stage, biomass limit/base displayed and edited in tonnes, positive fishing mortality per year.
+- Form state and API payloads retain kg (`biomass_limit_kg`, `biomass_base_kg`) and `f_max`. Inputs and graph drag coordinates convert at the display boundary.
+- The first eligible species is selected and its opening values are loaded on every fresh open. Initial biomass has unconfirmed units and is reference data only.
+- Local Vite development loads a matching preset from `mock-data/defaultConfigureRules.ts` only when that eligible species is selected.
+- Development presets are never used in production and can be disabled with `VITE_MOCK_HCR_DEFAULTS=false`. The extra development/helper messages are omitted from the editor.
+- The first screen uses the revised PM explanation with the TAC formula. The selector sits alongside the heading with an accessible hidden label and no surrounding card. The explanation uses two short columns below, stacking on small screens.
+- Initial loading and errors retain the introduction, reserved graph/table space and disabled forward actions.
+- The graph sits above the table inside the scrolling body, with footer actions kept visible.
 - Edit the active row directly in the table; there is no separate numeric-input form.
 - Entries without a development preset or saved rule start empty; controller references never become thresholds.
-- Curve handles and numeric inputs update the same form values. F min remains zero.
+- Curve handles and numeric inputs update the same form values. The zero lower fishing mortality remains implicit.
+- Table columns: species/life stage, biomass limit (tonnes), biomass base (tonnes), fishing mortality (per year). A reset icon at the right of each configured row restores its opening preset or copied saved values without deselecting the species. Without a preset, the opening values are blank.
+- Protocol input bounds: `0 < biomass_limit_kg < biomass_base_kg <= 3,300,000,000,000` and `0 < f_max <= 100`. Biomass is treated as kg at the API boundary and displayed as tonnes.
+- Visual ranges are separate from validation: they initially include the current values (at least 10,000 tonnes and 5/year), stay stable during dragging, and expand when larger valid values are entered in the table. Dummy presets remain unchanged pending scientific defaults.
+- Hover along any red-line segment to see the annual TAC formula and result in tonnes/year. The callout is offset with a pointer and hidden during dragging.
 - Saved configuration summaries come from `experiment-options`; hide the saved mode when the list is empty.
 - Full saved rules are fetched only after selection and shown in the graph/table.
 - Edit a copy loads saved thresholds into the draft and submits inline rules; it never changes the saved configuration.
-- Ineligible copied rules stay visible so the user can remove them before submission.
-- No fixed duration presets, automatic SSP choice or fabricated species; development thresholds use only backend-eligible entries.
+- Ineligible copied rules stay visible and block submission; choose another configuration or start a new one.
+- No automatic SSP/RCP mapping or fabricated species. Climate choices remain exactly those returned by `experiment-options`; development thresholds use only backend-eligible entries.
+
+## Step transitions
+
+- Forward/back navigation uses a short directional slide and fade with the existing Framer Motion dependency.
+- Form components stay mounted where needed to retain HCR selection, reset baselines and draft values. Footer actions stay fixed.
+- Navigation is locked while transitioning; focus moves to the new heading (or review name input) after the transition. Reduced-motion preferences disable the movement.
 
 ## Submission
 
 - Previous preserves the draft. Closing and reopening starts a new draft.
-- Errors retain inputs and remain visible; submitting disables edits and closing.
+- Forward actions validate the current step live and remain disabled until complete. Shared React Aria tooltips explain missing requirements on hover and keyboard focus; disabled native buttons use a focusable wrapper. The review name is marked required and does not show ordinary client-validation errors.
+- Server failures retain inputs and remain visible; submitting disables edits and closing.
 - Success invalidates experiment lists and notifies the opener.
 - The service revalidates case capabilities before sending the payload.
 - Saving or managing HCR configurations is outside this flow.
