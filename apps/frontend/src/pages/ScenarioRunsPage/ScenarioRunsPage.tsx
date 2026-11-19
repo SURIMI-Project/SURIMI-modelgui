@@ -59,7 +59,9 @@ export default function ScenarioRunsPage() {
   const sizeValue = Number(params.get("size") ?? 20);
   const pageSize = pageSizes.includes(sizeValue) ? sizeValue : 20;
   const experiments = useExperiments({ scenario: study?.scenarioName, page, size: pageSize, sort: "-created_at" }, !invalidCase && !caseId);
-  const updates = useExperimentEvents(!invalidCase && !caseId);
+  const hasActiveRuns = !experiments.data || experiments.data.items.some(run =>
+    !["completed", "failed", "submit_failed", "cancelled"].includes(run.status));
+  const updates = useExperimentEvents(!invalidCase && !caseId && hasActiveRuns);
   const outputRunId = params.get("run");
   const comparisonRunId = params.get("compare") ?? undefined;
   const outputOpen = params.has("run") || params.has("compare");
@@ -124,7 +126,10 @@ export default function ScenarioRunsPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.heading}>
-          <BackButton aria-label="Back to case studies" onPress={() => navigate("/scenarios")} />
+          <BackButton
+            aria-label={selectedCase ? "Back to case study" : "Back to case studies"}
+            onPress={() => navigate(selectedCase ? `/scenario/${selectedCase}` : "/scenarios")}
+          />
           <h1>{title}</h1>
         </div>
         <nav className={styles.actions} aria-label="Scenario runs actions">
@@ -152,6 +157,7 @@ export default function ScenarioRunsPage() {
               </div></Cell>
               <Cell><TooltipTrigger>
                 <Button variant="ghost" size="sm" iconOnly className={styles.resultsButton}
+                  isDisabled={Boolean(run && run.status !== "completed")}
                   aria-label={`View results for ${source.name}`}
                   onPress={() => openOutput([source])}><FiBarChart2 aria-hidden="true" /></Button>
                 <Tooltip>View results</Tooltip>

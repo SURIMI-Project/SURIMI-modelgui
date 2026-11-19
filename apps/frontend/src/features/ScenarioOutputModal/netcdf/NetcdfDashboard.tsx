@@ -1,3 +1,4 @@
+import type { NetcdfCaseReader } from "./readerConfiguration";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import GenericScenarionOutputSkeleton from "../components/GenericScenarionOutputSkeleton";
 import Button from "../../../components/ui/Button/Button";
@@ -12,9 +13,9 @@ import type { AnnualPoint, FileMetadata, OutputGrid, OutputSource, SpeciesSeries
 import styles from "../ScenarioOutputModal.module.css";
 
 type Reader = ReturnType<typeof useNetcdfReader>;
-export default function NetcdfDashboard({ sources, onClose, renderDashboard }: { sources: OutputSource[]; onClose: () => void; renderDashboard: (props: ScenarioOutputsViewProps) => ReactNode }) {
-  const primary = useNetcdfReader(sources[0]);
-  const comparison = useNetcdfReader(sources[1]);
+export default function NetcdfDashboard({ readerProfile, sources, onClose, renderDashboard }: { readerProfile: NetcdfCaseReader; sources: OutputSource[]; onClose: () => void; renderDashboard: (props: ScenarioOutputsViewProps) => ReactNode }) {
+  const primary = useNetcdfReader(readerProfile, sources[0]);
+  const comparison = useNetcdfReader(readerProfile, sources[1]);
   if (sources.length > 2 || !sources[0] || sources.some(source => source.scenarioName !== sources[0].scenarioName)) return <p role="alert">Select one or two runs from the same case study.</p>;
   const failed = primary.error ? primary : sources[1] && comparison.error ? comparison : undefined;
   if (failed) return <div className={styles.state} role="alert"><p>{failed.error}</p><Button variant="primary-outlined" onPress={failed.retry}>TRY AGAIN</Button></div>;

@@ -1,3 +1,4 @@
+import type { NetcdfCaseConfiguration } from "./readerConfiguration";
 import type { AnnualPoint, FileMetadata, OutputGrid, SpeciesSeries, Variable } from "./types";
 
 // Read metadata and selected slices through cached HTTP byte ranges. No full-file
@@ -8,6 +9,7 @@ type Reader = {
   getVariableArray: (name: string) => Promise<ArrayLike<number | string>>;
   getSlicedVariableArray: (name: string, start: number[], count: number[]) => Promise<ArrayLike<number | string>>;
 };
+let configuration: NetcdfCaseConfiguration;
 let dataset: Reader | undefined;
 const remoteAbort = new AbortController();
 const childReaders = new Set<Worker>();
@@ -168,7 +170,22 @@ async function open(url: string, vendor: string, credentials: RequestCredentials
     withCredentials: credentials === "include",
     signal: remoteAbort.signal,
   });
-  variables = await dataset!.getFullMetadata();
+  const remote = dataset!;
+  const variableName = (name: string) => configuration.variables[name] ?? name;
+  const canonicalName = (name: string, mapping: Record<string, string>) =>
+    Object.entries(mapping).find(([, stored]) => stored === name)?.[0] ?? name;
+  // Normalize case-specific file names before building shared dashboard models.
+  dataset = {
+    close: () => remote.close(),
+    getFullMetadata: async () => (await remote.getFullMetadata()).map(variable => ({
+      ...variable,
+      name: canonicalName(variable.name, configuration.variables),
+      dimensions: variable.dimensions.map(name => canonicalName(name, configuration.dimensions)),
+    })),
+    getVariableArray: name => remote.getVariableArray(variableName(name)),
+    getSlicedVariableArray: (name, start, count) => remote.getSlicedVariableArray(variableName(name), start, count),
+  };
+  variables = await dataset.getFullMetadata();
   const time = variables.find(v => v.name === "time");
   if (!time) throw new Error("The file has no time coordinate.");
   const units = String(attr(time, "units") ?? "");
@@ -279,6 +296,8 @@ async function grid(species: number, year: number, metric: string, dates?: strin
 // Serialize access to the WASM reader. Stale UI requests are ignored by request ID.
 let queue = Promise.resolve();
 let latestGridRequest = 0;
+export function startReader(caseConfiguration: NetcdfCaseConfiguration) {
+configuration = caseConfiguration;
 self.onmessage = ({ data }) => {
   if (data.action === "close") {
     closed = true;
@@ -307,3 +326,5 @@ self.onmessage = ({ data }) => {
     }
   });
 };
+
+}

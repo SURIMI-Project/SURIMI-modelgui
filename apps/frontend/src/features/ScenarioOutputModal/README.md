@@ -3,7 +3,7 @@
 - The runs list opens the existing shared modal for experiment details or a NetCDF dashboard, using full viewport width/height and its compact header.
 - `netcdf/NetcdfDashboard.tsx` adapts parsed data into `ScenarioOutputsView` models. It reuses the existing dashboard header, map panel, biomass chart, stacked landings/discards chart, market indicator cards, indicator panel and floating year wheel.
 - Removed the duplicate `OutputTimeSeriesChart.tsx` and `OutputDashboard.module.css`; there is no separate NetCDF dashboard design.
-- Pending/failed runs retain detail loading, retry and error feedback; the recorded failure is visible.
+- The results icon is disabled for API runs unless status is `completed`. Direct report links retain readiness checks, retry and error feedback.
 - A labelled frontend-only sample row is pinned to the first Northwestern/all-cases page. It is excluded from backend totals and never creates or changes an experiment.
 - The public sample URL lives in `mock-data/sampleOutput.ts` and matches the NetCDF lab example.
 - Opening uses EarthyScience `NetCDF4.fromUrl` in a worker to read metadata, selected species series and selected-year spatial slices through HTTP byte ranges. There is no full-file download fallback (`maxFullDownload: 0`).
@@ -15,6 +15,14 @@
 - `components/GenericScenarionOutputSkeleton.tsx` uses the shared dashboard layout/cards for all cases during detail loading, remote reader startup and the first chart/map selections. It has an accessible status and respects reduced motion. Later selection changes keep the dashboard mounted.
 - Retry and worker errors stay visible. Closing terminates workers, requests and playback; files are not persisted in query caches or local storage.
 - The runtime reuses the unmodified JS/WASM assets already served by the NetCDF lab Vite plugin.
+
+## Case readers
+
+- Each case component selects its own reader under `cases/readers/NorthwesternMediterranean/`, `AegeanSea/` or `AnchovyBay/`.
+- Each directory owns a worker entry, a reader profile and a configuration mapping canonical variable/dimension names to names in that case's file. All three initially retain the same species-based contract.
+- `netcdf/reader.engine.ts` shares transport, decoding, validation, aggregation and bounded caches. Each worker has its own dataset and caches. `useNetcdfReader` rejects sources belonging to another case.
+- Configurations can evolve independently. Functional-group semantics, new dimension orders or different scientific aggregation still require adapter/engine changes; name mappings alone do not establish support for those contracts.
+- Label resolution and shared dashboard presentation are unchanged. Browser verification of all three case outputs remains manual.
 
 ## Data presentation
 

@@ -138,7 +138,8 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
     form.clearErrors("root");
     let experiment: Experiment;
     try {
-      experiment = await onCreate({ ...payload, name: payload.name.trim(), is_mse_run: false });
+      // Temporary one-year run for controller integration checks, regardless of UI duration.
+      experiment = await onCreate({ ...payload, end_date_time: "2014-01-01T00:00:00Z", name: payload.name.trim(), is_mse_run: false });
     } catch (error) {
       const message = error instanceof AppError ? error.message : "Could not create the simulation. Please try again.";
       form.setError("root.server", { message });

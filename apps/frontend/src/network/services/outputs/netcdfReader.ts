@@ -7,8 +7,8 @@ export class NetcdfReader {
   private closed = false;
   private idleTimer: ReturnType<typeof setTimeout> | undefined;
   private pending = new Map<number, { resolve: (result: ReaderResult) => void; reject: (error: Error) => void }>();
-  constructor(progress: (progress: DownloadProgress) => void) {
-    this.worker = new Worker(new URL("../../../features/ScenarioOutputModal/netcdf/reader.worker.ts", import.meta.url), { type: "module" });
+  constructor(progress: (progress: DownloadProgress) => void, createWorker: () => Worker) {
+    this.worker = createWorker();
     this.worker.onmessage = ({ data }) => {
       if (data.type === "closed") { this.worker.terminate(); return; }
       if (this.closed) return;

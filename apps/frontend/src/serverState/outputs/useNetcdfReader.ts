@@ -1,3 +1,4 @@
+import type { NetcdfCaseReader } from "../../features/ScenarioOutputModal/netcdf/readerConfiguration";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import outputService from "../../network/services/outputs/outputService";
@@ -5,7 +6,7 @@ import { NetcdfReader, type DownloadProgress } from "../../network/services/outp
 import { requireCurrentSession, useServerSession } from "../useServerSession";
 import type { FileMetadata, OutputSource, ReaderResult } from "../../features/ScenarioOutputModal/netcdf/types";
 
-export function useNetcdfReader(source?: OutputSource) {
+export function useNetcdfReader(readerProfile: NetcdfCaseReader, source?: OutputSource) {
   const client = useQueryClient();
   const { userId } = useServerSession();
   const reader = useRef<NetcdfReader | null>(null);
@@ -15,13 +16,15 @@ export function useNetcdfReader(source?: OutputSource) {
   const [attempt, setAttempt] = useState(0);
   const id = source?.id;
   const sampleUrl = source?.sampleUrl;
+  const scenarioName = source?.scenarioName;
   useEffect(() => {
     if (!id) return;
     let active = true;
-    const instance = new NetcdfReader(value => { if (active) setProgress(value); });
+    const instance = new NetcdfReader(value => { if (active) setProgress(value); }, readerProfile.createWorker);
     reader.current = instance;
     const load = async () => {
       try {
+        if (scenarioName !== readerProfile.scenarioName) throw new Error("This reader does not support the selected case study.");
         let url = sampleUrl;
         let credentials: RequestCredentials = "omit";
         if (!url) {
@@ -45,7 +48,7 @@ export function useNetcdfReader(source?: OutputSource) {
     };
     void load();
     return () => { active = false; instance.close(); if (reader.current === instance) reader.current = null; };
-  }, [id, sampleUrl, userId, client, attempt]);
+  }, [id, sampleUrl, scenarioName, readerProfile, userId, client, attempt]);
   const request = useCallback(<T extends ReaderResult>(action: string, params: Record<string, unknown>) => {
     if (!reader.current) return Promise.reject(new Error("The output reader is not open."));
     return reader.current.request<T>(action, params);
