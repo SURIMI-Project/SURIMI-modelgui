@@ -23,6 +23,7 @@ jobs:
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
+      proto: ${{ steps.filter.outputs.proto }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -45,6 +46,13 @@ jobs:
               - '.python-version'
               - 'deployments/mounts/postgres/**'
               - '.dockerignore'
+              - '.github/workflows/ci.yml'
+            # Only these can change what packages/proto/generate.py writes.
+            proto:
+              - 'packages/proto/**'
+              - 'uv.lock'
+              - 'package.json'
+              - 'package-lock.json'
               - '.github/workflows/ci.yml'
 
   frontend:
@@ -125,7 +133,7 @@ jobs:
     # Regenerates the controller stubs from the pinned protocol and fails if
     # they differ from what is committed (ADR 0011).
     needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    if: needs.changes.outputs.proto == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,7 +141,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci   # provides the buf CLI
+      - run: npm ci --workspaces=false   # the buf CLI, a root devDependency
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.10.4"

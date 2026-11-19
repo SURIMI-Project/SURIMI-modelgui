@@ -41,7 +41,7 @@ services that run it all. Infrastructure and backend only; no frontend change.
 | Local compose defaults for passwords (`*-local-only`) | `docker compose up` works with no `.env`; shared environments set their own | this file |
 | API published on `127.0.0.1:18082` only | Bruno and debugging without exposing the API on the network | this file |
 | Backend image: multi-stage, `uv sync --frozen --no-dev --no-editable`, non-root user 10001, healthcheck on `/healthz` | Small, reproducible from the lock file, no source tree at runtime | this file |
-| CI jobs `backend` (ruff, format, mypy strict, pytest with PostgreSQL), `backend-image`, `proto-stubs` (regenerate and diff) | Every PR proves the backend, its image and the stubs | this file |
+| CI jobs `backend` (ruff, format, mypy strict, pytest with PostgreSQL), `backend-image`, `proto-stubs` (regenerate and diff; only when `packages/proto/**`, `uv.lock`, `package.json`, `package-lock.json` or `ci.yml` change; `buf` from the root `devDependencies`) | Every PR proves the backend, its image and the stubs; the stubs can only drift through those files | this file |
 
 ---
 

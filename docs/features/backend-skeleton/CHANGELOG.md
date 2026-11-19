@@ -6,6 +6,35 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-19 — `proto-stubs`: `buf` from the repo root, runs only on proto changes
+
+**Status:** built, not pushed. **Verified** 2026-11-19 on Windows:
+`generate.py` finds `buf` 1.75.0 in the root `node_modules`, exports
+`buf.build/surimi/surimi-protocol:be08fd333a8649e586c9a4ebf546ad96`, and the
+regenerated stubs equal the committed ones (`git diff --exit-code -- packages/proto`
+clean). **Verified** in a clean copy: `npm ci --workspaces=false` installs only
+`@bufbuild/buf`, and `buf --version` runs. **Not verified:** the job on GitHub
+(it runs on the next push, since `ci.yml` is in its filter).
+
+Why: CI run `44540519356` (push of `3de062a`, PR #3, 2026-11-19) failed in
+`proto-stubs` with "buf CLI not found". The job got `buf` from `npm ci`, and
+PR #3 removed `@bufbuild/buf` from `apps/frontend/package.json` along with the
+frontend's stubs. The failure skipped `deploy-develop`.
+
+- `package.json`: `devDependencies` `@bufbuild/buf` `^1.73.0` (locked at 1.75.0 in
+  `package-lock.json`, which also gained npm 11's `"peer": true` flags); the
+  `proto:pull` and `proto:gen` scripts removed (they forwarded to frontend
+  scripts PR #3 deleted). The frontend image does not install it
+  (`npm ci --workspace apps/frontend --include-workspace-root=false`).
+- `.github/workflows/ci.yml`: `changes` gets a `proto` output (`packages/proto/**`,
+  `uv.lock`, `package.json`, `package-lock.json`, `ci.yml`); `proto-stubs` runs on
+  it instead of `backend`, and installs with `npm ci --workspaces=false`.
+- Rejected: `bufbuild/buf-action` in the job (fixes CI only; running `generate.py`
+  on a developer machine would need `buf` installed by hand); dropping the job
+  (it is the only check that the committed stubs match the pin, ADR 0011).
+
+---
+
 ## 2026-11-16 — `WEB_CONCURRENCY`: several API processes
 
 **Status:** built. Ruff, format, mypy strict clean; **292 tests pass, all
