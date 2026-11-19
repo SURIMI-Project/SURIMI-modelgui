@@ -121,6 +121,22 @@ const HeatMap = ({
 
     mapRef.current = map;
 
+    if (import.meta.env.DEV) {
+      map.on("moveend", () => {
+        const center = map.getCenter();
+        console.info("SURIMI_OUTPUT_MAP_CAMERA " + JSON.stringify({
+          case: new URLSearchParams(window.location.search).get("case"),
+          center: [center.lng, center.lat],
+          zoom: map.getZoom(),
+          bearing: map.getBearing(),
+          pitch: map.getPitch(),
+          padding: map.getPadding(),
+          viewport: { width: map.getContainer().clientWidth, height: map.getContainer().clientHeight },
+          bounds: map.getBounds().toArray(),
+        }));
+      });
+    }
+
     map.addControl(
       new maplibregl.NavigationControl({ showCompass: false }),
       "top-right",

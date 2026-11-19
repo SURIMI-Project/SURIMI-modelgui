@@ -145,6 +145,18 @@ const moveCamera = (
     return;
   }
   if (selected === "aegean-sea" || selected === "northwestern-mediterranean") {
+    if (!mobile) {
+      // Approved desktop framing at 1920 × 935, scaled for smaller viewports.
+      const scale = Math.min(width / 1920, map.getContainer().clientHeight / 935);
+      const saved = selected === "aegean-sea"
+        ? { center: [20.721875773772723, 37.028791725533594] as [number, number], zoom: 5.362493267783633, bearing: 12, pitch: 30 }
+        : { center: [-2.9279495182600783, 38.910470415776274] as [number, number], zoom: 5.218940020276727, bearing: -13.691086194773106, pitch: 29.463869545877365 };
+      const target = { ...saved, zoom: saved.zoom + Math.log2(scale), padding: { top: 0, bottom: 0, left: 0, right: 0 } };
+      map.setPadding(target.padding);
+      if (animate) map.flyTo({ ...target, duration, essential: false });
+      else map.jumpTo(target);
+      return;
+    }
     // cameraForBounds includes retained camera padding; clear it before computing our own frame.
     map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     const area =

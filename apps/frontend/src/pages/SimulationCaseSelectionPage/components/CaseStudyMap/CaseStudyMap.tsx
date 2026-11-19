@@ -2,6 +2,7 @@ import AnchovyBayCard from "../../../../components/presentational/CaseStudyCard/
 import { SheetTrigger } from "react-aria-components/Sheet";
 import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
 import Button from "../../../../components/ui/Button/Button";
+import Tooltip, { TooltipTrigger, DisabledTooltipTarget } from "../../../../components/ui/Tooltip/Tooltip";
 // import UseCaseSelector from "../../../../components/presentational/UseCaseSelector/UseCaseSelector";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -362,12 +363,17 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             <FiArrowLeft aria-hidden="true" />
             BACK TO CASE STUDIES
           </Button>
-          <Button
-            isDisabled={Boolean(availability) || !available.has(selected) || !worldConfig.creationEnabled}
-            onPress={() => setSetupOpen(true)}
-          >
-            SET UP SCENARIO
-          </Button>
+          <TooltipTrigger delay={250} isDisabled={worldConfig.creationEnabled}>
+            <DisabledTooltipTarget label="Set up scenario: this use case is under construction." isDisabled={!worldConfig.creationEnabled}>
+              <Button
+                isDisabled={Boolean(availability) || !available.has(selected) || !worldConfig.creationEnabled}
+                onPress={() => setSetupOpen(true)}
+              >
+                SET UP SCENARIO
+              </Button>
+            </DisabledTooltipTarget>
+            <Tooltip>This use case is under construction.</Tooltip>
+          </TooltipTrigger>
         </nav>
       ) : null}
       <CasePreviewModal
