@@ -447,7 +447,6 @@ the run goes to 2030.
 | Message type in the `.bin`; is it needed if the `.nc` has everything? | Controller team |
 | How the outputs of the 5 simulations of an MSE experiment are written and should be combined | Controller team |
 | Which species and life stages can carry an HCR per scenario; the controller team's examples `SAA`, `ANE`, `MAC` are not accepted by the repo files. Per life stage or per species for ANE, HKE, MUT, PIL? | Controller team |
-| How does EwE's `cMSEQuotaCalculator.UpdateQuotas` turn `biomass_limit`, `biomass_base` and `f_max` into a TAC: F between the limit and the base (linear?), TAC = F × the biomass estimate or a catch equation? It is in the NuGet package `Eii.Ecopath.EwECore`, not in the SURIMI repos (**Read from source**, SURIMI-fisheries-authority `a68715a`, 2026-11-16) | Controller team |
 | Can an experiment run with no HCR (`aegean_sea` and `anchovy_bay` have no fisheries authority inputs)? Since there are no scenario defaults (ADR 0024), it is what a user who saved no rules sends | Controller team |
 | May `climate_scenario` be empty for a scenario that lists no climate scenarios (`aegean_sea`), though the proto says `min_len: 1`? See "The controller does not enforce the protocol's validation rules" | Controller team |
 | What unit are `GetInitialBiomasses` values in (tonnes or kg), and is `GetInitialFishingMortalities` an annual F to compare with `f_max`? See "Initial biomass and fishing mortality" above | Controller team |

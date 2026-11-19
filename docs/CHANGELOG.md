@@ -19,6 +19,21 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-18
+
+### Change — A harvest control rule's biomass limit may be at or above its base
+
+The API and the backend console used to refuse a biomass limit at or above
+the biomass base. They now accept it: the fisheries authority then runs the
+rule as all-or-nothing at the limit (full F max above it, no fishing at or
+below it), and the console says so beside the row. What each combination
+does, read from the fisheries authority and EwE source, is in
+[harvest control rules](features/harvest-control-rules/README.md#how-the-fisheries-authority-uses-the-values).
+
+> **Deploying this:** nothing beyond the new image; no migration.
+
+---
+
 ## 2026-11-17
 
 ### Change — Outputs folder under `deployments/mounts/experiments`

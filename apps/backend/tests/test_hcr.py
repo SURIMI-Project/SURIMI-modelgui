@@ -135,11 +135,11 @@ def test_validation_is_all_or_nothing(api: TestClient, users: Callable[..., User
     ]
     assert _entries(api.get(f"{BASE}/{saved['id']}", headers=maria).json()) == [("BFT", "", 0.622)]
 
-    for bad in (
-        {**HKE, "biomass_limit_kg": 20_000_000},  # limit not below base
+    for bad in (  # the protocol's bounds, per field
         {**HKE, "f_max": 0},
-        {**HKE, "f_max": 100.5},  # the protocol's bounds
+        {**HKE, "f_max": 100.5},
         {**HKE, "biomass_base_kg": 3.4e12},
+        {**HKE, "biomass_limit_kg": 0},
     ):
         assert (
             api.post(BASE, json={"name": "Bad", "rules": [bad]}, headers=maria).status_code == 422
@@ -147,6 +147,24 @@ def test_validation_is_all_or_nothing(api: TestClient, users: Callable[..., User
     assert api.post(BASE, json={"name": "   "}, headers=maria).status_code == 422
     assert api.post(BASE, json={"name": "x" * 101}, headers=maria).status_code == 422
     assert api.get("/api/v1/scenarios/nowhere/hcr-configurations", headers=maria).status_code == 404
+
+
+def test_a_limit_at_or_above_the_base_is_accepted(
+    api: TestClient, users: Callable[..., User]
+) -> None:
+    # The fisheries authority runs such a rule as all-or-nothing at the limit
+    # (EwE cMSEQuotaCalculator), so it is the user's choice, not an error.
+    users("maria")
+    maria = bearer(api, "maria")
+    above = {**HKE, "biomass_limit_kg": 20_000_000}
+    equal = {**BFT, "biomass_base_kg": BFT["biomass_limit_kg"]}
+    saved = api.post(BASE, json={"name": "Switch", "rules": [above, equal]}, headers=maria)
+    assert saved.status_code == 201, saved.text
+    rules = api.get(f"{BASE}/{saved.json()['id']}", headers=maria).json()["rules"]
+    assert [(r["biomass_limit_kg"], r["biomass_base_kg"]) for r in rules] == [
+        (20_000_000, 16_000_000),
+        (364_376, 364_376),
+    ]
 
 
 def test_names_are_unique_and_the_count_is_capped(

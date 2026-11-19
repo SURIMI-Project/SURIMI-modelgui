@@ -23,7 +23,10 @@
 The database (`harvest_control_rules.biomass_limit_kg`, `biomass_base_kg`), the
 REST API (`HcrIn`, `HcrUpdateIn`, `HcrOut`, `ExperimentIn.harvest_control_rules`)
 and each experiment's stored `request` hold biomass in **kg**, with the bounds
-of the protocol (`0 < limit < base ≤ 3.3e12`, `0 < f_max ≤ 100`). Field names
+of the protocol (`0 < limit ≤ 3.3e12`, `0 < base ≤ 3.3e12`, `0 < f_max ≤ 100`;
+note 2026-11-18: this said `0 < limit < base`, but the protocol does not
+compare the two, and since then the API does not either, see the
+[harvest control rules README](../features/harvest-control-rules/README.md#how-the-fisheries-authority-uses-the-values)). Field names
 end in `_kg`. `mapping.py` passes the values to the controller unchanged. The
 seed (`surimi-backend seed-hcr`) keeps reading the controller team's tonnes CSV and multiplies
 by 1000 in `hcr/seed.py` (the seed was removed on 2026-11-16 with the scenario
