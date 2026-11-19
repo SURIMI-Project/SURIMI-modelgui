@@ -1,6 +1,8 @@
-import { Pill, Text } from "@mantine/core";
+import Button from "../../../../components/ui/Button/Button";
+import Card from "../../../../components/ui/Card/Card";
+import Tag from "../../../../components/ui/Tag/Tag";
 import type { CSSProperties, ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import ButtonLink from "../../../../components/ui/Button/ButtonLink";
 import { FiChevronLeft } from "react-icons/fi";
 import DashboardLayout from "../DashboardLayout/DashboardLayout";
 import FunctionalGroupDropdown from "../FunctionalGroupDropdown/FunctionalGroupDropdown";
@@ -12,6 +14,10 @@ import styles from "../ScenarioOutputsShared/ScenarioOutputsShared.module.css";
 
 type DashboardOutputsHeaderProps = DashboardHeaderModel & {
   children: ReactNode;
+  backHref: string;
+  isDemonstration?: boolean;
+  embedded?: boolean;
+  onBack?: () => void;
 };
 
 const DashboardOutputsHeader = ({
@@ -27,31 +33,36 @@ const DashboardOutputsHeader = ({
   onSpeciesChange,
   selectedSpeciesLabels,
   indicatorPanel,
+  showTitle = true,
+  showSelectedSpecies = true,
   compareLegendItems,
   children,
+  backHref,
+  isDemonstration = false,
+  embedded = false,
+  onBack,
 }: DashboardOutputsHeaderProps) => {
-  const { scenario } = useParams();
-  const backHref = `/scenario-runs/${scenario ?? "anchovy-bay"}`;
 
   return (
     <DashboardLayout
       title={title}
-      subtitle={subtitle}
-      headerLayout="split"
-      showKicker={false}
-      headerCopyClassName={styles.headerCopy}
-      titleClassName={styles.pageTitle}
-      subtitleClassName={styles.pageSubtitle}
-      headerLeft={
-        <div className={styles.headerCard}>
+      isDemonstration={isDemonstration}
+      embedded={embedded}
+      header={
+        <Card appearance="glass" className={styles.headerCard}>
           <div className={styles.headerCopy}>
-            <div className={styles.titleRow}>
-              <Link to={backHref} className={styles.backLink} aria-label="Back to scenario runs">
-                <FiChevronLeft size={16} />
+            {showTitle ? <div className={styles.titleRow}>
+              {onBack ? <Button variant="ghost" size="sm" onPress={onBack} aria-label="Back to scenario runs"><FiChevronLeft aria-hidden="true" /><span>Back</span></Button> : <ButtonLink
+                to={backHref}
+                variant="ghost"
+                size="sm"
+                aria-label="Back to scenario runs"
+              >
+                <FiChevronLeft aria-hidden="true" />
                 <span>Back</span>
-              </Link>
+              </ButtonLink>}
               <h1 className={styles.pageTitle}>{title}</h1>
-            </div>
+            </div> : null}
             <p className={styles.pageSubtitle}>{subtitle}</p>
           </div>
 
@@ -63,7 +74,9 @@ const DashboardOutputsHeader = ({
                     className={styles.compareLegendSwatch}
                     style={{ "--legend-color": item.color } as CSSProperties}
                   />
-                  <span className={styles.compareLegendLabel}>{item.label}</span>
+                  <span className={styles.compareLegendLabel}>
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -98,7 +111,7 @@ const DashboardOutputsHeader = ({
               </div>
             </div>
 
-            <div className={styles.selectedSpeciesSection}>
+            {showSelectedSpecies ? <div className={styles.selectedSpeciesSection}>
               <div className={styles.controlCardHeader}>
                 <p className={styles.controlCardTitle}>Selected Fish</p>
                 <p className={styles.controlCardSubtitle}>
@@ -109,28 +122,29 @@ const DashboardOutputsHeader = ({
               {selectedSpeciesLabels.length > 0 ? (
                 <div className={styles.selectedSpeciesPills}>
                   {selectedSpeciesLabels.map((label) => (
-                    <Pill key={label} className={styles.selectedSpeciesPill}>
+                    <Tag key={label} tone="primary">
                       {label}
-                    </Pill>
+                    </Tag>
                   ))}
                 </div>
               ) : (
-                <Text className={styles.selectedSpeciesEmpty}>
+                <p className={styles.selectedSpeciesEmpty}>
                   No species are currently selected.
-                </Text>
+                </p>
               )}
-            </div>
+            </div> : null}
           </div>
-        </div>
+        </Card>
       }
-      headerRight={
+      aside={indicatorPanel ?
         <SpiderDiagram
           className={styles.indicatorPanel}
           title={indicatorPanel.title}
           subtitle={indicatorPanel.subtitle}
           datasets={indicatorPanel.datasets}
           valueSuffix={indicatorPanel.valueSuffix}
-        />
+          emptyMessage={indicatorPanel.emptyMessage}
+        /> : undefined
       }
     >
       {children}

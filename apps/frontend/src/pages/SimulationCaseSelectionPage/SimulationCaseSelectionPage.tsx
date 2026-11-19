@@ -1,445 +1,69 @@
-import { Button } from "@mantine/core";
-import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import Logo from "../../components/Logo/Logo";
-import {
-  simulationCaseStudies,
-  type SimulationCaseId,
-} from "../../data/simulationCases";
-import { useAutoplayVideo } from "../../hooks/useAutoplayVideo";
-import { useAvailableScenarios } from "../../hooks/useAvailableScenarios";
-import OceanDiveIntro from "./components/OceanDiveIntro/OceanDiveIntro";
-import styles from "./SimulationCaseSelectionPage.module.css";
+import { Navigate, useLocation, useMatch } from "react-router-dom";
+import { normalizeSimulationCaseId } from "../../data/simulationCases";
+import Button from "../../components/ui/Button/Button";
+import { authErrorMessage } from "../../features/auth/authErrorMessage";
+import { scenarioErrorMessage } from "../../features/scenarios/scenarioErrorMessage";
+import { AppError } from "../../network/errors/appError";
+import { useCurrentUser } from "../../serverState/auth/useCurrentUser";
+import { useScenarios } from "../../serverState/scenarios/useScenarios";
+import CaseStudyMap, { type AvailabilityState } from "./components/CaseStudyMap/CaseStudyMap";
 
-const ENTER_WORLD_DURATION_MS = 700;
-const INTRO_DURATION_MS = 3300;
-const INTRO_REVEAL_LEAD_MS = 950;
-const INTRO_SEEN_SESSION_KEY = "surimi:ocean-intro-seen";
-const PANEL_EASE = [0.22, 1, 0.36, 1] as const;
+const emptyScenarios = { scenarios: [] };
 
-const resolveCaseToneClass = (caseId: SimulationCaseId) => {
-  if (caseId === "northwestern-mediterranean") {
-    return styles.toneWestern;
-  }
-  if (caseId === "aegean-sea") {
-    return styles.toneAegean;
-  }
-  return styles.toneAnchovy;
-};
-
-type SimulationCaseSelectionPageProps = {
-  initialActiveCaseId?: SimulationCaseId | null;
-};
-
-type SimulationCaseSelectionRouteState = {
-  fromWorld?: boolean;
-};
-
-type CasePanelVideoProps = {
-  src: string;
-  playbackRate: number;
-  isPlaybackEnabled: boolean;
-  scale: number;
-  transitionDuration: number;
-};
-
-const getNavigationType = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const navigationEntries = window.performance.getEntriesByType("navigation");
-  if (navigationEntries.length > 0) {
-    const navigationTiming =
-      navigationEntries[0] as PerformanceNavigationTiming;
-    return navigationTiming.type;
-  }
-
-  const legacyNavigation = window.performance.navigation;
-  if (!legacyNavigation) {
-    return null;
-  }
-
-  if (legacyNavigation.type === 1) {
-    return "reload";
-  }
-  if (legacyNavigation.type === 2) {
-    return "back_forward";
-  }
-  return "navigate";
-};
-
-const shouldPlayOceanIntro = (isReturningFromWorld: boolean) => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    return false;
-  }
-
-  const navigationType = getNavigationType();
-  if (isReturningFromWorld || navigationType === "back_forward") {
-    return false;
-  }
-
-  if (navigationType === "reload") {
-    return true;
-  }
-
-  if (window.sessionStorage.getItem(INTRO_SEEN_SESSION_KEY) === "1") {
-    return false;
-  }
-
-  return true;
-};
-
-const CasePanelVideo = ({
-  src,
-  playbackRate,
-  isPlaybackEnabled,
-  scale,
-  transitionDuration,
-}: CasePanelVideoProps) => {
-  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
-    null,
-  );
-
-  useAutoplayVideo(videoElement, { playbackRate, enabled: isPlaybackEnabled });
-
-  return (
-    <motion.video
-      ref={setVideoElement}
-      className={styles.caseVideo}
-      preload="auto"
-      muted
-      loop
-      autoPlay
-      playsInline
-      disablePictureInPicture
-      initial={false}
-      animate={{ scale }}
-      transition={{
-        duration: transitionDuration,
-        ease: PANEL_EASE,
-      }}
-    >
-      <source src={src} type="video/mp4" />
-    </motion.video>
-  );
-};
-
-const SimulationCaseSelectionPage = ({
-  initialActiveCaseId = null,
-}: SimulationCaseSelectionPageProps) => {
-  const navigate = useNavigate();
+const SimulationCaseSelectionPage = () => {
   const location = useLocation();
-  const [activeCaseId, setActiveCaseId] = useState<SimulationCaseId | null>(
-    initialActiveCaseId,
-  );
-  const [enteringCaseId, setEnteringCaseId] = useState<SimulationCaseId | null>(
-    null,
-  );
+  const match = useMatch("/scenario/:caseId");
+  const caseId = match?.params.caseId;
+  const normalized = normalizeSimulationCaseId(caseId);
+  const next = new URLSearchParams({ next: `${location.pathname}${location.search}` });
+  const session = useCurrentUser();
+  const scenarios = useScenarios();
+  const retry = () => { void scenarios.refetch(); };
 
-  // Cases whose scenario the controller does not return stay visible but are
-  // greyed out and cannot be opened. While the request is pending (null) we
-  // don't grey anything out yet, but nothing can be entered either.
-  const availableScenarios = useAvailableScenarios();
-  const isAvailabilityPending = availableScenarios === null;
-  const isCaseAvailable = (caseId: SimulationCaseId) =>
-    simulationCaseStudies.some(
-      (caseStudy) =>
-        caseStudy.id === caseId &&
-        Boolean(availableScenarios?.has(caseStudy.controllerScenarioName)),
-    );
-  // e.g. returning from a world whose scenario has since disappeared.
-  const visibleActiveCaseId =
-    activeCaseId && (isAvailabilityPending || isCaseAvailable(activeCaseId))
-      ? activeCaseId
-      : null;
+  // This route renders its local map during authentication, but never enables protected
+  // case data/actions before the same session checks used by RequireSession pass.
+  if (session.isSuccess && !session.data) return <Navigate to={`/login?${next}`} replace />;
+  if (session.data?.must_change_password) return <Navigate to={`/change-password?${next}`} replace />;
 
-  const focusedCaseId = enteringCaseId ?? visibleActiveCaseId;
-  const hasFocusedCase = Boolean(focusedCaseId);
-  const isTransitioning = enteringCaseId !== null;
-  const isReturningFromWorld = Boolean(
-    (location.state as SimulationCaseSelectionRouteState | null)?.fromWorld,
-  );
-  const [shouldPlayIntro] = useState(() => {
-    return shouldPlayOceanIntro(isReturningFromWorld);
-  });
-  const [isIntroRunning, setIsIntroRunning] = useState(shouldPlayIntro);
-  const [isLandingRevealing, setIsLandingRevealing] =
-    useState(!shouldPlayIntro);
+  if (caseId && !normalized) return <Navigate to="/scenarios" replace />;
+  if (caseId && normalized !== caseId) return <Navigate to={`/scenario/${normalized}${location.search}`} replace />;
 
-  const focusedCaseIndex = useMemo(() => {
-    if (!focusedCaseId) {
-      return -1;
-    }
-
-    return simulationCaseStudies.findIndex(
-      (caseStudy) => caseStudy.id === focusedCaseId,
-    );
-  }, [focusedCaseId]);
-
-  useEffect(() => {
-    if (!enteringCaseId) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      navigate(`/scenario/${enteringCaseId}`, {
-        state: { fromLanding: true },
-      });
-    }, ENTER_WORLD_DURATION_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
+  let availability: AvailabilityState | undefined;
+  if (session.isPending) {
+    availability = { pending: true, title: "Preparing your explorer", message: "Checking your session…" };
+  } else if (session.isError) {
+    availability = {
+      pending: session.isFetching,
+      title: "Unable to check your session",
+      message: authErrorMessage(session.error),
+      onRetry: () => { void session.refetch(); },
     };
-  }, [enteringCaseId, navigate]);
-
-  useEffect(() => {
-    if (!shouldPlayIntro) {
-      return;
-    }
-
-    window.sessionStorage.setItem(INTRO_SEEN_SESSION_KEY, "1");
-
-    const revealTimeoutId = window.setTimeout(
-      () => {
-        setIsLandingRevealing(true);
-      },
-      Math.max(INTRO_DURATION_MS - INTRO_REVEAL_LEAD_MS, 0),
-    );
-
-    const finishTimeoutId = window.setTimeout(() => {
-      setIsIntroRunning(false);
-    }, INTRO_DURATION_MS);
-
-    return () => {
-      window.clearTimeout(revealTimeoutId);
-      window.clearTimeout(finishTimeoutId);
+  } else if (!session.data?.is_active) {
+    availability = { pending: false, title: "Account unavailable", message: "Your account cannot access SURIMI. Please contact your administrator." };
+  } else if (!scenarios.data) {
+    const pending = scenarios.isPending || scenarios.isFetching;
+    availability = {
+      pending,
+      title: pending ? "Loading case studies" : "Unable to load case studies",
+      message: pending ? "Checking available marine ecosystems and scenarios…" : scenarioErrorMessage(scenarios.error),
+      onRetry: pending ? undefined : retry,
+      requestId: scenarios.error instanceof AppError ? scenarios.error.requestId : undefined,
     };
-  }, [shouldPlayIntro]);
-
-  const isLandingVisible = !isIntroRunning || isLandingRevealing;
-  const isInteractionLocked = isTransitioning || isIntroRunning;
-
-  const toggleActivePanel = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked || !isCaseAvailable(caseId)) {
-      return;
-    }
-
-    setActiveCaseId((current) => (current === caseId ? null : caseId));
-  };
-
-  const beginWorldEntry = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked || !isCaseAvailable(caseId)) {
-      return;
-    }
-
-    setActiveCaseId(caseId);
-    setEnteringCaseId(caseId);
-  };
-
-  const viewExistingScenarios = (caseId: SimulationCaseId) => {
-    if (isInteractionLocked || !isCaseAvailable(caseId)) {
-      return;
-    }
-
-    navigate(`/scenario-runs/${caseId}`);
-  };
+  }
 
   return (
-    <main className={styles.page}>
-      {isIntroRunning && <OceanDiveIntro durationMs={INTRO_DURATION_MS} />}
-
-      <motion.div
-        className={styles.topbar}
-        initial={
-          shouldPlayIntro ? { opacity: 0, y: 24, filter: "blur(14px)" } : false
-        }
-        animate={{
-          opacity: isTransitioning ? 0 : isLandingVisible ? 1 : 0,
-          y: isTransitioning ? -18 : isLandingVisible ? 0 : 20,
-          filter: isLandingVisible ? "blur(0px)" : "blur(14px)",
-        }}
-        transition={{
-          duration: shouldPlayIntro ? 1.06 : 0.34,
-          ease: PANEL_EASE,
-        }}
-      >
-        <div className={styles.brandLockup}>
-          <Logo className={styles.brandLogo} />
-          <p className={styles.kicker}>MODEL USER INTERFACE</p>
-        </div>
-      </motion.div>
-
-      <motion.section
-        className={[
-          styles.caseGrid,
-          isInteractionLocked ? styles.caseGridLocked : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        aria-label="Scenario case studies"
-        initial={
-          shouldPlayIntro
-            ? { opacity: 0.26, scale: 1.04, filter: "blur(8px)" }
-            : false
-        }
-        animate={{
-          opacity: isLandingVisible ? 1 : 0,
-          scale: isLandingVisible ? 1 : 1.06,
-          filter: isLandingVisible ? "blur(0px)" : "blur(18px)",
-        }}
-        transition={{
-          duration: shouldPlayIntro ? 1.08 : 0.12,
-          ease: PANEL_EASE,
-        }}
-      >
-        {simulationCaseStudies.map((caseStudy, index) => {
-          const isFocused = focusedCaseId === caseStudy.id;
-          const isEnteringPanel = enteringCaseId === caseStudy.id;
-          const isLeavingPanel = isTransitioning && !isEnteringPanel;
-          const isUnavailable =
-            !isAvailabilityPending && !isCaseAvailable(caseStudy.id);
-          const panelFlexGrow = isTransitioning
-            ? isEnteringPanel
-              ? 7.6
-              : 0.0001
-            : hasFocusedCase
-              ? isFocused
-                ? 2.12
-                : 0.44
-              : 1;
-
-          const panelTranslateX =
-            isLeavingPanel && focusedCaseIndex >= 0
-              ? index < focusedCaseIndex
-                ? -92
-                : 92
-              : 0;
-
-          const panelOpacity = isLeavingPanel ? 0 : 1;
-
-          const panelClassName = [
-            styles.casePanel,
-            resolveCaseToneClass(caseStudy.id),
-            isFocused ? styles.casePanelActive : "",
-            hasFocusedCase && !isFocused ? styles.casePanelCompressed : "",
-            isLeavingPanel ? styles.casePanelLeaving : "",
-            isEnteringPanel ? styles.casePanelEntering : "",
-            isUnavailable ? styles.casePanelUnavailable : "",
-          ]
-            .filter(Boolean)
-            .join(" ");
-
-          return (
-            <motion.article
-              key={caseStudy.id}
-              layout
-              className={panelClassName}
-              onClick={() => {
-                toggleActivePanel(caseStudy.id);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  toggleActivePanel(caseStudy.id);
-                }
-              }}
-              role="button"
-              aria-label={
-                isUnavailable
-                  ? `${caseStudy.seaName} (not available)`
-                  : caseStudy.seaName
-              }
-              aria-disabled={isUnavailable || undefined}
-              tabIndex={isInteractionLocked ? -1 : 0}
-              initial={false}
-              animate={{
-                flexGrow: panelFlexGrow,
-                opacity: panelOpacity,
-                x: panelTranslateX,
-              }}
-              transition={{
-                layout: {
-                  duration: isTransitioning ? 0.7 : 0.96,
-                  ease: PANEL_EASE,
-                },
-                flexGrow: {
-                  duration: isTransitioning ? 0.7 : 0.96,
-                  ease: PANEL_EASE,
-                },
-                x: { duration: 0.56, ease: PANEL_EASE },
-                opacity: { duration: 0.42, ease: PANEL_EASE },
-              }}
-            >
-              <CasePanelVideo
-                src={caseStudy.videoSrc}
-                playbackRate={caseStudy.playbackRate}
-                isPlaybackEnabled={isLandingVisible}
-                scale={
-                  isEnteringPanel
-                    ? 1.22
-                    : isFocused
-                      ? 1.11
-                      : hasFocusedCase
-                        ? 1
-                        : 1.02
-                }
-                transitionDuration={isTransitioning ? 0.72 : 1.06}
-              />
-              <div className={styles.caseOverlay} />
-
-              <div className={styles.minimalCopy}>
-                <h2>{caseStudy.seaName}</h2>
-                <p>{caseStudy.subtitle}</p>
-                {isUnavailable && (
-                  <span className={styles.unavailableBadge}>
-                    Currently unavailable
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.expandedCopy}>
-                <h3>{caseStudy.simulationTitle}</h3>
-                <p>{caseStudy.description}</p>
-              </div>
-
-              <div className={styles.centerActions}>
-                <Button
-                  type="button"
-                  variant="primaryFilled"
-                  className={styles.actionButton}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    beginWorldEntry(caseStudy.id);
-                  }}
-                  disabled={isInteractionLocked}
-                >
-                  Explore Scenario
-                </Button>
-                <Button
-                  type="button"
-                  variant="primaryOutlined"
-                  className={styles.actionButton}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    viewExistingScenarios(caseStudy.id);
-                  }}
-                  disabled={isInteractionLocked}
-                >
-                  Compare Scenarios
-                </Button>
-              </div>
-            </motion.article>
-          );
-        })}
-      </motion.section>
-    </main>
+    <CaseStudyMap
+      scenarios={scenarios.data ?? emptyScenarios}
+      availability={availability}
+      status={
+        scenarios.data && scenarios.isError ? (
+          <div role="status">
+            <p>{scenarios.isFetching ? "Rechecking case-study availability…" : "Availability could not be refreshed. Showing the last checked case studies."}</p>
+            <Button variant="primary-outlined" size="sm" isDisabled={scenarios.isFetching} onPress={retry}>Check again</Button>
+          </div>
+        ) : undefined
+      }
+    />
   );
 };
-
 export default SimulationCaseSelectionPage;

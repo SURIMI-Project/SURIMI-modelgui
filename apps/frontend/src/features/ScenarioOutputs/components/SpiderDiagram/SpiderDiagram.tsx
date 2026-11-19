@@ -1,3 +1,5 @@
+import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
+import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   Chart as ChartJS,
   Filler,
@@ -10,13 +12,7 @@ import {
 import { Radar } from "react-chartjs-2";
 import styles from "./SpiderDiagram.module.css";
 
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-);
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export type SpiderDiagramDatum = {
   id: string;
@@ -40,6 +36,7 @@ type SpiderDiagramProps = {
   maxValue?: number;
   valueSuffix?: string;
   className?: string;
+  emptyMessage?: string;
 };
 
 const SpiderDiagram = ({
@@ -49,16 +46,20 @@ const SpiderDiagram = ({
   maxValue = 100,
   valueSuffix = "",
   className,
+  emptyMessage,
 }: SpiderDiagramProps) => {
+  const chartTheme = readChartTheme();
+  const reducedMotion = usePrefersReducedMotion();
   const baseDataset = datasets[0];
   const labels = baseDataset?.data.map((entry) => entry.label) ?? [];
-  const tooltipLabels = baseDataset?.data.map((entry) => {
-    if (entry.tooltipLabel) {
-      return entry.tooltipLabel;
-    }
+  const tooltipLabels =
+    baseDataset?.data.map((entry) => {
+      if (entry.tooltipLabel) {
+        return entry.tooltipLabel;
+      }
 
-    return Array.isArray(entry.label) ? entry.label.join(" ") : entry.label;
-  }) ?? [];
+      return Array.isArray(entry.label) ? entry.label.join(" ") : entry.label;
+    }) ?? [];
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -70,7 +71,7 @@ const SpiderDiagram = ({
       </div>
 
       <div className={styles.chartWrap}>
-        <Radar
+        {!datasets.length ? <p role="status">{emptyMessage ?? "Indicator data is unavailable."}</p> : <Radar
           data={{
             labels,
             datasets: datasets.map((dataset) => ({
@@ -83,15 +84,16 @@ const SpiderDiagram = ({
               pointRadius: 3.6,
               pointHoverRadius: 5,
               pointBackgroundColor: dataset.pointBackgroundColor,
-              pointBorderColor: "#f6fcff",
+              pointBorderColor: chartTheme.text,
               pointBorderWidth: 1.2,
             })),
           }}
           options={{
             responsive: true,
+            font: { family: chartTheme.fontFamily, size: chartTheme.fontSize },
             maintainAspectRatio: false,
             animation: {
-              duration: 520,
+              duration: reducedMotion ? 0 : chartTheme.duration,
             },
             plugins: {
               legend: {
@@ -99,17 +101,17 @@ const SpiderDiagram = ({
                 position: "left",
                 align: "center",
                 labels: {
-                  color: "rgba(224, 243, 255, 0.84)",
+                  color: chartTheme.muted,
                   boxWidth: 12,
                   boxHeight: 12,
-                  padding: 16,
+                  padding: chartTheme.spacing,
                   usePointStyle: true,
                   pointStyle: "rectRounded",
                 },
               },
               tooltip: {
-                backgroundColor: "rgba(4, 18, 33, 0.94)",
-                borderColor: "rgba(121, 214, 255, 0.3)",
+                backgroundColor: chartTheme.surface,
+                borderColor: chartTheme.grid,
                 borderWidth: 1,
                 callbacks: {
                   title: (items) => {
@@ -132,22 +134,22 @@ const SpiderDiagram = ({
                   stepSize: maxValue / 5,
                 },
                 angleLines: {
-                  color: "rgba(143, 214, 248, 0.16)",
+                  color: chartTheme.muted,
                 },
                 grid: {
-                  color: "rgba(143, 214, 248, 0.18)",
+                  color: chartTheme.grid,
                 },
                 pointLabels: {
-                  color: "rgba(228, 244, 255, 0.88)",
+                  color: chartTheme.muted,
                   font: {
-                    size: 12,
+                    size: chartTheme.fontSize,
                     weight: 600,
                   },
                 },
               },
             },
           }}
-        />
+        />}
       </div>
     </section>
   );

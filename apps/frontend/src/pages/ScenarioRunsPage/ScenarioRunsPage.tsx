@@ -1,482 +1,182 @@
-import {
-  type Duration,
-  type Timestamp,
-  timestampDate,
-} from "@bufbuild/protobuf/wkt";
-import { Button, Checkbox, Pagination, ScrollArea } from "@mantine/core";
-import { useEffect, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import {
-  FiAlertCircle,
-  FiAnchor,
-  FiArrowLeft,
-  FiCheckCircle,
-  FiClock,
-  FiCompass,
-  FiEye,
-  FiNavigation,
-  FiPlus,
-} from "react-icons/fi";
-import { getScenarioWorldConfig } from "../../constants/scenarioWorldConfig";
-import {
-  getSimulationCaseById,
-  normalizeSimulationCaseId,
-  simulationCaseStudies,
-  type SimulationCaseId,
-} from "../../data/simulationCases";
-import ScenarioSetupLoadingOverlay from "../../features/ScenarioRuns/ScenarioSetupLoadingOverlay";
-import { useScenarioSetupCompletion } from "../../features/ScenarioRuns/useScenarioSetupCompletion";
-import type { SimulationStatus } from "../../gen/surimi/v1/simulation_status_pb";
-import { useSimulationStatuses } from "../../hooks/useSimulationStatuses";
-import smallSurimiLogo from "../../assets/smallSurimiLogo.png";
+import { sampleOutput } from "../../../mock-data/sampleOutput";
+import type { OutputSource } from "../../features/ScenarioOutputModal/netcdf/types";
+import { useState } from "react";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { FiBarChart2 } from "react-icons/fi";
+import Tag from "../../components/ui/Tag/Tag";
+import Button from "../../components/ui/Button/Button";
+import BackButton from "../../components/ui/BackButton/BackButton";
+import Checkbox from "../../components/ui/Checkbox/Checkbox";
+import Pagination from "../../components/ui/Pagination/Pagination";
+import Tooltip, { TooltipTrigger } from "../../components/ui/Tooltip/Tooltip";
+import Table, { TableHeader, Column, TableBody, Row, Cell } from "../../components/ui/Table/Table";
+import { scenarioWorldContent } from "../../../mock-data/content/caseIntroductions";
+import { getSimulationCaseById, normalizeSimulationCaseId, simulationCaseStudies } from "../../data/simulationCases";
+import { useExperiments } from "../../serverState/experiments/useExperiments";
+import { useExperimentEvents } from "../../serverState/events/useExperimentEvents";
+import ScenarioOutputModal from "../../features/ScenarioOutputModal/ScenarioOutputModal";
+import type { Experiment } from "../../network/services/experiments/experimentSchemas";
+import { AppError } from "../../network/errors/appError";
 import styles from "./ScenarioRunsPage.module.css";
 
-const PAGE_SIZE = 6;
-const scenarioNavIcons = {
-  "anchovy-bay": FiAnchor,
-  "aegean-sea": FiCompass,
-  "northwestern-mediterranean": FiNavigation,
-} satisfies Record<SimulationCaseId, typeof FiAnchor>;
-
-const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
-const statusIcons = {
-  done: FiCheckCircle,
-  failed: FiAlertCircle,
-  pending: FiClock,
+const pageSizes = [20, 50, 100];
+const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
+const formatDate = (value: string | null) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date);
 };
-
-const formatDateTime = (value?: Timestamp) => {
-  if (!value) {
-    return "—";
+const statusLabels: Record<Experiment["status"], string> = {
+  queued: "Queued", submitting: "Submitting", submit_failed: "Submission failed", submitted: "Submitted",
+  initialising: "Initialising", initialised: "Initialised", running: "Running", copying_results: "Copying results",
+  completed: "Completed", failed: "Failed", cancelling: "Cancelling", cancelled: "Cancelled",
+};
+const statusTone = (status: Experiment["status"]) => {
+  if (status === "completed") return "success";
+  if (status === "failed" || status === "submit_failed") return "danger";
+  if (["running", "initialising", "copying_results"].includes(status)) return "secondary";
+  return "neutral";
+};
+const listErrorMessage = (error: unknown) => {
+  if (error instanceof AppError) {
+    if (error.kind === "network") return "Could not reach SURIMI. Check your connection and try again.";
+    if (error.kind === "forbidden") return "Your account cannot access these scenario runs.";
+    if (error.kind === "invalidResponse") return "The scenario runs response could not be read. Please contact the team.";
+    if (error.kind === "rateLimited") return "Too many requests. Wait before trying again.";
   }
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(timestampDate(value));
+  return "Could not load scenario runs. Please try again.";
 };
 
-const formatYear = (value?: Timestamp) => {
-  return value ? String(timestampDate(value).getUTCFullYear()) : "?";
-};
-
-const formatSimulatedYears = (run: SimulationStatus) => {
-  if (!run.startDateTime || !run.endDateTime) {
-    return "—";
-  }
-
-  const years =
-    (timestampDate(run.endDateTime).getTime() -
-      timestampDate(run.startDateTime).getTime()) /
-    MS_PER_YEAR;
-  return `${Math.round(years * 10) / 10} years`;
-};
-
-const formatRunTime = (value?: Duration) => {
-  if (!value) {
-    return "—";
-  }
-
-  const totalSeconds = Math.round(Number(value.seconds));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-};
-
-const getRunName = (run: SimulationStatus) => `Simulation ${run.order}`;
-
-// The protocol leaves the status values open ("Initialising, t.b.d."); the
-// controller currently sends "Initialised" and "Finished".
-const getStatusTone = (status: string): keyof typeof statusIcons => {
-  if (/finish|complet|success/i.test(status)) {
-    return "done";
-  }
-
-  if (/fail|error|cancel|abort/i.test(status)) {
-    return "failed";
-  }
-
-  return "pending";
-};
-
-// How far through its simulated period a run is, e.g. "40%"; null if unknown.
-const getProgressLabel = (run: SimulationStatus) => {
-  if (!run.startDateTime || !run.endDateTime || !run.simulationCurrent) {
-    return null;
-  }
-
-  const start = timestampDate(run.startDateTime).getTime();
-  const end = timestampDate(run.endDateTime).getTime();
-  const current = timestampDate(run.simulationCurrent).getTime();
-  if (end <= start) {
-    return null;
-  }
-
-  const ratio = Math.min(1, Math.max(0, (current - start) / (end - start)));
-  return `${Math.round(ratio * 100)}%`;
-};
-
-const getCaseLabel = (caseId: SimulationCaseId) => {
-  const caseStudy = getSimulationCaseById(caseId);
-  return caseStudy?.seaName
-    .replace("NORTHWESTERN MEDITERRANEAN SEA", "Northwestern Mediterranean")
-    .replace("AEGEAN SEA", "Aegean Sea")
-    .replace("ANCHOVY BAY", "Anchovy Bay");
-};
-
-const ScenarioRunsPage = () => {
+export default function ScenarioRunsPage() {
   const navigate = useNavigate();
-  const { caseId, runId } = useParams<{ caseId?: string; runId?: string }>();
-  const normalizedCaseId = normalizeSimulationCaseId(caseId);
-  const selectedCaseId = normalizedCaseId ?? "anchovy-bay";
-  const [activePage, setActivePage] = useState(1);
-  const [isScenarioInputsOpen, setIsScenarioInputsOpen] = useState(false);
-  const [selectedRunIds, setSelectedRunIds] = useState<string[]>([]);
-  const { statuses, error: statusesError } = useSimulationStatuses();
-  const { completeScenarioSetup, isScenarioSetupLoading } =
-    useScenarioSetupCompletion({
-      caseId: selectedCaseId,
-      onSetupStarted: () => {
-        setIsScenarioInputsOpen(false);
-        setActivePage(1);
-      },
-    });
+  const { caseId } = useParams();
+  const [params, setParams] = useSearchParams();
+  const selectedCase = normalizeSimulationCaseId(params.get("case"));
+  const invalidCase = params.has("case") && !selectedCase;
+  const study = getSimulationCaseById(selectedCase ?? undefined);
+  const pageValue = Number(params.get("page") ?? 1);
+  const page = Number.isSafeInteger(pageValue) && pageValue > 0 ? pageValue : 1;
+  const sizeValue = Number(params.get("size") ?? 20);
+  const pageSize = pageSizes.includes(sizeValue) ? sizeValue : 20;
+  const experiments = useExperiments({ scenario: study?.scenarioName, page, size: pageSize, sort: "-created_at" }, !invalidCase && !caseId);
+  const hasActiveRuns = !experiments.data || experiments.data.items.some(run =>
+    !["completed", "failed", "submit_failed", "cancelled"].includes(run.status));
+  const updates = useExperimentEvents(!invalidCase && !caseId && hasActiveRuns);
+  const outputRunId = params.get("run");
+  const comparisonRunId = params.get("compare") ?? undefined;
+  const outputOpen = params.has("run") || params.has("compare");
+  const openOutput = (sources: OutputSource[]) => {
+    const next = new URLSearchParams(params);
+    next.set("run", sources[0].id);
+    if (sources[1]) next.set("compare", sources[1].id);
+    else next.delete("compare");
+    setParams(next);
+  };
+  const closeOutput = () => {
+    const next = new URLSearchParams(params);
+    next.delete("run");
+    next.delete("compare");
+    setParams(next, { replace: true });
+  };
+  const [compared, setCompared] = useState<OutputSource[]>([]);
+  const showSample = !invalidCase && page === 1 && (!study || study.scenarioName === sampleOutput.scenarioName);
+  const selectedRuns = compared.filter(source => !study || source.scenarioName === study.scenarioName);
+  const canCompare = (source: OutputSource) => selectedRuns.some(item => item.id === source.id)
+    || (selectedRuns.length < 2 && (!selectedRuns.length || selectedRuns[0].scenarioName === source.scenarioName));
+  const toggleCompare = (source: OutputSource) => setCompared(current => {
+    const visible = current.filter(item => !study || item.scenarioName === study.scenarioName);
+    return visible.some(item => item.id === source.id) ? visible.filter(item => item.id !== source.id)
+      : visible.length < 2 && (!visible.length || visible[0].scenarioName === source.scenarioName) ? [...visible, source] : visible;
+  });
+  const title = `${selectedCase ? scenarioWorldContent[selectedCase].worldTitle : "All case studies"} scenario runs`;
+  const runs = invalidCase ? [] : experiments.data?.items ?? [];
+  const rows: Array<{ id: string; source: OutputSource; run?: Experiment }> = [
+    ...(showSample ? [{ id: sampleOutput.id, source: sampleOutput }] : []),
+    ...runs.map(run => ({ id: run.id, source: { id: run.id, name: run.name, scenarioName: run.scenario_name }, run })),
+  ];
+  const total = invalidCase ? 0 : experiments.data?.total ?? 0;
+  const showPagination = total > 0;
+  const showFooter = showPagination || (rows.length > 0 && (updates.isError || experiments.isError));
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
-  useEffect(() => {
-    setActivePage(1);
-  }, [caseId]);
-
-  useEffect(() => {
-    setSelectedRunIds([]);
-  }, [caseId]);
-
-  if (!normalizedCaseId) {
-    return <Navigate to="/scenario-runs/anchovy-bay" replace />;
+  if (caseId) {
+    const next = new URLSearchParams(params);
+    const normalized = normalizeSimulationCaseId(caseId);
+    if (!normalized) return <Navigate to="/scenarios" replace />;
+    next.set("case", normalized);
+    return <Navigate to={`/scenario-runs?${next}`} replace />;
   }
-
-  if (caseId !== normalizedCaseId) {
-    return (
-      <Navigate
-        to={
-          runId
-            ? `/scenario-runs/${normalizedCaseId}/${runId}`
-            : `/scenario-runs/${normalizedCaseId}`
-        }
-        replace
-      />
-    );
+  if (experiments.data && !experiments.isError && page > pageCount) {
+    const next = new URLSearchParams(params);
+    next.set("page", String(pageCount));
+    return <Navigate to={`/scenario-runs?${next}`} replace />;
   }
-
-  const caseStudy = getSimulationCaseById(selectedCaseId);
-  const worldConfig = getScenarioWorldConfig(selectedCaseId);
-  const InputsFlowComponent = worldConfig.InputsFlowComponent;
-
-  if (!caseStudy) {
-    return <Navigate to="/" replace />;
-  }
-
-  // GetAllSimulationStatuses has no scenario filter, so filter here.
-  const getCaseRuns = (id: SimulationCaseId) => {
-    const scenarioName = getSimulationCaseById(id)?.controllerScenarioName;
-    return (statuses ?? [])
-      .filter((run) => run.scenarioName === scenarioName)
-      .sort((a, b) => b.order - a.order);
+  const setPagination = (nextPage: number, nextSize = pageSize) => {
+    const next = new URLSearchParams(params);
+    next.set("page", String(nextPage));
+    next.set("size", String(nextSize));
+    setParams(next);
   };
+  const emptyMessage = invalidCase ? "Unknown case study. Return to case studies to choose a case."
+    : experiments.isPending ? "Loading scenario runs…"
+    : experiments.isError ? listErrorMessage(experiments.error)
+    : "No scenario runs found.";
 
-  const caseRuns = getCaseRuns(selectedCaseId);
-  const activeRun = caseRuns.find((run) => run.simulationId === runId);
-  const runs = activeRun
-    ? [activeRun, ...caseRuns.filter((run) => run !== activeRun)]
-    : caseRuns;
-
-  const totalPages = Math.max(1, Math.ceil(runs.length / PAGE_SIZE));
-  const safeActivePage = Math.min(activePage, totalPages);
-  const startIndex = (safeActivePage - 1) * PAGE_SIZE;
-  const visibleRuns = runs.slice(startIndex, startIndex + PAGE_SIZE);
-
-  const openDashboard = (id: string) => {
-    navigate(
-      `/scenario-outputs/${selectedCaseId}?run=${encodeURIComponent(id)}`,
-    );
-  };
-
-  const openCompareDashboard = () => {
-    if (selectedRunIds.length !== 2) {
-      return;
-    }
-
-    const query = selectedRunIds
-      .slice(0, 2)
-      .map((id) => `run=${encodeURIComponent(id)}`)
-      .join("&");
-
-    navigate(`/scenario-outputs/${selectedCaseId}?${query}`);
-  };
-
-  const toggleRunSelection = (id: string, checked: boolean) => {
-    setSelectedRunIds((current) => {
-      if (checked) {
-        if (current.includes(id)) {
-          return current;
-        }
-
-        return [...current, id].slice(-2);
-      }
-
-      return current.filter((runId) => runId !== id);
-    });
-  };
-
-  return (
-    <main
-      className={styles.page}
-      style={
-        {
-          "--runs-accent": worldConfig.accentColor,
-          "--runs-secondary": worldConfig.secondaryColor,
-          "--runs-bg-top": worldConfig.backgroundTopColor,
-          "--runs-bg-bottom": worldConfig.backgroundBottomColor,
-        } as React.CSSProperties
-      }
-    >
-      <aside className={styles.sidebar} aria-label="Scenario navigation">
-        <button
-          type="button"
-          className={styles.logoButton}
-          onClick={() => {
-            navigate("/", { state: { fromWorld: true } });
-          }}
-          aria-label="Back to case studies"
-        >
-          <img
-            src={smallSurimiLogo}
-            alt="SURIMI"
-            className={styles.logoImage}
+  return <section className={styles.page} aria-label={title}>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.heading}>
+          <BackButton
+            aria-label={selectedCase ? "Back to case study" : "Back to case studies"}
+            onPress={() => navigate(selectedCase ? `/scenario/${selectedCase}` : "/scenarios")}
           />
-        </button>
-
-        <nav className={styles.scenarioNav}>
-          {simulationCaseStudies.map((item) => {
-            const isActive = item.id === caseId;
-            const itemRunCount = statuses ? getCaseRuns(item.id).length : "…";
-            const ScenarioIcon = scenarioNavIcons[item.id];
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={[
-                  styles.scenarioNavItem,
-                  isActive ? styles.scenarioNavItemActive : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onClick={() => {
-                  navigate(`/scenario-runs/${item.id}`);
-                }}
-              >
-                <span
-                  className={styles.scenarioImageSlot}
-                  data-case={item.id}
-                  aria-hidden="true"
-                >
-                  <ScenarioIcon aria-hidden="true" />
-                </span>
-                <span className={styles.scenarioNavCopy}>
-                  <strong>{getCaseLabel(item.id)}</strong>
-                  <small>{itemRunCount} runs</small>
-                </span>
-              </button>
-            );
-          })}
+          <h1>{title}</h1>
+        </div>
+        <nav className={styles.actions} aria-label="Scenario runs actions">
+          <Button variant="primary-outlined" isDisabled={selectedRuns.length !== 2} aria-description="Select two ready outputs from the same case study."
+            onPress={() => { if (selectedRuns.length === 2) openOutput(selectedRuns); }}>COMPARE SELECTED</Button>
         </nav>
-      </aside>
-
-      <section className={styles.workspace}>
-        <header className={styles.topbar}>
-          <div className={styles.topbarTitle}>
-            <Button
-              variant="primaryOutlined"
-              leftSection={<FiArrowLeft size={16} />}
-              onClick={() => {
-                navigate("/", { state: { fromWorld: true } });
-              }}
-            >
-              Back To Case Studies
-            </Button>
-            <div>
-              <p>Scenario library</p>
-              <h1>{getCaseLabel(caseId)} scenario runs</h1>
-            </div>
-          </div>
-
-          <div className={styles.topbarActions}>
-            <Button
-              variant="primaryOutlined"
-              disabled={selectedRunIds.length !== 2}
-              onClick={openCompareDashboard}
-            >
-              Compare Selected
-            </Button>
-            <Button
-              variant="primaryFilled"
-              leftSection={<FiPlus size={16} />}
-              onClick={() => {
-                setIsScenarioInputsOpen(true);
-              }}
-            >
-              Set Up Scenario
-            </Button>
-          </div>
-        </header>
-
-        <section className={styles.panel}>
-          <ScrollArea
-            className={styles.tableShell}
-            type="auto"
-            offsetScrollbars
-            scrollbarSize={8}
-          >
-            <table className={styles.runsTable}>
-              <thead>
-                <tr>
-                  <th>Compare</th>
-                  <th>Inputs</th>
-                  <th>Name</th>
-                  <th>Conducted at</th>
-                  <th>Status</th>
-                  <th>Dashboard</th>
-                </tr>
-              </thead>
-              <tbody>
-                {runs.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className={styles.emptyCell}>
-                      {statuses
-                        ? "No simulations for this case study yet."
-                        : statusesError
-                          ? "Could not load simulations from the controller."
-                          : "Loading simulations…"}
-                    </td>
-                  </tr>
-                ) : null}
-                {visibleRuns.map((run) => {
-                  const isActive = activeRun === run;
-                  const isSelected = selectedRunIds.includes(run.simulationId);
-                  const statusTone = getStatusTone(run.status);
-                  const StatusIcon = statusIcons[statusTone];
-                  const progressLabel =
-                    statusTone === "pending" ? getProgressLabel(run) : null;
-
-                  return (
-                    <tr
-                      key={run.simulationId}
-                      className={isActive ? styles.activeRow : undefined}
-                    >
-                      <td className={styles.checkboxCell}>
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={(event) => {
-                            toggleRunSelection(
-                              run.simulationId,
-                              event.currentTarget.checked,
-                            );
-                          }}
-                          aria-label={`Select ${getRunName(run)} for comparison`}
-                        />
-                      </td>
-                      <td>
-                        <dl className={styles.inputsCell}>
-                          <div>
-                            <dt>Period</dt>
-                            <dd>
-                              {formatYear(run.startDateTime)} –{" "}
-                              {formatYear(run.endDateTime)}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt>Duration</dt>
-                            <dd>{formatSimulatedYears(run)}</dd>
-                          </div>
-                          <div>
-                            <dt>Run time</dt>
-                            <dd>{formatRunTime(run.simulationDuration)}</dd>
-                          </div>
-                        </dl>
-                      </td>
-                      <td>
-                        <div className={styles.nameCell}>
-                          <strong>{getRunName(run)}</strong>
-                          <span title={run.experimentId}>
-                            Experiment {run.experimentId.slice(0, 8)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className={styles.dateCell}>
-                        {formatDateTime(run.simulationStarted)}
-                      </td>
-                      <td>
-                        <span
-                          className={styles.statusPill}
-                          data-tone={statusTone}
-                        >
-                          <StatusIcon aria-hidden="true" />
-                          {run.status || "Unknown"}
-                          {progressLabel ? ` · ${progressLabel}` : null}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className={styles.reportButton}
-                          onClick={() => {
-                            openDashboard(run.simulationId);
-                          }}
-                          aria-label={`Open dashboard for ${getRunName(run)}`}
-                        >
-                          <FiEye aria-hidden="true" />
-                          <span>View</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </ScrollArea>
-
-          <footer className={styles.paginationBar}>
-            <span>
-              Showing {visibleRuns.length} of {runs.length} scenario runs
-              {statuses && statusesError ? " · last refresh failed" : null}
-            </span>
-            <Pagination
-              total={totalPages}
-              value={safeActivePage}
-              onChange={setActivePage}
-              size="sm"
-              radius="sm"
-            />
-          </footer>
-        </section>
-      </section>
-
-      {InputsFlowComponent ? (
-        <InputsFlowComponent
-          isOpen={isScenarioInputsOpen}
-          onClose={() => {
-            setIsScenarioInputsOpen(false);
-          }}
-          onComplete={completeScenarioSetup}
-        />
-      ) : null}
-
-      <ScenarioSetupLoadingOverlay isVisible={isScenarioSetupLoading} />
-    </main>
-  );
-};
-
-export default ScenarioRunsPage;
+      </header>
+      <div className={styles.tableRegion}>
+        <Table className={styles.table} aria-label="Scenario runs" aria-busy={experiments.isFetching}>
+          <TableHeader><Column isRowHeader>Simulation</Column><Column>Use case</Column><Column>Run ends</Column><Column>Created</Column><Column>Status</Column><Column>Results</Column><Column>Compare</Column></TableHeader>
+          <TableBody dependencies={[selectedRuns]} items={invalidCase ? [] : rows} renderEmptyState={() => <div className={styles.emptyState} role={experiments.isError ? "alert" : "status"}>
+            <p>{emptyMessage}</p>
+            {experiments.isError && !invalidCase ? <Button variant="primary-outlined" size="sm" isDisabled={experiments.isFetching} onPress={() => { void experiments.refetch(); }}>TRY AGAIN</Button> : null}
+          </div>}>{item => {
+            const { run, source } = item;
+            const ready = Boolean(source.sampleUrl || (run?.status === "completed" && run.outputs_state === "ready"));
+            return <Row id={item.id}>
+              <Cell><strong>{source.name}</strong>{source.sampleUrl ? <span> · Sample file</span> : null}</Cell>
+              <Cell>{simulationCaseStudies.find(value => value.scenarioName === source.scenarioName)?.seaName ?? source.scenarioName}</Cell>
+              <Cell>{run ? formatDate(run.end_date_time) : "From file"}</Cell><Cell>{run ? formatDate(run.created_at) : "—"}</Cell>
+              <Cell><div className={styles.status}>
+                <Tag dot tone={run ? statusTone(run.status) : "neutral"}>{run ? statusLabels[run.status] : "Sample data"}</Tag>
+                {run?.progress != null ? <span>{Math.round(run.progress * 100)}%</span> : null}
+                {run?.stalled ? <Tag tone="danger" title={run.stalled_reason ?? undefined}>Stalled</Tag> : null}
+              </div></Cell>
+              <Cell><TooltipTrigger>
+                <Button variant="ghost" size="sm" iconOnly className={styles.resultsButton}
+                  isDisabled={Boolean(run && run.status !== "completed")}
+                  aria-label={`View results for ${source.name}`}
+                  onPress={() => openOutput([source])}><FiBarChart2 aria-hidden="true" /></Button>
+                <Tooltip>View results</Tooltip>
+              </TooltipTrigger></Cell>
+              <Cell><Checkbox aria-label={`Compare ${source.name}`} isSelected={selectedRuns.some(value => value.id === item.id)}
+                isDisabled={!ready || !canCompare(source)} onChange={() => toggleCompare(source)} /></Cell>
+            </Row>;
+          }}</TableBody>
+        </Table>
+        {showFooter ? <footer className={styles.footer}>
+          {updates.isError && !experiments.isError ? <p role="alert">Live updates are unavailable. <Button variant="ghost" size="sm" isDisabled={updates.isFetching}
+            onPress={() => { void updates.refetch(); void experiments.refetch(); }}>TRY AGAIN</Button></p> : null}
+          {experiments.isError && rows.length > 0 ? <p role="alert">{listErrorMessage(experiments.error)} <Button variant="ghost" size="sm" isDisabled={experiments.isFetching} onPress={() => { void experiments.refetch(); }}>TRY AGAIN</Button></p> : null}
+          {showPagination ? <Pagination page={page} pageSize={pageSize} total={total} pageSizeOptions={pageSizes}
+            isDisabled={experiments.isFetching || experiments.isError || invalidCase}
+            onPageChange={next => setPagination(next)} onPageSizeChange={next => setPagination(1, next)} /> : null}
+        </footer> : null}
+      </div>
+    </div>
+    {outputOpen ? <ScenarioOutputModal key={`${outputRunId}:${comparisonRunId ?? ""}`} experimentId={outputRunId ?? ""} comparisonId={comparisonRunId} scenarioName={study?.scenarioName} isOpen onClose={closeOutput} /> : null}
+  </section>;
+}

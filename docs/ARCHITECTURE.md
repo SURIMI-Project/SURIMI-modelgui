@@ -1,14 +1,10 @@
 # Architecture
 
-How the SURIMI model GUI fits together, as of 2026-11-03. Part 1 is what runs
-today. Part 2 is the target of the
-[monorepo and backend plan](plans/2026-11-03-monorepo-and-backend.md) and is
-**Proposed** until that plan is accepted. Diagram conventions:
-[DIAGRAMS.md](DIAGRAMS.md).
+Current frontend cleanup: 2026-11-05. The frontend uses real local authentication and fixed fixtures for
+report data. Authentication and scenario availability use REST; real experiment/output integration remains next. Part 2 describes the wider
+backend target. Diagram conventions: [DIAGRAMS.md](DIAGRAMS.md).
 
----
-
-## Part 1 — Today
+## Part 1 — Current source
 
 ```mermaid
 flowchart LR
@@ -65,13 +61,13 @@ unary. **Read from source**, exported 2026-11-03.
 
 | RPC | Request | Response | Used by the frontend today |
 | --- | --- | --- | --- |
-| `SubmitExperiment` | `scenario_name`, `experiment_id`, `end_date_time`, `is_mse_run`, `regulations_definitions_summary`, `climate_scenario` | `experiment_id` | Mock only |
-| `RemoveExperiment` | `experiment_id` | `experiment_id` | Mock only |
-| `GetSimulationStatuses` | `experiment_ids[]` | `simulation_statuses[]` | No; not in `apps/frontend/proto/surimi.binpb` |
-| `GetAllSimulationStatuses` | — | `simulation_statuses[]` | Yes |
-| `GetSimulationContract` | `scenario_name` | `simulation` (geography, standards, items) | Yes |
+| `SubmitExperiment` | `scenario_name`, `experiment_id`, `end_date_time`, `is_mse_run`, `regulations_definitions_summary`, `climate_scenario` | `experiment_id` | No |
+| `RemoveExperiment` | `experiment_id` | `experiment_id` | No |
+| `GetSimulationStatuses` | `experiment_ids[]` | `simulation_statuses[]` | No |
+| `GetAllSimulationStatuses` | — | `simulation_statuses[]` | No |
+| `GetSimulationContract` | `scenario_name` | `simulation` (geography, standards, items) | No |
 | `GetProtocolVersion` | — | version | No |
-| `GetScenarioNames` | — | `scenario_names[]` | Yes |
+| `GetScenarioNames` | — | `scenario_names[]` | No |
 
 `SimulationStatus` carries `simulation_id`, `experiment_id`, `scenario_name`,
 `start_date_time`, `end_date_time`, `status` (free string), `simulation_started`,

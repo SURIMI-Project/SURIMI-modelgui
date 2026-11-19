@@ -1,0 +1,66 @@
+@layer components {
+  .session {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--spacing-sm);
+  }
+  .sessionActions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+  .userName {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sessionError {
+    color: var(--color-danger);
+    font-size: var(--font-size-xs);
+    max-width: 16rem;
+  }
+  @media (max-width: 34rem) {
+    .userName {
+      display: none;
+    }
+  }
+}
+
+@layer components {
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-floating-control-surface);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    font: inherit;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+  }
+  .avatar:hover { background: var(--color-floating-control-hover); }
+  .avatar[data-focus-visible] { outline: 2px solid var(--color-focus); outline-offset: 4px; }
+  .accountPopover {
+    z-index: 20;
+    width: max-content;
+    min-width: min(12rem, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-lg);
+  }
+  .accountDialog { padding: var(--spacing-lg); outline: none; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .accountName { margin: 0; font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+  .divider { width: 100%; border: 0; border-top: 1px solid var(--color-border); margin: var(--spacing-md) 0; }
+  @media (max-width: 47.4375rem) { .avatar { width: 2.5rem; height: 2.5rem; } }
+}

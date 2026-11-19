@@ -1,3 +1,5 @@
+import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
+import { readChartTheme } from "../../../../styles/chartTheme";
 import {
   BarElement,
   CategoryScale,
@@ -8,24 +10,22 @@ import {
   type TooltipItem,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import {
-  SCENARIO_COMPARE_COLORS,
-  withAlpha,
-} from "../../scenarioCompare";
+import { SCENARIO_COMPARE_COLORS, withAlpha } from "../../scenarioCompare";
 import styles from "./LandingsStackedBarChart.module.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 type LandingsStackedBarChartProps = {
+  runLabel?: string;
   title: string;
   subtitle: string;
   labels: string[];
-  landingsValues: number[];
-  discardsValues: number[];
+  landingsValues: (number | null)[];
+  discardsValues: (number | null)[];
   comparison?: {
     label: string;
-    landingsValues: number[];
-    discardsValues: number[];
+    landingsValues: (number | null)[];
+    discardsValues: (number | null)[];
   };
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
@@ -33,11 +33,18 @@ type LandingsStackedBarChartProps = {
   valueSuffix?: string;
   yAxisLabel?: string;
   className?: string;
+  statusMessage?: string;
 };
 
-const LANDINGS_COLOR = withAlpha(SCENARIO_COMPARE_COLORS.scenarioOne.stroke, 0.68);
+const LANDINGS_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+  0.68,
+);
 const LANDINGS_ACTIVE_COLOR = SCENARIO_COMPARE_COLORS.scenarioOne.stroke;
-const DISCARDS_COLOR = withAlpha(SCENARIO_COMPARE_COLORS.scenarioOne.stroke, 0.32);
+const DISCARDS_COLOR = withAlpha(
+  SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
+  0.32,
+);
 const DISCARDS_ACTIVE_COLOR = withAlpha(
   SCENARIO_COMPARE_COLORS.scenarioOne.stroke,
   0.54,
@@ -59,6 +66,7 @@ const COMPARISON_DISCARDS_ACTIVE_COLOR = withAlpha(
 
 const LandingsStackedBarChart = ({
   title,
+  runLabel = "Scenario",
   subtitle,
   labels,
   landingsValues,
@@ -70,13 +78,16 @@ const LandingsStackedBarChart = ({
   valueSuffix = "",
   yAxisLabel = "",
   className,
+  statusMessage,
 }: LandingsStackedBarChartProps) => {
-  const currentLandingsValue = landingsValues[selectedIndex] ?? 0;
-  const currentDiscardsValue = discardsValues[selectedIndex] ?? 0;
+  const chartTheme = readChartTheme();
+  const reducedMotion = usePrefersReducedMotion();
+  const currentLandingsValue = landingsValues[selectedIndex] ?? null;
+  const currentDiscardsValue = discardsValues[selectedIndex] ?? null;
   const currentComparisonLandingsValue =
-    comparison?.landingsValues[selectedIndex] ?? 0;
+    comparison?.landingsValues[selectedIndex] ?? null;
   const currentComparisonDiscardsValue =
-    comparison?.discardsValues[selectedIndex] ?? 0;
+    comparison?.discardsValues[selectedIndex] ?? null;
 
   return (
     <section className={[styles.panel, className].filter(Boolean).join(" ")}>
@@ -89,17 +100,18 @@ const LandingsStackedBarChart = ({
         <div className={styles.valueBlock}>
           {currentLabel ? <span>{currentLabel}</span> : null}
           <strong>
-            {currentLandingsValue.toFixed(2)}
+            {currentLandingsValue?.toFixed(2) ?? "—"}
             {valueSuffix}
           </strong>
           <small>
-            discards {currentDiscardsValue.toFixed(2)}
+            discards {currentDiscardsValue?.toFixed(2) ?? "—"}
             {valueSuffix}
           </small>
           {comparison ? (
             <small>
-              {comparison.label}: {currentComparisonLandingsValue.toFixed(2)}
-              {valueSuffix} · discards {currentComparisonDiscardsValue.toFixed(2)}
+              {comparison.label}: {currentComparisonLandingsValue?.toFixed(2) ?? "—"}
+              {valueSuffix} · discards{" "}
+              {currentComparisonDiscardsValue?.toFixed(2) ?? "—"}
               {valueSuffix}
             </small>
           ) : null}
@@ -107,16 +119,18 @@ const LandingsStackedBarChart = ({
       </div>
 
       <div className={styles.chartWrap}>
-        <Bar
+        {statusMessage || ![...landingsValues, ...discardsValues, ...(comparison?.landingsValues ?? []), ...(comparison?.discardsValues ?? [])].some(value => value !== null && Number.isFinite(value)) ? <p role="status">{statusMessage ?? "No values are available for this selection."}</p> : <Bar
           data={{
             labels,
             datasets: [
               {
-                label: comparison ? "Scenario 1 landings" : "landings",
+                label: comparison ? `${runLabel} landings` : "landings",
                 data: landingsValues,
                 stack: "primary",
                 backgroundColor: landingsValues.map((_, index) =>
-                  index === selectedIndex ? LANDINGS_ACTIVE_COLOR : LANDINGS_COLOR,
+                  index === selectedIndex
+                    ? LANDINGS_ACTIVE_COLOR
+                    : LANDINGS_COLOR,
                 ),
                 borderRadius: {
                   topLeft: 0,
@@ -129,11 +143,13 @@ const LandingsStackedBarChart = ({
                 categoryPercentage: 0.84,
               },
               {
-                label: comparison ? "Scenario 1 discards" : "discards",
+                label: comparison ? `${runLabel} discards` : "discards",
                 data: discardsValues,
                 stack: "primary",
                 backgroundColor: discardsValues.map((_, index) =>
-                  index === selectedIndex ? DISCARDS_ACTIVE_COLOR : DISCARDS_COLOR,
+                  index === selectedIndex
+                    ? DISCARDS_ACTIVE_COLOR
+                    : DISCARDS_COLOR,
                 ),
                 borderRadius: {
                   topLeft: 2,
@@ -151,10 +167,11 @@ const LandingsStackedBarChart = ({
                       label: `${comparison.label} landings`,
                       data: comparison.landingsValues,
                       stack: "comparison",
-                      backgroundColor: comparison.landingsValues.map((_, index) =>
-                        index === selectedIndex
-                          ? COMPARISON_LANDINGS_ACTIVE_COLOR
-                          : COMPARISON_LANDINGS_COLOR,
+                      backgroundColor: comparison.landingsValues.map(
+                        (_, index) =>
+                          index === selectedIndex
+                            ? COMPARISON_LANDINGS_ACTIVE_COLOR
+                            : COMPARISON_LANDINGS_COLOR,
                       ),
                       borderRadius: {
                         topLeft: 0,
@@ -170,10 +187,11 @@ const LandingsStackedBarChart = ({
                       label: `${comparison.label} discards`,
                       data: comparison.discardsValues,
                       stack: "comparison",
-                      backgroundColor: comparison.discardsValues.map((_, index) =>
-                        index === selectedIndex
-                          ? COMPARISON_DISCARDS_ACTIVE_COLOR
-                          : COMPARISON_DISCARDS_COLOR,
+                      backgroundColor: comparison.discardsValues.map(
+                        (_, index) =>
+                          index === selectedIndex
+                            ? COMPARISON_DISCARDS_ACTIVE_COLOR
+                            : COMPARISON_DISCARDS_COLOR,
                       ),
                       borderRadius: {
                         topLeft: 2,
@@ -191,9 +209,10 @@ const LandingsStackedBarChart = ({
           }}
           options={{
             responsive: true,
+            font: { family: chartTheme.fontFamily, size: chartTheme.fontSize },
             maintainAspectRatio: false,
             animation: {
-              duration: 420,
+              duration: reducedMotion ? 0 : chartTheme.duration,
             },
             interaction: {
               mode: "index",
@@ -209,17 +228,17 @@ const LandingsStackedBarChart = ({
               legend: {
                 position: "bottom",
                 labels: {
-                  color: "rgba(224, 243, 255, 0.84)",
+                  color: chartTheme.muted,
                   boxWidth: 10,
                   boxHeight: 10,
-                  padding: 18,
+                  padding: chartTheme.spacing,
                   usePointStyle: true,
                   pointStyle: "rectRounded",
                 },
               },
               tooltip: {
-                backgroundColor: "rgba(4, 18, 33, 0.94)",
-                borderColor: "rgba(121, 214, 255, 0.3)",
+                backgroundColor: chartTheme.surface,
+                borderColor: chartTheme.grid,
                 borderWidth: 1,
                 callbacks: {
                   label: (context: TooltipItem<"bar">) => {
@@ -243,7 +262,7 @@ const LandingsStackedBarChart = ({
                 },
                 ticks: {
                   autoSkip: true,
-                  color: "rgba(214, 236, 249, 0.78)",
+                  color: chartTheme.muted,
                   maxRotation: 0,
                 },
               },
@@ -251,18 +270,18 @@ const LandingsStackedBarChart = ({
                 stacked: true,
                 beginAtZero: true,
                 grid: {
-                  color: "rgba(143, 214, 248, 0.12)",
+                  color: chartTheme.grid,
                 },
                 ticks: {
-                  color: "rgba(214, 236, 249, 0.78)",
+                  color: chartTheme.muted,
                 },
                 title: yAxisLabel
                   ? {
                       display: true,
                       text: yAxisLabel,
-                      color: "rgba(214, 236, 249, 0.78)",
+                      color: chartTheme.muted,
                       font: {
-                        size: 12,
+                        size: chartTheme.fontSize,
                         weight: 600,
                       },
                     }
@@ -270,7 +289,7 @@ const LandingsStackedBarChart = ({
               },
             },
           }}
-        />
+        />}
       </div>
     </section>
   );

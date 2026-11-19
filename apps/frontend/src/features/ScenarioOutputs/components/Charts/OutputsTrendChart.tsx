@@ -1,3 +1,5 @@
+import usePrefersReducedMotion from "../../../../hooks/usePrefersReducedMotion";
+import { readChartTheme, withAlpha } from "../../../../styles/chartTheme";
 import {
   type ActiveElement,
   CategoryScale,
@@ -27,7 +29,7 @@ ChartJS.register(
 
 type OutputsTrendChartProps = {
   labels?: string[];
-  values?: number[];
+  values?: (number | null)[];
   historicalLabels?: string[];
   historicalValues?: number[];
   simulatedHistoricalValues?: number[];
@@ -39,6 +41,8 @@ type OutputsTrendChartProps = {
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
   compact?: boolean;
+  isRecorded?: boolean;
+  statusMessage?: string;
 };
 
 export type OutputsTrendChartSeries = {
@@ -46,13 +50,12 @@ export type OutputsTrendChartSeries = {
   color: string;
   boundColor?: string;
   boundOpacity?: number;
-  values?: number[];
+  values?: (number | null)[];
   historicalValues?: number[];
   simulatedHistoricalValues?: number[];
   futureValues?: number[];
 };
 
-const SIMULATION_POINT_FILL = "#8f1f1c";
 
 const smoothSeries = (values: number[]) => {
   if (values.length < 3) {
@@ -96,27 +99,6 @@ const smoothBand = (values: number[]) => {
   return smoothPass(smoothPass(smoothPass(values, 0.56), 0.62), 0.68);
 };
 
-const withAlpha = (hexColor: string, alpha: number) => {
-  const normalized = hexColor.replace("#", "");
-  const expanded =
-    normalized.length === 3
-      ? normalized
-          .split("")
-          .map((part) => `${part}${part}`)
-          .join("")
-      : normalized;
-
-  if (expanded.length !== 6) {
-    return `rgba(214, 224, 235, ${alpha})`;
-  }
-
-  const red = Number.parseInt(expanded.slice(0, 2), 16);
-  const green = Number.parseInt(expanded.slice(2, 4), 16);
-  const blue = Number.parseInt(expanded.slice(4, 6), 16);
-
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-};
-
 const mixWithWhite = (hexColor: string, ratio: number) => {
   const normalized = hexColor.replace("#", "");
   const expanded =
@@ -142,7 +124,6 @@ const mixWithWhite = (hexColor: string, ratio: number) => {
   return `rgb(${mixedRed}, ${mixedGreen}, ${mixedBlue})`;
 };
 
-const LEGEND_TEXT_COLOR = "rgba(216, 236, 249, 0.88)";
 
 const computeBandValues = (
   rawValues: number[],
@@ -191,7 +172,11 @@ const OutputsTrendChart = ({
   selectedIndex,
   onSelectIndex,
   compact = false,
+  isRecorded = false,
+  statusMessage,
 }: OutputsTrendChartProps) => {
+  const chartTheme = readChartTheme();
+  const reducedMotion = usePrefersReducedMotion();
   const hasSplitSeries =
     historicalLabels !== undefined &&
     historicalValues !== undefined &&
@@ -232,10 +217,10 @@ const OutputsTrendChart = ({
     }))
     .map((entry) => ({
       ...entry,
-      displayValues: smoothSeries(entry.rawValues),
+      displayValues: isRecorded ? entry.rawValues : smoothSeries(entry.rawValues.map(value => value ?? NaN)),
     }));
 
-  const resolvedValues = resolvedSeries.flatMap((entry) => entry.rawValues);
+  const resolvedValues = resolvedSeries.flatMap((entry) => entry.rawValues).filter((value): value is number => value !== null && Number.isFinite(value));
 
   const hasMultipleSeries = resolvedSeries.length > 1;
 
@@ -245,9 +230,9 @@ const OutputsTrendChart = ({
       : 1;
 
   const enrichedSeries = resolvedSeries.map((entry) => {
-    const bandValues = computeBandValues(
-      entry.rawValues,
-      entry.displayValues,
+    const bandValues = isRecorded ? [] : computeBandValues(
+      entry.rawValues.map(value => value ?? NaN),
+      entry.displayValues.map(value => value ?? NaN),
       overallValueRange,
     );
     return {
@@ -299,9 +284,9 @@ const OutputsTrendChart = ({
         dividerX,
         chartArea.top,
       );
-      historicalGradient.addColorStop(0, "rgba(214, 219, 226, 0.34)");
-      historicalGradient.addColorStop(0.45, "rgba(194, 201, 210, 0.24)");
-      historicalGradient.addColorStop(1, "rgba(188, 196, 207, 0.12)");
+      historicalGradient.addColorStop(0, withAlpha(chartTheme.muted ?? "", 0.16));
+      historicalGradient.addColorStop(0.45, withAlpha(chartTheme.muted ?? "", 0.1));
+      historicalGradient.addColorStop(1, withAlpha(chartTheme.muted ?? "", 0.04));
       ctx.fillStyle = historicalGradient;
       ctx.fillRect(
         chartArea.left,
@@ -310,7 +295,7 @@ const OutputsTrendChart = ({
         chartArea.bottom - chartArea.top,
       );
 
-      ctx.fillStyle = "rgba(22, 25, 31, 0.1)";
+      ctx.fillStyle = withAlpha(chartTheme.surface ?? "", 0.1);
       ctx.fillRect(
         chartArea.left,
         chartArea.top,
@@ -318,14 +303,14 @@ const OutputsTrendChart = ({
         chartArea.bottom - chartArea.top,
       );
 
-      ctx.strokeStyle = "rgba(214, 224, 235, 0.48)";
+      ctx.strokeStyle = withAlpha(chartTheme.muted ?? "", 0.48);
       ctx.lineWidth = 1.4;
       ctx.beginPath();
       ctx.moveTo(dividerX, chartArea.top);
       ctx.lineTo(dividerX, chartArea.bottom);
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(230, 236, 242, 0.22)";
+      ctx.strokeStyle = withAlpha(chartTheme.muted ?? "", 0.22);
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(chartArea.left, chartArea.top + 0.5);
@@ -348,10 +333,10 @@ const OutputsTrendChart = ({
         const fillOpacity =
           entry.boundOpacity ?? (hasMultipleSeries ? 0.42 : 0.28);
         const lowerBoundValues = entry.displayValues.map((value, index) => {
-          return value - (entry.bandValues[index] ?? overallValueRange * 0.06);
+          return value === null ? null : value - (entry.bandValues[index] ?? overallValueRange * 0.06);
         });
         const upperBoundValues = entry.displayValues.map((value, index) => {
-          return value + (entry.bandValues[index] ?? overallValueRange * 0.06);
+          return value === null ? null : value + (entry.bandValues[index] ?? overallValueRange * 0.06);
         });
 
         const lineDataset = {
@@ -359,7 +344,7 @@ const OutputsTrendChart = ({
           data: entry.displayValues,
           borderColor: entry.color,
           borderWidth: hasSplitSeries ? 2.4 : 2.2,
-          tension: hasSplitSeries ? 0.2 : 0.4,
+          tension: isRecorded ? 0 : hasSplitSeries ? 0.2 : 0.4,
           pointRadius: (context: ScriptableContext<"line">) => {
             if (context.dataIndex === selectedIndex) {
               return compact
@@ -382,13 +367,13 @@ const OutputsTrendChart = ({
           pointHoverRadius: compact ? 4.8 : 6,
           pointBackgroundColor: (context: ScriptableContext<"line">) => {
             return context.dataIndex === selectedIndex
-              ? "#ffffff"
+              ? chartTheme.text
               : entry.color;
           },
           pointBorderColor: (context: ScriptableContext<"line">) => {
             return context.dataIndex === selectedIndex
               ? entry.color
-              : "rgba(242, 251, 255, 0.92)";
+              : chartTheme.text;
           },
           pointBorderWidth: (context: ScriptableContext<"line">) => {
             if (context.dataIndex === selectedIndex) {
@@ -407,7 +392,7 @@ const OutputsTrendChart = ({
             const chart = context.chart;
             const { ctx, chartArea } = chart;
             if (!chartArea) {
-              return "rgba(111, 206, 255, 0.2)";
+              return withAlpha(entry.color, 0.2);
             }
 
             const gradient = ctx.createLinearGradient(
@@ -416,14 +401,14 @@ const OutputsTrendChart = ({
               0,
               chartArea.bottom,
             );
-            gradient.addColorStop(0, "rgba(111, 206, 255, 0.36)");
-            gradient.addColorStop(1, "rgba(111, 206, 255, 0.02)");
+            gradient.addColorStop(0, withAlpha(entry.color, 0.36));
+            gradient.addColorStop(1, withAlpha(entry.color, 0.02));
             return gradient;
           },
           order: 2,
         };
 
-        if (!hasSplitSeries) {
+        if (!hasSplitSeries || isRecorded) {
           return [lineDataset];
         }
 
@@ -464,8 +449,8 @@ const OutputsTrendChart = ({
         label: entry.label,
         data: entry.values,
         borderColor: "transparent",
-        backgroundColor: SIMULATION_POINT_FILL,
-        pointBackgroundColor: SIMULATION_POINT_FILL,
+        backgroundColor: chartTheme.simulation,
+        pointBackgroundColor: chartTheme.simulation,
         pointBorderColor: entry.accentColor,
         pointBorderWidth: compact ? 1.8 : 2.2,
         pointRadius: compact ? 3.6 : hasMultipleSeries ? 4.2 : 4.8,
@@ -482,9 +467,10 @@ const OutputsTrendChart = ({
 
   const chartOptions = {
     responsive: true,
+            font: { family: chartTheme.fontFamily, size: chartTheme.fontSize },
     maintainAspectRatio: false,
     animation: {
-      duration: 620,
+      duration: reducedMotion ? 0 : chartTheme.duration,
       easing: "easeOutQuart" as const,
     },
     interaction: {
@@ -519,17 +505,18 @@ const OutputsTrendChart = ({
           const nextVisibility = !chart.isDatasetVisible(datasetIndex);
 
           chart.data.datasets.forEach(
-            (
-              dataset: { label?: string | undefined },
-              index: number,
-            ) => {
+            (dataset: { label?: string | undefined }, index: number) => {
               const label = dataset.label ?? "";
               const isMatchingBound =
                 label === `__bound__${datasetLabel} lower` ||
                 label === `__bound__${datasetLabel} upper`;
               const isMatchingPoints = label === `__points__${datasetLabel}`;
 
-              if (index === datasetIndex || isMatchingBound || isMatchingPoints) {
+              if (
+                index === datasetIndex ||
+                isMatchingBound ||
+                isMatchingPoints
+              ) {
                 chart.setDatasetVisibility(index, nextVisibility);
               }
             },
@@ -538,11 +525,11 @@ const OutputsTrendChart = ({
           chart.update();
         },
         labels: {
-          color: LEGEND_TEXT_COLOR,
+          color: chartTheme.muted,
           boxWidth: 10,
           boxHeight: 10,
           usePointStyle: true,
-          padding: 16,
+          padding: chartTheme.spacing,
           generateLabels: (chart: ChartJS) => {
             return chart.data.datasets.flatMap(
               (
@@ -586,7 +573,7 @@ const OutputsTrendChart = ({
                     hidden: !chart.isDatasetVisible(datasetIndex),
                     fillStyle: color,
                     strokeStyle: strokeColor,
-                    fontColor: LEGEND_TEXT_COLOR,
+                    fontColor: chartTheme.muted,
                     lineWidth: 3,
                     pointStyle: "line" as const,
                   },
@@ -600,10 +587,10 @@ const OutputsTrendChart = ({
         },
       },
       tooltip: {
-        backgroundColor: "rgba(3, 20, 38, 0.92)",
-        borderColor: "rgba(141, 219, 255, 0.5)",
+        backgroundColor: chartTheme.surface,
+        borderColor: chartTheme.grid,
         borderWidth: 1,
-        padding: 10,
+        padding: chartTheme.spacing,
         displayColors: hasMultipleSeries,
         filter: (tooltipItem: TooltipItem<"line">) => {
           return !tooltipItem.dataset.label?.startsWith("__bound__");
@@ -613,27 +600,27 @@ const OutputsTrendChart = ({
     scales: {
       x: {
         ticks: {
-          color: "rgba(205, 233, 251, 0.7)",
+          color: chartTheme.muted,
           autoSkip: true,
           maxRotation: 0,
           maxTicksLimit: hasSplitSeries ? 8 : 10,
           font: {
-            size: compact ? 10 : 12,
+            size: compact ? chartTheme.compactFontSize : chartTheme.fontSize,
           },
         },
         grid: {
-          color: "rgba(144, 202, 238, 0.14)",
+          color: chartTheme.grid,
         },
       },
       y: {
         ticks: {
-          color: "rgba(205, 233, 251, 0.7)",
+          color: chartTheme.muted,
           font: {
-            size: compact ? 10 : 12,
+            size: compact ? chartTheme.compactFontSize : chartTheme.fontSize,
           },
         },
         grid: {
-          color: "rgba(144, 202, 238, 0.12)",
+          color: chartTheme.grid,
         },
       },
     },
@@ -644,6 +631,8 @@ const OutputsTrendChart = ({
       dragData?: boolean;
     }
   ).dragData = false;
+
+  if (statusMessage || !resolvedValues.length) return <div className={[styles.chartWrap, compact ? styles.chartWrapCompact : ""].filter(Boolean).join(" ")}><p role="status">{statusMessage ?? "No values are available for this selection."}</p></div>;
 
   return (
     <div

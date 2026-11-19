@@ -1,0 +1,68 @@
+@layer components {
+  .fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+  .fields { display: grid; gap: var(--spacing-lg); padding-block: var(--spacing-md); }
+  .runSettings { display: grid; gap: var(--spacing-lg); padding-block: var(--spacing-sm); }
+  .durationGroup { gap: 0; }
+  .settingsQuestion { margin: 0; color: var(--color-text); font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); }
+  .climateGroup { gap: 0; }
+  .durationGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--spacing-md); }
+  .climateStep { display: grid; gap: var(--spacing-lg); padding-block: 0; }
+  .climateIntroduction { max-width: 90ch; margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: var(--line-height-body); }
+  .climateGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--spacing-md); }
+  .climateStep a { color: var(--color-text); text-underline-offset: 0.2em; }
+  .note { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-xs); line-height: var(--line-height-body); }
+  .hcrContent { display: flex; flex-direction: column; gap: var(--spacing-md); min-height: 0; min-width: 0; flex: 1; }
+  .introduction { display: flex; flex-direction: column; gap: var(--spacing-lg); padding-bottom: var(--spacing-sm); flex-shrink: 0; }
+  .introductionHeader { min-width: 0; }
+  .introductionHeader h2 { margin: 0; font-size: var(--font-size-xl); line-height: var(--line-height-tight); outline: none; }
+  .explanation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--spacing-2xl); min-width: 0; }
+  .explanation p { max-width: 72ch; margin: 0 0 var(--spacing-sm); color: var(--color-text-muted); font-size: var(--font-size-xs); line-height: var(--line-height-body); }
+  .explanation p:last-child { margin-bottom: 0; }
+  .ruleRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--spacing-2xl); }
+  .formula { display: flex; flex-direction: column; gap: var(--spacing-sm); width: fit-content; max-width: 100%; padding: var(--spacing-md) var(--spacing-mdl); border: var(--border-default); border-radius: var(--radius-md); background: var(--color-selected); }
+  .formulaLabel { color: var(--color-text-muted); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
+  .formula p { margin: 0; color: var(--color-text); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); line-height: var(--line-height-body); }
+  .ruleControls { display: flex; flex-direction: column; align-items: stretch; justify-self: end; width: 100%; max-width: 20rem; gap: var(--spacing-md); min-width: 0; }
+  .speciesSelect > label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .speciesSelect { flex: 1; width: 100%; min-width: 0; max-width: 100%; margin: 0; }
+  .configurationSelect { flex: 1; min-width: 0; }
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-md); flex: none; min-height: 0; }
+  .graphPanel { height: var(--setup-chart-height); position: relative; min-width: 0; min-height: var(--setup-chart-height); padding: var(--spacing-md); border: var(--border-default); border-radius: var(--radius-md); background: var(--color-surface-muted); }
+  .graphPanel > div { height: 100%; min-height: 0; }
+  .tablePanel { min-width: 0; min-height: 0; overflow: hidden; border: var(--border-default); border-radius: var(--radius-md); }
+  .tablePanel > div { height: auto; min-width: 0; max-width: 100%; }
+  .cellInput { position: relative; gap: 0; height: 100%; }
+  .cellInput input { height: var(--control-height-sm); min-height: var(--control-height-sm); padding-block: var(--spacing-xs); padding-inline: var(--spacing-xs); font-size: var(--font-size-xs); }
+  .cellInput > :last-child:not(input):not(label) { line-height: var(--line-height-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cellInput > label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .statePanel { display: flex; flex: 1; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: var(--spacing-md); padding: var(--spacing-lg); border: var(--border-default); border-radius: var(--radius-md); color: var(--color-text-muted); text-align: center; }
+  .finalStep { width: 100%; max-width: 44rem; margin-inline: auto; padding-block: var(--spacing-md); }
+  .reviewPanel { overflow: hidden; border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface-muted); }
+  .reviewSummary { padding: var(--spacing-lg); }
+  .reviewCase { display: grid; gap: var(--spacing-xs); padding-bottom: var(--spacing-lg); margin-bottom: var(--spacing-lg); border-bottom: var(--border-default); text-align: center; }
+  .reviewCase > span { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .reviewCase h3 { margin: 0; color: var(--color-text); font-size: var(--font-size-lg); font-weight: var(--font-weight-medium); line-height: var(--line-height-body); }
+  .review { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--spacing-lg); margin: 0; }
+  .review > div { display: grid; align-content: start; gap: var(--spacing-sm); min-width: 0; }
+  .review dt { color: var(--color-text-muted); font-size: var(--font-size-xs); line-height: var(--line-height-body); }
+  .review dd { margin: 0; overflow-wrap: anywhere; font-size: var(--font-size-md); font-weight: var(--font-weight-semibold); line-height: var(--line-height-body); }
+  .review dd small { display: block; margin-top: var(--spacing-xs); color: var(--color-text-muted); font-size: var(--font-size-xs); font-weight: var(--font-weight-regular); line-height: var(--line-height-body); }
+  .nameSection { display: grid; justify-items: center; gap: var(--spacing-sm); padding: var(--spacing-lg); border-top: var(--border-default); background: var(--color-surface); }
+  .nameSection > p { text-align: center; }
+  .nameField { width: 100%; max-width: 28rem; }
+  .nameField input { font-size: var(--font-size-md); }
+  .nameField [slot="description"] { text-align: right; font-variant-numeric: tabular-nums; }
+  .error { margin: 0; color: var(--color-danger); font-size: var(--font-size-sm); line-height: var(--line-height-body); }
+  @media (max-width: 48rem) {
+    .explanation, .ruleRow { grid-template-columns: minmax(0, 1fr); gap: var(--spacing-md); }
+    .ruleControls { max-width: none; }
+  }
+  @media (max-width: 40rem) {
+    .durationGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ruleControls { align-items: stretch; }
+    .speciesSelect, .configurationSelect { flex-basis: 100%; min-width: 0; max-width: none; margin: 0; }
+    .review { grid-template-columns: minmax(0, 1fr); gap: var(--spacing-md); }
+    .reviewSummary, .nameSection { padding: var(--spacing-md); }
+
+  }
+}

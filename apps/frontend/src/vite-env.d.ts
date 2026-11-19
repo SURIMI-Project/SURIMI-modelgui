@@ -2,11 +2,5 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
+  readonly VITE_MOCK_HCR_DEFAULTS?: string;
 }
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
-/** MOCK=true at build time (see vite.config.ts). */
-declare const __MOCK__: boolean;

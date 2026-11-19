@@ -1,0 +1,14 @@
+@layer tokens {
+  :root {
+    --radius-2xs: 0.25rem;
+    --radius-xs: 0.375rem;
+    --radius-sm: 0.5rem;
+    --radius-smd: 0.625rem;
+    --radius-md: 0.75rem;
+    --radius-mdl: 0.875rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-pill: 999px;
+    --radius-roundedFull: 50%;
+  }
+}

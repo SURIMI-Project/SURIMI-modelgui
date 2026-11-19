@@ -1,0 +1,11 @@
+@layer components {
+  .card { display: flex; flex-direction: column; width: 100%; overflow: hidden; padding: 0; border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-map-coverage-surface); box-shadow: var(--shadow-md); text-align: left; font: inherit; cursor: pointer; transition: box-shadow var(--motion-fast), transform var(--motion-fast); }
+  .heading { display: flex; align-items: center; gap: var(--spacing-smd); min-height: calc(var(--control-height-sm) * 2); padding: var(--spacing-smd) var(--spacing-md); background-size: cover; background-position: center; color: var(--color-sea-on-background); }
+  .heading strong { flex: 1; font-size: var(--font-size-lg); line-height: var(--line-height-tight); }
+  .heading svg { flex-shrink: 0; width: var(--icon-size-md); height: var(--icon-size-md); }
+  .coverage { display: block; padding: var(--spacing-smd) var(--spacing-md); background: var(--color-map-coverage-surface); color: var(--color-map-coverage-text); font-size: var(--font-size-sm); line-height: var(--line-height-body); }
+  .card:hover:not(:disabled) { box-shadow: var(--shadow-lg); }
+  .card:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+  .card:disabled { opacity: 0.45; cursor: default; }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+}

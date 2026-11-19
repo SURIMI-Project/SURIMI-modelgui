@@ -1,0 +1,36 @@
+@layer aria {
+  .scroll {
+    overflow: auto;
+    width: 100%;
+  }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    text-align: left;
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+  .table th {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-xs);
+  }
+  .table th,
+  .table td {
+    padding: var(--spacing-md);
+    border-bottom: var(--border-default);
+    white-space: nowrap;
+  }
+  .table tr[data-hovered] {
+    background: var(--color-surface-hover);
+  }
+  .table tr[data-selected] {
+    background: var(--color-selected);
+  }
+  .table [data-focus-visible] {
+    outline: var(--focus-ring);
+    outline-offset: -2px;
+  }
+}

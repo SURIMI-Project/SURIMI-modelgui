@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { readChartTheme } from "../../../../styles/chartTheme";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties } from "react";
 import { FiPause, FiPlay } from "react-icons/fi";
 import styles from "./YearControls.module.css";
 
@@ -47,9 +48,10 @@ const YearControls = ({
   isPlaying,
   onTogglePlay,
   onSelectYear,
-  size = BASE_WHEEL_SIZE,
+  size: requestedSize,
   showHint = true,
 }: YearControlsProps) => {
+  const size = requestedSize ?? readChartTheme().wheelSize ?? BASE_WHEEL_SIZE;
   const wheelRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const center = size / 2;
@@ -122,7 +124,7 @@ const YearControls = ({
 
     const dx = clientX - centerX;
     const dy = clientY - centerY;
-    const distance = Math.hypot(dx, dy);
+    const distance = Math.hypot(dx, dy) * (size / rect.width);
 
     if (distance < ringHitInner || distance > ringHitOuter) {
       return;
@@ -138,13 +140,15 @@ const YearControls = ({
     }
   };
 
+  const pickDraggedYear = useEffectEvent(pickYearFromPointer);
+
   useEffect(() => {
     if (!isDragging) {
       return;
     }
 
     const handlePointerMove = (event: PointerEvent) => {
-      pickYearFromPointer(event.clientX, event.clientY);
+      pickDraggedYear(event.clientX, event.clientY);
     };
 
     const handlePointerUp = () => {
@@ -158,14 +162,14 @@ const YearControls = ({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [isDragging, onSelectYear, ringHitInner, ringHitOuter, years]);
+  }, [isDragging]);
 
   return (
     <div className={styles.wrapper}>
       <div
         ref={wheelRef}
         className={styles.wheel}
-        style={{ width: size, height: size }}
+        style={{ "--year-wheel-size": `${size}px` } as CSSProperties}
         onPointerDown={(event) => {
           pickYearFromPointer(event.clientX, event.clientY);
           setIsDragging(true);

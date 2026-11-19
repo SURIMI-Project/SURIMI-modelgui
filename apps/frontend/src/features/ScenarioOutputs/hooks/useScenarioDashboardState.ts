@@ -38,11 +38,11 @@ export type ScenarioDashboardState = {
 export const useScenarioDashboardState = ({
   dataset,
 }: UseScenarioDashboardStateArgs): ScenarioDashboardState => {
-  const years = dataset?.years ?? [];
+  const years = useMemo(() => dataset?.years ?? [], [dataset]);
   const functionalGroupOptions = dataset?.functionalGroupOptions ?? [
     { value: ALL_FUNCTIONAL_GROUPS_VALUE, label: "All functional groups" },
   ];
-  const speciesPresentationByKey = dataset?.speciesPresentationByKey ?? {};
+  const speciesPresentationByKey = useMemo(() => dataset?.speciesPresentationByKey ?? {}, [dataset]);
   const speciesOptions = useMemo<SpeciesOption[]>(() => {
     return (dataset?.species_outputs ?? [])
       .map((item) => item.species_code)

@@ -1,5 +1,11 @@
 # Authentication and users — changelog
 
+## 2026-11-16 — Dark login presentation
+
+Restyled the existing frontend login layout and shared input focus/outlined controls to match the dark application theme. The shared login form, local/SSO requests, account separation, validation, pending/error handling, password clearing and return-path behavior remain unchanged. No backend/authentication contract changes.
+
+**Verified:** production build and all 26 frontend network tests pass; focused lint passes. Final browser layout, keyboard and autofill review remains outstanding. See the [design-system changelog](../frontend-design-system/CHANGELOG.md).
+
 Every change made for this feature, newest first. Each entry says what changed,
 where, how it was checked and what deploying it needs. Design is in
 [README.md](README.md).

@@ -1,0 +1,10 @@
+@layer components {
+  .tooltip { z-index: 9000; max-width: min(22rem, calc(100vw - 2rem)); padding: var(--spacing-smd) var(--spacing-md); border: var(--border-default); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-md); font-size: var(--font-size-sm); line-height: var(--line-height-body); }
+  .arrow svg { display: block; fill: var(--color-surface); }
+  .tooltip[data-placement="bottom"] .arrow svg { transform: rotate(180deg); }
+  .tooltip[data-placement="left"] .arrow svg { transform: rotate(-90deg); }
+  .tooltip[data-placement="right"] .arrow svg { transform: rotate(90deg); }
+  .disabledTarget { display: inline-flex; border-radius: var(--radius-sm); }
+  .disabledTarget[data-disabled] > button { pointer-events: none; }
+  .disabledTarget:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+}

@@ -1,3 +1,4 @@
+import Button from "../../../../components/ui/Button/Button";
 import type { ReactNode } from "react";
 import type { HeatPoint } from "../../types";
 import HeatMap from "../HeatMap/HeatMap";
@@ -21,6 +22,9 @@ type OutputsMapPanelProps = {
   className?: string;
   mapClassName?: string;
   compact?: boolean;
+  isLoading?: boolean;
+  error?: string;
+  onRetry?: () => void;
 };
 
 const OutputsMapPanel = ({
@@ -37,6 +41,9 @@ const OutputsMapPanel = ({
   className,
   mapClassName,
   compact = false,
+  isLoading = false,
+  error,
+  onRetry,
 }: OutputsMapPanelProps) => {
   return (
     <section
@@ -72,18 +79,19 @@ const OutputsMapPanel = ({
               metricLabel={metricLabel}
               min={valueDomain.min}
               max={valueDomain.max}
+              formatValue={value => value.toLocaleString("en", { maximumSignificantDigits: 4 })}
             />
           </div>
         </div>
       ) : null}
 
-      <HeatMap
+      {isLoading || error ? <div className={mapClassName} role={error ? "alert" : "status"}><p className={styles.subtitle}>{error ?? "Reading spatial output…"}</p>{error && onRetry ? <Button variant="primary-outlined" size="sm" onPress={onRetry}>TRY AGAIN</Button> : null}</div> : <HeatMap
         className={mapClassName}
         points={points}
         metricLabel={metricLabel}
         bounds={bounds}
         valueDomain={valueDomain}
-      />
+      />}
     </section>
   );
 };

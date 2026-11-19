@@ -1,0 +1,123 @@
+@layer components {
+  .page {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: var(--spacing-xl);
+    background: var(--color-background);
+    color: var(--color-text);
+  }
+  .card {
+    width: min(100%, 28rem);
+    padding: var(--spacing-xl);
+    border: var(--border-default);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+  }
+  .logo {
+    width: 5rem;
+    margin-bottom: var(--spacing-lg);
+  }
+  .eyebrow {
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--spacing-sm);
+  }
+  .title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-smd);
+  }
+  .description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-xl);
+  }
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+  .input {
+    min-height: 2.875rem;
+    padding: var(--spacing-smd) var(--spacing-md);
+    border: var(--border-width) solid var(--color-input-border);
+    background: var(--color-input);
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+  }
+  .submit {
+    padding: var(--spacing-md);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .submit:disabled {
+    background: var(--color-disabled);
+    color: var(--color-disabled-text);
+  }
+  .error {
+    background: var(--color-danger-surface);
+    color: var(--color-danger);
+    border: var(--border-width) solid var(--color-danger);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-smd);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-body);
+  }
+  .requestId {
+    display: block;
+    margin-top: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    overflow-wrap: anywhere;
+  }
+  .sso {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-smd);
+  }
+  .divider {
+    text-align: center;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-smd);
+  }
+  .divider::before,
+  .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+  .providerNote {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-lg);
+  }
+  .cardSession {
+    margin-top: var(--spacing-lg);
+  }
+}
+
+@layer components {
+  .page { width: 100vw; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+  .card { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+}
+
+@layer components {
+  .input:focus { outline: var(--focus-ring); outline-offset: calc(-1 * var(--focus-width)); border-color: var(--color-focus); box-shadow: none; }
+  .form { gap: 1.25rem; }
+  .form input { min-height: 3rem; }
+  .form > button, .sso > button { width: 100%; min-height: 3rem; }
+  .sso { margin-top: 1.5rem; gap: 1rem; }
+}

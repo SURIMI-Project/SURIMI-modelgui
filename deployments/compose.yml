@@ -31,8 +31,8 @@ x-db-env: &db-env
 
 # Shared by api and worker, so both count the same pods and read the same
 # outputs (ADR 0015, ADR 0019, ADR 0009).
-x-runtime-env: &runtime-env
-  # fake: built-in stand-in; grpc: the real controller at CONTROLLER_GRPC_URL.
+x-runtime-env:
+  &runtime-env # fake: built-in stand-in; grpc: the real controller at CONTROLLER_GRPC_URL.
   CONTROLLER_MODE: ${CONTROLLER_MODE:-fake}
   CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
   LOG_FORMAT: ${LOG_FORMAT:-json}
@@ -151,7 +151,12 @@ services:
   # unset, a partly set group fails; safe on every start).
   migrate:
     <<: *backend
-    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species"]
+    command:
+      [
+        "sh",
+        "-c",
+        "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species",
+      ]
     environment:
       <<: *db-env
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}

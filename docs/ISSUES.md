@@ -12,28 +12,37 @@ here is fixed: a fixed item is deleted and the fix recorded in a
 
 ### Controller descriptor in the repo is out of date
 
-**Severity:** Medium — the generated client lacks `GetSimulationStatuses`
-**Evidence:** Verified 2026-11-03
-**Owner:** this repo
-**Where:** `apps/frontend/proto/surimi.binpb`, `apps/frontend/src/gen/surimi/v1/`
+**Severity:** Low — access is denied correctly; recovery experience is incomplete.
+**Evidence:** Verified 2026-11-05 against local Keycloak: Carol (no mapped role) receives HTTP 403 `no_access` at `/api/v1/auth/sso/keycloak/callback`, with no SURIMI access/refresh cookies.
+**Owner:** backend/frontend callback contract; no backend changes authorized in this frontend task.
 
 The descriptor was pulled by reflection from `user-<controller-team>`. The registry module
 `buf.build/surimi/surimi-protocol` has `GetSimulationStatuses(experiment_ids)`;
 the local descriptor does not. Reflection is off on `project-surimi`, so
 `npm run proto:pull` cannot refresh it from there.
 
-**Fix:** generate from the registry, pinned ([ADR 0011](decisions/0011-controller-stubs-from-buf-registry.md)).
+**Next action:** agree a safe, non-sensitive failure redirect (or gateway error-page mechanism) with the backend owner. Do not add a dev-only Vite interception that would hide the production behaviour. This issue does not grant access to a rejected user.
 
-### Lint fails with 20 errors and 5 warnings
+### Existing frontend dependencies have npm audit findings
+
+**Severity:** High — audit includes a critical MapLibre advisory
+**Evidence:** Verified 2026-11-05, `npm audit --json`: 20 findings (2 low, 4 moderate, 13 high, 1 critical) after installing the REST foundation. Every reported package family was already present in the HEAD lockfile; Axios, Zod and TanStack Query are not listed in that report.
+**Owner:** frontend dependency maintenance
+
+The critical finding is MapLibre GL JS sanitizer bypass ([GHSA-jrc7-96c5-q579](https://github.com/advisories/GHSA-jrc7-96c5-q579)); the installed 5.x dependency falls in the reported range. Audit proposes a major MapLibre upgrade. This is a reported dependency finding, not a demonstrated exploit in this app.
+
+**Next action:** review affected usage and plan dependency updates with map/chart/build regression checks. Do not run broad `npm audit fix --force` as part of request-layer work. No unrelated upgrades were attempted in this increment.
+
+### Lint fails with 16 errors and 5 warnings
 
 **Severity:** Low — CI runs lint in report-only mode until these are fixed
-**Evidence:** Verified 2026-11-03 on `main` before the monorepo move, and unchanged after it
+**Evidence:** Verified 2026-11-16 after the frontend redesign/cleanup: 16 errors and five warnings remain in preserved chart/output/video code. The redesign callback/ref findings were fixed.
 **Owner:** this repo
-**Where:** 12 files in `apps/frontend/src/`
+**Where:** nine files in `apps/frontend/src/`
 
-`npm run lint`: 14 × `@typescript-eslint/no-explicit-any`, 4 ×
-`react-hooks/set-state-in-effect`, 1 × `@typescript-eslint/no-unused-vars`,
-1 × `react-hooks/immutability` (errors); 5 × `react-hooks/exhaustive-deps`
+`npm run lint`: 14 × `@typescript-eslint/no-explicit-any`, 1 ×
+`react-hooks/set-state-in-effect`, 1 × `react-hooks/immutability` (errors);
+5 × `react-hooks/exhaustive-deps`
 (warnings).
 
 **Fix:** fix them in their own change, then remove `continue-on-error` from

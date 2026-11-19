@@ -1,30 +1,84 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import MsyModelPage from "./pages/MsyModelPage/MsyModelPage";
-import ScenarioOutputsPage from "./pages/ScenarioOutputsPage/ScenarioOutputsPage";
+import RequireSession from "./features/auth/RequireSession";
+import PasswordChangePage from "./pages/PasswordChangePage/PasswordChangePage";
+import LoginPage from "./pages/LoginPage/LoginPage";
 import ScenarioRunsPage from "./pages/ScenarioRunsPage/ScenarioRunsPage";
-import ScenarioWorldPage from "./pages/ScenarioWorldPage/ScenarioWorldPage";
+import { useCurrentUser } from "./serverState/auth/useCurrentUser";
+import SessionGate from "./features/auth/SessionGate";
 import SimulationCaseSelectionPage from "./pages/SimulationCaseSelectionPage/SimulationCaseSelectionPage";
 
-const App = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<SimulationCaseSelectionPage />} />
-      <Route path="/scenario/:caseId" element={<ScenarioWorldPage />} />
+const ScenarioOutputsPage = lazy(() => import("./pages/ScenarioOutputsPage/ScenarioOutputsPage"));
+const MsyModelPage = lazy(() => import("./pages/cmsy/test/MsyModelPage"));
+const CmsyPresentation = lazy(() => import("./pages/cmsy/CmsyPresentation"));
+const CmsyInputPage = lazy(() => import("./pages/cmsy/input/CmsyInputPage"));
+const CmsyOutputPage = lazy(() => import("./pages/cmsy/output/CmsyOutputPage"));
+
+const DesignSystemPage = lazy(
+  () => import("./pages/DesignSystemPage/DesignSystemPage"),
+);
+
+const NetcdfLabPage = lazy(
+  () => import("../../../experiments/netcdf-lab/NetcdfLabPage"),
+);
+
+const HomeRedirect = () => {
+  const session = useCurrentUser();
+  if (session.isPending) return null;
+  if (session.isError) return <SessionGate><span /></SessionGate>;
+  return <Navigate to={session.data ? "/scenarios" : "/login"} replace />;
+};
+
+// The shared map layout renders these scenes directly; the leaf has no outlet content.
+const MapSceneRoute = () => null;
+
+const App = () => (
+  <Routes>
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/change-password" element={<PasswordChangePage />} />
+    <Route path="/test" element={<Suspense fallback={null}><CmsyPresentation><MsyModelPage /></CmsyPresentation></Suspense>} />
+    <Route path="/" element={<HomeRedirect />} />
+    <Route element={<SimulationCaseSelectionPage />}>
+      <Route path="/scenarios" Component={MapSceneRoute} />
+      <Route path="/scenario/:caseId" Component={MapSceneRoute} />
       <Route
         path="/scenario-runs"
-        element={<Navigate to="/scenario-runs/anchovy-bay" replace />}
+        element={<ScenarioRunsPage />}
       />
       <Route path="/scenario-runs/:caseId" element={<ScenarioRunsPage />} />
       <Route
         path="/scenario-runs/:caseId/:runId"
         element={<ScenarioRunsPage />}
       />
-      <Route path="/scenario-outputs/:scenario" element={<ScenarioOutputsPage />} />
-      <Route path="/outputs/:caseId" element={<ScenarioOutputsPage />} />
-      <Route path="/test" element={<MsyModelPage />} />
+
+    </Route>
+    <Route element={<RequireSession />}>
+      <Route path="/cmsy-input" element={<Suspense fallback={<p>Loading CMSY inputs…</p>}><CmsyPresentation><CmsyInputPage /></CmsyPresentation></Suspense>} />
+      <Route path="/cmsy-output" element={<Suspense fallback={<p>Loading CMSY outputs…</p>}><CmsyPresentation><CmsyOutputPage /></CmsyPresentation></Suspense>} />
+      <Route
+        path="/design-system"
+        element={
+          <Suspense fallback={<p>Loading design system…</p>}>
+            <DesignSystemPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/scenario-outputs/:scenario"
+        element={<Suspense fallback={<p>Loading scenario outputs…</p>}><ScenarioOutputsPage /></Suspense>}
+      />
+      <Route path="/outputs/:caseId" element={<Suspense fallback={<p>Loading scenario outputs…</p>}><ScenarioOutputsPage /></Suspense>} />
+      <Route
+        path="/netcdf-lab"
+        element={
+          <Suspense fallback={<p>Loading NetCDF lab…</p>}>
+            <NetcdfLabPage />
+          </Suspense>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-};
+    </Route>
+  </Routes>
+);
 
 export default App;

@@ -27,6 +27,7 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
+        "http://localhost:5173/api/v1/auth/sso/keycloak/callback",
         "http://localhost:18080/api/v1/auth/sso/keycloak/callback",
         "http://localhost:18082/api/v1/auth/sso/keycloak/callback",
         "http://localhost:8000/api/v1/auth/sso/keycloak/callback"

@@ -1,0 +1,280 @@
+# Backend stack for a frontend running with npm run dev on http://localhost:5173.
+# docker compose -f deployments/compose.fe.local.yml up --build -d
+# Based on compose.local.yml; no web service; Keycloak starts by default.
+# Reads deployments/.env. Uses the existing project and database volume.
+
+# Keeps container and network names as before the move to deployments/.
+name: surimi-modelgui
+
+x-db-env: &db-env
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: ${DB_NAME:-surimi_modelgui_db}
+  DB_USER: ${DB_USER:-surimi_modelgui}
+  # Local-only default; any shared environment sets its own (ADR 0014).
+  DB_PASSWORD: ${DB_PASSWORD:-surimi-local-only}
+  DB_SSLMODE: disable
+
+# Shared by api and worker, so both count the same pods and read the same
+# outputs (ADR 0015, ADR 0019, ADR 0009).
+x-runtime-env: &runtime-env
+  # fake: built-in stand-in; grpc: the real controller at CONTROLLER_GRPC_URL.
+  CONTROLLER_MODE: ${CONTROLLER_MODE:-fake}
+  CONTROLLER_GRPC_URL: ${CONTROLLER_GRPC_URL:-}
+  LOG_FORMAT: ${LOG_FORMAT:-json}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  # Must equal the controller's ECOPATH_NR_OF_PODS and NR_OF_MSE_RUNS.
+  ECOPATH_PODS: ${ECOPATH_PODS:-10}
+  CONTROLLER_MSE_SIMULATIONS: ${CONTROLLER_MSE_SIMULATIONS:-5}
+  MAX_PODS_PER_USER: ${MAX_PODS_PER_USER:-5}
+  MAX_QUEUED_EXPERIMENTS_PER_USER: ${MAX_QUEUED_EXPERIMENTS_PER_USER:-10}
+  # s3://bucket/prefix, or the outputs folder mounted at /data/experiments.
+  OUTPUTS_URI: ${OUTPUTS_URI:-file:///data/experiments}
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+  S3_SESSION_TOKEN: ${S3_SESSION_TOKEN:-}
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
+  # Lifetime of a presigned download link, in seconds (60 to 604800).
+  PRESIGNED_URL_TTL_SECONDS: ${PRESIGNED_URL_TTL_SECONDS:-3600}
+  # Largest species CSV an admin may import (MB); nginx allows 10 for that path.
+  CATALOG_IMPORT_MAX_MB: ${CATALOG_IMPORT_MAX_MB:-10}
+  # --- metrics and traces (ADR 0010) ---
+  # /metrics on the API port and the worker's WORKER_METRICS_PORT; not routed by nginx.
+  METRICS_ENABLED: ${METRICS_ENABLED:-true}
+  WORKER_METRICS_PORT: ${WORKER_METRICS_PORT:-9102}
+  # When set (>= 32 characters), /metrics answers only `Authorization: Bearer <token>`.
+  METRICS_TOKEN: ${METRICS_TOKEN:-}
+  # Empty = tracing off. With --profile observability: http://jaeger:4318
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  # --- retention (ADR 0013): days; IP and user agent 0 = not stored, others 0 = keep ---
+  RETENTION_LOGIN_IP_DAYS: ${RETENTION_LOGIN_IP_DAYS:-90}
+  RETENTION_LOGIN_USER_AGENT_DAYS: ${RETENTION_LOGIN_USER_AGENT_DAYS:-90}
+  RETENTION_LOGIN_EVENTS_DAYS: ${RETENTION_LOGIN_EVENTS_DAYS:-395}
+  RETENTION_AUDIT_DAYS: ${RETENTION_AUDIT_DAYS:-730}
+  RETENTION_SESSIONS_DAYS: ${RETENTION_SESSIONS_DAYS:-30}
+  RETENTION_DELETED_EXPERIMENTS_DAYS: ${RETENTION_DELETED_EXPERIMENTS_DAYS:-365}
+  RETENTION_PURGE_INTERVAL_HOURS: ${RETENTION_PURGE_INTERVAL_HOURS:-24}
+
+# Container logs kept on the host: 5 files of 10 MB per container (ADR 0013),
+# on every service, so logs cannot fill the disk.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
+
+# One backend image for migrate, api and worker.
+x-backend: &backend
+  build:
+    # Repository root: the image needs the uv workspace lock file.
+    context: ..
+    dockerfile: apps/backend/Dockerfile
+  image: ghcr.io/surimi-project/surimi-modelgui-backend-api:local
+  logging: *logging
+
+services:
+  # --- database (ADR 0014) --------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    logging: *logging
+    environment:
+      # Instance admin: name and password are applied only when the volume is
+      # first created (official image behaviour). To change them later, use
+      # ALTER ROLE, or `down -v` to start from an empty database.
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      # Local-only default.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-local-only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      # For running the backend or a SQL client from the host; local machine
+      # only, and not 5432 so it does not clash with a locally installed PostgreSQL.
+      - "127.0.0.1:${POSTGRES_PORT:-15432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # Creates the database and its application user if missing, and sets the
+  # user's password on every start (so a changed DB_PASSWORD takes effect).
+  db-bootstrap:
+    image: postgres:17-alpine
+    logging: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres-local-only}
+      APP_DB: ${DB_NAME:-surimi_modelgui_db}
+      APP_USER: ${DB_USER:-surimi_modelgui}
+      APP_PASSWORD: ${DB_PASSWORD:-surimi-local-only}
+    # $$ keeps compose from interpolating; the shell reads the variables, so
+    # passwords with spaces or quotes are passed as they are.
+    command: >-
+      sh -c 'psql -v ON_ERROR_STOP=1 -d postgres
+      -v app_db="$$APP_DB" -v app_user="$$APP_USER" -v app_password="$$APP_PASSWORD"
+      -f /bootstrap/bootstrap.sql'
+    volumes:
+      - ./mounts/postgres/bootstrap.sql:/bootstrap/bootstrap.sql:ro,z
+    restart: "no"
+
+  # --- backend (apps/backend) -----------------------------------------------------
+  # Migrations, then the first admin from ADMIN_* (nothing happens when all are
+  # unset, a partly set group fails; safe on every start).
+  migrate:
+    <<: *backend
+    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species"]
+    environment:
+      <<: *db-env
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
+
+  api:
+    <<: *backend
+    command: ["surimi-backend", "serve"]
+    environment:
+      <<: [*db-env, *runtime-env]
+      # nginx in front: trust X-Forwarded-For from the compose network.
+      TRUSTED_PROXIES: "*"
+      # API processes (uvicorn workers), 1 to 32; see .env.example.
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+      # --- sign-in (ADR 0004) ---
+      # Local-only default; any shared environment sets its own (>= 32 characters).
+      JWT_SECRET: ${JWT_SECRET:-local-only-jwt-secret-change-me-0123456789abcdef}
+      PUBLIC_BASE_URL: http://localhost:5173
+      # Plain http on localhost: browsers drop Secure cookies there.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Sign-in and home page at /api/v1/console/ (docs/features/backend-console).
+      CONSOLE_ENABLED: ${CONSOLE_ENABLED:-true}
+      # SSO: empty = password sign-in only. "keycloak" with --profile keycloak.
+      OIDC_PROVIDERS: ${OIDC_PROVIDERS:-keycloak}
+      OIDC_KEYCLOAK_ISSUER: ${OIDC_KEYCLOAK_ISSUER:-http://localhost:18083/realms/surimi}
+      # The API reaches Keycloak inside the compose network, browsers on localhost.
+      OIDC_KEYCLOAK_DISCOVERY_URL: ${OIDC_KEYCLOAK_DISCOVERY_URL:-http://keycloak:8080/realms/surimi/.well-known/openid-configuration}
+      OIDC_KEYCLOAK_CLIENT_ID: ${OIDC_KEYCLOAK_CLIENT_ID:-surimi-modelgui}
+      OIDC_KEYCLOAK_CLIENT_SECRET: ${OIDC_KEYCLOAK_CLIENT_SECRET:-local-only-client-secret}
+      OIDC_KEYCLOAK_DISPLAY_NAME: ${OIDC_KEYCLOAK_DISPLAY_NAME:-Keycloak}
+      # Role from the groups claim (Group Membership mapper, full group path off).
+      OIDC_KEYCLOAK_ROLE_CLAIM: ${OIDC_KEYCLOAK_ROLE_CLAIM:-groups}
+      OIDC_KEYCLOAK_ADMIN_VALUES: ${OIDC_KEYCLOAK_ADMIN_VALUES:-surimi-admins}
+      OIDC_KEYCLOAK_MEMBER_VALUES: ${OIDC_KEYCLOAK_MEMBER_VALUES:-surimi-members}
+      OIDC_KEYCLOAK_DEFAULT_ROLE: ${OIDC_KEYCLOAK_DEFAULT_ROLE:-deny}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      # Direct access for Bruno and debugging, local machine only.
+      - "127.0.0.1:${API_PORT:-18082}:8000"
+    volumes:
+      - ${OUTPUTS_LOCAL_DIR:-./mounts/experiments}:/data/experiments:ro,z
+    restart: unless-stopped
+
+  # Polls the controller, dispatches the queue, indexes outputs (ADR 0019).
+  # Replicas are safe: one leads (advisory lock), the others wait.
+  worker:
+    <<: *backend
+    command: ["surimi-backend", "worker"]
+    environment:
+      <<: [*db-env, *runtime-env]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ${OUTPUTS_LOCAL_DIR:-./mounts/experiments}:/data/experiments:ro,z
+    # Only the metrics port, no /healthz: the image's health check does not apply.
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # --- Keycloak for local SSO (profile "keycloak") ---------------------------------
+  # Realm "surimi" with client surimi-modelgui and users alice (admin), bob
+  # (member), carol (no access); see deployments/mounts/keycloak/surimi-realm.json.
+  # Browsers use http://localhost:18083; the API uses http://keycloak:8080.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    logging: *logging
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin-local-only}
+      # Issuer and browser URLs on localhost; back-channel calls from the API
+      # (token, JWKS) answered on the address the API used.
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-18083}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./mounts/keycloak/surimi-realm.json:/opt/keycloak/data/import/surimi-realm.json:ro,z
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-18083}:8080"
+    restart: unless-stopped
+
+  # --- observability (profile "observability", docs/features/observability-and-activity) ---
+  #   docker compose --profile observability up -d
+  # Set OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318 in .env to send traces to Jaeger.
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    logging: *logging
+    profiles: ["observability"]
+    # Prometheus reads the bearer token from a file, not from the environment:
+    # write METRICS_TOKEN to one, then start it. $$ keeps compose from
+    # interpolating; the shell reads the variable.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        printf '%s' "$$METRICS_TOKEN" > /tmp/metrics_token &&
+        exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml
+        --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d
+    environment:
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+    volumes:
+      - ./mounts/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-18090}:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    logging: *logging
+    profiles: ["observability"]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin-local-only}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/surimi.json
+    volumes:
+      - ./mounts/observability/grafana/provisioning:/etc/grafana/provisioning:ro,z
+      - ./mounts/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro,z
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-18091}:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Jaeger v2 all-in-one: OTLP on 4317 (gRPC) and 4318 (HTTP), UI on 16686.
+  # Traces are kept in memory until the container restarts.
+  jaeger:
+    image: jaegertracing/jaeger:2.23.0
+    logging: *logging
+    profiles: ["observability"]
+    ports:
+      - "127.0.0.1:${JAEGER_PORT:-18092}:16686"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  prometheus-data:

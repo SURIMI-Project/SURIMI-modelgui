@@ -1,0 +1,13 @@
+@layer aria {
+  .popover {
+    z-index: 7000;
+    max-width: calc(100vw - var(--spacing-xl));
+    padding: var(--spacing-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    outline: none;
+  }
+}

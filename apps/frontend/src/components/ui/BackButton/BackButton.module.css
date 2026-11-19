@@ -1,0 +1,4 @@
+@layer components {
+  .backButton { flex-shrink: 0; width: var(--control-height-sm); height: var(--control-height-sm); min-height: var(--control-height-sm); padding: var(--spacing-xs); border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); }
+  .backButton svg { inline-size: var(--icon-size-md); block-size: var(--icon-size-md); stroke-width: 2.5; }
+}

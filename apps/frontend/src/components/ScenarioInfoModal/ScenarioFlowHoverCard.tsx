@@ -1,4 +1,4 @@
-import type { ScenarioFlowNode } from "./scenarioModelFlowGraphData";
+import type { ScenarioFlowNode } from "../../../mock-data/content/modelFlowGraphs";
 import { FiX } from "react-icons/fi";
 import { FaYoutube } from "react-icons/fa";
 import styles from "./ScenarioInfoModal.module.css";
@@ -45,34 +45,36 @@ const ScenarioFlowHoverCard = ({ node, onClose }: ScenarioFlowHoverCardProps) =>
           </a>
         ) : null}
       </div>
-      <p className={styles.hoverCardText}>{node.hoverDescription}</p>
-      {node.references?.length ? (
-        <div className={styles.hoverCardReferences}>
-          <p className={styles.hoverCardReferenceTitle}>
-            References ({node.references.length})
-          </p>
-          <ul>
-            {node.references.map((reference) => (
-              <li
-                key={typeof reference === "string" ? reference : reference.label}
-              >
-                {typeof reference === "string" ? (
-                  reference
-                ) : (
-                  <a
-                    href={reference.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.hoverCardReferenceLink}
-                  >
-                    {reference.label}
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <div className={styles.hoverCardScroll} tabIndex={0} role="region" aria-label={`${node.hoverTitle} model details`}>
+        <p className={styles.hoverCardText}>{node.hoverDescription}</p>
+        {node.references?.length ? (
+          <div className={styles.hoverCardReferences}>
+            <p className={styles.hoverCardReferenceTitle}>
+              References ({node.references.length})
+            </p>
+            <ul>
+              {node.references.map((reference) => (
+                <li
+                  key={typeof reference === "string" ? reference : reference.label}
+                >
+                  {typeof reference === "string" ? (
+                    reference
+                  ) : (
+                    <a
+                      href={reference.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.hoverCardReferenceLink}
+                    >
+                      {reference.label}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
     </aside>
   );
 };

@@ -10,6 +10,8 @@ COPY apps/frontend/package.json apps/frontend/package.json
 RUN npm ci --workspace apps/frontend --include-workspace-root=false
 
 COPY apps/frontend apps/frontend
+# The app and Vite config import the NetCDF lab and its runtime assets.
+COPY experiments/netcdf-lab experiments/netcdf-lab
 # MOCK=true builds an image that serves canned controller responses. Default
 # true since the gRPC-Web proxy was removed (2026-11-17): the current frontend
 # cannot reach the controller until phase 10 moves it onto the backend API.

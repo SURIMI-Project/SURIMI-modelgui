@@ -1,0 +1,40 @@
+@layer components {
+  .page { height: 100dvh; overflow-y: auto; overflow-x: hidden; color: var(--color-text); background: var(--color-report-background); scrollbar-gutter: stable; scrollbar-width: thin; }
+  .header { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-lg); padding: var(--spacing-md) var(--layout-page-gutter); border-bottom: var(--border-default); background: var(--color-surface); }
+  .brand { display: flex; align-items: center; gap: var(--spacing-md); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); letter-spacing: var(--letter-spacing-eyebrow); }
+  .logo { width: var(--control-height-lg); height: var(--control-height-lg); padding: var(--spacing-xs); border-radius: var(--radius-sm); background: var(--color-floating-control-surface); }
+  .headerActions { display: flex; align-items: center; gap: var(--spacing-lg); }
+  .container { max-width: var(--layout-content-max); margin-inline: auto; padding: var(--spacing-xl) var(--layout-page-gutter) var(--spacing-3xl); }
+  .intro { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+  .intro h1 { font-size: var(--font-size-2xl); margin-bottom: var(--spacing-sm); }
+  .intro p, .sectionHeading p, .previewNote { color: var(--color-text-muted); font-size: var(--font-size-md); }
+  .sections { display: grid; gap: var(--spacing-2xl); }
+  .sectionHeading { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); }
+  .sectionHeading h2, .fieldStack h2, .typeScale h2 { font-size: var(--font-size-xl); }
+  .sectionHeading > span { color: var(--color-primary-ink); font-family: var(--font-mono); font-size: var(--font-size-xs); }
+  .palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--spacing-md); }
+  .swatchCard { display: grid; gap: var(--spacing-sm); }
+  .swatch { height: var(--spacing-3xl); border: var(--border-default); border-radius: var(--radius-sm); }
+  .swatchCard strong { font-size: var(--font-size-md); }
+  .swatchCard code { overflow-wrap: anywhere; color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .twoColumns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--spacing-lg); }
+  .typeScale, .fieldStack { display: grid; align-content: start; gap: var(--spacing-lg); }
+  .sampleTitle { font-size: var(--font-size-2xl); line-height: var(--line-height-tight); }
+  .sampleHeading { font-size: var(--font-size-xl); }
+  .typeScale small { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  .spacingScale { display: flex; align-items: end; flex-wrap: wrap; gap: var(--spacing-md); }
+  .spacingScale > div { display: grid; justify-items: center; gap: var(--spacing-sm); }
+  .spacingScale span { display: block; height: var(--spacing-lg); background: var(--color-primary-ink); border-radius: var(--radius-xs); }
+  .spacingScale code { font-size: var(--font-size-xs); }
+  .buttonGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--spacing-lg); }
+  .buttonExample { display: grid; align-content: start; gap: var(--spacing-md); }
+  .buttonExample code { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+  .controlRow { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-md); margin-top: var(--spacing-lg); }
+  .controlRow > * { min-width: 0; }
+  .caseCards { display: flex; align-items: start; flex-wrap: wrap; gap: var(--spacing-lg); }
+  .caseCards > * { flex: 1 1 var(--layout-case-card-width); max-width: var(--layout-case-card-width); }
+  .tableCard { padding: 0; overflow: hidden; }
+  .wheelPreview { display: grid; place-items: center; min-width: 0; padding: var(--spacing-xl); }
+  .previewNote { margin-bottom: var(--spacing-xl); }
+  @media (max-width: 48rem) { .twoColumns { grid-template-columns: 1fr; } .brand > span { display: none; } .header { gap: var(--spacing-sm); } .headerActions { gap: var(--spacing-sm); } }
+}

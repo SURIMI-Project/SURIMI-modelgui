@@ -8,6 +8,7 @@ export type IndicatorPanelModel = {
   subtitle: string;
   datasets: SpiderDiagramSeries[];
   valueSuffix: string;
+  emptyMessage?: string;
 };
 
 export type DashboardHeaderModel = {
@@ -22,7 +23,9 @@ export type DashboardHeaderModel = {
   selectedSpeciesCode: string;
   onSpeciesChange: (next: string) => void;
   selectedSpeciesLabels: string[];
-  indicatorPanel: IndicatorPanelModel;
+  indicatorPanel?: IndicatorPanelModel;
+  showTitle?: boolean;
+  showSelectedSpecies?: boolean;
   compareLegendItems: Array<{
     label: string;
     color: string;
@@ -30,14 +33,17 @@ export type DashboardHeaderModel = {
 };
 
 export type BiomassPanelModel = {
-  currentValue: number;
+  currentValue: number | null;
   currentValueLabel: string;
   selectionCopy: string;
-  historicalLabels: string[];
-  historicalValues: number[];
-  simulatedHistoricalValues: number[];
-  futureLabels: string[];
-  futureValues: number[];
+  labels?: string[];
+  isRecorded?: boolean;
+  statusMessage?: string;
+  historicalLabels?: string[];
+  historicalValues?: number[];
+  simulatedHistoricalValues?: number[];
+  futureLabels?: string[];
+  futureValues?: number[];
   series?: OutputsTrendChartSeries[];
   lineColor: string;
   selectedIndex: number;
@@ -46,13 +52,15 @@ export type BiomassPanelModel = {
 };
 
 export type LandingsPanelModel = {
+  statusMessage?: string;
+  runLabel: string;
   labels: string[];
-  landingsValues: number[];
-  discardsValues: number[];
+  landingsValues: (number | null)[];
+  discardsValues: (number | null)[];
   comparison?: {
     label: string;
-    landingsValues: number[];
-    discardsValues: number[];
+    landingsValues: (number | null)[];
+    discardsValues: (number | null)[];
   };
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
@@ -62,6 +70,7 @@ export type LandingsPanelModel = {
 };
 
 export type MapPanelModel = {
+  runLabel: string;
   subtitle: string;
   kicker: string;
   speciesCode: string;
@@ -69,6 +78,9 @@ export type MapPanelModel = {
   points: HeatPoint[];
   metricLabel: string;
   bounds: [number, number, number, number];
+  isLoading?: boolean;
+  error?: string;
+  onRetry?: () => void;
   valueDomain: {
     min: number;
     max: number;
@@ -84,7 +96,13 @@ export type MapBiomassAndLandingsPanelModel = {
 };
 
 export type MarketTrendPanelModel = {
-  currentValue: number;
+  title?: string;
+  subtitle?: string;
+  metricLabel?: string;
+  selectionCopy?: string;
+  isRecorded?: boolean;
+  statusMessage?: string;
+  currentValue: number | null;
   currentValueLabel: string;
   labels: string[];
   values?: number[];
@@ -95,6 +113,7 @@ export type MarketTrendPanelModel = {
 };
 
 export type MarketIndicatorsPanelModel = {
+  title?: string;
   sales: MarketTrendPanelModel;
   prices: MarketTrendPanelModel;
 };

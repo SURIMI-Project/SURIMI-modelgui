@@ -1,6 +1,7 @@
-import { getScenarioRunById } from "../../ScenarioRuns/mockScenarioRuns";
+import { buildPriceSeriesFromAverages, buildSalesSeriesFromAverages } from "../../../../mock-data/outputs/chartSeries";
 import type { SimulationCaseId } from "../../../data/simulationCases";
 import {
+  SCENARIO_COMPARE_COLORS,
   SCENARIO_ONE_LABEL,
   SCENARIO_TWO_LABEL,
 } from "../scenarioCompare";
@@ -9,9 +10,7 @@ import {
   aggregateSpeciesOutput,
   buildAnnualMetricAverages,
   buildPricePerTonneBySpecies,
-  buildPriceSeriesFromAverages,
   buildSalesQuantityBySpecies,
-  buildSalesSeriesFromAverages,
 } from "./dashboardData";
 import type { ScenarioOutputsDataset } from "../types";
 import type { ScenarioDashboardState } from "../hooks/useScenarioDashboardState";
@@ -20,12 +19,12 @@ export const metricMeta = {
   biomass: {
     label: "Biomass",
     unit: "t/km²",
-    lineColor: "#74dbff",
+    get lineColor() { return SCENARIO_COMPARE_COLORS.scenarioOne.stroke; },
   },
   landings: {
     label: "Landings & Discards",
     unit: "kg",
-    lineColor: "#ffb36b",
+    get lineColor() { return SCENARIO_COMPARE_COLORS.baseline.stroke; },
   },
 } as const;
 
@@ -50,7 +49,6 @@ export type ScenarioSeriesBundle = {
 };
 
 export const buildScenarioSeriesBundle = ({
-  caseId,
   primaryDataset,
   comparisonDataset,
   state,
@@ -126,12 +124,11 @@ export const buildScenarioSeriesBundle = ({
   );
 
   const primaryRunLabel =
-    (primaryDataset && getScenarioRunById(caseId, primaryDataset.runId)?.title) ??
+    primaryDataset?.title ??
     primaryDataset?.runId ??
     SCENARIO_ONE_LABEL;
   const comparisonRunLabel =
-    (comparisonDataset &&
-      getScenarioRunById(caseId, comparisonDataset.runId)?.title) ??
+    comparisonDataset?.title ??
     comparisonDataset?.runId ??
     SCENARIO_TWO_LABEL;
 
