@@ -320,26 +320,17 @@ const westernAuthorityNode = getNodeById(
   westernMediterraneanNodes,
   "authority",
 );
-const westernEcopathNode = getNodeById(westernMediterraneanNodes, "ecopath");
+
+const aegeanNodeLayout: Record<string, { x: number; y: number; width: number; height: number }> = {
+  cmsy: { x: 60, y: 100, width: 180, height: 90 },
+  market: { x: 340, y: 100, width: 180, height: 90 },
+  "value-chain": { x: 620, y: 100, width: 180, height: 90 },
+  ecopath: { x: 300, y: 310, width: 260, height: 90 }, // MICE uses the inherited node ID.
+};
 
 const aegeanSeaNodes: ScenarioFlowNode[] = westernMediterraneanNodes
-  .filter(({ id }) => id !== "poseidon")
+  .filter(({ id }) => id !== "poseidon" && id !== "authority")
   .map((node) => {
-    if (node.id === "authority") {
-      return {
-        ...cloneNode(node),
-        fill: westernEcopathNode.fill,
-        title: "Ecopath",
-        subtitle: "Ecology. All other fleets",
-        hoverTitle: westernEcopathNode.hoverTitle,
-        hoverDescription: westernEcopathNode.hoverDescription,
-        videoUrl: westernEcopathNode.videoUrl,
-        references: westernEcopathNode.references
-          ? [...westernEcopathNode.references]
-          : undefined,
-      };
-    }
-
     if (node.id === "ecopath") {
       return {
         ...cloneNode(node),
@@ -356,11 +347,31 @@ const aegeanSeaNodes: ScenarioFlowNode[] = westernMediterraneanNodes
     }
 
     return cloneNode(node);
-  });
+  })
+  .map(node => ({ ...node, ...aegeanNodeLayout[node.id] }));
 
-const aegeanSeaEdges: ScenarioFlowEdge[] = westernMediterraneanEdges
-  .filter(({ id }) => !id.includes("poseidon"))
-  .map(cloneEdge);
+const aegeanSeaEdges: ScenarioFlowEdge[] = [
+  {
+    id: "ecopath-to-cmsy",
+    path: "M300 355 H150 V190",
+    labels: [{ text: "Biomass\nand catches", x: 100, y: 265 }],
+  },
+  {
+    id: "ecopath-to-market",
+    path: "M405 310 V190",
+    labels: [{ text: "Sales", x: 375, y: 245 }],
+  },
+  {
+    id: "market-to-ecopath",
+    path: "M455 190 V310",
+    labels: [{ text: "Prices", x: 490, y: 265, tone: "muted" }],
+  },
+  {
+    id: "ecopath-to-value-chain",
+    path: "M560 355 H710 V190",
+    labels: [{ text: "Sales", x: 750, y: 265 }],
+  },
+];
 
 const anchovyBayNodes: ScenarioFlowNode[] =
   westernMediterraneanNodes.map(cloneNode);
@@ -377,7 +388,7 @@ const scenarioFlowGraphs: Record<SimulationCaseId, ScenarioFlowGraph> = {
   },
   "aegean-sea": {
     ariaLabel:
-      "Scenario model flow graph linking CMSY++, Market, Ecopath, MICE Model EwE, and Value Chain",
+      "Scenario model flow graph linking CMSY++, Market, MICE Model EwE, and Value Chain",
     nodes: aegeanSeaNodes,
     edges: aegeanSeaEdges,
   },

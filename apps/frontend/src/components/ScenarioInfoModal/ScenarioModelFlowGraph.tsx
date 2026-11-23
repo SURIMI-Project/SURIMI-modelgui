@@ -1,35 +1,8 @@
 import { useState } from "react";
 import type { SimulationCaseId } from "../../data/simulationCases";
 import ScenarioFlowHoverCard from "./ScenarioFlowHoverCard";
-import { getScenarioFlowGraph, type ScenarioFlowGraph } from "../../../mock-data/content/modelFlowGraphs";
+import { getScenarioFlowGraph } from "../../../mock-data/content/modelFlowGraphs";
 import styles from "./ScenarioInfoModal.module.css";
-
-// A roomier presentation of the same Aegean nodes, exchanges and descriptions.
-const expandedAegeanLayout = (graph: ScenarioFlowGraph): ScenarioFlowGraph => {
-  const positions: Record<string, { x: number; y: number; width: number; height: number }> = {
-    cmsy: { x: 0, y: 80, width: 170, height: 100 },
-    market: { x: 225, y: 80, width: 170, height: 100 },
-    authority: { x: 450, y: 80, width: 170, height: 100 },
-    "value-chain": { x: 675, y: 80, width: 170, height: 100 },
-    ecopath: { x: 210, y: 540, width: 430, height: 110 },
-  };
-  const connections: Record<string, { path: string; x: number; y: number }> = {
-    "ecopath-to-cmsy": { path: "M210 595 H85 V180", x: 85, y: 635 },
-    "ecopath-to-market": { path: "M300 540 V180", x: 270, y: 315 },
-    "market-to-ecopath": { path: "M365 180 V540", x: 395, y: 420 },
-    "ecopath-to-authority": { path: "M535 540 V180", x: 445, y: 310 },
-    "authority-to-ecopath": { path: "M585 180 V540", x: 620, y: 420 },
-    "ecopath-to-value-chain": { path: "M640 595 H760 V180", x: 760, y: 635 },
-  };
-  return {
-    ...graph,
-    nodes: graph.nodes.map(node => ({ ...node, ...positions[node.id] })),
-    edges: graph.edges.map(edge => {
-      const layout = connections[edge.id];
-      return layout ? { ...edge, path: layout.path, labels: edge.labels?.map(label => ({ ...label, x: layout.x, y: layout.y })) } : edge;
-    }),
-  };
-};
 
 const renderNodeTitle = (title: string, centerX: number, centerY: number) => {
   const lines = title.split("\n");
@@ -61,16 +34,14 @@ type ScenarioModelFlowGraphProps = {
 
 const ScenarioModelFlowGraphContent = ({ caseId, appearance = "legacy", detailPlacement = "overlay" }: ScenarioModelFlowGraphProps) => {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
-  const expanded = caseId === "aegean-sea" && appearance === "theme" && detailPlacement === "side";
-  const source = getScenarioFlowGraph(caseId);
-  const { ariaLabel, edges, nodes } = expanded ? expandedAegeanLayout(source) : source;
+  const { ariaLabel, edges, nodes } = getScenarioFlowGraph(caseId);
   const activeNode = nodes.find((node) => node.id === activeNodeId) ?? null;
 
   return (
     <div data-has-detail={Boolean(activeNode)} className={`${styles.graphFrame} ${appearance === "theme" ? styles.graphFrameTheme : appearance === "marine" ? styles.graphFrameMarine : ""} ${detailPlacement === "side" ? styles.graphFrameSide : ""}`}>
       <svg
         className={styles.graphSvg}
-        viewBox={expanded ? "-20 20 900 680" : (appearance === "theme" || appearance === "marine") && caseId === "aegean-sea" ? "0 150 860 300" : "0 0 860 530"}
+        viewBox={caseId === "aegean-sea" ? "0 50 860 390" : "0 0 860 530"}
         role="img"
         aria-label={ariaLabel}
       >
@@ -88,7 +59,7 @@ const ScenarioModelFlowGraphContent = ({ caseId, appearance = "legacy", detailPl
           </marker>
         </defs>
 
-        <g transform={expanded ? undefined : "translate(40 0)"}>
+        <g transform={caseId === "aegean-sea" ? undefined : "translate(40 0)"}>
           {edges.map((edge) => (
             <path
               key={edge.id}

@@ -11,7 +11,7 @@ import Pagination from "../../components/ui/Pagination/Pagination";
 import Tooltip, { TooltipTrigger } from "../../components/ui/Tooltip/Tooltip";
 import Table, { TableHeader, Column, TableBody, Row, Cell } from "../../components/ui/Table/Table";
 import { scenarioWorldContent } from "../../../mock-data/content/caseIntroductions";
-import { getSimulationCaseById, normalizeSimulationCaseId, simulationCaseStudies } from "../../data/simulationCases";
+import { getSimulationCaseById, normalizeSimulationCaseId, simulationCaseStudies, type SimulationCaseId } from "../../data/simulationCases";
 import { useExperiments } from "../../serverState/experiments/useExperiments";
 import { useExperimentEvents } from "../../serverState/events/useExperimentEvents";
 import ScenarioOutputModal from "../../features/ScenarioOutputModal/ScenarioOutputModal";
@@ -20,6 +20,11 @@ import { AppError } from "../../network/errors/appError";
 import styles from "./ScenarioRunsPage.module.css";
 
 const pageSizes = [20, 50, 100];
+const caseInitials: Record<SimulationCaseId, string> = {
+  "northwestern-mediterranean": "NW",
+  "aegean-sea": "AE",
+  "anchovy-bay": "AB",
+};
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 const formatDate = (value: string | null) => {
   if (!value) return "—";
@@ -117,6 +122,16 @@ export default function ScenarioRunsPage() {
     next.set("size", String(nextSize));
     setParams(next);
   };
+  const filterCase = (id: SimulationCaseId) => {
+    const next = new URLSearchParams(params);
+    if (selectedCase === id) next.delete("case");
+    else next.set("case", id);
+    next.set("page", "1");
+    next.delete("run");
+    next.delete("compare");
+    setCompared([]);
+    setParams(next);
+  };
   const emptyMessage = invalidCase ? "Unknown case study. Return to case studies to choose a case."
     : experiments.isPending ? "Loading scenario runs…"
     : experiments.isError ? listErrorMessage(experiments.error)
@@ -133,6 +148,24 @@ export default function ScenarioRunsPage() {
           <h1>{title}</h1>
         </div>
         <nav className={styles.actions} aria-label="Scenario runs actions">
+          <div className={styles.caseFilters} role="group" aria-label="Filter by case study">
+            {simulationCaseStudies.map(item => (
+              <TooltipTrigger key={item.id} delay={250}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  className={styles.caseAvatar}
+                  aria-label={`Filter by ${item.seaName}`}
+                  aria-pressed={selectedCase === item.id}
+                  onPress={() => filterCase(item.id)}
+                >
+                  {caseInitials[item.id]}
+                </Button>
+                <Tooltip>{selectedCase === item.id ? "Show all case studies" : item.seaName}</Tooltip>
+              </TooltipTrigger>
+            ))}
+          </div>
           <Button variant="primary-outlined" isDisabled={selectedRuns.length !== 2} aria-description="Select two ready outputs from the same case study."
             onPress={() => { if (selectedRuns.length === 2) openOutput(selectedRuns); }}>COMPARE SELECTED</Button>
         </nav>

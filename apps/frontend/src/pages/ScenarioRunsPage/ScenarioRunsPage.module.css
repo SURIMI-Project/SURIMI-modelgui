@@ -4,6 +4,25 @@
   .heading { display: flex; align-items: center; gap: var(--spacing-smd); min-width: 0; }
   .header h1 { min-width: 0; margin: 0; font-size: clamp(var(--font-size-xl), 1.7vw, var(--font-size-2xl)); font-weight: var(--font-weight-medium); text-wrap: balance; }
   .actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-smd); flex-shrink: 0; }
+  .caseFilters { display: flex; align-items: center; gap: var(--spacing-xs); }
+  .caseAvatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    min-width: 2.25rem;
+    padding: 0;
+    border: var(--border-default);
+    border-radius: 50%;
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+  }
+  .caseAvatar[aria-pressed="true"] {
+    border-color: var(--color-primary-ink);
+    background: var(--color-primary-surface);
+    color: var(--color-primary-ink);
+  }
+  .caseAvatar[data-hovered] { border-color: var(--color-primary-ink); color: var(--color-text); }
   .tableRegion { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; border: var(--border-default); border-radius: var(--radius-lg); backdrop-filter: blur(var(--blur-surface)); background: var(--color-glass-surface); box-shadow: var(--shadow-md); }
   .tableRegion > div:first-child { flex: 1; min-height: 0; overflow: auto; }
   .table { background: transparent; border-collapse: separate; border-spacing: 0; }
