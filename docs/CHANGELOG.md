@@ -19,6 +19,20 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-24
+
+### Fix — The worker dispatched nothing after the initial HCR snapshots
+
+From the 2026-11-23 change on, the worker failed at every cycle with
+`NoReferencedTableError` (`experiments.initial_hcr_snapshot_id` →
+`initial_hcr_snapshots`), so queued experiments were never submitted. The
+worker now loads every table at start. See
+[simulation status scheduler](features/simulation-status-scheduler/CHANGELOG.md).
+
+> **Deploying this:** rebuild and restart `worker`. No migration, no settings.
+
+---
+
 ## 2026-11-23
 
 ### Change — Harvest control rule defaults and initial values from the controller's `GetInitialHCRData`
