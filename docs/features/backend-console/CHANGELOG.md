@@ -6,6 +6,17 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-23 — New experiment: rules start from the controller's default
+
+Adding a species to the rules prefills its biomass limit, base (tonnes) and F
+max with the controller's default (`default_*` in the experiment options), shows
+the default under each input and adds a **Reset to default** button; a species
+without a default starts empty. The initial biomass is shown in tonnes
+(`initial_biomass_kg`). Files: `console/static/app.js`, `index.html`.
+`node --check app.js` passes. **Not run in a browser.**
+
+---
+
 ## 2026-11-18 — A biomass base at or below the limit is allowed, with a note
 
 **Status:** built. `node --check app.js` passes. **Not run in a browser or

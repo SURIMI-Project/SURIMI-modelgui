@@ -5,10 +5,12 @@ controller's. Contracts are copies of the real ones in `fake_contracts/`,
 written by `scripts/build_scenario_catalog.py --fake-contracts`; a scenario
 without a copy gets a minimal contract.
 
-Initial biomasses and fishing mortalities are read from copies of Ecopath's
-input files in `fake_initial_state/<scenario>/` (SURIMI-Ecopath `88e1121`,
-`Includes/northwestern_med/`), with F = catch / biomass as Ecopath computes
-it; a scenario without them fails, as on the real controller.
+`GetInitialHCRData` reads a copy of Ecopath's file,
+`fake_initial_state/<scenario>/<scenario>_initial_hrc_data.csv` (SURIMI-Ecopath
+`3819d2c`, `Includes/northwestern_med/`), with F = catch / biomass as Ecopath
+computes it. A scenario without the file fails with the message the
+`project-surimi` controller gives (verified 2026-11-23). Tests may set
+`initial_hcr_overrides[scenario]` to change the answer.
 
 Experiments run on a timeline and copy the real controller's pod rules
 (SURIMI-controller `a8a7f3a`, read 2026-11-06):
@@ -39,8 +41,8 @@ from surimi.v1 import simulation_pb2
 from surimi_backend.integrations.controller.base import (
     ControllerError,
     ExperimentSubmission,
+    InitialHcrData,
     SimulationStatus,
-    SpeciesValue,
 )
 from surimi_backend.integrations.controller.convert import message_to_dict, timestamp
 
@@ -94,6 +96,8 @@ class FakeControllerClient:
         self.clock = clock
         self.experiments: dict[str, list[FakeSimulation]] = {}
         self.submissions: dict[str, ExperimentSubmission] = {}
+        # Replaces the file's answer for a scenario (tests of changing values).
+        self.initial_hcr_overrides: dict[str, list[InitialHcrData]] = {}
         self._order = 0
 
     async def close(self) -> None:
@@ -123,31 +127,32 @@ class FakeControllerClient:
         )
         return message_to_dict(simulation)
 
-    def _initial_values(
-        self, scenario_name: str, file_name: str, column: str
-    ) -> dict[tuple[str, str, str, str], float]:
+    async def get_initial_hcr_data(self, scenario_name: str) -> list[InitialHcrData]:
+        self.calls["GetInitialHCRData"] += 1
         if scenario_name not in self.scenarios:
             raise ControllerError(f"unknown scenario {scenario_name!r}")
-        path = FAKE_INITIAL_STATE_DIR / scenario_name / file_name
+        if scenario_name in self.initial_hcr_overrides:
+            return list(self.initial_hcr_overrides[scenario_name])
+        name = f"{scenario_name}_initial_hrc_data.csv"
+        path = FAKE_INITIAL_STATE_DIR / scenario_name / name
         if not path.exists():
-            raise ControllerError(f"Could not find file '{scenario_name}/{file_name}'")
+            raise ControllerError(
+                f"MinIO API responded with message=ecopath/{scenario_name}/{name}"
+            )
         rows = csv.DictReader(io.StringIO(path.read_text(encoding="utf-8")))
-        return {
-            (r["SpeciesCode"], r["LifeStage"], r["LengthClass"], r["Age"]): float(r[column])
-            for r in rows
-        }
-
-    async def get_initial_biomasses(self, scenario_name: str) -> list[SpeciesValue]:
-        self.calls["GetInitialBiomasses"] += 1
-        biomasses = self._initial_values(scenario_name, "initial_biomasses.csv", "Biomass")
-        return [SpeciesValue(*key, value=value) for key, value in biomasses.items()]
-
-    async def get_initial_fishing_mortalities(self, scenario_name: str) -> list[SpeciesValue]:
-        self.calls["GetInitialFishingMortalities"] += 1
-        biomasses = self._initial_values(scenario_name, "initial_biomasses.csv", "Biomass")
-        catches = self._initial_values(scenario_name, "initial_catch.csv", "Catch")
         return [
-            SpeciesValue(*key, value=catches[key] / biomass) for key, biomass in biomasses.items()
+            InitialHcrData(
+                species_code=r["SpeciesCode"],
+                life_stage=r["LifeStage"],
+                length_class=r["LengthClass"],
+                age=r["Age"],
+                initial_biomass_kg=float(r["Biomass"]),
+                initial_fishing_mortality=float(r["Catch"]) / float(r["Biomass"]),
+                default_biomass_limit_kg=float(r["BiomassLimit"] or 0),
+                default_biomass_base_kg=float(r["BiomassBase"] or 0),
+                default_f_max=float(r["FMax"] or 0),
+            )
+            for r in rows
         ]
 
     # --- experiments -----------------------------------------------------------------

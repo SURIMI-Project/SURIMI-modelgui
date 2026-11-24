@@ -57,6 +57,9 @@ flowchart LR
   `failed` when the results arrive or do not), `experiment.stalled`,
   `experiment.cancelled`, and for a re-index of results that were already
   there `experiment.outputs_ready` / `experiment.outputs_failed`.
+- `experiment.initial_hcr_unavailable` (2026-11-23): the controller did not
+  answer `GetInitialHCRData` at submit, so the experiment has no snapshot of
+  it (ADR 0028); `data.error` says why. The experiment is queued as usual.
 - `simulation.status_changed`: one simulation of the experiment changed state
   (or was first reported). `data.simulation` = `{id, order, status,
   status_raw, previous_status}`; `data.status` is the experiment's status;

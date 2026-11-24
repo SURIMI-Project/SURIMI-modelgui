@@ -28,6 +28,8 @@ from surimi_backend.experiments.schemas import (
     PriorityIn,
     QueueOut,
 )
+from surimi_backend.initial_hcr import service as initial_hcr
+from surimi_backend.initial_hcr.schemas import ExperimentInitialHcrOut
 from surimi_backend.integrations.controller import ControllerClient
 
 
@@ -114,6 +116,37 @@ async def get_experiment(
     experiment_id: uuid.UUID, principal: CurrentUser, db: Db, settings: AppSettings
 ) -> ExperimentDetailOut:
     return await service.detail(db, settings, await service.visible(db, principal, experiment_id))
+
+
+@router.get(
+    "/{experiment_id}/initial-hcr-data",
+    response_model=ExperimentInitialHcrOut,
+    summary="The controller's initial HCR data when the experiment was submitted, and each "
+    "rule against its default",
+    description=(
+        "The snapshot the experiment points to (ADR 0028), named with today's species names, "
+        "and per rule the controller's default for its entry and whether the user changed "
+        "it. Owner or admin."
+    ),
+    responses={
+        **ERRORS,
+        404: {
+            "description": "No such experiment of yours, or it has no snapshot (the "
+            "controller did not answer when it was submitted)"
+        },
+    },
+)
+async def experiment_initial_hcr_data(
+    experiment_id: uuid.UUID, principal: CurrentUser, db: Db, catalog: Catalog
+) -> ExperimentInitialHcrOut:
+    experiment = await service.visible(db, principal, experiment_id)
+    return await initial_hcr.for_experiment(
+        db,
+        catalog,
+        experiment.id,
+        experiment.initial_hcr_snapshot_id,
+        list(experiment.request.get("harvest_control_rules") or []),
+    )
 
 
 @router.get(

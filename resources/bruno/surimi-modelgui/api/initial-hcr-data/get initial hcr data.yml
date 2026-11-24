@@ -1,0 +1,48 @@
+info:
+  name: get initial hcr data
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/initial-hcr-data"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setEnvVar("initialHcrSnapshotId", res.body.snapshot_id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get initial hcr data
+
+  The controller's `GetInitialHCRData` now, named. Stores `snapshot_id` as
+  `initialHcrSnapshotId` for `get initial hcr snapshot`.
+
+  ## Response
+
+  `{scenario_name, snapshot_id, first_seen_at, entries[]}`; each entry:
+
+  | Field | Meaning |
+  | --- | --- |
+  | `species_code`, `life_stage`, `length_class`, `age` | The controller's key; empty strings when none |
+  | `species_name`, `scientific_name`, `family` | From the `species` table (FAO ASFIS); null when ASFIS has none (`LXQ`, `SOO` have no English name) |
+  | `functional_group`, `functional_group_name`, `hcr_eligible` | From the scenario catalog; only eligible entries can carry a rule |
+  | `initial_biomass_kg`, `initial_fishing_mortality` | At the end of spin-up; F is 0 when not caught |
+  | `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` | The default rule a new rule starts from; null when the controller has none |
+
+  `snapshot_id` stays the same until the controller's values change.
+
+  ## Notes
+
+  `anchovy_bay` and `aegean_sea`: `502` (no file in the bucket). Unknown
+  scenario: `404`.

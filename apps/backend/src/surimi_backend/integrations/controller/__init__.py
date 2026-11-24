@@ -9,8 +9,8 @@ from surimi_backend.integrations.controller.base import (
     ControllerTimeoutError,
     ControllerUnavailableError,
     ExperimentSubmission,
+    InitialHcrData,
     SimulationStatus,
-    SpeciesValue,
     TargetFishingMortality,
 )
 from surimi_backend.integrations.controller.fake import FakeControllerClient
@@ -24,8 +24,8 @@ __all__ = [
     "ExperimentSubmission",
     "FakeControllerClient",
     "GrpcControllerClient",
+    "InitialHcrData",
     "SimulationStatus",
-    "SpeciesValue",
     "TargetFishingMortality",
     "build_controller_client",
 ]

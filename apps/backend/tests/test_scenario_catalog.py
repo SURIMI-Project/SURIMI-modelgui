@@ -9,9 +9,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from surimi_backend.catalog.scenario_catalog import (
+    EntryNames,
     ScenarioCatalogFile,
     build_catalog,
     load_catalog_files,
+    name_entries,
     species_codes,
 )
 from surimi_backend.catalog.species import SpeciesRow
@@ -101,6 +103,46 @@ def test_life_stages_match_case_insensitively_and_keep_the_contract_spelling() -
     result = build_catalog("s", contract(("HKE", "Adult")), file)
     assert result.species[0].hcr_eligible
     assert result.species[0].life_stage == "Adult"
+
+
+def test_name_entries_names_entries_in_and_outside_the_contract() -> None:
+    # The controller's initial HCR data lists entries the contract does not
+    # (`HKE` with no life stage); each gets names, group and eligibility.
+    file = catalog_file(
+        [
+            group("26", ("HKE", ""), ("HKE", "juvenile"), name="Juvenile hake"),
+            group("27", ("HKE", "adult"), name="Adult hake"),
+        ],
+        hcr=[{"species_code": "HKE", "life_stage": "ADULT"}],
+    )
+    named = name_entries(file, {"HKE": HAKE}, [("HKE", "adult"), ("HKE", ""), ("XYZ", "adult")])
+    hake = {
+        "species_name": "European hake",
+        "scientific_name": "Merluccius merluccius",
+        "family": "MERLUCCIIDAE",
+    }
+    unknown = dict.fromkeys(hake) | {"functional_group": None, "functional_group_name": None}
+    assert named == [
+        EntryNames(
+            **hake, functional_group="27", functional_group_name="Adult hake", hcr_eligible=True
+        ),
+        EntryNames(
+            **hake,
+            functional_group="26",
+            functional_group_name="Juvenile hake",
+            hcr_eligible=False,
+        ),
+        EntryNames(**unknown, hcr_eligible=False),  # no species row, no group
+    ]
+
+
+def test_name_entries_without_a_catalog_file_gives_names_only() -> None:
+    [only] = name_entries(None, {"HKE": HAKE}, [("HKE", "adult")])
+    assert (only.species_name, only.functional_group, only.hcr_eligible) == (
+        "European hake",
+        None,
+        False,
+    )
 
 
 def test_a_group_without_a_name_stays_unnamed() -> None:

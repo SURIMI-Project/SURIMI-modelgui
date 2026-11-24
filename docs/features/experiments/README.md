@@ -145,15 +145,20 @@ added 2026-11-16 for the console's experiment tab and the phase 10 form:
 | `start_date_time`, `maximum_end_date_time` | Contract (`GetSimulationContract`, cached) |
 | `climate_scenarios`, `climate_scenario_required` | Catalog (from the contract): required when the list is not empty |
 | `pods_single_run`, `pods_mse_run` | 1 and `CONTROLLER_MSE_SIMULATIONS` (5 on `project-surimi`) |
-| `species[]` | Every species entry of the contract, in catalog order: `species_code`, `life_stage`, `hcr_eligible` (only those can carry a rule), `species_name`, `scientific_name`, `functional_group` and its name, `initial_biomass`, `initial_fishing_mortality` (both null when the controller has no value for the entry, e.g. `SWO`) |
+| `species[]` | Every species entry of the contract, in catalog order: `species_code`, `life_stage`, `hcr_eligible` (only those can carry a rule), `species_name`, `scientific_name`, `functional_group` and its name, `initial_biomass_kg`, `initial_fishing_mortality`, and the controller's default rule `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` (null when the controller has no value for the entry, e.g. `SWO`, or no default) |
 | `hcr_configurations[]` | The user's HCR configurations for the scenario (ADR 0025): `id`, `name`, `rule_count`, `updated_at` |
-| `initial_values_available`, `notes` | Whether `GetInitialBiomasses` and `GetInitialFishingMortalities` answered (only `northwestern_med` today); notes say what is missing and that the controller gives no unit |
+| `initial_values_available`, `initial_hcr_snapshot_id`, `notes` | Whether `GetInitialHCRData` answered (only `northwestern_med` today), the snapshot of that answer (ADR 0028), and what is missing |
 
-The initial values are passed on as the controller sends them (see
-[scenario catalog](../scenario-catalog/README.md#initial-biomass-and-fishing-mortality)):
-the evidence points to tonnes over the whole model area, not yet confirmed by
-the controller team ([ISSUES.md](../../ISSUES.md)). A controller failure on them is a note, not
-an error, so the form still opens.
+The initial values and defaults are passed on as the controller sends them,
+in kg (see [harvest control rules § Initial HCR data](../harvest-control-rules/README.md#initial-hcr-data));
+a new rule row starts from the default (ADR 0027). A controller failure on
+them is a note, not an error, so the form still opens.
+
+**Snapshot at submit (ADR 0028, 2026-11-23).** `POST /experiments` (and
+clone) asks `GetInitialHCRData` once more and stores the id of its snapshot in
+`experiments.initial_hcr_snapshot_id`. If the controller fails, the experiment
+is still queued, without a snapshot, with an `experiment.initial_hcr_unavailable`
+event.
 
 ### Console tab (user, 2026-11-16)
 
@@ -162,10 +167,13 @@ pick a scenario, then name, end date (limited to the contract's range; one
 year after the start by default),
 climate scenario (when the scenario has any), MSE run (with the pods it
 takes), and the harvest control rules: an **Add a species** dropdown with
-every species of the contract and its initial biomass and F (the HCR-eligible
-ones selectable, the others greyed), and the list of species added, each with
-biomass limit and base **in tonnes**, F max **per year** (ADR 0022: tonnes in
-the UI, × 1000 to kg in the request) and a Remove button. Every row of the list
+every species of the contract and its initial biomass (tonnes) and F (the
+HCR-eligible ones selectable, the others greyed), and the list of species
+added, each with biomass limit and base **in tonnes**, F max **per year**
+(ADR 0022: tonnes in the UI, × 1000 to kg in the request), a **Reset to
+default** and a Remove button. Since 2026-11-23 an added species starts from
+the controller's default rule, shown under each input (ADR 0027); a species
+without a default starts empty. Every row of the list
 is sent; an incomplete row stops the submit with a message (user, 2026-11-16,
 after rules typed into an unticked row of the earlier tick-box table were
 silently left out). A **Configuration** picker loads one of the user's HCR
@@ -185,12 +193,13 @@ cancel button while one is possible.
 | GET | `/api/v1/scenarios/{name}/experiment-options` | any | — | `ExperimentOptionsOut` (see § Experiment form options) | 404, 502 (contract) |
 | POST | `/api/v1/experiments` | any | `ExperimentIn` | 202 `ExperimentOut` | 409 limit, 422 |
 | GET | `/api/v1/experiments` | any | `?status&scenario&owner_id(admin)&submitted_from&submitted_to&q&page&size&sort` | page of `ExperimentOut` | — |
-| GET | `/api/v1/experiments/{id}` | owner, admin | — | `ExperimentDetailOut` with simulations (each with `status`, `status_raw`, `progress`) and events; every `ExperimentOut` has `simulation_counts` | 404 |
+| GET | `/api/v1/experiments/{id}` | owner, admin | — | `ExperimentDetailOut` with simulations (each with `status`, `status_raw`, `progress`), events and `initial_hcr_snapshot_id`; every `ExperimentOut` has `simulation_counts` | 404 |
 | POST | `/api/v1/experiments/{id}/cancel` | owner, admin | — | 202 `ExperimentOut` | 404, 409 final state or `copying_results` (the run has finished) |
 | POST | `/api/v1/experiments/{id}/clone` | owner, admin | partial `ExperimentIn` | 202 `ExperimentOut` | 404, 422 |
 | DELETE | `/api/v1/experiments/{id}` | owner, admin | — | 204 (soft) | 404, 409 not final |
 | POST | `/api/v1/admin/experiments/{id}/adopt` | admin | `{owner_id, name?}` | `ExperimentOut` | 404, 409, 422 (not a UUID) |
 | GET | `/api/v1/experiments/{id}/events` | owner, admin | `?page&size` | page of events | 404 |
+| GET | `/api/v1/experiments/{id}/initial-hcr-data` | owner, admin | — | The controller's initial HCR data when it was submitted, and each rule against its default ([harvest control rules](../harvest-control-rules/README.md#api)) | 404 (also when it has no snapshot) |
 
 `ExperimentIn`: `name`, `scenario_name`, `end_date_time`, `is_mse_run`,
 `climate_scenario` (optional, see validation), `harvest_control_rules[]`
@@ -222,8 +231,6 @@ audit event when an admin acts on someone else's experiment.
 
 ## Open questions
 
-- Can an experiment run with no HCR, for example in `aegean_sea` and
-  `anchovy_bay`, which have no fisheries authority inputs? (controller team)
 - How should the 5 simulations of an MSE experiment be shown: one result or
   five? (User, controller team). Known (the controller team, controller code, 2026-11-03): an
   MSE experiment has 5 simulations with the same inputs, each on its own

@@ -2474,7 +2474,7 @@ dev = [
 
 [[package]]
 name = "surimi-protocol"
-version = "2026.11.11"
+version = "2026.11.23"
 source = { editable = "packages/proto" }
 dependencies = [
     { name = "grpcio" },

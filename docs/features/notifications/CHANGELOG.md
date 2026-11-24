@@ -6,6 +6,14 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-23 — Event `experiment.initial_hcr_unavailable`
+
+Emitted when the controller does not answer `GetInitialHCRData` at submit: the
+experiment is queued without a snapshot (ADR 0028). README event list updated.
+Tested in `tests/test_initial_hcr.py`, 2026-11-23.
+
+---
+
 ## 2026-11-13 — `simulation.status_changed`
 
 - New event type: one per change of a simulation's state, and its first

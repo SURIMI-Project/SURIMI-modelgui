@@ -81,6 +81,16 @@ DROP INDEX IF EXISTS hcr_configurations_name_uq;
 CREATE UNIQUE INDEX hcr_configurations_name_uq ON hcr_configurations
   (owner_id, scenario_name, lower(name));
 
+-- initial_hcr_snapshots (ADR 0028) -------------------------------------------------
+-- One row per distinct GetInitialHCRData answer per scenario: the conflict target of
+-- INSERT ... ON CONFLICT DO NOTHING, and the scenario filter of the history list
+-- (GET /scenarios/{name}/initial-hcr-data/history). Migration 0008_initial_hcr_snapshots.
+-- experiments.initial_hcr_snapshot_id has no index: no query filters by it, and
+-- snapshots are never deleted, so its ON DELETE RESTRICT never scans.
+DROP INDEX IF EXISTS initial_hcr_snapshots_scenario_hash_uq;
+CREATE UNIQUE INDEX initial_hcr_snapshots_scenario_hash_uq ON initial_hcr_snapshots
+  (scenario_name, content_hash);
+
 -- species (ADR 0023) ----------------------------------------------------------
 -- Word search on code, English and scientific name. The expression must be the
 -- one in catalog/models.py SEARCH_DOCUMENT, or the planner cannot use it.

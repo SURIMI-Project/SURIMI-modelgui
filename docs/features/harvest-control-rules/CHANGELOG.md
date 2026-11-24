@@ -6,6 +6,113 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-23 — Built: initial HCR data and defaults from the controller, snapshots per experiment
+
+**Status:** built (backend, console, Bruno); plan 2026-11-23 phase 1. Ruff, format and mypy strict clean; **332 tests pass**, integration tests included (PostgreSQL 17), 2026-11-23.
+
+- **Protocol.** `packages/proto` re-pinned to `6b2079ac565b4f598d218d3a73e1b5d7`
+  (SURIMI-protocol `7d0953e`) and regenerated: `get_initial_hcr_data`,
+  `initial_hcr_data` added, `get_initial_biomasses` and
+  `get_initial_fishing_mortalities` gone. The only other change since
+  `250f617` is a comment in `regulation_definition.proto`.
+- **Controller client** (`integrations/controller/`): `get_initial_hcr_data`
+  → `InitialHcrData` (kg, values as sent) replaces the two old methods and
+  `SpeciesValue`, in the protocol, the gRPC client and the fake. The fake
+  serves a copy of `northwestern_med_initial_hrc_data.csv` (SURIMI-Ecopath
+  `3819d2c`, `fake_initial_state/northwestern_med/`; the old two CSVs removed)
+  and fails other scenarios as `project-surimi` does; tests can override it.
+- **New `initial_hcr/` area**: `InitialHcrSnapshot`, `record` (canonical JSON,
+  SHA-256, `INSERT … ON CONFLICT DO NOTHING RETURNING`), `live`, `capture`,
+  `history`, `snapshot_out`, `for_experiment`; routes
+  `GET /api/v1/scenarios/{name}/initial-hcr-data`, `/history`,
+  `/history/{snapshot_id}`. Migration `0008_initial_hcr_snapshots`.
+- **Catalog**: `scenario_catalog.name_entries` and `CatalogService.name_entries`
+  name any entry (species table) and give its group and eligibility;
+  `initial_hcr_data`, `require_scenario`. `/initial-biomasses` and
+  `/initial-fishing-mortalities` removed with their schemas.
+- **Experiments**: the options carry `initial_biomass_kg` (renamed),
+  `default_*` and `initial_hcr_snapshot_id`, from one controller call
+  (two before), recorded as a snapshot; `POST /experiments` (and clone)
+  stores the snapshot id, or emits `experiment.initial_hcr_unavailable`;
+  `GET /api/v1/experiments/{id}/initial-hcr-data`; the detail has
+  `initial_hcr_snapshot_id`.
+- **Console**: a newly added species starts from its default rule, shown
+  under each input, with "Reset to default"; initial biomass in tonnes.
+- **Tests**: new `tests/test_initial_hcr.py` (7 integration tests);
+  `test_grpc_client.py`, `test_catalog.py`, `test_scenario_catalog.py`,
+  `test_experiment_options.py`, `test_database.py`, `conftest.py` updated.
+- **Bruno**: `controller/GetInitialHCRData.yml`; `api/initial-hcr-data/`
+  (`get initial hcr data`, `get initial hcr history`, `get initial hcr
+  snapshot`); `api/experiments/get experiment initial hcr data.yml`;
+  `get experiment options` docs; `initialHcrSnapshotId` in the four
+  environments with an `apiUrl`. Removed: `controller/GetInitialBiomasses.yml`,
+  `GetInitialFishingMortalities.yml`, the misnamed untracked
+  `GetInitialHarvestControlRules.yml`, `api/get initial biomasses.yml`,
+  `api/get initial fishing mortalities.yml`.
+
+A rule's `changed_from_default` uses a 1e-6 relative tolerance: the console
+shows a default in tonnes rounded to 6 decimals, and an unchanged default sent
+back differs from it by about 3e-9 (computed for HKE adult); a 1e-9 tolerance
+would have marked it changed.
+
+**Verified** 2026-11-23:
+- The gate above.
+- Migration 0008 on a throwaway PostgreSQL 17: upgrade, downgrade to 0007 and
+  upgrade again, `pg_dump --schema-only` identical; the models match the
+  migrated schema except the existing `species_search_idx` expression index,
+  which Alembic cannot compare.
+- Live against `project-surimi` (real app and gRPC client, throwaway database,
+  read-only controller calls): `northwestern_med` 91 entries, 6 eligible, the
+  same snapshot on a second call, HKE adult named "European hake" /
+  *Merluccius merluccius* / "Adult hake" with default 15,983 / 63,934 kg and
+  F max 0.2352; `anchovy_bay` and `aegean_sea` 502 (no file); history one
+  snapshot; experiment options with defaults and the same snapshot id; an
+  experiment queued (no worker ran, nothing submitted) pointing to it, a rule
+  at its default `changed_from_default: false`, another `true`. `LXQ` and `SOO`
+  have no English name in ASFIS (scientific name served).
+
+**Not verified:** the console in a browser (`node --check` only); the Bruno
+requests in Bruno itself (the same endpoints were called by the live script);
+an experiment with rules run to the end (plan phase 2).
+
+**Deploying:** migration `0008_initial_hcr_snapshots`; a controller with
+`GetInitialHCRData` and the scenario files in its bucket (docs/CHANGELOG.md).
+
+---
+
+## 2026-11-23 — Plan: initial values and default rules from `GetInitialHCRData`
+
+**Status:** planned, no code changed. The project agreed that the controller
+provides default HCRs (**Confirmed by the controller team, 2026-11-20**); the
+protocol replaced `GetInitialBiomasses` and `GetInitialFishingMortalities` with
+`GetInitialHCRData` (SURIMI-protocol `7d0953e`, 2026-11-23).
+
+- New: [plan 2026-11-23](../../plans/2026-11-23-hcr-initial-data-from-controller.md),
+  [ADR 0027](../../decisions/0027-hcr-initial-data-and-defaults-from-the-controller.md)
+  and [ADR 0028](../../decisions/0028-initial-hcr-data-snapshots-per-experiment.md),
+  all accepted by the user the same day. 0028 adds a snapshot of the initial
+  HCR data per experiment, at the user's request. ADR 0024's decision 3 (empty
+  fields) is superseded by 0027.
+- The user decided that nothing waits on partner answers: the plan's open
+  questions became recorded data concerns in `ISSUES.md`.
+- The plan adds species names (user): every entry, live or from a snapshot,
+  is named from the `species` table and grouped from the catalog when read;
+  snapshots keep codes only. **Verified** 2026-11-23: all 86 codes in the NW
+  Med file have an ASFIS row.
+- README: the proposed change noted under "No defaults"; "an experiment may run
+  with no HCR" recorded as confirmed and removed from the open questions (also
+  in `features/experiments`, `ISSUES.md` and plan 2026-11-05).
+- `ISSUES.md`: the initial values item rewritten as "`GetInitialHCRData`:
+  values look wrong in size, two scenarios missing".
+
+**Verified** 2026-11-23: `GetInitialHCRData` on `project-surimi` answers 91
+entries for `northwestern_med` and `INTERNAL` (file missing) for `anchovy_bay`
+and `aegean_sea`; `user-<developer>` answers `UNIMPLEMENTED`. **Read from
+source:** SURIMI-controller `782b979`, SURIMI-Ecopath `3819d2c`,
+SURIMI-fisheries-authority `37b68bb`.
+
+---
+
 ## 2026-11-18 — A biomass limit at or above the base is accepted
 
 **Status:** built (backend and console). Ruff, format, mypy strict clean;

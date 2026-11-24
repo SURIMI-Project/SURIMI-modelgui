@@ -123,6 +123,11 @@ class Experiment(Base):
     cloned_from_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("experiments.id", ondelete="SET NULL")
     )
+    # The controller's initial HCR data when it was submitted (ADR 0028); null
+    # when the controller did not answer then. Snapshots are never deleted.
+    initial_hcr_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("initial_hcr_snapshots.id", ondelete="RESTRICT")
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

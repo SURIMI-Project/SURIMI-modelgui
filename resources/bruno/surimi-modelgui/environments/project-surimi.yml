@@ -33,3 +33,6 @@ variables:
   - name: hcrConfigurationId
     value: ""
     description: Set by hcr-configurations/post hcr configuration; used by get, put and delete
+  - name: initialHcrSnapshotId
+    value: ""
+    description: Set by initial-hcr-data/get initial hcr data; used by get initial hcr snapshot

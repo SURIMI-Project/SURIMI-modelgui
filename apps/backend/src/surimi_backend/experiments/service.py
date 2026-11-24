@@ -40,6 +40,7 @@ from surimi_backend.experiments.schemas import (
 )
 from surimi_backend.hcr import service as hcr
 from surimi_backend.hcr.schemas import HcrIn
+from surimi_backend.initial_hcr import service as initial_hcr
 from surimi_backend.integrations.controller import ControllerClient, ControllerError
 from surimi_backend.scheduler.derive import progress
 
@@ -152,6 +153,9 @@ async def create(
         raise InvalidInputError(
             f"an MSE run needs {pods} Ecopath pods and the controller has {settings.ecopath_pods}"
         )
+    # The controller's initial HCR data now (ADR 0028); a failure does not
+    # refuse the experiment, it is recorded as an event.
+    snapshot, unavailable = await initial_hcr.capture(db, catalog_service, body.scenario_name)
     experiment = Experiment(
         id=uuid.uuid4(),
         owner_id=owner_id,
@@ -165,10 +169,13 @@ async def create(
         priority=0,
         queued_at=datetime.now(UTC),
         cloned_from_id=cloned_from_id,
+        initial_hcr_snapshot_id=snapshot.id if snapshot else None,
     )
     db.add(experiment)
     await db.flush()
     await emit(db, experiment, "experiment.queued", pods_required=pods)
+    if unavailable is not None:
+        await emit(db, experiment, "experiment.initial_hcr_unavailable", error=unavailable)
     await wake_dispatcher(db)
     await db.commit()
     return experiment
@@ -397,6 +404,7 @@ async def detail(db: AsyncSession, settings: Settings, e: Experiment) -> Experim
         **base.model_dump(),
         request=e.request,
         protocol_version=e.protocol_version,
+        initial_hcr_snapshot_id=e.initial_hcr_snapshot_id,
         simulations=[simulation_out(s) for s in await repo.simulations(db, e.id)],
         events=[event_out(ev) for ev in events],
     )

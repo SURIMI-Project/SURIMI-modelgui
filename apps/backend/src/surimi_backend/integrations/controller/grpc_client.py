@@ -19,12 +19,12 @@ from google.protobuf.message import Message
 from surimi.v1 import (
     controller_service_pb2_grpc,
     get_all_simulation_statuses_pb2,
-    get_initial_biomasses_pb2,
-    get_initial_fishing_mortalities_pb2,
+    get_initial_hcr_data_pb2,
     get_protocol_version_pb2,
     get_scenario_names_pb2,
     get_simulation_contract_pb2,
     get_simulation_statuses_pb2,
+    initial_hcr_data_pb2,
     regulation_definition_pb2,
     remove_experiment_pb2,
     species_pb2,
@@ -36,8 +36,8 @@ from surimi_backend.integrations.controller.base import (
     ControllerTimeoutError,
     ControllerUnavailableError,
     ExperimentSubmission,
+    InitialHcrData,
     SimulationStatus,
-    SpeciesValue,
 )
 from surimi_backend.integrations.controller.convert import (
     message_to_dict,
@@ -149,31 +149,14 @@ class GrpcControllerClient:
         )
         return message_to_dict(response.simulation)
 
-    async def get_initial_biomasses(self, scenario_name: str) -> list[SpeciesValue]:
+    async def get_initial_hcr_data(self, scenario_name: str) -> list[InitialHcrData]:
         response = await self._call(
-            "GetInitialBiomasses",
-            self._stub.GetInitialBiomasses,
-            get_initial_biomasses_pb2.GetInitialBiomassesRequest(scenario_name=scenario_name),
+            "GetInitialHCRData",
+            self._stub.GetInitialHCRData,
+            get_initial_hcr_data_pb2.GetInitialHCRDataRequest(scenario_name=scenario_name),
             read_only=True,
         )
-        return [
-            _species_value(b.species, b.biomass)
-            for b in response.initial_biomass_summary.initial_biomasses
-        ]
-
-    async def get_initial_fishing_mortalities(self, scenario_name: str) -> list[SpeciesValue]:
-        response = await self._call(
-            "GetInitialFishingMortalities",
-            self._stub.GetInitialFishingMortalities,
-            get_initial_fishing_mortalities_pb2.GetInitialFishingMortalitiesRequest(
-                scenario_name=scenario_name
-            ),
-            read_only=True,
-        )
-        return [
-            _species_value(f.species, f.fishing_mortality)
-            for f in response.initial_fishing_mortality_summary.initial_fishing_mortalities
-        ]
+        return [_initial_hcr_data(d) for d in response.initial_hcr_data_summary.initial_hcr_data]
 
     async def get_simulation_statuses(
         self, experiment_ids: Sequence[str]
@@ -240,14 +223,18 @@ def submit_request(
     )
 
 
-def _species_value(species: species_pb2.Species, value: float) -> SpeciesValue:
+def _initial_hcr_data(d: initial_hcr_data_pb2.InitialHCRData) -> InitialHcrData:
     # proto3 leaves a 0.0 out of the message; reading the field gives 0.0 back.
-    return SpeciesValue(
-        species_code=species.species_code,
-        life_stage=species.life_stage,
-        length_class=species.length_class,
-        age=species.age,
-        value=float(value),
+    return InitialHcrData(
+        species_code=d.species.species_code,
+        life_stage=d.species.life_stage,
+        length_class=d.species.length_class,
+        age=d.species.age,
+        initial_biomass_kg=float(d.initial_biomass),
+        initial_fishing_mortality=float(d.initial_fishing_mortality),
+        default_biomass_limit_kg=float(d.default_biomass_limit),
+        default_biomass_base_kg=float(d.default_biomass_base),
+        default_f_max=float(d.default_f_max),
     )
 
 

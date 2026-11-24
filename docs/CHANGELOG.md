@@ -19,6 +19,58 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-24
+
+### Fix — The worker dispatched nothing after the initial HCR snapshots
+
+From the 2026-11-23 change on, the worker failed at every cycle with
+`NoReferencedTableError` (`experiments.initial_hcr_snapshot_id` →
+`initial_hcr_snapshots`), so queued experiments were never submitted. The
+worker now loads every table at start. See
+[simulation status scheduler](features/simulation-status-scheduler/CHANGELOG.md).
+
+> **Deploying this:** rebuild and restart `worker`. No migration, no settings.
+
+---
+
+## 2026-11-23
+
+### Change — Harvest control rule defaults and initial values from the controller's `GetInitialHCRData`
+
+The controller now gives, per species, the initial biomass and fishing
+mortality and a default rule (biomass limit, biomass base, F max), in one RPC
+that replaced `GetInitialBiomasses` and `GetInitialFishingMortalities`. The
+backend follows it (protocol stubs re-pinned to SURIMI-protocol `7d0953e`):
+
+- `GET /api/v1/scenarios/{name}/initial-hcr-data` replaces
+  `/initial-biomasses` and `/initial-fishing-mortalities` (removed), with
+  species names, group and HCR eligibility per entry.
+- `GET …/experiment-options`: `initial_biomass` is now `initial_biomass_kg`
+  (**breaking** for the frontend's schema), plus `default_biomass_limit_kg`,
+  `default_biomass_base_kg`, `default_f_max` and `initial_hcr_snapshot_id`;
+  the unit note is gone (kg is confirmed).
+- Every distinct answer is kept as a snapshot; each new experiment points to
+  the one it was submitted with (`initial_hcr_snapshot_id`,
+  `GET /api/v1/experiments/{id}/initial-hcr-data`), and
+  `…/initial-hcr-data/history` shows when the values changed.
+- The backend console prefills a newly added species with its default rule,
+  shows the default under each input, and has a "Reset to default".
+
+Why: the controller owns the defaults (ADR 0027); the snapshots let us see
+which experiments used which values if Ecopath's file changes (ADR 0028).
+See [harvest control rules](features/harvest-control-rules/README.md#initial-hcr-data).
+
+> **Deploying this:** migration `0008_initial_hcr_snapshots` (run by the
+> `migrate` job). The controller this deployment calls must serve
+> `GetInitialHCRData` (SURIMI-controller `782b979` or later, SURIMI-Ecopath
+> `3819d2c` or later) and its bucket must hold
+> `ecopath/<scenario>/<scenario>_initial_hrc_data.csv`; otherwise the form
+> opens without defaults and experiments get no snapshot. `project-surimi`
+> has it for `northwestern_med` only; `user-<developer>` does not serve the
+> RPC yet ([ISSUES.md](ISSUES.md)). No new settings.
+
+---
+
 ## 2026-11-18
 
 ### Change — A harvest control rule's biomass limit may be at or above its base

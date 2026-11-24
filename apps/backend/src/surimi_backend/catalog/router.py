@@ -16,10 +16,6 @@ from surimi_backend.catalog import species as species_service
 from surimi_backend.catalog import species_import
 from surimi_backend.catalog.repository import SpeciesFilters
 from surimi_backend.catalog.schemas import (
-    InitialBiomassesOut,
-    InitialBiomassOut,
-    InitialFishingMortalitiesOut,
-    InitialFishingMortalityOut,
     ScenarioCatalogOut,
     SpeciesImportMode,
     SpeciesImportReport,
@@ -31,7 +27,6 @@ from surimi_backend.catalog.service import CatalogService
 from surimi_backend.catalog.species_import import Delimiter, ImportOptions, SourceValue
 from surimi_backend.core.config import Settings
 from surimi_backend.core.errors import PayloadTooLargeError, UnsupportedMediaTypeError
-from surimi_backend.integrations.controller import SpeciesValue
 
 router = APIRouter(
     prefix="/api/v1/scenarios",
@@ -112,71 +107,6 @@ async def get_contract(catalog: Catalog, scenario_name: ScenarioName) -> Contrac
 )
 async def get_scenario_catalog(catalog: Catalog, scenario_name: ScenarioName) -> ScenarioCatalogOut:
     return await catalog.scenario_catalog(scenario_name)
-
-
-_FROM_CONTROLLER: dict[int | str, dict[str, Any]] = {
-    404: {"description": "Unknown scenario"},
-    502: {
-        "description": (
-            "The controller failed, for example because the scenario has no initial-state "
-            "files (today only northwestern_med has them)"
-        )
-    },
-    504: {"description": "The controller did not answer in time"},
-}
-
-
-def _key(v: SpeciesValue) -> dict[str, str]:
-    return {
-        "species_code": v.species_code,
-        "life_stage": v.life_stage,
-        "length_class": v.length_class,
-        "age": v.age,
-    }
-
-
-@router.get(
-    "/{scenario_name}/initial-biomasses",
-    response_model=InitialBiomassesOut,
-    summary="Initial biomass per species, asked from the controller on every request",
-    description=(
-        "GetInitialBiomasses: the biomass of each species at the end of the scenario's "
-        "spin-up, the reference for harvest control rule limits. Not cached and not part of "
-        "the catalog, because the values change when the model inputs are regenerated."
-    ),
-    responses=_FROM_CONTROLLER,
-)
-async def get_initial_biomasses(
-    catalog: Catalog, scenario_name: ScenarioName
-) -> InitialBiomassesOut:
-    values = await catalog.initial_biomasses(scenario_name)
-    return InitialBiomassesOut(
-        scenario_name=scenario_name,
-        initial_biomasses=[InitialBiomassOut(**_key(v), biomass=v.value) for v in values],
-    )
-
-
-@router.get(
-    "/{scenario_name}/initial-fishing-mortalities",
-    response_model=InitialFishingMortalitiesOut,
-    summary="Initial fishing mortality per species, asked from the controller on every request",
-    description=(
-        "GetInitialFishingMortalities: catch of the last 12 spin-up months divided by the "
-        "initial biomass, per species. A species with no catch has 0 (the controller leaves "
-        "the field out). Not cached and not part of the catalog."
-    ),
-    responses=_FROM_CONTROLLER,
-)
-async def get_initial_fishing_mortalities(
-    catalog: Catalog, scenario_name: ScenarioName
-) -> InitialFishingMortalitiesOut:
-    values = await catalog.initial_fishing_mortalities(scenario_name)
-    return InitialFishingMortalitiesOut(
-        scenario_name=scenario_name,
-        initial_fishing_mortalities=[
-            InitialFishingMortalityOut(**_key(v), fishing_mortality=v.value) for v in values
-        ],
-    )
 
 
 species_router = APIRouter(

@@ -6,6 +6,32 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-24 — Fix: the worker could not dispatch (`NoReferencedTableError`)
+
+**Status:** fixed (backend). The dispatcher failed at every cycle on
+`db.commit()` with `Foreign key associated with column
+'experiments.initial_hcr_snapshot_id' could not find table
+'initial_hcr_snapshots'`, so queued experiments stayed queued. Cause: the
+worker process imports no routers, so `initial_hcr/models.py` (added
+2026-11-23, migration `0008`) was never loaded, and SQLAlchemy could not
+resolve the new foreign key when it flushed. The API was not affected (its
+routers import every model).
+
+- `scheduler/worker.py`: imports `surimi_backend.models`, the registry of every
+  table, as `seed-species` already did.
+- `tests/test_model_registry.py` (new): imports the worker module in a fresh
+  interpreter and resolves every foreign key; the pytest process itself
+  imports the whole app, which is why the existing tests missed it.
+
+**Verified**, 2026-11-24: the new test fails without the fix and passes with
+it; Ruff, format, mypy strict clean; 333 tests pass. **Not verified:** a
+dispatch by a rebuilt worker container.
+
+> **Deploying this:** rebuild and restart the `worker` image. No migration, no
+> settings.
+
+---
+
 ## 2026-11-13 — Status `initialised`; each simulation of a run followed
 
 **Status:** built (backend). Asked by the user, 2026-11-13: show `initialised`

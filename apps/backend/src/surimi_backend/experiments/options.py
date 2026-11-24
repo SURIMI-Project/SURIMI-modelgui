@@ -3,10 +3,11 @@
 
 Combines the contract (dates), the scenario catalog (climate scenarios, every
 species entry with its names, group and whether it can carry an HCR), the
-user's saved HCR configurations (ADR 0025; no scenario defaults, ADR 0024), and
-the controller's initial biomass and fishing mortality as reference values. A
-controller failure on the initial values is a note, not an error: the form
-still opens without them.
+user's saved HCR configurations (ADR 0025), and the controller's initial HCR
+data (ADR 0027): initial biomass and F as reference values, and the default
+rule each new rule row starts from. The answer is recorded as a snapshot
+(ADR 0028). A controller failure on it is a note, not an error: the form still
+opens without it.
 """
 
 from __future__ import annotations
@@ -24,16 +25,12 @@ from surimi_backend.experiments.schemas import (
 )
 from surimi_backend.experiments.service import parse_timestamp
 from surimi_backend.hcr import service as hcr_service
-from surimi_backend.integrations.controller import ControllerError, SpeciesValue
-
-UNIT_NOTE = (
-    "Initial biomass is shown as the controller sends it: no unit is stated (most likely "
-    "tonnes over the whole model area, not yet confirmed)."
-)
+from surimi_backend.initial_hcr import service as initial_hcr
+from surimi_backend.integrations.controller import ControllerError, InitialHcrData
 
 
-def _by_entry(values: list[SpeciesValue]) -> dict[tuple[str, str], float]:
-    return {hcr_service.entry_key(v.species_code, v.life_stage): v.value for v in values}
+def _default(value: float) -> float | None:
+    return value if value > 0 else None
 
 
 async def experiment_options(
@@ -48,22 +45,21 @@ async def experiment_options(
     configurations = await hcr_service.configurations_of(db, owner_id, scenario_name)
     notes = list(catalog.notes)
 
-    biomass: dict[tuple[str, str], float] = {}
-    mortality: dict[tuple[str, str], float] = {}
-    available = True
+    initial: dict[tuple[str, str], InitialHcrData] = {}
+    snapshot_id: uuid.UUID | None = None
     try:
-        biomass = _by_entry(await catalog_service.initial_biomasses(scenario_name))
-        mortality = _by_entry(await catalog_service.initial_fishing_mortalities(scenario_name))
+        data = await catalog_service.initial_hcr_data(scenario_name)
     except ControllerError as exc:
-        available = False
-        notes.append(f"No initial biomass or fishing mortality from the controller: {exc.message}")
-    if available:
-        notes.append(UNIT_NOTE)
+        notes.append(f"No initial HCR data from the controller: {exc.message}")
+    else:
+        initial = initial_hcr.addressable(data)
+        snapshot_id = (await initial_hcr.record(db, scenario_name, data)).id
+        await db.commit()
 
     group_names = {g.key: g.name for g in catalog.functional_groups}
     species: list[SpeciesOptionOut] = []
     for entry in catalog.species:
-        key = hcr_service.entry_key(entry.species_code, entry.life_stage)
+        d = initial.get(hcr_service.entry_key(entry.species_code, entry.life_stage))
         species.append(
             SpeciesOptionOut(
                 species_code=entry.species_code,
@@ -73,10 +69,11 @@ async def experiment_options(
                 scientific_name=entry.scientific_name,
                 functional_group=entry.functional_group,
                 functional_group_name=group_names.get(entry.functional_group or ""),
-                initial_biomass=biomass.get(key),
-                # An F of 0 is left out of the answer (proto3 default): absent means 0,
-                # for an entry the controller has a biomass for.
-                initial_fishing_mortality=mortality.get(key, 0.0) if key in biomass else None,
+                initial_biomass_kg=d.initial_biomass_kg if d else None,
+                initial_fishing_mortality=d.initial_fishing_mortality if d else None,
+                default_biomass_limit_kg=_default(d.default_biomass_limit_kg) if d else None,
+                default_biomass_base_kg=_default(d.default_biomass_base_kg) if d else None,
+                default_f_max=_default(d.default_f_max) if d else None,
             )
         )
     if not any(s.hcr_eligible for s in species):
@@ -96,6 +93,7 @@ async def experiment_options(
             )
             for c in configurations
         ],
-        initial_values_available=available,
+        initial_values_available=snapshot_id is not None,
+        initial_hcr_snapshot_id=snapshot_id,
         notes=notes,
     )

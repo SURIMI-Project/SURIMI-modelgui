@@ -39,7 +39,7 @@ PASSWORD = "a-long-test-password-1"  # passes the policy; for users made by `use
 TABLES = (
     "users, identities, sessions, login_events, login_stats_monthly, audit_events, "
     "hcr_configurations, experiments, simulations, experiment_events, experiment_outputs, "
-    "app_settings"
+    "app_settings, initial_hcr_snapshots"
 )
 
 

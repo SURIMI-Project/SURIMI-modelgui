@@ -26,7 +26,9 @@
 (`.pyi`) and gRPC stubs into `packages/proto/src/{surimi,buf}/`, and sets the
 runtime lower bounds (`grpcio`, `protobuf`) to the versions it generated with.
 The generated code is committed. CI job `proto-stubs` regenerates and fails on
-a diff. *As built 2026-11-03; first planned as a `buf.gen.yaml` with remote
+a diff (since 2026-11-19 only when `packages/proto/**`, `uv.lock`, `package.json`,
+`package-lock.json` or `ci.yml` change; `buf` is the root `devDependencies`
+`@bufbuild/buf`, installed with `npm ci --workspaces=false`). *As built 2026-11-03; first planned as a `buf.gen.yaml` with remote
 plugins, changed because the local `grpcio-tools` version decides which
 `grpcio` and `protobuf` runtime the code needs, and remote plugins are rate
 limited without a Buf account.* Upgrading the protocol
@@ -53,6 +55,8 @@ tests. The frontend no longer needs protobuf stubs (ADR 0006).
 ## Consequences
 
 - `apps/frontend/proto/`, `apps/frontend/src/gen/` and the `proto:pull`/`proto:gen` scripts are removed when
-  the frontend stops calling the controller.
+  the frontend stops calling the controller. *Done 2026-11-19: PR #3 removed them with
+  the frontend's `@bufbuild/buf`; the root `package.json` now holds `buf` for
+  `generate.py`.*
 - Someone must watch for new protocol versions; `GetProtocolVersion` is logged
   at worker start and compared with the pinned version.

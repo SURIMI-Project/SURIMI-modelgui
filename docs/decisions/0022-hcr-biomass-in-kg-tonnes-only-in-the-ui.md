@@ -61,6 +61,8 @@ through one shared conversion helper and rounds what it displays.
   converts no units at all.
 - `GetInitialBiomasses` gives no unit: before the UI shows initial biomass
   next to HCR limits, its unit has to be confirmed (see [ISSUES.md](../ISSUES.md)).
+  Since 2026-11-23 `GetInitialHCRData` replaces it and its biomass is kg
+  (confirmed; served as `initial_biomass_kg`, ADR 0027).
 - Migrations 0004 to 0006 were rebuilt as one revision,
   `0004_experiments_hcr_kg`; a database that ran the old ones is recreated
   (since 2026-11-16 the unreleased migrations 0004 to 0007 are one per feature: `0004_experiment_runs`, `0005_experiment_outputs`, `0006_species_catalog`, `0007_hcr_configurations`).

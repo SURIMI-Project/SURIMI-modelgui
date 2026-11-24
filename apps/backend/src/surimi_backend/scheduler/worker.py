@@ -24,6 +24,9 @@ import structlog
 from opentelemetry import trace
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# Every table, so foreign keys resolve at flush: the worker imports no routers,
+# and without this `experiments.initial_hcr_snapshot_id` names an unknown table.
+import surimi_backend.models  # noqa: F401
 from surimi_backend.core.config import Settings
 from surimi_backend.core.db import connect_raw, create_engine, create_sessionmaker
 from surimi_backend.experiments import repository as experiments_repository
