@@ -16,11 +16,11 @@ const scenarioWorldById: Record<SimulationCaseId, ScenarioWorldConfig> = {
     CreateSimulationModalComponent: NorthwesternMediterraneanCreateSimulationModal,
   },
   "aegean-sea": {
-    creationEnabled: true,
+    creationEnabled: false,
     CreateSimulationModalComponent: AegeanSeaCreateSimulationModal,
   },
   "anchovy-bay": {
-    creationEnabled: true,
+    creationEnabled: false,
     CreateSimulationModalComponent: AnchovyCreateSimulationModal,
   },
 };

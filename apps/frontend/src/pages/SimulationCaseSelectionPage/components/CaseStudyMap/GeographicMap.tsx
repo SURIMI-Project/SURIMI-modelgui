@@ -2,6 +2,10 @@ import { createRoot, type Root } from "react-dom/client";
 import { createElement } from "react";
 import MarineCaseIdentity from "../../../../components/presentational/CaseStudyCard/MarineCaseIdentity";
 import AnimatedWaterLayer from "./water/AnimatedWaterLayer";
+import loadLandMask, { type LandMask } from "./water/loadLandMask";
+import { releaseMapImage, type MapImage } from "./water/loadMapImage";
+import { terrainFlatGround } from "./water/terrainAssets";
+import loadTerrainRelief from "./water/loadTerrainRelief";
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map as LibreMap } from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
@@ -75,10 +79,13 @@ const updateMapAppearance = (
   const fictional = scope.closest("[data-selected]")?.getAttribute("data-selected") === "anchovy-bay";
   water?.setScenePreset(fictional);
   // The opaque Anchovy background needs no hidden water repaint loop.
-  water?.setAnimationEnabled(!fictional);
-  water?.setRegionalPalette(
-    scope.closest("[data-selected]")?.getAttribute("data-selected") === "overview",
-  );
+  water?.setAnimationEnabled(!fictional && !reducedMotion);
+  // Keep geographic colour variation consistent while entering either real sea.
+  water?.setRegionalPalette(!fictional);
+};
+
+const updateTerrainVisibility = (water: AnimatedWaterLayer | null, selected: SimulationCaseId | null, enabled: boolean) => {
+  water?.setTerrainEnabled(enabled && selected !== "anchovy-bay");
 };
 
 const graticule: FeatureCollection<LineString> = {
@@ -203,6 +210,17 @@ const studyAreas = [
   },
 ] as const;
 
+const studyAreaAppearance = (caseId: SimulationCaseId, selected: SimulationCaseId | null) => {
+  const focused = selected === caseId;
+  return {
+    fillOpacity: focused ? 0.10 : 0.18,
+    glowOpacity: focused ? 0.28 : 0.42,
+    glowWidth: focused ? 4.6 : 4.5,
+    glowBlur: focused ? 1.0 : 1.5,
+    outlineWidth: focused ? 2.25 : caseId === "northwestern-mediterranean" ? 1.8 : 1.6,
+  };
+};
+
 const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
   if (!map.getLayer("coasts")) return;
   // Fictional geography replaces the real basemap, within the same MapLibre instance.
@@ -216,6 +234,7 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
   for (const { caseId, prefix, area } of studyAreas) {
     const visible = selected === null || selected === caseId;
     const source = `${prefix}-study-area`;
+    const appearance = studyAreaAppearance(caseId, selected);
     if (visible && !map.getSource(source)) {
       const northwestern = caseId === "northwestern-mediterranean";
       const colour = northwestern
@@ -227,9 +246,9 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
           id: `${prefix}-study-fill`,
           type: "fill",
           source,
-          paint: { "fill-color": colour, "fill-opacity": 0.065 },
+          paint: { "fill-color": themeColour("--color-map-study-fill"), "fill-opacity": appearance.fillOpacity },
         },
-        "land",
+        "coasts",
       );
       // A decorative elevated surface provides depth without scaling the source geometry.
       map.addLayer({
@@ -250,23 +269,36 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
         id: `${prefix}-study-glow`,
         type: "line",
         source,
+        layout: { "line-join": "round", "line-cap": "round" },
         paint: {
           "line-color": colour,
-          "line-width": northwestern ? 8 : 7,
-          "line-blur": 4,
-          "line-opacity": northwestern ? 0.48 : 0.32,
+          "line-width": appearance.glowWidth,
+          "line-blur": appearance.glowBlur,
+          "line-opacity": appearance.glowOpacity,
         },
       });
       map.addLayer({
         id: `${prefix}-study-outline`,
         type: "line",
         source,
+        layout: { "line-join": "round", "line-cap": "round" },
         paint: {
           "line-color": colour,
-          "line-width": northwestern ? 2.4 : 1.8,
-          "line-opacity": northwestern ? 1 : 0.95,
+          "line-width": appearance.outlineWidth,
+          "line-opacity": 1,
         },
       });
+    }
+    if (visible) {
+      for (const [suffix, property, value] of [
+        ["fill", "fill-opacity", appearance.fillOpacity],
+        ["glow", "line-width", appearance.glowWidth],
+        ["glow", "line-blur", appearance.glowBlur],
+        ["glow", "line-opacity", appearance.glowOpacity],
+        ["outline", "line-width", appearance.outlineWidth],
+      ] as const) {
+        if (map.getLayer(`${prefix}-study-${suffix}`)) map.setPaintProperty(`${prefix}-study-${suffix}`, property, value);
+      }
     }
     for (const suffix of ["fill", "lift", "glow", "outline"]) {
       const id = `${prefix}-study-${suffix}`;
@@ -287,6 +319,10 @@ const GeographicMap = (props: Props) => {
   const buttons = useRef(new Map<SimulationCaseId, HTMLDivElement>());
   const current = useRef(props);
   const water = useRef<AnimatedWaterLayer | null>(null);
+  const terrainEnabled = useRef(false);
+  const terrainFailed = useRef(false);
+  const [terrainUnavailable, setTerrainUnavailable] = useState(false);
+  const [terrainLoading, setTerrainLoading] = useState(true);
   const [waterReady, setWaterReady] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -315,6 +351,7 @@ const GeographicMap = (props: Props) => {
       map.setMinZoom(2);
       map.setMaxZoom(8);
       updateStudyArea(map, selected);
+      updateTerrainVisibility(water.current, selected, terrainEnabled.current && !terrainFailed.current);
       updateMapAppearance(map, water.current, reducedMotion);
       map.getCanvas().setAttribute("aria-label", fictional ? "Fictional Anchovy Bay educational map" : "Mediterranean geographic context");
       if (selectionChanged) moveCamera(map, selected, !crossesScene && !reducedMotion);
@@ -374,6 +411,9 @@ const GeographicMap = (props: Props) => {
     let reframeTimer: number | undefined;
     let cardObserver: ResizeObserver | undefined;
     let cleanupHover: (() => void) | undefined;
+    let releaseTerrainImage: (() => void) | undefined;
+    let releaseMaskImage: (() => void) | undefined;
+    let detailTimer: number | undefined;
     // Give React's surrounding UI its first paint before initializing WebGL.
     const frame = requestAnimationFrame(() => {
       if (!container.current || disposed) return;
@@ -406,6 +446,7 @@ const GeographicMap = (props: Props) => {
                 data: "/maps/mediterranean-context.geojson",
               },
               grid: { type: "geojson", data: graticule },
+
             },
             layers: [
               {
@@ -424,7 +465,7 @@ const GeographicMap = (props: Props) => {
                 source: "grid",
                 paint: {
                   "line-color": themeColour("--color-map-grid"),
-                  "line-opacity": 0.065,
+                  "line-opacity": 0.025,
                   "line-width": 1,
                 },
               },
@@ -443,8 +484,8 @@ const GeographicMap = (props: Props) => {
                 source: "land",
                 paint: {
                   "line-color": themeColour("--color-map-coast"),
-                  "line-opacity": 0.8,
-                  "line-width": 1,
+                  "line-opacity": 0.6,
+                  "line-width": 0.8,
                 },
               },
             ],
@@ -455,51 +496,163 @@ const GeographicMap = (props: Props) => {
         map
           .getCanvas()
           .setAttribute("aria-label", "Mediterranean geographic context");
-        const initialiseVisualLayers = () => {
-          if (!disposed) {
-            try {
-              if (!map.getLayer("animated-water")) {
-                const waterLayer = new AnimatedWaterLayer(
-                  waterColours(map.getContainer()),
-                  (available) => {
-                    if (!disposed) setWaterReady(available);
-                  },
-                );
-                water.current = waterLayer;
-                map.addLayer(waterLayer, "grid");
-              }
-            } catch {
-              setWaterReady(false);
-            }
-            updateStudyArea(map, current.current.selected);
-            updateMapAppearance(
-              map,
-              water.current,
-              current.current.reducedMotion,
-            );
-            setReady(true);
-            setFailed(false);
-          }
+        const decodedTerrainImages = new Set<MapImage>();
+        let maskImage: MapImage | undefined;
+        let detailedImage: MapImage | undefined;
+        let detailStarted = false;
+        releaseTerrainImage = () => {
+          decodedTerrainImages.forEach(releaseMapImage);
+          decodedTerrainImages.clear();
         };
-        let initialStyleLoaded = false;
-        map.on("load", () => {
-          initialStyleLoaded = true;
-          initialiseVisualLayers();
-        });
-        // MapLibre 5 rebuilds its style after a context loss and drops custom layers.
-        map.on("style.load", () => {
-          if (initialStyleLoaded) initialiseVisualLayers();
-        });
+        releaseMaskImage = () => {
+          if (maskImage) releaseMapImage(maskImage);
+          maskImage = undefined;
+        };
+        const keepTerrainImage = (image: MapImage) => {
+          if (disposed) releaseMapImage(image);
+          else decodedTerrainImages.add(image);
+          return image;
+        };
+        // Both small assets load in parallel; neither depends on the country GeoJSON.
+        const maskPromise: Promise<LandMask | undefined> = loadLandMask()
+          .then((mask) => {
+            maskImage = mask.canvas;
+            if (disposed) releaseMaskImage?.();
+            return mask;
+          })
+          .catch(() => {
+            if (!disposed) {
+              setTerrainUnavailable(true);
+              setTerrainLoading(false);
+            }
+            return undefined;
+          });
+        const reliefPromise = loadTerrainRelief(map, "preview")
+          .then(keepTerrainImage)
+          .catch(() => {
+            if (!disposed) {
+              terrainFailed.current = true;
+              setTerrainLoading(false);
+              setTerrainUnavailable(true);
+              updateTerrainVisibility(water.current, current.current.selected, false);
+            }
+            return undefined;
+          });
+        const startDetailedTerrain = () => {
+          if (detailStarted || disposed) return;
+          detailStarted = true;
+          // Let the preview reach the screen before requesting the larger texture.
+          detailTimer = window.setTimeout(() => {
+            if (disposed) return;
+            void loadTerrainRelief(map, "detail")
+              .then((image) => {
+                keepTerrainImage(image);
+                if (disposed) return;
+                detailedImage = image;
+                water.current?.setTerrainImage(image);
+                updateTerrainVisibility(water.current, current.current.selected, terrainEnabled.current);
+              })
+              .catch(() => {
+                // A failed detail download leaves the complete preview and animation usable.
+              });
+          }, 120);
+        };
+        let visualGeneration = 0;
+        const initialiseVisualLayers = async () => {
+          const generation = ++visualGeneration;
+          const landMask = await maskPromise;
+          if (disposed || generation !== visualGeneration) return;
+          try {
+            if (!map.getLayer("animated-water")) {
+              const waterLayer = new AnimatedWaterLayer(
+                waterColours(map.getContainer()),
+                (available) => {
+                  if (disposed) return;
+                  setWaterReady(available);
+                  terrainEnabled.current = available && Boolean(landMask);
+                  updateTerrainVisibility(water.current, current.current.selected, terrainEnabled.current && !terrainFailed.current);
+                  if (!available) {
+                    setTerrainUnavailable(true);
+                    setTerrainLoading(false);
+                  }
+                },
+                landMask,
+                {
+                  flatGround: terrainFlatGround,
+                  shadow: rgbColour("--color-map-terrain-shadow", map.getContainer()),
+                  lowland: rgbColour("--color-map-terrain-lowland", map.getContainer()),
+                  ridge: rgbColour("--color-map-terrain-ridge", map.getContainer()),
+                },
+                (available) => {
+                  if (disposed) return;
+                  setTerrainLoading(false);
+                  setTerrainUnavailable(!available);
+                  terrainFailed.current = !available;
+                  if (available) startDetailedTerrain();
+                  if (!available) {
+                    updateTerrainVisibility(water.current, current.current.selected, false);
+                  }
+                },
+              );
+              water.current = waterLayer;
+              map.addLayer(waterLayer, landMask ? "coasts" : "grid");
+              if (landMask) map.moveLayer("grid", "coasts");
+            }
+          } catch {
+            terrainEnabled.current = false;
+            updateTerrainVisibility(water.current, current.current.selected, false);
+            setWaterReady(false);
+            setTerrainLoading(false);
+            setTerrainUnavailable(true);
+          }
+          if (landMask) {
+            void reliefPromise.then((image) => {
+              if (disposed || generation !== visualGeneration || !image) return;
+              water.current?.setTerrainImage(detailedImage ?? image);
+              updateTerrainVisibility(water.current, current.current.selected, terrainEnabled.current);
+              if (terrainEnabled.current) setTerrainUnavailable(false);
+            });
+          }
+          updateStudyArea(map, current.current.selected);
+          updateTerrainVisibility(water.current, current.current.selected, terrainEnabled.current && !terrainFailed.current);
+          updateMapAppearance(map, water.current, current.current.reducedMotion);
+          setReady(true);
+          setFailed(false);
+        };
+        // Start once the style exists; large outline sources may continue loading afterwards.
+        map.on("style.load", () => { void initialiseVisualLayers(); });
         map.on("webglcontextlost", () => {
+          ++visualGeneration;
           water.current = null;
+          terrainEnabled.current = false;
+          if (!disposed) setTerrainLoading(true);
           if (!disposed) {
             setWaterReady(false);
             setFailed(true);
           }
         });
         map.on("error", () => {
-          if (!disposed) setFailed(true);
+          if (disposed) return;
+          setFailed(true);
         });
+
+        // Sea names are geographic context, separate from interactive study cards.
+        const seaLabels: { name: string; coordinates: [number, number]; caseId?: SimulationCaseId; broad?: boolean }[] = [
+          { name: "Northwestern\nMediterranean\nSea", coordinates: [4.7, 39.3], caseId: "northwestern-mediterranean" },
+          { name: "Aegean\nSea", coordinates: [25.6, 37.3], caseId: "aegean-sea" },
+          { name: "Ionian\nSea", coordinates: [18.4, 36.6] },
+          { name: "Mediterranean Sea", coordinates: [16.5, 33.5], broad: true },
+        ];
+        for (const { name, coordinates, caseId, broad } of seaLabels) {
+          const label = document.createElement("span");
+          label.className = styles.seaLabel;
+          label.textContent = name;
+          label.dataset.sea = caseId ?? "context";
+          if (broad) label.dataset.broad = "true";
+          label.setAttribute("aria-hidden", "true");
+          markers.push(new maplibregl.Marker({ element: label, anchor: "center" })
+            .setLngLat(coordinates).addTo(map));
+        }
 
         // Temporary dev-only placement controls. Positions are viewport fractions.
         const cardPositions = new Map<SimulationCaseId, { x: number; y: number }>();
@@ -676,11 +829,12 @@ const GeographicMap = (props: Props) => {
           for (const { caseId, prefix } of studyAreas) {
             const active = id === caseId;
             const dimmed = id !== null && !active;
+            const appearance = studyAreaAppearance(caseId, current.current.selected);
             for (const [suffix, property, value] of [
-              ["fill", "fill-opacity", active ? 0.18 : dimmed ? 0.025 : 0.065],
-              ["glow", "line-opacity", active ? 0.65 : dimmed ? 0.1 : caseId === "aegean-sea" ? 0.32 : 0.48],
+              ["fill", "fill-opacity", active ? 0.28 : dimmed ? 0.04 : appearance.fillOpacity],
+              ["glow", "line-opacity", active ? 0.60 : dimmed ? 0.08 : appearance.glowOpacity],
               ["outline", "line-opacity", dimmed ? 0.3 : 1],
-              ["outline", "line-width", active ? 3 : caseId === "aegean-sea" ? 1.8 : 2.4],
+              ["outline", "line-width", active ? appearance.outlineWidth + 0.5 : appearance.outlineWidth],
             ] as const) {
               const layer = `${prefix}-study-${suffix}`;
               if (!map.getLayer(layer)) continue;
@@ -748,8 +902,8 @@ const GeographicMap = (props: Props) => {
             const viewport = map.getContainer();
             const cardWidth = viewport.clientWidth > 1200 ? 304 : 272;
             const saved = id === "aegean-sea"
-              ? { x: 0.6640787760416667, y: 0.2400735294117647 }
-              : { x: 0.35540364583333334, y: 0.18856951871657754 };
+              ? { x: 0.706, y: 0.227 }
+              : { x: 0.318, y: 0.174 };
             const custom = cardPositions.get(id) ?? saved;
             const left = Math.min(viewport.clientWidth - cardWidth - 8, Math.max(8, custom.x * viewport.clientWidth));
             const top = Math.max(8, Math.min(custom.y * viewport.clientHeight, viewport.clientHeight - 160));
@@ -799,6 +953,7 @@ const GeographicMap = (props: Props) => {
       cancelAnimationFrame(frame);
       cancelAnimationFrame(resizeFrame);
       window.clearTimeout(reframeTimer);
+      window.clearTimeout(detailTimer);
       cleanupHover?.();
       observer?.disconnect();
       cardObserver?.disconnect();
@@ -807,17 +962,26 @@ const GeographicMap = (props: Props) => {
       markers.forEach((marker) => marker.remove());
       markerButtons.clear();
       mapRef.current?.remove();
+      releaseTerrainImage?.();
+      releaseMaskImage?.();
       mapRef.current = null;
       water.current = null;
+      terrainEnabled.current = false;
+      terrainFailed.current = false;
     };
   }, []);
 
+  const scenePending = selected !== "anchovy-bay" && !failed && (!ready || terrainLoading);
   return (
     <>
       <div
         className={styles.mapLayer}
+        data-scene-pending={scenePending}
+        inert={scenePending}
+        aria-busy={scenePending || undefined}
         data-map-ready={ready}
-        aria-hidden={backgroundOnly || selected === "anchovy-bay" || undefined}
+        data-terrain-state={terrainLoading ? "loading" : terrainUnavailable ? "fallback" : "ready"}
+        aria-hidden={scenePending || backgroundOnly || selected === "anchovy-bay" || undefined}
         data-water-state={
           waterReady
             ? selected === "anchovy-bay" ? "still" : "animated"
@@ -829,6 +993,14 @@ const GeographicMap = (props: Props) => {
         <div ref={container} className={styles.mapCanvas} />
       </div>
       <div ref={curtain} className={styles.sceneCurtain} aria-hidden="true" />
+      {terrainLoading && !failed && !backgroundOnly && selected !== "anchovy-bay" ? (
+        <p className={styles.terrainLoading} role="status">Loading terrain…</p>
+      ) : null}
+      {terrainUnavailable && !failed && !backgroundOnly && selected !== "anchovy-bay" ? (
+        <p className={styles.mapStatus} role="status">
+          Terrain unavailable. Showing simplified land with the existing water view.
+        </p>
+      ) : null}
       {failed ? (
         <p className={styles.mapStatus} role="status">
           Map preview unavailable. Choose a case below to continue.

@@ -344,12 +344,8 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             </a>
           ) : null}
           {selected !== "anchovy-bay" ? (
-            <a
-              href="https://www.naturalearthdata.com/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Map context: Natural Earth
+            <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
+              Terrain and outlines: Natural Earth
             </a>
           ) : null}
         </footer>
@@ -364,15 +360,16 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
             BACK TO CASE STUDIES
           </Button>
           <TooltipTrigger delay={250} isDisabled={worldConfig.creationEnabled}>
-            <DisabledTooltipTarget label="Set up scenario: this use case is under construction." isDisabled={!worldConfig.creationEnabled}>
+            <DisabledTooltipTarget label="Set up scenario: Work in progress." isDisabled={!worldConfig.creationEnabled}>
               <Button
+                className={styles.setupScenarioButton}
                 isDisabled={Boolean(availability) || !available.has(selected) || !worldConfig.creationEnabled}
                 onPress={() => setSetupOpen(true)}
               >
                 SET UP SCENARIO
               </Button>
             </DisabledTooltipTarget>
-            <Tooltip>This use case is under construction.</Tooltip>
+            <Tooltip>Work in progress</Tooltip>
           </TooltipTrigger>
         </nav>
       ) : null}

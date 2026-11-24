@@ -1,0 +1,43 @@
+{
+  "source": "Natural Earth SR_50M 3.2.0",
+  "source_url": "https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip",
+  "license": "Public domain",
+  "license_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "source_archive_sha256": "ff810f5f2747463fd8ffa612b23e5f5e5d593a345218976872b6749610976ab7",
+  "bounds_lon_lat": [
+    -25,
+    15,
+    55,
+    62
+  ],
+  "bounds_mercator_normalized": [
+    0.4305555555555556,
+    0.2789360171681782,
+    0.6527777777777778,
+    0.4578490471292611
+  ],
+  "projection": "Web Mercator",
+  "lighting_flat_ground": 0.803921568627451,
+  "files": {
+    "terrain-detail.jpg": {
+      "width": 3072,
+      "height": 2473,
+      "bytes": 732383
+    },
+    "terrain-medium.jpg": {
+      "width": 2048,
+      "height": 1649,
+      "bytes": 358652
+    },
+    "terrain-preview.jpg": {
+      "width": 768,
+      "height": 618,
+      "bytes": 48566
+    },
+    "terrain-mask.png": {
+      "width": 2048,
+      "height": 1649,
+      "bytes": 21087
+    }
+  }
+}

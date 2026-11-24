@@ -4,15 +4,22 @@ import type {
   Map as LibreMap,
 } from "maplibre-gl";
 import { waterFragmentShader, waterVertexShader } from "./shaders";
+import type { LandMask } from "./loadLandMask";
 
 type GL = WebGLRenderingContext | WebGL2RenderingContext;
+export type TerrainColours = {
+  flatGround: number;
+  shadow: [number, number, number];
+  lowland: [number, number, number];
+  ridge: [number, number, number];
+};
 type Colours = {
   deep: [number, number, number];
   shallow: [number, number, number];
   reflection: [number, number, number];
 };
 
-// One world-aligned plane below the land polygons. No tiles, textures or extra render engine.
+// One world-aligned pass shades masked terrain and animates the surrounding water.
 export default class AnimatedWaterLayer implements CustomLayerInterface {
   readonly id = "animated-water";
   readonly type = "custom" as const;
@@ -22,6 +29,15 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
   private buffer?: WebGLBuffer;
   private vao?: WebGLVertexArrayObject;
   private gl?: WebGL2RenderingContext;
+  private landTexture?: WebGLTexture;
+  private terrainTexture?: WebGLTexture;
+  private terrainImage?: HTMLImageElement | ImageBitmap;
+  private terrainUploadPending = false;
+  private terrainFramePending = false;
+  private readonly onTerrainReady: (available: boolean) => void;
+  private terrainEnabled = false;
+  private readonly terrainColours: TerrainColours;
+  private readonly landMask?: LandMask;
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
   private timer?: ReturnType<typeof setTimeout>;
   private enabled = true;
@@ -40,9 +56,24 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     duration: number;
   };
   private readonly onAvailable: (available: boolean) => void;
-  constructor(colours: Colours, onAvailable: (available: boolean) => void) {
+  constructor(colours: Colours, onAvailable: (available: boolean) => void, landMask: LandMask | undefined, terrainColours: TerrainColours, onTerrainReady: (available: boolean) => void) {
     this.colours = colours;
     this.onAvailable = onAvailable;
+    this.landMask = landMask;
+    this.terrainColours = terrainColours;
+    this.onTerrainReady = onTerrainReady;
+  }
+
+  setTerrainImage(image: HTMLImageElement | ImageBitmap) {
+    this.terrainImage = image;
+    this.terrainUploadPending = true;
+    this.terrainFramePending = true;
+    this.map?.triggerRepaint();
+  }
+
+  setTerrainEnabled(enabled: boolean) {
+    this.terrainEnabled = enabled;
+    this.map?.triggerRepaint();
   }
 
   setAnimationEnabled(enabled: boolean) {
@@ -166,7 +197,53 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
       gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
       gl.bindVertexArray(previousVao);
       gl.bindBuffer(gl.ARRAY_BUFFER, previousBuffer);
+      const texture = gl.createTexture();
+      if (!texture) throw new Error("Unable to allocate coastline mask");
+      this.landTexture = texture;
+      const previousTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+      const previousFlip = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
+      const previousPremultiply = gl.getParameter(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      try {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        if (this.landMask) {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.landMask.canvas);
+        } else {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+        }
+      } finally {
+        gl.bindTexture(gl.TEXTURE_2D, previousTexture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, previousFlip);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, previousPremultiply);
+      }
+      const terrainTexture = gl.createTexture();
+      if (!terrainTexture) throw new Error("Unable to allocate terrain texture");
+      this.terrainTexture = terrainTexture;
+      gl.bindTexture(gl.TEXTURE_2D, terrainTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+      gl.bindTexture(gl.TEXTURE_2D, previousTexture);
+      this.terrainUploadPending = Boolean(this.terrainImage);
+      this.terrainFramePending = Boolean(this.terrainImage);
       for (const name of [
+        "u_terrain",
+        "u_has_terrain",
+        "u_terrain_texel",
+        "u_terrain_flat_ground",
+        "u_terrain_shadow",
+        "u_terrain_lowland",
+        "u_terrain_ridge",
+        "u_land_mask",
+        "u_mask_bounds",
+        "u_has_land_mask",
         "u_matrix",
         "u_time",
         "u_deep",
@@ -215,9 +292,52 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
       Math.cos(bearing) * Math.sin(pitch),
       Math.cos(pitch),
     );
+    const previousActiveTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+    gl.activeTexture(gl.TEXTURE0);
+    const previousTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+    gl.bindTexture(gl.TEXTURE_2D, this.landTexture!);
+    gl.uniform1i(this.uniforms.u_land_mask, 0);
+    gl.uniform1i(this.uniforms.u_has_land_mask, this.landMask && !this.fictionalScene ? 1 : 0);
+    gl.uniform4fv(this.uniforms.u_mask_bounds, this.landMask?.bounds ?? [0, 0, 1, 1]);
+    gl.activeTexture(gl.TEXTURE1);
+    const previousTerrainTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+    gl.bindTexture(gl.TEXTURE_2D, this.terrainTexture!);
+    if (this.terrainUploadPending && this.terrainImage) {
+      const previousFlip = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
+      const previousPremultiply = gl.getParameter(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      try {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.terrainImage);
+      } catch {
+        this.terrainImage = undefined;
+        this.terrainFramePending = false;
+        this.onTerrainReady(false);
+      } finally {
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, previousFlip);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, previousPremultiply);
+        this.terrainUploadPending = false;
+      }
+    }
+    gl.uniform1i(this.uniforms.u_terrain, 1);
+    gl.uniform1i(this.uniforms.u_has_terrain, this.terrainEnabled && Boolean(this.terrainImage) ? 1 : 0);
+    gl.uniform2f(this.uniforms.u_terrain_texel, 1 / (this.terrainImage?.width ?? 1), 1 / (this.terrainImage?.height ?? 1));
+    gl.uniform1f(this.uniforms.u_terrain_flat_ground, this.terrainColours.flatGround);
+    gl.uniform3fv(this.uniforms.u_terrain_shadow, this.terrainColours.shadow);
+    gl.uniform3fv(this.uniforms.u_terrain_lowland, this.terrainColours.lowland);
+    gl.uniform3fv(this.uniforms.u_terrain_ridge, this.terrainColours.ridge);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.bindTexture(gl.TEXTURE_2D, previousTerrainTexture);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, previousTexture);
+    gl.activeTexture(previousActiveTexture);
     gl.bindVertexArray(previousVao);
     gl.useProgram(previousProgram);
+    // Reveal the map only after the first terrain frame has actually been drawn.
+    if (this.terrainFramePending && this.terrainEnabled && this.terrainImage && !gl.isContextLost()) {
+      this.terrainFramePending = false;
+      this.onTerrainReady(true);
+    }
     if (
       (this.enabled || this.colourTransition) &&
       !document.hidden &&
@@ -234,10 +354,14 @@ export default class AnimatedWaterLayer implements CustomLayerInterface {
     if (this.timer !== undefined) clearTimeout(this.timer);
     this.timer = undefined;
     if (this.gl) {
+      if (this.landTexture) this.gl.deleteTexture(this.landTexture);
+      if (this.terrainTexture) this.gl.deleteTexture(this.terrainTexture);
       if (this.vao) this.gl.deleteVertexArray(this.vao);
       if (this.buffer) this.gl.deleteBuffer(this.buffer);
       if (this.program) this.gl.deleteProgram(this.program);
     }
+    this.landTexture = undefined;
+    this.terrainTexture = undefined;
     this.vao = undefined;
     this.buffer = undefined;
     this.program = undefined;

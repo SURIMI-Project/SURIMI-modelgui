@@ -14,8 +14,8 @@
   }
   .page[data-selected="overview"] .scrim {
     background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-map-overview-scrim) 85%, transparent), color-mix(in srgb, var(--color-map-overview-scrim) 50%, transparent) 18%, transparent 40%),
-      linear-gradient(0deg, color-mix(in srgb, var(--color-map-overview-glow) 40%, transparent), transparent 25%);
+      radial-gradient(ellipse 28rem 30rem at 0 12rem, color-mix(in srgb, var(--color-map-overview-scrim) 78%, transparent), transparent),
+      linear-gradient(0deg, color-mix(in srgb, var(--color-map-overview-scrim) 20%, transparent), transparent 12%);
   }
   .page[data-selected="overview"] .introduction,
   .page[data-selected="overview"] .introduction h1 em {
@@ -26,16 +26,6 @@
   }
   .page[data-selected="aegean-sea"] {
     --case-accent: var(--color-secondary-ink);
-    --color-map-water: var(--color-sea-aegean-background);
-    --color-map-water-deep: var(--color-sea-aegean-deep);
-    --color-map-water-shallow: var(--color-sea-aegean-secondary);
-    --color-map-water-reflection: var(--color-sea-aegean-accent);
-  }
-  .page[data-selected="northwestern-mediterranean"] {
-    --color-map-water: var(--color-sea-nw-background);
-    --color-map-water-deep: var(--color-sea-nw-deep);
-    --color-map-water-shallow: var(--color-sea-nw-secondary);
-    --color-map-water-reflection: var(--color-sea-nw-accent);
   }
   .page[data-selected="aegean-sea"] .mapGlow,
   .page[data-selected="northwestern-mediterranean"] .mapGlow {
@@ -1089,4 +1079,101 @@
     .caseDetailActions { top: auto; bottom: 6rem; left: var(--spacing-md); right: var(--spacing-md); width: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .caseDetailActions button { min-width: 0; }
   }
+}
+
+@layer components {
+  .page[data-selected="overview"] .explorePrompt::after {
+    content: "";
+    display: block;
+    width: 4.25rem;
+    height: 0.1875rem;
+    margin-top: var(--spacing-lg);
+    background: var(--color-map-sea-label);
+  }
+  .seaLabel {
+    color: var(--color-map-sea-label);
+    font-family: var(--app-font-family);
+    font-size: 0.6875rem;
+    font-weight: var(--font-weight-semibold);
+    font-style: italic;
+    letter-spacing: 0.25em;
+    line-height: 1.65;
+    text-transform: uppercase;
+    text-align: center;
+    white-space: pre;
+    text-shadow: 0 1px 5px var(--color-map-water-deep), 0 0 12px var(--color-map-water-deep);
+    pointer-events: none;
+    user-select: none;
+  }
+  .seaLabel[data-broad="true"] { font-size: 0.875rem; letter-spacing: 0.45em; }
+  .page[data-bay="true"] .seaLabel,
+  .page[data-list="true"] .seaLabel,
+  .page[data-selected="northwestern-mediterranean"] .seaLabel:not([data-sea="northwestern-mediterranean"]),
+  .page[data-selected="aegean-sea"] .seaLabel:not([data-sea="aegean-sea"]) { display: none; }
+  .mapMarker .markerLabel > div > button {
+    border-color: var(--color-map-card-muted);
+    box-shadow: 0 0 0 1px var(--color-map-card-border), var(--shadow-md);
+  }
+  @media (max-width: 47.4375rem) {
+    .seaLabel { font-size: 0.5625rem; letter-spacing: 0.12em; }
+    .seaLabel[data-sea="context"] { display: none; }
+    .page[data-selected="overview"] .explorePrompt::after { margin-top: var(--spacing-sm); width: 3rem; }
+  }
+}
+
+@layer components {
+  .page[data-selected="overview"],
+  .page[data-selected="aegean-sea"],
+  .page[data-selected="northwestern-mediterranean"] {
+    --color-map-water: var(--color-map-ocean-deep);
+    --color-map-water-deep: var(--color-map-ocean-deep);
+    --color-map-water-shallow: var(--color-map-ocean-shallow);
+    --color-map-water-reflection: var(--color-map-ocean-reflection);
+  }
+  .page[data-selected="overview"] {
+    --color-map-coverage-surface: color-mix(in srgb, var(--color-map-card-muted) 35%, var(--color-floating-control-surface));
+  }
+  .page[data-selected="aegean-sea"] {
+    --color-map-water: var(--color-map-aegean-deep);
+    --color-map-water-deep: var(--color-map-aegean-deep);
+    --color-map-water-shallow: var(--color-map-aegean-shallow);
+    --color-map-water-reflection: var(--color-map-aegean-reflection);
+  }
+  @media (min-width: 75rem) {
+    .mapMarker[data-case] .markerLabel { width: calc(clamp(19rem, 19.4vw, 23rem) - 2rem); }
+    .mapMarker .markerLabel strong { font-size: 1.125rem; }
+    .page .bayCard { width: clamp(15rem, 16vw, 18rem); }
+  }
+}
+
+@layer components {
+  .terrainLoading {
+    position: absolute;
+    z-index: 6;
+    left: var(--spacing-md);
+    bottom: 2.5rem;
+    margin: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-map-card-surface);
+    color: var(--color-map-detail-text);
+    font-size: var(--font-size-xs);
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  /* Keep the legacy flat scene hidden until a complete terrain frame is ready. */
+  .mapLayer[data-scene-pending="true"] { opacity: 0; pointer-events: none; }
+}
+
+@layer components {
+  .setupScenarioButton:is(:disabled, [data-disabled]) {
+    background: var(--color-disabled-action-surface);
+    color: var(--color-disabled-action-text);
+    border-color: var(--color-disabled-action-border);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .detailActions [data-disabled] { cursor: not-allowed; }
 }
