@@ -241,46 +241,44 @@ Upstream: put groups and HCR eligibility in the contract.
 
 ---
 
-### Initial biomass and fishing mortality: unit not stated, high F, gaps
+### `GetInitialHCRData`: values look wrong in size, two scenarios missing
 
-**Severity:** Medium — these are the reference values a user sets HCR limits against; a wrong unit would make every limit 1000× off
-**Evidence:** **Verified** 2026-11-12 on `project-surimi` (the user, through Bruno, `GetInitialBiomasses` and `GetInitialFishingMortalities` for `northwestern_med`); Read from source, SURIMI-Ecopath `88e1121`
-**Owner:** controller and EwE teams
-**Where:** `SURIMI-Ecopath/Includes/northwestern_med/initial_biomasses.csv`, `initial_catch.csv`; [ARCHITECTURE.md § Controller behaviour](ARCHITECTURE.md#controller-behaviour)
+**Severity:** Medium — these are the reference values and the defaults a user sets HCR rules from; if the sizes are wrong, every prefilled rule is about 54× too low
+**Evidence:** **Verified** 2026-11-23 on `project-surimi` (backend Python client, scratch stubs from SURIMI-protocol `7d0953e`); Read from source, SURIMI-Ecopath `3819d2c`; computed from the repo file and the fake copy of the old RPCs' files
+**Owner:** controller and Ecopath teams
+**Where:** `SURIMI-Ecopath/Includes/<scenario>/<scenario>_initial_hrc_data.csv`, read from `ecopath/<scenario>/` in the namespace bucket; [plan 2026-11-23](plans/2026-11-23-hcr-initial-data-from-controller.md)
 
-- **Unit.** The response has no unit. The contract says mass is `kg`
-  (`standards.measurements`), and the HCR is sent in kg (the controller team, 2026-10-16). Read
-  as kg, ANE adult starts at 124 t, below the controller team's example biomass limit of
-  7,743 t, so fishing would be closed from the first month; read as tonnes it is
-  123,719 t, above the example biomass base of 30,972 t. Tonnes looks right but
-  is not confirmed. Evidence for tonnes over the whole model area (**Read from source**
-  2026-11-13, SURIMI-data_preprocessing `eb09c05`,
-  `northwestern_med.eiixml`): the EwE model's `EcopathModel.Area` is 45,547
-  km², and its group biomasses are densities in t/km² (Adult anchovy 1.7,
-  Adult hake 0.19). ANE adult's 123,719 is 2.72 t/km² × 45,547. The controller team's
-  example HCRs are such densities × 45,547 as well: BFT 0.008 and 0.032 t/km²
-  give 364.4 t and 1,457.5 t (his mail spells it `0,008 * 45547 * 1000` kg),
-  SAA 0.022 and 0.088, ANE 0.17 and 0.68; in all three the base is 4× the
-  limit. Since 2026-11-13 the backend's HCRs are kg end to end
-  ([ADR 0022](decisions/0022-hcr-biomass-in-kg-tonnes-only-in-the-ui.md)); if
-  the initial biomass is tonnes, the UI must convert it before showing it next
-  to the limits.
-- **High F.** F is above 1 for 5 of the 6 HCR-eligible entries: HKE adult 1.08,
-  HKE juvenile 2.97, MUT adult 3.02, BFT 2.08, PIL adult 7.13 (BOG 0.42). ANE
-  adult is 4.22 against the controller team's example `f_max` of 0.42. Catch is the gross catch,
-  dead discards included, of the last 12 spin-up months.
-- **Gaps.** `SWO` and `VMA` are in the contract but have no value; `HKE` with no
-  life stage has a value (biomass equal to HKE juvenile, F 0) but is not in the
-  contract. 49 of 91 rows have F = 0 (no catch), which proto3 leaves out of the
-  JSON.
-- **Other scenarios.** Only `northwestern_med` has the files. On
-  `project-surimi`, `anchovy_bay` and `aegean_sea` fail with gRPC `INTERNAL`,
-  "MinIO API responded with message=ecopath/<scenario>/initial_biomasses.csv". Still so on 2026-11-13 and 2026-11-16 (**Verified**, through the backend's gRPC client from the compose `api` container), although the controller team's mail of 2026-11-11 announced them for the next day; `northwestern_med` returns 91 rows, identical to the fake copy (20 of 20 calls of each RPC answered on 2026-11-16). The console's New experiment tab shows this error as a note for those two scenarios.
-  This was **Verified** 2026-11-12 through the backend, which answers 502
-  `controller_error`.
+`GetInitialHCRData` replaced `GetInitialBiomasses` and
+`GetInitialFishingMortalities` on 2026-11-23 and adds the default biomass
+limit, biomass base and F max per species. The unit is kg (**Confirmed by the
+controller team, 2026-11-23**).
 
-**Fix:** ask the controller team for the unit and whether F is annual and meant to be compared
-with `f_max`; add the files for the other scenarios.
+- **Defaults.** Every default limit and base is the EwE density (t/km²) ×
+  846 × 1000: BFT 0.008/0.032, ANE adult 0.17/0.68 and SAA 0.022/0.088 t/km²
+  (the controller team's own example densities) all give exactly 846. The
+  controller team's example of 2026-10-16 multiplied by the model area,
+  45,547 km² (BFT limit 364,376 kg; the RPC gives 6,768 kg). If 846 is the
+  number of water cells, the cell area (about 53.8 km²) is missing.
+- **Initial biomass.** Each value is 12× (11.93 to 12.14) what
+  `GetInitialBiomasses` returned for the same entry; F dropped by the same
+  factor (HKE adult 1.08 → 0.091). A switch from tonnes to kg would be 1000×.
+- **Entries.** 91 for `northwestern_med`, every one with non-zero defaults; 49
+  with F = 0 (no catch). The fisheries authority accepts rules for 6 of them,
+  though the proto says the list is the species "for which a HCR can be
+  created". `HKE` with no life stage is a copy of `HKE juvenile` with F 0.
+- **Other scenarios.** `anchovy_bay` and `aegean_sea` fail with `INTERNAL`,
+  "MinIO API responded with message=ecopath/<scenario>/<scenario>_initial_hrc_data.csv"
+  (**Verified** 2026-11-23): the Ecopath repo has no file for them.
+- **`user-<developer>`** answers `UNIMPLEMENTED` (**Verified** 2026-11-23):
+  see "The `user-<developer>` controller does not serve `GetInitialHCRData`".
+
+**Fix:** upstream, in the Ecopath file (cell-area factor, the 12× change, the
+two missing scenarios). Not raised with the partners: the user decided on
+2026-11-23 that nothing waits on them. On our side (built 2026-11-23) the
+values are shown as sent, and each distinct answer is kept as a snapshot
+linked to the experiments that used it
+([ADR 0028](decisions/0028-initial-hcr-data-snapshots-per-experiment.md)), so
+the affected experiments can be found if the file is corrected.
 
 ---
 
@@ -311,21 +309,23 @@ controller should validate requests itself.
 
 ---
 
-### The `user-<developer>` bucket lacks the initial-state files
+### The `user-<developer>` controller does not serve `GetInitialHCRData`
 
-**Severity:** Medium — on that controller the experiment form opens without initial biomass and F, so a user there has no reference values for HCR limits
-**Evidence:** **Verified** 2026-11-16: the controller now runs protocol `be08fd333a86` and serves `GetInitialBiomasses` and `GetInitialFishingMortalities` (on 2026-11-12, on `b10b05a0ca7f`, it answered `UNIMPLEMENTED`), but both fail for `northwestern_med` with "MinIO API responded with message=ecopath/northwestern_med/initial_biomasses.csv". `project-surimi` serves them for `northwestern_med`
-**Owner:** the user (that namespace's bucket)
-**Where:** `GET /api/v1/scenarios/{name}/experiment-options` (a note instead of values), `/initial-biomasses`, `/initial-fishing-mortalities` (502)
+**Severity:** Medium — on that controller the experiment form opens without initial values and default rules, so a user there has nothing to start a rule from
+**Evidence:** **Verified** 2026-11-23: `GetInitialHCRData` answers `UNIMPLEMENTED` for every scenario (the controller predates the RPC, protocol `7d0953e`). `project-surimi` serves it for `northwestern_med`
+**Owner:** the user (that namespace)
+**Where:** `GET /api/v1/scenarios/{name}/experiment-options` (a note instead of values), `/initial-hcr-data` (502); experiments submitted there get no snapshot (an `experiment.initial_hcr_unavailable` event)
 
 Everything else works there: submit, statuses, and outputs, which our keys
 read from `s3://oidc-<developer>/output_creator/experiments` (checked
 2026-11-16; the local compose stack uses this controller since that day,
 because our keys cannot read the `project-surimi` bucket: "Access Denied").
 
-**Fix:** copy `initial_biomasses.csv` and `initial_catch.csv` from
-`SURIMI-Ecopath/Includes/northwestern_med/` to
-`ecopath/northwestern_med/` in that bucket.
+**Fix:** redeploy the controller (SURIMI-controller `782b979` or later) and
+Ecopath (SURIMI-Ecopath `3819d2c` or later) there, and copy
+`SURIMI-Ecopath/Includes/northwestern_med/northwestern_med_initial_hrc_data.csv`
+to `ecopath/northwestern_med/` in that bucket. The old `initial_biomasses.csv`
+and `initial_catch.csv` are no longer read.
 
 ---
 
@@ -411,11 +411,13 @@ backend handles it with per-metric levels
 ([ADR 0017](decisions/0017-scenario-catalog-from-partner-config.md)). Open:
 confirm with the EwE team that this is intended.
 
-The initial biomass the controller serves for HCRs
-(`GetInitialBiomasses`) has the same shape: each member of a group gets the
-group's value (ALB = BON = 20,526.8; GRQ = LQZ = OLV = 20,584.1). So an HCR
-on one species of a multi-species group is triggered by the whole group's
-biomass. **Verified** 2026-11-12 on `project-surimi`.
+The initial HCR data the controller serves (`GetInitialHCRData`) has the
+same shape: each member of a group gets the group's initial biomass and
+default limit and base (ALB = BON = 246,510.9 kg; GRQ = LQZ = OLV =
+246,885.2 kg). So an HCR on one species of a multi-species group is triggered
+by the whole group's biomass. **Verified** 2026-11-23 on `project-surimi`
+(the same values as SURIMI-Ecopath `3819d2c`); first seen 2026-11-12 with
+`GetInitialBiomasses`.
 
 ### No adult biomass for ANE, HKE, MUT and PIL
 
@@ -447,9 +449,7 @@ the run goes to 2030.
 | Message type in the `.bin`; is it needed if the `.nc` has everything? | Controller team |
 | How the outputs of the 5 simulations of an MSE experiment are written and should be combined | Controller team |
 | Which species and life stages can carry an HCR per scenario; the controller team's examples `SAA`, `ANE`, `MAC` are not accepted by the repo files. Per life stage or per species for ANE, HKE, MUT, PIL? | Controller team |
-| Can an experiment run with no HCR (`aegean_sea` and `anchovy_bay` have no fisheries authority inputs)? Since there are no scenario defaults (ADR 0024), it is what a user who saved no rules sends | Controller team |
 | May `climate_scenario` be empty for a scenario that lists no climate scenarios (`aegean_sea`), though the proto says `min_len: 1`? See "The controller does not enforce the protocol's validation rules" | Controller team |
-| What unit are `GetInitialBiomasses` values in (tonnes or kg), and is `GetInitialFishingMortalities` an annual F to compare with `f_max`? See "Initial biomass and fishing mortality" above | Controller team |
 | Aegean Sea MICE model: its 20 functional groups and species vocabulary (issue #154) are not published; the contract still lists 271 species | Controller and MICE teams |
 | Are the EDITO experiments S3 credentials static keys or temporary (session token)? Download links signed with temporary ones die with the token | EDITO, controller team |
 | Public S3 endpoint for browsers: `https://minio.dive.edito.eu`? | EDITO |

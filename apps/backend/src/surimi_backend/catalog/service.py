@@ -7,29 +7,32 @@ A scenario catalog (ADR 0017) is rebuilt from the catalog file, the contract and
 the `species` rows of its codes (ADR 0023) each time the contract is fetched, so
 drift is logged once per refresh.
 
-Initial biomasses and fishing mortalities are **not** cached and not part of
-the catalog: they change whenever Ecopath's spin-up files are regenerated, so
-each request asks the controller (user, 2026-11-12).
+The initial HCR data (`GetInitialHCRData`: initial biomass and F, default
+rule) is **not** cached and not part of the catalog: it changes whenever
+Ecopath's file is regenerated, so each request asks the controller (ADR 0027).
+`name_entries` adds the catalog's names and groups to its entries.
 """
 
 from __future__ import annotations
 
 import asyncio
 import time
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Any, TypeVar
 
 import structlog
 
 from surimi_backend.catalog.scenario_catalog import (
+    EntryNames,
     ScenarioCatalogFile,
     build_catalog,
+    name_entries,
     species_codes,
 )
 from surimi_backend.catalog.schemas import ScenarioCatalogOut
 from surimi_backend.catalog.species import SpeciesLookup
 from surimi_backend.core.errors import NotFoundError
-from surimi_backend.integrations.controller import ControllerClient, SpeciesValue
+from surimi_backend.integrations.controller import ControllerClient, InitialHcrData
 
 log = structlog.get_logger("surimi.catalog")
 
@@ -71,7 +74,7 @@ class CatalogService:
         return await self._cached("scenario_names", self._controller.get_scenario_names)
 
     async def contract(self, scenario_name: str) -> dict[str, Any]:
-        await self._require(scenario_name)
+        await self.require_scenario(scenario_name)
         return await self._cached(
             f"contract:{scenario_name}",
             lambda: self._controller.get_simulation_contract(scenario_name),
@@ -100,15 +103,32 @@ class CatalogService:
 
         return await self._cached(f"catalog:{scenario_name}", load)
 
-    async def initial_biomasses(self, scenario_name: str) -> list[SpeciesValue]:
-        await self._require(scenario_name)
-        return await self._controller.get_initial_biomasses(scenario_name)
+    async def initial_hcr_data(self, scenario_name: str) -> list[InitialHcrData]:
+        """`GetInitialHCRData`, never cached (ADR 0027). 404 for an unknown
+        scenario; a controller failure propagates as ControllerError."""
+        await self.require_scenario(scenario_name)
+        return await self._controller.get_initial_hcr_data(scenario_name)
 
-    async def initial_fishing_mortalities(self, scenario_name: str) -> list[SpeciesValue]:
-        await self._require(scenario_name)
-        return await self._controller.get_initial_fishing_mortalities(scenario_name)
+    async def name_entries(
+        self, scenario_name: str, entries: Sequence[tuple[str, str]]
+    ) -> list[EntryNames]:
+        """Names, group and eligibility of each `(species_code, life_stage)`
+        (requirement 11 of plan 2026-11-23). A code with no `species` row gets
+        no names and a `catalog.drift` warning, as in the catalog."""
+        codes = {code for code, _ in entries}
+        names = await self._species.get(codes) if self._species else {}
+        if self._species:
+            unnamed = sorted(codes - names.keys())
+            if unnamed:
+                log.warning(
+                    "catalog.drift",
+                    scenario=scenario_name,
+                    detail=f"initial HCR data with no species row: {', '.join(unnamed)}",
+                )
+        return name_entries(self._files.get(scenario_name), names, entries)
 
-    async def _require(self, scenario_name: str) -> None:
+    async def require_scenario(self, scenario_name: str) -> None:
+        """404 unless the controller lists the scenario."""
         if scenario_name not in await self.scenario_names():
             raise NotFoundError(f"scenario {scenario_name!r} does not exist")
 

@@ -24,7 +24,7 @@ React page
   → REST service function
   → shared request function
   → our backend /api/v1
-  → Rik's controller through server-side gRPC
+  → the controller through server-side gRPC
 ```
 
 For example: sign in → session cookies → `GET /api/v1/scenarios` → backend calls the controller → JSON → available case studies.
@@ -104,7 +104,7 @@ Future generated **OpenAPI** TypeScript types are different from these Protobuf 
 
 The current `mockScenarioRuns.ts` and `features/ScenarioRuns/types.ts` contain plain TypeScript objects, ISO date strings, and local helpers. They are possible reuse points, but do not directly match the current runs page's Protobuf-shaped rows. Define an explicit adapter/presentation type rather than keeping the protocol dependency.
 
-**Keep the service-layer concept.** `lib/services/` itself is not obsolete; its replacement functions will call our REST API rather than Rik's controller.
+**Keep the service-layer concept.** `lib/services/` itself is not obsolete; its replacement functions will call our REST API rather than the controller.
 
 ### Remove frontend packages and generation scripts
 

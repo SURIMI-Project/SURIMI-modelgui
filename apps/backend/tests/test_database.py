@@ -38,7 +38,8 @@ def test_the_tables_exist(sql: Callable[..., list[Any]]) -> None:
     assert [r[0] for r in rows] == [
         "alembic_version", "app_settings", "audit_events", "experiment_events",
         "experiment_outputs", "experiments", "hcr_configurations", "identities",
-        "login_events", "login_stats_monthly", "sessions", "simulations", "species", "users",
+        "initial_hcr_snapshots", "login_events", "login_stats_monthly", "sessions",
+        "simulations", "species", "users",
     ]  # fmt: skip
 
 

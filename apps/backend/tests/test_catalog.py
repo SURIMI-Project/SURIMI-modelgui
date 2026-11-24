@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
 
 from surimi_backend.auth.dependencies import current_principal
@@ -89,57 +88,18 @@ def test_controller_down_is_502_with_its_code(settings: Settings) -> None:
     assert response.json()["error"]["code"] == "controller_unavailable"
 
 
-def test_initial_biomasses_come_from_the_controller_every_time(
-    client: TestClient, fake_controller: FakeControllerClient
-) -> None:
-    for _ in range(2):
-        response = client.get("/api/v1/scenarios/northwestern_med/initial-biomasses")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["scenario_name"] == "northwestern_med"
-    rows = {(r["species_code"], r["life_stage"]): r for r in body["initial_biomasses"]}
-    assert len(rows) == 91
-    # The values project-surimi returned on 2026-11-12.
-    assert rows["ANE", "adult"] == {
-        "species_code": "ANE",
-        "life_stage": "adult",
-        "length_class": "",
-        "age": "",
-        "biomass": 123719.1598388878,
-    }
-    # Members of one functional group share its biomass.
-    assert rows["ALB", ""]["biomass"] == rows["BON", ""]["biomass"]
-    assert fake_controller.calls["GetInitialBiomasses"] == 2  # not cached
-
-
-def test_initial_fishing_mortalities_match_the_controller(
-    client: TestClient, fake_controller: FakeControllerClient
-) -> None:
-    response = client.get("/api/v1/scenarios/northwestern_med/initial-fishing-mortalities")
-    assert response.status_code == 200
-    rows = {
-        (r["species_code"], r["life_stage"]): r["fishing_mortality"]
-        for r in response.json()["initial_fishing_mortalities"]
-    }
-    assert rows["ANE", "adult"] == pytest.approx(4.224581647364614)
-    assert rows["PIL", "adult"] == pytest.approx(7.129252471519714)
-    assert rows["BON", ""] == 0.0
-    assert fake_controller.calls["GetInitialFishingMortalities"] == 1
-
-
-def test_initial_state_of_a_scenario_without_files_is_502(client: TestClient) -> None:
-    response = client.get("/api/v1/scenarios/anchovy_bay/initial-biomasses")
-    assert response.status_code == 502
-    assert response.json()["error"]["code"] == "controller_error"
-    assert client.get("/api/v1/scenarios/atlantis/initial-biomasses").status_code == 404
+def test_the_removed_initial_value_routes_are_gone(client: TestClient) -> None:
+    # Replaced by /initial-hcr-data (ADR 0027): the protocol dropped their RPCs.
+    for path in ("initial-biomasses", "initial-fishing-mortalities"):
+        assert client.get(f"/api/v1/scenarios/northwestern_med/{path}").status_code == 404
 
 
 def test_scenarios_need_a_signed_in_user(anonymous_client: TestClient) -> None:
     for path in (
         "/api/v1/scenarios",
         "/api/v1/scenarios/anchovy_bay/contract",
-        "/api/v1/scenarios/northwestern_med/initial-biomasses",
-        "/api/v1/scenarios/northwestern_med/initial-fishing-mortalities",
+        "/api/v1/scenarios/northwestern_med/initial-hcr-data",
+        "/api/v1/scenarios/northwestern_med/initial-hcr-data/history",
     ):
         response = anonymous_client.get(path)
         assert response.status_code == 401, path

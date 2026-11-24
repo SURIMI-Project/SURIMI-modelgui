@@ -1,7 +1,7 @@
 """`GET /api/v1/scenarios/{name}/experiment-options`: the experiment form's data
 (docs/features/experiments § Experiment form options), against PostgreSQL and
 the fake controller (which serves copies of the real contracts and of
-Ecopath's northwestern_med initial-state files)."""
+Ecopath's northwestern_med initial HCR data file, SURIMI-Ecopath `3819d2c`)."""
 
 from __future__ import annotations
 
@@ -39,6 +39,7 @@ def test_northwestern_med_options(api: TestClient, users: Callable[..., User]) -
     assert body["climate_scenario_required"] is True
     assert (body["pods_single_run"], body["pods_mse_run"]) == (1, 5)
     assert body["initial_values_available"] is True
+    assert body["initial_hcr_snapshot_id"]  # the answer is recorded (ADR 0028)
 
     # Every species entry of the contract, each saying whether it can carry an HCR.
     contract = json.loads((FAKE_CONTRACTS_DIR / "northwestern_med.json").read_text("utf-8"))
@@ -47,15 +48,11 @@ def test_northwestern_med_options(api: TestClient, users: Callable[..., User]) -
     assert len(rows) == len(items)
     ane = rows[("ANE", "adult")]
     assert ane["hcr_eligible"] is False
-    assert ane["initial_fishing_mortality"] == pytest.approx(4.225, rel=1e-3)
+    assert ane["initial_fishing_mortality"] == pytest.approx(0.35225, rel=1e-4)
     # In the contract, but the controller has no initial values for it.
-    assert (
-        rows[("SWO", "")]["initial_biomass"],
-        rows[("SWO", "")]["initial_fishing_mortality"],
-    ) == (
-        None,
-        None,
-    )
+    swo = rows[("SWO", "")]
+    assert [swo[k] for k in ("initial_biomass_kg", "initial_fishing_mortality")] == [None, None]
+    assert swo["default_biomass_limit_kg"] is None
     eligible = {k: r for k, r in rows.items() if r["hcr_eligible"]}
     assert sorted(eligible) == [
         ("BFT", ""),
@@ -67,9 +64,15 @@ def test_northwestern_med_options(api: TestClient, users: Callable[..., User]) -
     ]
     bft = rows[("BFT", "")]
     assert bft["species_name"] == "Atlantic bluefin tuna"
-    assert bft["initial_biomass"] == pytest.approx(54016.12, rel=1e-6)
-    assert bft["initial_fishing_mortality"] == pytest.approx(2.082, rel=1e-3)
-    assert body["hcr_configurations"] == []  # maria saved none; there are no defaults
+    assert bft["initial_biomass_kg"] == pytest.approx(647973.508979626)
+    assert bft["initial_fishing_mortality"] == pytest.approx(0.17357, rel=1e-4)
+    # The controller's default rule, to prefill a new rule row with (ADR 0027).
+    assert (
+        bft["default_biomass_limit_kg"],
+        bft["default_biomass_base_kg"],
+        bft["default_f_max"],
+    ) == (6768.0, 27072.0, pytest.approx(0.6216744780540466))
+    assert body["hcr_configurations"] == []  # maria saved none
     assert rows[("HKE", "adult")]["functional_group_name"] == "Adult hake"
 
 
@@ -111,7 +114,8 @@ def test_a_scenario_without_initial_values_or_hcrs(
     assert body["climate_scenario_required"] is False
     assert not any(r["hcr_eligible"] for r in body["species"])
     assert body["initial_values_available"] is False
-    assert any("No initial biomass" in n for n in body["notes"])
+    assert body["initial_hcr_snapshot_id"] is None
+    assert any("No initial HCR data" in n for n in body["notes"])
     assert any("can carry a harvest control rule" in n for n in body["notes"])
 
 

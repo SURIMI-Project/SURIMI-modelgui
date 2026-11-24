@@ -145,6 +145,11 @@ class ExperimentDetailOut(ExperimentOut):
         description="What was sent; harvest control rule biomass in kg, as on the wire"
     )
     protocol_version: str
+    initial_hcr_snapshot_id: uuid.UUID | None = Field(
+        description="The controller's initial HCR data when it was submitted (ADR 0028), at "
+        "GET /api/v1/experiments/{id}/initial-hcr-data; null when the controller did not "
+        "answer then"
+    )
     simulations: list[SimulationOut]
     events: list[EventOut] = Field(description="The 50 newest")
 
@@ -228,15 +233,28 @@ class SpeciesOptionOut(BaseModel):
     scientific_name: str | None = Field(examples=["Thunnus thynnus"])
     functional_group: str | None = Field(examples=["35"])
     functional_group_name: str | None = Field(examples=["Bluefin tuna"])
-    initial_biomass: float | None = Field(
-        description="GetInitialBiomasses, as the controller sends it (no unit stated); null "
-        "when the controller has none for this scenario or this entry",
-        examples=[54016.12],
+    initial_biomass_kg: float | None = Field(
+        description="GetInitialHCRData: biomass at the end of spin-up, kg; null when the "
+        "controller has none for this scenario or this entry",
+        examples=[647973.51],
     )
     initial_fishing_mortality: float | None = Field(
-        description="GetInitialFishingMortalities, per year; 0 when the species is not caught; "
-        "null when the controller has no initial values for the entry",
-        examples=[2.082],
+        description="GetInitialHCRData, per year; 0 when the species is not caught; null "
+        "when the controller has no initial values for the entry",
+        examples=[0.1736],
+    )
+    default_biomass_limit_kg: float | None = Field(
+        description="The controller's default biomass limit, kg, to prefill a new rule "
+        "with (ADR 0027); null when it has none",
+        examples=[6768.0],
+    )
+    default_biomass_base_kg: float | None = Field(
+        description="The controller's default biomass base, kg; null when it has none",
+        examples=[27072.0],
+    )
+    default_f_max: float | None = Field(
+        description="The controller's default maximum fishing mortality; null when it has none",
+        examples=[0.6217],
     )
 
 
@@ -260,4 +278,8 @@ class ExperimentOptionsOut(BaseModel):
         "are at GET /api/v1/scenarios/{name}/hcr-configurations/{id}"
     )
     initial_values_available: bool
+    initial_hcr_snapshot_id: uuid.UUID | None = Field(
+        description="The snapshot of the controller's initial HCR data these values come "
+        "from (ADR 0028); null when the controller did not answer"
+    )
     notes: list[str]

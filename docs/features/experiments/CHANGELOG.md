@@ -6,6 +6,22 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-23 — Defaults in the form options; a snapshot of the initial HCR data per experiment
+
+`GET …/experiment-options`: `initial_biomass` renamed `initial_biomass_kg`;
+new `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max`
+(null when none) and `initial_hcr_snapshot_id`; one `GetInitialHCRData` call
+instead of two; the unit note is gone. `POST /experiments` and clone store
+`initial_hcr_snapshot_id` (ADR 0028) or emit `experiment.initial_hcr_unavailable`
+and still queue; `GET /api/v1/experiments/{id}/initial-hcr-data` (owner,
+admin); the detail carries `initial_hcr_snapshot_id`. Migration
+`0008_initial_hcr_snapshots` adds the column. Tests in
+`tests/test_initial_hcr.py` and `tests/test_experiment_options.py`; 332 pass,
+2026-11-23. Live against `project-surimi` (queued only). Design:
+[harvest control rules § Initial HCR data](../harvest-control-rules/README.md#initial-hcr-data).
+
+---
+
 ## 2026-11-16 — HCR configurations; every contract species in the options
 
 **Status:** built. Ruff, format, mypy strict clean; **286 tests pass, all integration tests included** (PostgreSQL 17 in Docker), 2026-11-16.

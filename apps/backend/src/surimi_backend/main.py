@@ -26,6 +26,7 @@ from surimi_backend.core.errors import install_error_handlers
 from surimi_backend.core.logging import RequestContextMiddleware, configure_logging
 from surimi_backend.experiments import router as experiments_router
 from surimi_backend.hcr import router as hcr_router
+from surimi_backend.initial_hcr import router as initial_hcr_router
 from surimi_backend.integrations.controller import ControllerClient, build_controller_client
 from surimi_backend.integrations.oidc import build_providers
 from surimi_backend.notifications import router as events_router
@@ -145,6 +146,7 @@ def create_app(
         catalog_router.species_router,
         catalog_router.species_admin_router,
         hcr_router.router,
+        initial_hcr_router.router,
         experiments_router.router,
         experiments_router.queue_router,
         experiments_router.admin_router,

@@ -27,9 +27,8 @@ docs: |-
   | `start_date_time`, `maximum_end_date_time` | The end date must be after the first and not after the second (contract) |
   | `climate_scenarios`, `climate_scenario_required` | Send one of them as `climate_scenario` when required; none for `aegean_sea` |
   | `pods_single_run`, `pods_mse_run` | Ecopath pods a run takes: 1, or `CONTROLLER_MSE_SIMULATIONS` for `is_mse_run` |
-  | `species[]` | Every species entry of the contract, in catalog order: `species_code`, `life_stage`, `hcr_eligible` (only those can carry a rule), `species_name`, `scientific_name`, `functional_group` and its name, `initial_biomass`, `initial_fishing_mortality` (both null when the controller has no value for the entry) |
+  | `species[]` | Every species entry of the contract, in catalog order: `species_code`, `life_stage`, `hcr_eligible` (only those can carry a rule), `species_name`, `scientific_name`, `functional_group` and its name, `initial_biomass_kg`, `initial_fishing_mortality` (null when the controller has no value for the entry), `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` (the controller's default rule, to prefill a new rule with; null when none) |
   | `hcr_configurations[]` | Your saved configurations for the scenario: `id`, `name`, `rule_count`, `updated_at`; the rules are at `get hcr configuration` |
-  | `initial_values_available`, `notes` | Whether the controller had initial values (only `northwestern_med` today), and what is missing |
+  | `initial_values_available`, `initial_hcr_snapshot_id`, `notes` | Whether the controller answered `GetInitialHCRData` (only `northwestern_med` today), the snapshot of that answer, and what is missing |
 
-  The initial biomass has no unit from the controller (most likely tonnes over
-  the whole model area, not yet confirmed). Unknown scenario: `404`.
+  Biomass in kg. Unknown scenario: `404`.

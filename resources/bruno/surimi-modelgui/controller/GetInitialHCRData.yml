@@ -1,0 +1,32 @@
+info:
+  name: GetInitialHCRData
+  type: grpc
+  seq: 7
+
+grpc:
+  url: "{{urlController}}"
+  method: /surimi.v1.ControllerService/GetInitialHCRData
+  methodType: unary
+  message:
+    - title: message 1
+      message: |-
+        {
+          "scenario_name": "northwestern_med"
+        }
+
+docs: |-
+  # GetInitialHCRData
+
+  Per species of the scenario: `initial_biomass` and `initial_fishing_mortality`,
+  and the default rule `default_biomass_limit`, `default_biomass_base` (kg) and
+  `default_f_max`. Replaces `GetInitialBiomasses` and
+  `GetInitialFishingMortalities` (protocol `7d0953e`).
+
+  ## Notes
+
+  The controller passes the call to Ecopath pod 0 without reserving it; Ecopath
+  reads `ecopath/<scenario>/<scenario>_initial_hrc_data.csv` from the
+  namespace bucket. Only `northwestern_med` has it (91 entries);
+  `anchovy_bay` and `aegean_sea` fail with `INTERNAL`. proto3 leaves a 0 out
+  of the JSON (no catch, or no default). The backend serves it named at
+  `api/initial-hcr-data/get initial hcr data`.

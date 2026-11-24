@@ -116,42 +116,6 @@ class ScenarioCatalogOut(BaseModel):
 # --- initial state from the controller (not part of the catalog) -----------------------
 
 
-class InitialValueOut(SpeciesRefOut):
-    length_class: str = Field(description="Empty when the controller sends none", examples=[""])
-    age: str = Field(description="Empty when the controller sends none", examples=[""])
-
-
-class InitialBiomassOut(InitialValueOut):
-    biomass: float = Field(
-        description=(
-            "At the end of the scenario's spin-up, summed over the grid. A member of a "
-            "functional group gets the group's biomass. Unit not stated by the controller: "
-            "see docs/ISSUES.md"
-        ),
-        examples=[123719.1598388878],
-    )
-
-
-class InitialBiomassesOut(BaseModel):
-    scenario_name: str = Field(examples=["northwestern_med"])
-    initial_biomasses: list[InitialBiomassOut]
-
-
-class InitialFishingMortalityOut(InitialValueOut):
-    fishing_mortality: float = Field(
-        description=(
-            "Catch of the last 12 spin-up months divided by the initial biomass. 0 when the "
-            "species had no catch"
-        ),
-        examples=[4.224581647364614],
-    )
-
-
-class InitialFishingMortalitiesOut(BaseModel):
-    scenario_name: str = Field(examples=["northwestern_med"])
-    initial_fishing_mortalities: list[InitialFishingMortalityOut]
-
-
 class SpeciesOut(BaseModel):
     """One species code with its names and higher taxa (`species` table)."""
 

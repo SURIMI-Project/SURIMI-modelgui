@@ -1,6 +1,5 @@
 from surimi.v1 import get_all_simulation_statuses_pb2 as _get_all_simulation_statuses_pb2
-from surimi.v1 import get_initial_biomasses_pb2 as _get_initial_biomasses_pb2
-from surimi.v1 import get_initial_fishing_mortalities_pb2 as _get_initial_fishing_mortalities_pb2
+from surimi.v1 import get_initial_hcr_data_pb2 as _get_initial_hcr_data_pb2
 from surimi.v1 import get_protocol_version_pb2 as _get_protocol_version_pb2
 from surimi.v1 import get_scenario_names_pb2 as _get_scenario_names_pb2
 from surimi.v1 import get_simulation_contract_pb2 as _get_simulation_contract_pb2

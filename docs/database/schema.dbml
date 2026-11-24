@@ -204,6 +204,21 @@ Table species {
 
 // ── Experiments ──────────────────────────────────────────────────────────────
 
+Table initial_hcr_snapshots {
+  id uuid [pk]
+  scenario_name text [not null]
+  content_hash text [not null, note: 'SHA-256 (hex) of entries as canonical JSON']
+  entries jsonb [not null, note: "GetInitialHCRData as sent: array of {species_code, life_stage, length_class, age, initial_biomass_kg, initial_fishing_mortality, default_biomass_limit_kg, default_biomass_base_kg, default_f_max}, sorted; no species names"]
+  entry_count integer [not null]
+  first_seen_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (scenario_name, content_hash) [unique, name: 'initial_hcr_snapshots_scenario_hash_uq', note: 'one row per distinct answer; conflict target of the insert; the history list of a scenario']
+  }
+
+  Note: 'One row per distinct answer of the controller per scenario (ADR 0028, migration 0008_initial_hcr_snapshots, 2026-11-23). A record only; never purged. Check: jsonb_typeof(entries) = array'
+}
+
 Table hcr_configurations {
   id uuid [pk]
   owner_id uuid [not null, note: "a user's own; no scenario defaults (ADR 0024)"]
@@ -246,6 +261,7 @@ Table experiments {
   missing_polls integer [not null, default: 0, note: 'consecutive polls where the controller did not report it']
   error text
   cloned_from_id uuid
+  initial_hcr_snapshot_id uuid [note: "the controller's initial HCR data at submit (ADR 0028); null when it did not answer, or submitted before 2026-11-23. No index: no query filters by it, and snapshots are never deleted"]
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
   deleted_at timestamptz [note: 'soft delete']
@@ -354,6 +370,7 @@ Ref: login_events.user_id > users.id [delete: set null]
 Ref: login_stats_monthly.user_id > users.id [delete: cascade]
 Ref: experiments.owner_id > users.id [delete: restrict]
 Ref: experiments.cloned_from_id > experiments.id [delete: set null]
+Ref: experiments.initial_hcr_snapshot_id > initial_hcr_snapshots.id [delete: restrict]
 Ref: simulations.experiment_id > experiments.id [delete: cascade]
 Ref: experiment_events.experiment_id > experiments.id [delete: cascade]
 Ref: experiment_events.owner_id > users.id [delete: cascade]

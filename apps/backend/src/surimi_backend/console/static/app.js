@@ -433,11 +433,22 @@ function renderExperimentForm(o) {
 const speciesText = (row) => {
   const name = row.species_name || row.species_code;
   const values =
-    row.initial_biomass === null || row.initial_biomass === undefined
+    row.initial_biomass_kg === null || row.initial_biomass_kg === undefined
       ? ""
-      : ` · initial biomass ${fmt(row.initial_biomass, 1)}, F ${fmt(row.initial_fishing_mortality, 3)}`;
+      : ` · initial biomass ${fmt(tonnes(row.initial_biomass_kg), 1)} t, F ${fmt(row.initial_fishing_mortality, 3)}`;
   return `${name} (${entryLabel(row.species_code, row.life_stage)})${values}`;
 };
+
+// The controller's default rule for an entry (ADR 0027), in kg, or null when it
+// has none: a new row starts from it, and "Reset" goes back to it.
+const defaultRule = (row) =>
+  row.default_biomass_limit_kg == null || row.default_biomass_base_kg == null || row.default_f_max == null
+    ? null
+    : {
+        biomass_limit_kg: row.default_biomass_limit_kg,
+        biomass_base_kg: row.default_biomass_base_kg,
+        f_max: row.default_f_max,
+      };
 
 const rowsInList = () => [...$("exp-hcr").querySelectorAll("tr[data-index]")];
 
@@ -487,15 +498,33 @@ function addRuleRow(index, rule) {
   tr.dataset.index = String(index);
   tr.dataset.key = entryKey(row.species_code, row.life_stage);
   const inputs = [numberInput("limit", {}), numberInput("base", {}), numberInput("f_max", { max: "100" })];
-  if (rule) {
-    inputs[0].value = String(tonnes(rule.biomass_limit_kg));
-    inputs[1].value = String(tonnes(rule.biomass_base_kg));
-    inputs[2].value = String(rule.f_max);
-  }
+  const fill = (values) => {
+    inputs[0].value = String(tonnes(values.biomass_limit_kg));
+    inputs[1].value = String(tonnes(values.biomass_base_kg));
+    inputs[2].value = String(values.f_max);
+  };
+  const defaults = defaultRule(row);
+  if (rule) fill(rule);
+  // Under each input, the controller's default it can be compared with.
+  const defaultNote = (text) => el("div", defaults ? `default ${text}` : "", "muted small");
+  const notes = defaults
+    ? [
+        defaultNote(`${fmt(tonnes(defaults.biomass_limit_kg), 3)} t`),
+        defaultNote(`${fmt(tonnes(defaults.biomass_base_kg), 3)} t`),
+        defaultNote(fmt(defaults.f_max, 4)),
+      ]
+    : [el("div"), el("div"), el("div")];
   const species = el("td", row.species_name || row.species_code, "wrap");
   species.append(el("div", entryLabel(row.species_code, row.life_stage), "muted small"));
   const remove = el("button", "Remove", "secondary small-button");
   remove.type = "button";
+  const reset = el("button", "Reset to default", "secondary small-button");
+  reset.type = "button";
+  reset.hidden = !defaults;
+  reset.addEventListener("click", () => {
+    fill(defaults);
+    showSwitchNote();
+  });
   remove.addEventListener("click", () => {
     tr.remove();
     fillSpeciesPicker();
@@ -523,12 +552,12 @@ function addRuleRow(index, rule) {
   tr.append(
     species,
     el("td", row.functional_group_name || row.functional_group || "—", "wrap"),
-    el("td", fmt(row.initial_biomass, 1)),
+    el("td", row.initial_biomass_kg == null ? "—" : fmt(tonnes(row.initial_biomass_kg), 1)),
     el("td", fmt(row.initial_fishing_mortality, 3)),
-    cell(inputs[0]),
-    cell(inputs[1], switchNote),
-    cell(inputs[2]),
-    cell(remove),
+    cell(inputs[0], notes[0]),
+    cell(inputs[1], notes[1], switchNote),
+    cell(inputs[2], notes[2]),
+    cell(reset, remove),
   );
   $("exp-hcr").append(tr);
   return tr;
@@ -537,7 +566,8 @@ function addRuleRow(index, rule) {
 $("exp-species-add").addEventListener("click", () => {
   const value = $("exp-species-pick").value;
   if (!expOptions || value === "") return;
-  const tr = addRuleRow(Number(value), null);
+  // A new row starts from the controller's default rule, when it has one.
+  const tr = addRuleRow(Number(value), defaultRule(expOptions.species[Number(value)]));
   fillSpeciesPicker();
   showRulesState();
   tr.querySelector("input[name=limit]").focus();

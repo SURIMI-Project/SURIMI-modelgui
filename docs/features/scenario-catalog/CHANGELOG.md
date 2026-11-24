@@ -2,6 +2,21 @@
 
 Newest first.
 
+## 2026-11-23 — Initial values moved to harvest control rules; entries named for them
+
+`GET /api/v1/scenarios/{name}/initial-biomasses` and `/initial-fishing-mortalities`
+removed (the protocol dropped their RPCs); `GET …/initial-hcr-data` replaces them
+([harvest control rules](../harvest-control-rules/CHANGELOG.md)). New
+`scenario_catalog.name_entries` and `CatalogService.name_entries`: names from
+the `species` table, group and eligibility from the catalog file, for any
+`(species_code, life_stage)`, in the contract or not; a code without a row gets
+null names and a `catalog.drift` warning. `CatalogService.initial_hcr_data` and
+`require_scenario` (was `_require`). README § Initial biomass and fishing
+mortality now points to the HCR feature. Ruff, format, mypy strict clean; 332
+tests pass (integration included), 2026-11-23; `name_entries` unit-tested.
+
+---
+
 ## 2026-11-16 — Steps 1 and 2 verified against PostgreSQL
 
 **Status:** Ruff, format, mypy strict clean; **287 tests pass, all integration tests included** (PostgreSQL 17 in Docker), 2026-11-16. The entries below, written while Docker was down, said

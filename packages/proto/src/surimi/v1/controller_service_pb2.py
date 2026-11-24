@@ -23,8 +23,7 @@ _sym_db = _symbol_database.Default()
 
 
 from surimi.v1 import get_all_simulation_statuses_pb2 as surimi_dot_v1_dot_get__all__simulation__statuses__pb2
-from surimi.v1 import get_initial_biomasses_pb2 as surimi_dot_v1_dot_get__initial__biomasses__pb2
-from surimi.v1 import get_initial_fishing_mortalities_pb2 as surimi_dot_v1_dot_get__initial__fishing__mortalities__pb2
+from surimi.v1 import get_initial_hcr_data_pb2 as surimi_dot_v1_dot_get__initial__hcr__data__pb2
 from surimi.v1 import get_protocol_version_pb2 as surimi_dot_v1_dot_get__protocol__version__pb2
 from surimi.v1 import get_scenario_names_pb2 as surimi_dot_v1_dot_get__scenario__names__pb2
 from surimi.v1 import get_simulation_contract_pb2 as surimi_dot_v1_dot_get__simulation__contract__pb2
@@ -33,7 +32,7 @@ from surimi.v1 import remove_experiment_pb2 as surimi_dot_v1_dot_remove__experim
 from surimi.v1 import submit_experiment_pb2 as surimi_dot_v1_dot_submit__experiment__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"surimi/v1/controller_service.proto\x12\tsurimi.v1\x1a+surimi/v1/get_all_simulation_statuses.proto\x1a%surimi/v1/get_initial_biomasses.proto\x1a/surimi/v1/get_initial_fishing_mortalities.proto\x1a$surimi/v1/get_protocol_version.proto\x1a\"surimi/v1/get_scenario_names.proto\x1a\'surimi/v1/get_simulation_contract.proto\x1a\'surimi/v1/get_simulation_statuses.proto\x1a!surimi/v1/remove_experiment.proto\x1a!surimi/v1/submit_experiment.proto2\xc1\x07\n\x11\x43ontrollerService\x12[\n\x10SubmitExperiment\x12\".surimi.v1.SubmitExperimentRequest\x1a#.surimi.v1.SubmitExperimentResponse\x12[\n\x10RemoveExperiment\x12\".surimi.v1.RemoveExperimentRequest\x1a#.surimi.v1.RemoveExperimentResponse\x12j\n\x15GetSimulationStatuses\x12\'.surimi.v1.GetSimulationStatusesRequest\x1a(.surimi.v1.GetSimulationStatusesResponse\x12s\n\x18GetAllSimulationStatuses\x12*.surimi.v1.GetAllSimulationStatusesRequest\x1a+.surimi.v1.GetAllSimulationStatusesResponse\x12j\n\x15GetSimulationContract\x12\'.surimi.v1.GetSimulationContractRequest\x1a(.surimi.v1.GetSimulationContractResponse\x12\x61\n\x12GetProtocolVersion\x12$.surimi.v1.GetProtocolVersionRequest\x1a%.surimi.v1.GetProtocolVersionResponse\x12[\n\x10GetScenarioNames\x12\".surimi.v1.GetScenarioNamesRequest\x1a#.surimi.v1.GetScenarioNamesResponse\x12\x64\n\x13GetInitialBiomasses\x12%.surimi.v1.GetInitialBiomassesRequest\x1a&.surimi.v1.GetInitialBiomassesResponse\x12\x7f\n\x1cGetInitialFishingMortalities\x12..surimi.v1.GetInitialFishingMortalitiesRequest\x1a/.surimi.v1.GetInitialFishingMortalitiesResponseB!\n\x11\x65u.project.surimi\xaa\x02\x0bGrpc.Surimib\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"surimi/v1/controller_service.proto\x12\tsurimi.v1\x1a+surimi/v1/get_all_simulation_statuses.proto\x1a$surimi/v1/get_initial_hcr_data.proto\x1a$surimi/v1/get_protocol_version.proto\x1a\"surimi/v1/get_scenario_names.proto\x1a\'surimi/v1/get_simulation_contract.proto\x1a\'surimi/v1/get_simulation_statuses.proto\x1a!surimi/v1/remove_experiment.proto\x1a!surimi/v1/submit_experiment.proto2\xba\x06\n\x11\x43ontrollerService\x12[\n\x10SubmitExperiment\x12\".surimi.v1.SubmitExperimentRequest\x1a#.surimi.v1.SubmitExperimentResponse\x12[\n\x10RemoveExperiment\x12\".surimi.v1.RemoveExperimentRequest\x1a#.surimi.v1.RemoveExperimentResponse\x12j\n\x15GetSimulationStatuses\x12\'.surimi.v1.GetSimulationStatusesRequest\x1a(.surimi.v1.GetSimulationStatusesResponse\x12s\n\x18GetAllSimulationStatuses\x12*.surimi.v1.GetAllSimulationStatusesRequest\x1a+.surimi.v1.GetAllSimulationStatusesResponse\x12j\n\x15GetSimulationContract\x12\'.surimi.v1.GetSimulationContractRequest\x1a(.surimi.v1.GetSimulationContractResponse\x12\x61\n\x12GetProtocolVersion\x12$.surimi.v1.GetProtocolVersionRequest\x1a%.surimi.v1.GetProtocolVersionResponse\x12[\n\x10GetScenarioNames\x12\".surimi.v1.GetScenarioNamesRequest\x1a#.surimi.v1.GetScenarioNamesResponse\x12^\n\x11GetInitialHCRData\x12#.surimi.v1.GetInitialHCRDataRequest\x1a$.surimi.v1.GetInitialHCRDataResponseB!\n\x11\x65u.project.surimi\xaa\x02\x0bGrpc.Surimib\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -41,6 +40,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'surimi.v1.controller_servic
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\021eu.project.surimi\252\002\013Grpc.Surimi'
-  _globals['_CONTROLLERSERVICE']._serialized_start=409
-  _globals['_CONTROLLERSERVICE']._serialized_end=1370
+  _globals['_CONTROLLERSERVICE']._serialized_start=359
+  _globals['_CONTROLLERSERVICE']._serialized_end=1185
 # @@protoc_insertion_point(module_scope)

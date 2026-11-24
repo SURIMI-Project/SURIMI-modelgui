@@ -42,17 +42,23 @@ class TargetFishingMortality:
 
 
 @dataclass(frozen=True, slots=True)
-class SpeciesValue:
-    """One value per species from `GetInitialBiomasses` or
-    `GetInitialFishingMortalities`. The species key is the full
-    `surimi.v1.Species`; empty strings where the controller sends none. The
-    controller states no unit (docs/ISSUES.md)."""
+class InitialHcrData:
+    """One entry of `GetInitialHCRData`: a species of the scenario with its
+    initial state and the default harvest control rule (ADR 0027). The species
+    key is the full `surimi.v1.Species`, empty strings where the controller
+    sends none. Biomass is kg (ADR 0022). Values are kept exactly as sent: proto3
+    leaves a 0 out of the message, which reads back as 0 here, and a default of
+    0 means Ecopath has none for the entry."""
 
     species_code: str
     life_stage: str
     length_class: str
     age: str
-    value: float
+    initial_biomass_kg: float
+    initial_fishing_mortality: float
+    default_biomass_limit_kg: float
+    default_biomass_base_kg: float
+    default_f_max: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,16 +82,12 @@ class ControllerClient(Protocol):
         """`surimi.v1.Simulation` as protobuf JSON with the proto's field names."""
         ...
 
-    async def get_initial_biomasses(self, scenario_name: str) -> list[SpeciesValue]:
-        """Biomass per species at the end of the scenario's spin-up. The
-        controller passes the call to an Ecopath pod without reserving it; a
-        member of a functional group gets the group's biomass (SURIMI-Ecopath
-        `88e1121`, `InitialStateFileService`)."""
-        ...
-
-    async def get_initial_fishing_mortalities(self, scenario_name: str) -> list[SpeciesValue]:
-        """Initial F per species: catch of the last 12 spin-up months divided by
-        the initial biomass. An F of 0 is sent as an absent field, read as 0."""
+    async def get_initial_hcr_data(self, scenario_name: str) -> list[InitialHcrData]:
+        """Initial biomass, initial F and the default rule per species. The
+        controller passes the call to Ecopath pod 0 without reserving it;
+        Ecopath reads `ecopath/<scenario>/<scenario>_initial_hrc_data.csv` and
+        fails the whole call when the file is missing (SURIMI-controller
+        `782b979`, SURIMI-Ecopath `3819d2c`, `InitialStateFileService`)."""
         ...
 
     async def get_simulation_statuses(

@@ -1,0 +1,34 @@
+info:
+  name: get experiment initial hcr data
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/initial-hcr-data"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get experiment initial hcr data
+
+  The controller's initial HCR data when the experiment was submitted
+  (its snapshot, ADR 0028), and each of its rules against the default it
+  could start from. Run `post experiment` first. Owner or admin.
+
+  ## Response
+
+  `{experiment_id, initial_hcr_data, rules[]}`: `initial_hcr_data` as in
+  `initial-hcr-data/get initial hcr data`; each rule has the values sent,
+  `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` and
+  `changed_from_default` (null when there is no default).
+
+  ## Notes
+
+  `404` when the controller did not answer at submit time (the experiment's
+  events then hold `experiment.initial_hcr_unavailable`).

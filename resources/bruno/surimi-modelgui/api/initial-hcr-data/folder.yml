@@ -1,0 +1,18 @@
+info:
+  name: initial-hcr-data
+  type: folder
+  seq: 13
+
+request:
+  auth: inherit
+
+docs: |-
+  # Initial HCR data
+
+  `/api/v1/scenarios/{name}/initial-hcr-data`: the controller's initial
+  biomass and fishing mortality and its default rule per species, asked on
+  every request (ADR 0027), with the species' names and HCR eligibility from
+  the catalog. Every distinct answer is kept as a snapshot; `history` lists
+  them (ADR 0028). Biomass in **kg** (ADR 0022). The snapshot an experiment
+  was submitted with is at `experiments/get experiment initial hcr data`.
+  Design: docs/features/harvest-control-rules.

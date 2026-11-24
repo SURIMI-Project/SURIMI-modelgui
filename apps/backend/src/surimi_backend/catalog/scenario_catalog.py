@@ -15,6 +15,7 @@ not say.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -140,6 +141,47 @@ def _species(
             )
         )
     return species
+
+
+@dataclass(frozen=True, slots=True)
+class EntryNames:
+    """What the catalog adds to a species entry the controller names only by
+    code and life stage (plan 2026-11-23, requirement 11)."""
+
+    species_name: str | None
+    scientific_name: str | None
+    family: str | None
+    functional_group: str | None
+    functional_group_name: str | None
+    hcr_eligible: bool
+
+
+def name_entries(
+    file: ScenarioCatalogFile | None,
+    names: Mapping[str, SpeciesRow],
+    entries: Iterable[tuple[str, str]],
+) -> list[EntryNames]:
+    """Names, group and HCR eligibility of any `(species_code, life_stage)`,
+    in or outside the contract, in the order given. Unknown: None and False."""
+    file = file or ScenarioCatalogFile(format_version=1, scenario_name="-")
+    group_of = _group_lookup(file)
+    group_names = {g.key: g.name for g in file.functional_groups}
+    eligible = {_key(r.species_code, r.life_stage) for r in file.hcr_eligible}
+    out: list[EntryNames] = []
+    for code, stage in entries:
+        row = names.get(code)
+        group = group_of(code, stage)
+        out.append(
+            EntryNames(
+                species_name=row.name if row else None,
+                scientific_name=row.scientific_name if row else None,
+                family=row.family if row else None,
+                functional_group=group,
+                functional_group_name=group_names.get(group) if group else None,
+                hcr_eligible=_key(code, stage) in eligible,
+            )
+        )
+    return out
 
 
 def _groups(

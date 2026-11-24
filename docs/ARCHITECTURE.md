@@ -44,7 +44,8 @@ the `db-bootstrap` and `migrate` jobs, and `keycloak` (profile `keycloak`)
 for SSO. The API serves sign-in (password and OIDC), sessions, user
 administration, the scenario catalogue, harvest control rules, experiments
 and their queue, outputs (charts, maps, downloads, presigned links), the
-initial biomass and fishing mortality of a scenario (from the controller), and
+initial HCR data of a scenario (initial biomass and F and the default rule, from
+the controller, with a snapshot of each distinct answer; 2026-11-23), and
 experiment events to poll; the worker polls the controller, dispatches the
 queue and waits for and indexes results (phases 4 to 6, 2026-11-06, polling
 and `copying_results` 2026-11-12, **Verified** against `user-<developer>` and its bucket);
@@ -106,7 +107,7 @@ controller changes.
 | Partial results per simulation | Asked 2026-11-03, not answered yet | Open question |
 | Scenario contract | One YAML per scenario in `Includes/<scenario>/`, synced nightly from `Official-EwE/SURIMI-data_preprocessing`. Species are `species_code` + optional `life_stage` only: no functional groups, no names, no list of species that take an HCR. Those live in the Ecopath `.semantics` and the fisheries authority CSVs, see [scenario catalog](features/scenario-catalog/README.md) | Read from source, `.github/workflows/sync-surimi-contracts.yml`; contracts Verified 2026-11-05 on `user-<developer>` |
 | Climate scenarios | Allowed codes are the contract's `items.climate_scenarios`: `RCP_2.6`, `RCP_4.5`, `RCP_8.5` for `anchovy_bay` and `northwestern_med`, none for `aegean_sea` | Verified 2026-11-05 |
-| Initial biomass and fishing mortality | `GetInitialBiomasses(scenario_name)` and `GetInitialFishingMortalities(scenario_name)` return one value per `species_code` + `life_stage`. The controller passes them to Ecopath **without reserving a pod** (a scenario name is not a GUID, so `SimulationDispatcher` uses the first pod). Ecopath reads `<scenario>/initial_biomasses.csv` and `initial_catch.csv` from its input store; F = catch of the last 12 spin-up months ÷ biomass. The files are written by an Ecopath spin-up run with `CREATE_HCR_INITIALISE_FILES` set. Only `northwestern_med` has them (91 rows); for other scenarios the call errors. A species in a multi-species functional group gets the **group's** biomass (ALB = BON = 20,526.8), so its F is its own catch ÷ the group's biomass. An F of 0 is left out of the JSON (proto3 default): 49 of 91 rows. No unit is given; see [ISSUES.md](ISSUES.md) | Read from source, SURIMI-protocol `250f617`, SURIMI-controller `117e604` (`ControllerService`, `EcopathServiceClient`, `SimulationDispatcher.DispatchAsync`), SURIMI-Ecopath `88e1121` (`InitialStateFileService`, `HcrInitialisationFileService`). **Verified** 2026-11-12 on `project-surimi`, through Bruno (the user) and through the backend. The values are identical to the repo file. Other scenarios fail with "MinIO API responded with message=ecopath/<scenario>/initial_biomasses.csv". `user-<developer>` answers `UNIMPLEMENTED` (older build) |
+| Initial HCR data | `GetInitialHCRData(scenario_name)` returns, per `species_code` + `life_stage` (+ `length_class`, `age`), the initial biomass and fishing mortality and the default rule (`default_biomass_limit`, `default_biomass_base`, `default_f_max`); biomass in kg. It replaced `GetInitialBiomasses` and `GetInitialFishingMortalities` (protocol `7d0953e`, 2026-11-23). The controller passes it to Ecopath **without reserving a pod** (a scenario name is not a GUID, so `SimulationDispatcher` uses pod 0, busy or not). Ecopath reads `ecopath/<scenario>/<scenario>_initial_hrc_data.csv` from the namespace bucket on every call (the image has no copy: its Dockerfile deletes `Includes/`); F = gross catch of the last 12 spin-up months ÷ biomass; the defaults are EwE's MSE target-F policy (`MSEBLim`, `MSEBBase`, `MSEFmax`). The file is written by an Ecopath spin-up run with `CREATE_HCR_INITIALISE_FILES` set and kept in `SURIMI-Ecopath/Includes/<scenario>/`. Only `northwestern_med` has one (91 entries, 6 of them HCR-eligible); other scenarios fail with `INTERNAL`. Members of a functional group share the group's biomass and defaults. proto3 leaves a 0 out of the JSON (49 entries have F = 0). The sizes look wrong; see [ISSUES.md](ISSUES.md). The backend serves it named and records each distinct answer ([ADR 0027](decisions/0027-hcr-initial-data-and-defaults-from-the-controller.md), [0028](decisions/0028-initial-hcr-data-snapshots-per-experiment.md)) | Read from source, SURIMI-protocol `7d0953e`, SURIMI-controller `782b979` (`ControllerService.GetInitialHCRData`, `SimulationDispatcher.DispatchAsync`), SURIMI-Ecopath `3819d2c` (`InitialStateFileService`, `HcrInitialisationFileService`, `Program.cs`). **Verified** 2026-11-23 on `project-surimi`, through the backend: the values equal the repo file; `anchovy_bay` and `aegean_sea` fail with "MinIO API responded with message=ecopath/<scenario>/<scenario>_initial_hrc_data.csv"; `user-<developer>` answers `UNIMPLEMENTED` |
 | Request validation | The protocol declares `buf.validate` rules (HCR `0 < biomass_limit, biomass_base ≤ 3.3e12` kg and `0 < f_max ≤ 100`; `scenario_name` and `climate_scenario` not empty), but the controller does not enforce them: it registers no validation interceptor and checks only `scenario_name` on `SubmitExperiment`. Only POSEIDON validates the requests it receives, and it is called only for scenarios with `POSEIDON` fleet segments (`northwestern_med`). So the backend's HCR checks are the only ones, and the empty `climate_scenario` of `aegean_sea` is accepted; see [ISSUES.md](ISSUES.md) | Read from source 2026-11-13, SURIMI-protocol `be08fd33`, SURIMI-controller `117e604` (`Program.cs`, `ControllerService`, `PoseidonServiceClient`), SURIMI-POSEIDON `ValidationInterceptor.java`; corrects the earlier "the controller rejects" (SURIMI-protocol `0c4b6c4`) |
 | How an HCR becomes a TAC (fisheries authority) | Once a year, when the controller asks for the next year's regulations (`GetRegulationsAsync`), the fisheries authority computes each regulated species' TAC (total allowable catch: the most that may be landed that year). In the **first** year the TAC is the species' value in `initial_quota.csv`, not the HCR; from the second year on it comes from EwE's `cMSEQuotaCalculator.UpdateQuotas` (package `Eii.Ecopath.EwECore` 6.7.130 from Official-EwE's GitHub feed, source Official-EwE/Eii.Ecopath `3faddf1`) with `Blim` = `biomass_limit`, `Bbase` = `biomass_base`, `Fopt` = `f_max` and the biomass estimate of the year just ended, where biomass is the sum of Ecopath's grid cells for the species (the whole model area), with a random error (CV 0.2). F = `Fopt × (Bestimate − Blim) / (Bbase − Blim)` held between 0 and `Fopt` (a hockey stick); when `Bbase ≤ Blim` the range becomes 1e-20, so F is `Fopt` above `Blim` and 0 at or below it (all-or-nothing). TAC = F × `Bestimate` × a random factor (CV 0.2). The TAC is then split between fleets by `quotashare.csv`. Monthly landings are gross catch minus live discards. **Read from source**, SURIMI-fisheries-authority `a68715a`, `Services/QuotaCalculationService.cs` (`GetRegulationsAsync`, `UpdateBiomassAsync`, `UpdateCatchDispositionAsync`), 2026-11-16; EwE `cMSEQuotaCalculator.vb` at `3faddf1`, 2026-11-18. Detail in [harvest control rules](features/harvest-control-rules/README.md#how-the-fisheries-authority-uses-the-values) |
 | Where the output files are written before S3 (output creator) | During a run the output creator service records every message it receives to `experiments/<id>/<id>.bin`, relative to its working directory `/app` (so `/app/experiments/<id>/` in its container; `ExperimentRecorderManager`, `base_dir="experiments"`). When the last simulation is finalised (`FinaliseExperiment`) it starts a subprocess (`netcdf_worker_main.py`) that reads the `.bin`, writes `/app/experiments/<id>/<id>.nc`, then uploads every file of that folder to `s3://$AWS_BUCKET_NAME/output_creator/experiments/<id>/` (`S3_Storage.UploadFilesToS3`), the `.bin` too. The local copies are **not deleted** after the upload; a cancel deletes the partial `.bin`. No volume is declared in its Dockerfile, so the folder lives in the container's own filesystem unless the EDITO chart mounts one (not in the SURIMI-Project repos). **Read from source**, SURIMI-output-creator `da3ec9d` (2026-09-29), 2026-11-16 |
@@ -257,6 +258,7 @@ erDiagram
     experiments ||--o{ experiment_events : logs
     experiments ||--o| experiment_outputs : produces
     users ||--o{ hcr_configurations : keeps
+    initial_hcr_snapshots |o--o{ experiments : "submitted with"
     users |o--o{ app_settings : "last changed"
 
     users {
@@ -294,6 +296,13 @@ erDiagram
         text name "unique per owner and scenario"
         jsonb rules "HCRs in kg (ADR 0025)"
     }
+    initial_hcr_snapshots {
+        uuid id PK
+        text scenario_name
+        text content_hash "SHA-256, unique per scenario"
+        jsonb entries "GetInitialHCRData as sent (ADR 0028)"
+        timestamptz first_seen_at
+    }
     species {
         text species_code PK "FAO ASFIS alpha code"
         text name
@@ -310,6 +319,7 @@ erDiagram
         uuid owner_id FK
         experiment_status status
         jsonb request "SubmitExperiment body"
+        uuid initial_hcr_snapshot_id FK "null if the controller did not answer"
         int priority
         timestamptz queued_at
         int pods_required "5 if MSE, else 1"

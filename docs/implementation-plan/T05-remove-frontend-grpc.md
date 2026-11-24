@@ -2,7 +2,7 @@
 
 **Priority:** 1, confirmed by the user on 2026-11-05.  
 **Status:** Implemented 2026-11-05; build and route-render checks passed. Browser click-through/visual review remains.  
-**Goal:** The frontend stops contacting Rik’s controller and remains usable for design review with local demonstration data.
+**Goal:** The frontend stops contacting the controller and remains usable for design review with local demonstration data.
 
 ## Tasks
 

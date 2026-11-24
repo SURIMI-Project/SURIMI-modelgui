@@ -1,6 +1,6 @@
 # 0024 — Harvest control rules are only the user's own, per scenario; no scenario defaults
 
-**Status:** Accepted 2026-11-16 (user); one set per scenario (decisions 3 to 5) superseded the same day by [0025](0025-several-named-hcr-configurations-per-scenario-in-jsonb.md): several named configurations
+**Status:** Accepted 2026-11-16 (user); one set per scenario (decisions 3 to 5) superseded the same day by [0025](0025-several-named-hcr-configurations-per-scenario-in-jsonb.md): several named configurations; decision 3 (empty fields, nothing prefilled) superseded 2026-11-23 by [0027](0027-hcr-initial-data-and-defaults-from-the-controller.md): the controller's defaults prefill new rows
 **Date:** 2026-11-16
 **Related:** [features/harvest-control-rules](../features/harvest-control-rules/README.md), [features/experiments](../features/experiments/README.md), supersedes the scenario defaults of [0018](0018-harvest-control-rules-per-user-and-scenario.md) (decision 1's `owner_id` null, decision 2 and the defaults in decision 4)
 

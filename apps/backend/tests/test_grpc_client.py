@@ -14,12 +14,12 @@ import pytest
 from prometheus_client import REGISTRY
 from surimi.v1 import (
     controller_service_pb2_grpc,
-    get_initial_biomasses_pb2,
-    get_initial_fishing_mortalities_pb2,
+    get_initial_hcr_data_pb2,
     get_protocol_version_pb2,
     get_scenario_names_pb2,
     get_simulation_contract_pb2,
     get_simulation_statuses_pb2,
+    initial_hcr_data_pb2,
     remove_experiment_pb2,
     simulation_pb2,
     simulation_status_pb2,
@@ -33,7 +33,7 @@ from surimi_backend.integrations.controller import (
     ControllerUnavailableError,
     ExperimentSubmission,
     GrpcControllerClient,
-    SpeciesValue,
+    InitialHcrData,
     TargetFishingMortality,
 )
 from surimi_backend.integrations.controller.convert import timestamp
@@ -94,37 +94,33 @@ class Servicer(controller_service_pb2_grpc.ControllerServiceServicer):
             simulation_statuses=[status]
         )
 
-    async def GetInitialBiomasses(self, request, context):  # type: ignore[no-untyped-def]
+    async def GetInitialHCRData(self, request, context):  # type: ignore[no-untyped-def]
         if request.scenario_name != "northwestern_med":
-            await context.abort(grpc.StatusCode.UNKNOWN, "Exception was thrown by handler.")
-        summary = get_initial_biomasses_pb2.InitialBiomassSummary(
-            initial_biomasses=[
-                get_initial_biomasses_pb2.InitialBiomass(
-                    species=species_pb2.Species(species_code="ANE", life_stage="adult"),
-                    biomass=123719.1598388878,
+            # As project-surimi answers when the scenario's file is missing.
+            await context.abort(
+                grpc.StatusCode.INTERNAL,
+                "MinIO API responded with message=ecopath/anchovy_bay/"
+                "anchovy_bay_initial_hrc_data.csv",
+            )
+        m = initial_hcr_data_pb2
+        summary = m.InitialHCRDataSummary(
+            initial_hcr_data=[
+                m.InitialHCRData(
+                    species=species_pb2.Species(species_code="HKE", life_stage="adult"),
+                    initial_fishing_mortality=0.0911555,
+                    initial_biomass=414734.74893034395,
+                    default_biomass_limit=15983.459953308105,
+                    default_biomass_base=63933.85917663574,
+                    default_f_max=0.23520450294017792,
                 ),
-                get_initial_biomasses_pb2.InitialBiomass(
-                    species=species_pb2.Species(species_code="ALB"), biomass=20526.8
+                # F = 0 and no defaults are not on the wire (proto3 leaves 0 out).
+                m.InitialHCRData(
+                    species=species_pb2.Species(species_code="BON", length_class="Large"),
+                    initial_biomass=20526.8,
                 ),
             ]
         )
-        return get_initial_biomasses_pb2.GetInitialBiomassesResponse(
-            initial_biomass_summary=summary
-        )
-
-    async def GetInitialFishingMortalities(self, request, context):  # type: ignore[no-untyped-def]
-        m = get_initial_fishing_mortalities_pb2
-        summary = m.InitialFishingMortalitySummary(
-            initial_fishing_mortalities=[
-                m.InitialFishingMortality(
-                    species=species_pb2.Species(species_code="ANE", life_stage="adult"),
-                    fishing_mortality=4.224581647364614,
-                ),
-                # F = 0 is not on the wire, as for BON on project-surimi.
-                m.InitialFishingMortality(species=species_pb2.Species(species_code="BON")),
-            ]
-        )
-        return m.GetInitialFishingMortalitiesResponse(initial_fishing_mortality_summary=summary)
+        return get_initial_hcr_data_pb2.GetInitialHCRDataResponse(initial_hcr_data_summary=summary)
 
 
 @pytest.fixture
@@ -170,23 +166,30 @@ async def test_reads_map_to_plain_values(server: tuple[Servicer, str]) -> None:
         await client.close()
 
 
-async def test_initial_state_maps_species_and_reads_absent_f_as_zero(
+async def test_initial_hcr_data_maps_species_and_reads_absent_values_as_zero(
     server: tuple[Servicer, str],
 ) -> None:
     _, url = server
     client = GrpcControllerClient(url, timeout=2, read_retries=0)
     try:
-        assert await client.get_initial_biomasses("northwestern_med") == [
-            SpeciesValue("ANE", "adult", "", "", 123719.1598388878),
-            SpeciesValue("ALB", "", "", "", 20526.8),
-        ]
-        assert await client.get_initial_fishing_mortalities("northwestern_med") == [
-            SpeciesValue("ANE", "adult", "", "", 4.224581647364614),
-            SpeciesValue("BON", "", "", "", 0.0),
+        assert await client.get_initial_hcr_data("northwestern_med") == [
+            InitialHcrData(
+                species_code="HKE",
+                life_stage="adult",
+                length_class="",
+                age="",
+                initial_biomass_kg=414734.74893034395,
+                initial_fishing_mortality=0.0911555,
+                default_biomass_limit_kg=15983.459953308105,
+                default_biomass_base_kg=63933.85917663574,
+                default_f_max=0.23520450294017792,
+            ),
+            InitialHcrData("BON", "", "Large", "", 20526.8, 0.0, 0.0, 0.0, 0.0),
         ]
         with pytest.raises(ControllerError) as info:
-            await client.get_initial_biomasses("anchovy_bay")
-        assert info.value.details == {"rpc": "GetInitialBiomasses", "grpc_code": "UNKNOWN"}
+            await client.get_initial_hcr_data("anchovy_bay")
+        assert info.value.details == {"rpc": "GetInitialHCRData", "grpc_code": "INTERNAL"}
+        assert "anchovy_bay_initial_hrc_data.csv" in info.value.message
     finally:
         await client.close()
 

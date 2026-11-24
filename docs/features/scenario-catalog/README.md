@@ -1,6 +1,6 @@
 # Scenario catalog
 
-**Status:** Built 2026-11-05 (backend and API, catalog in JSON files) on `develop`, not merged into `main`; initial biomass and fishing mortality endpoints 2026-11-12. **Redesign designed 2026-11-13, not built:** catalog in the database, maintained by admins through one Excel workbook ([ADR 0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md)); the import details below are **Proposed**. **Step 1, the `species` table loaded from `catalog/data/species.csv`, and step 2, admin species import and export and the console species pages, built and verified against PostgreSQL 2026-11-16** (see [Step 1](#step-1-species-table-from-a-csv), [Step 2](#step-2-admin-import-and-export-of-species-csv))
+**Status:** Built 2026-11-05 (backend and API, catalog in JSON files) on `develop`, not merged into `main`; initial biomass and fishing mortality endpoints 2026-11-12, replaced 2026-11-23 by `/initial-hcr-data` (harvest control rules). **Redesign designed 2026-11-13, not built:** catalog in the database, maintained by admins through one Excel workbook ([ADR 0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md)); the import details below are **Proposed**. **Step 1, the `species` table loaded from `catalog/data/species.csv`, and step 2, admin species import and export and the console species pages, built and verified against PostgreSQL 2026-11-16** (see [Step 1](#step-1-species-table-from-a-csv), [Step 2](#step-2-admin-import-and-export-of-species-csv))
 **Plan:** [2026-11-05-scenario-catalog-hcr-experiments](../../plans/2026-11-05-scenario-catalog-hcr-experiments.md), step 4a
 **ADRs:** [0017](../../decisions/0017-scenario-catalog-from-partner-config.md) (storage superseded), [0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md)
 
@@ -49,7 +49,7 @@ Excel and importing it back; a default workbook ships with the system.
 | Life stages compared case-insensitively; the contract's spelling is returned and sent | Contract `adult`, fisheries authority CSV `ADULT`; the 2026-10-30 run sent `adult` and finished | this file |
 | Model spellings kept as they are ("Juvenil hake", "Small demersal fishesl (continental shelf)") | We do not edit partner data in the default workbook; an admin may | this file |
 | The generator script builds the default workbook from ASFIS and the partner repos, and still refreshes the fake controller's contracts | Partner changes come in through a new default; `CONTROLLER_MODE=fake` and the tests see real shapes | this file |
-| Initial biomass and fishing mortality are **not** in the catalog and not cached: two endpoints ask the controller (`GetInitialBiomasses`, `GetInitialFishingMortalities`) on every request | They change when Ecopath's spin-up files are regenerated (user, 2026-11-12); the call reserves no Ecopath pod (**Read from source**) | this file |
+| Initial biomass, initial F and the default rules are **not** in the catalog and not cached: `GET …/initial-hcr-data` asks the controller (`GetInitialHCRData`) on every request; the catalog only names the entries | They change when Ecopath's file is regenerated (user, 2026-11-12); the call reserves no Ecopath pod (**Read from source**) | [ADR 0027](../../decisions/0027-hcr-initial-data-and-defaults-from-the-controller.md) |
 | Their values are passed on as the controller sends them: no unit added, an absent F returned as 0, rows not matched against the contract | The controller states no unit (open question for the controller team); proto3 leaves a 0 out; mismatches (`SWO`, `VMA`, `HKE` with no life stage) are recorded in ISSUES.md rather than hidden | this file |
 
 ---
@@ -384,24 +384,14 @@ alone (an admin would wait up to 10 minutes to see an import, per replica).
 
 ### Initial biomass and fishing mortality
 
-`GET /api/v1/scenarios/{name}/initial-biomasses` and
-`/initial-fishing-mortalities`: the reference values a user sets harvest
-control rule limits against. Each call goes to the controller, which passes it
-to an Ecopath pod without reserving it; Ecopath reads
-`<scenario>/initial_biomasses.csv` and `initial_catch.csv` from its inputs and
-divides catch (last 12 spin-up months) by biomass for F (**Read from source**,
-SURIMI-Ecopath `88e1121`). See
-[ARCHITECTURE.md § Controller behaviour](../../ARCHITECTURE.md#controller-behaviour).
-
-- Rows: `species_code`, `life_stage`, `length_class`, `age` (empty strings
-  when the controller sends none) and `biomass` or `fishing_mortality`.
-- A member of a multi-species functional group gets the group's biomass
-  (ALB = BON); its F is its own catch over the group's biomass.
-- Only `northwestern_med` has the files (91 rows); for the others the
-  controller fails and the API answers 502 `controller_error`. Unknown
-  scenario → 404.
-- The unit of biomass is not stated; open question in
-  [ISSUES.md](../../ISSUES.md).
+Moved on 2026-11-23 to [harvest control rules § Initial HCR data](../harvest-control-rules/README.md#initial-hcr-data):
+the controller's `GetInitialHCRData` replaced `GetInitialBiomasses` and
+`GetInitialFishingMortalities`, and `GET /api/v1/scenarios/{name}/initial-hcr-data`
+replaced `/initial-biomasses` and `/initial-fishing-mortalities`. The catalog's
+part is `CatalogService.name_entries`: it gives any `(species_code, life_stage)`,
+in the contract or not, its names from the `species` table and its functional
+group and HCR eligibility from the catalog file (`scenario_catalog.name_entries`).
+A code with no `species` row gets null names and a `catalog.drift` warning.
 
 ---
 
@@ -470,25 +460,6 @@ sequenceDiagram
 
 On an existing install `seed-catalog` finds a version and stops.
 
-### Initial fishing mortality
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant W as Client
-    participant A as Backend catalog
-    participant C as Controller
-    participant E as Ecopath pod
-    W->>A: GET /api/v1/scenarios/northwestern_med/initial-fishing-mortalities
-    A->>A: scenario exists? (scenario names, cached)
-    A->>C: GetInitialFishingMortalities (not cached)
-    C->>E: same call, first pod, none reserved
-    E->>E: read initial_biomasses.csv and initial_catch.csv, F = catch / biomass
-    E-->>C: one F per species
-    C-->>A: same
-    A-->>W: {scenario_name, initial_fishing_mortalities[]}
-```
-
 ---
 
 ## Data
@@ -556,8 +527,7 @@ index `catalog_versions (active) WHERE active`. Added to
 | Method | Path | Role | Request | Response | Errors |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/v1/scenarios/{name}/catalog` | any | — | `ScenarioCatalogOut`: `status`, `levels`, `metric_levels`, `functional_groups[]` (`key`, `name`, `name_source`, `members[]`), `species[]` (`species_code`, `life_stage`, `name`, `scientific_name`, `family`, `order_or_higher_taxa`, `isscaap_group`, `functional_group`, `hcr_eligible`), `climate_scenarios[]`, `fleets[]`, `markets[]`, `catalog_version` (`id`, `imported_at`, `source`; replaces `built_from`), `notes[]`, `drift[]` | 401, 404, 502 |
-| GET | `/api/v1/scenarios/{name}/initial-biomasses` | any | — | `{scenario_name, initial_biomasses[]}`: `species_code`, `life_stage`, `length_class`, `age`, `biomass`. From the controller on every request | 401, 404, 502 (no initial-state files for the scenario), 504 |
-| GET | `/api/v1/scenarios/{name}/initial-fishing-mortalities` | any | — | `{scenario_name, initial_fishing_mortalities[]}`: the same key and `fishing_mortality` (0 when no catch). From the controller on every request | 401, 404, 502, 504 |
+| GET | `/api/v1/scenarios/{name}/initial-hcr-data` (and `/history`) | any | — | Since 2026-11-23, see [harvest control rules § API](../harvest-control-rules/README.md#api) | |
 | GET | `/api/v1/species` | any | `?code=HKE&code=BFT`, `?q=hake`, `?family=MERLUCCIIDAE`, `?order_or_higher_taxa=GADIFORMES`, `?isscaap_group=32`, `?sort=name` (`species_code`, `name`, `scientific_name`, `-` for descending), `?page&size` (≤ 200) | `SpeciesPage`: `items[]` (`species_code`, `name`, `scientific_name`, `family`, `order_or_higher_taxa`, `isscaap_group`, `source`), `total`, `page`, `size`; sorted by code | 401, 422 |
 | GET | `/api/v1/species/{code}` | any | — | `SpeciesOut` | 401, 404 |
 | GET | `/api/v1/admin/species/export.csv` | admin | — | `text/csv`, the whole table in the `species.csv` format | 401, 403 |

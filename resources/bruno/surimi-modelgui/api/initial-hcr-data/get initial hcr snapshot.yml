@@ -1,0 +1,22 @@
+info:
+  name: get initial hcr snapshot
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/initial-hcr-data/history/{{initialHcrSnapshotId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get initial hcr snapshot
+
+  One recorded answer, in the shape of `get initial hcr data`, with today's
+  species names. Run `get initial hcr data` (or `get initial hcr history`)
+  first. A snapshot of another scenario: `404`.
