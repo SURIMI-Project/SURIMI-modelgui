@@ -13,7 +13,7 @@
     --layout-page-gutter: clamp(var(--spacing-md), 3vw, var(--spacing-xl));
     --layout-card-padding: clamp(var(--spacing-md), 2vw, var(--spacing-lg));
     --layout-action-width: 15rem;
-    --layout-setup-max: var(--layout-modal-max);
+    --layout-setup-max: var(--layout-sheet-max);
     --setup-chart-height: clamp(22rem, 48vh, 28rem);
     --layout-modal-max: 68.75rem;
     --layout-modal-height: 54rem;

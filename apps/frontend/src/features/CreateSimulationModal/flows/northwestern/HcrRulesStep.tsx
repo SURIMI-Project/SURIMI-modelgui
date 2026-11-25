@@ -1,18 +1,20 @@
-import { useState, type RefObject } from "react";
-import { MAX_HCR_BIOMASS_KG, MAX_HCR_FISHING_MORTALITY } from "../../components/HarvestControlInputs/limits";
+import { useRef, useState, type RefObject } from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { FiCheck, FiInfo, FiX, FiSliders } from "react-icons/fi";
+import { LuFish } from "react-icons/lu";
 import HcrIntroduction from "./HcrIntroduction";
-import { getInitialRule } from "./developmentRules";
-import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { getInitialRule, sameHcrValues } from "./initialRules";
+import HcrValueInput from "./HcrValueInput";
 import Button from "../../../../components/ui/Button/Button";
-import Input from "../../../../components/ui/Input/Input";
+import ComboBox from "../../../../components/ui/ComboBox/ComboBox";
 import Select from "../../../../components/ui/Select/Select";
+import Text from "../../../../components/ui/Text/Text";
+import Tag from "../../../../components/ui/Tag/Tag";
 import type { ExperimentOptions } from "../../../../network/services/scenarios/scenarioSchemas";
 import type { HcrConfiguration, HcrRulePayload } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
-import { speciesEntryKey } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
+import { hcrRulePayloadSchema, speciesEntryKey } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
 import { speciesLabel, type SimulationFormValues, type HcrMode } from "./form";
 import HcrCurveEditor from "../../components/HarvestControlInputs/HcrCurveEditor";
-import HcrRuleTable, { type HcrValueColumn } from "../../components/HarvestControlInputs/HcrRuleTable";
-import type { HcrRuleTableRow } from "../../components/HarvestControlInputs/types";
 import styles from "./NorthwesternSimulationFlow.module.css";
 
 type Props = {
@@ -25,118 +27,162 @@ const copyRule = (rule: HcrConfiguration["rules"][number]): HcrRulePayload => ({
   species_code: rule.species_code, life_stage: rule.life_stage,
   biomass_limit_kg: rule.biomass_limit_kg, biomass_base_kg: rule.biomass_base_kg, f_max: rule.f_max,
 });
+const fields = [
+  { name: "biomass_limit_kg", label: "Biomass limit (tonnes)", scale: 1000 },
+  { name: "biomass_base_kg", label: "Biomass base (tonnes)", scale: 1000 },
+  { name: "f_max", label: "Fishing mortality (per year)", scale: 1 },
+] as const;
+const formatReference = (value: number) => value.toLocaleString("en", { maximumSignificantDigits: 6 });
+
+function SpeciesText({ name, code, stage, option = false }: { name: string; code: string; stage?: string; option?: boolean }) {
+  return <span className={styles.speciesItemText}>
+    <Text slot={option ? "label" : undefined} truncate className={styles.speciesName}>{name}</Text>
+    <Text slot={option ? "description" : undefined} truncate className={styles.speciesMeta}>{code}{stage ? ` - ${stage}` : ""}</Text>
+  </span>;
+}
 
 export default function HcrRulesStep({ headingRef, options, mode, onModeChange, configuration, configurationLoading, configurationError, retryConfiguration }: Props) {
-  const { control, setValue, formState: { errors } } = useFormContext<SimulationFormValues>();
-  const { append, replace } = useFieldArray({ control, name: "harvest_control_rules" });
+  const { control, setValue, trigger, formState: { errors, isSubmitting } } = useFormContext<SimulationFormValues>();
   const rules = useWatch({ control, name: "harvest_control_rules" }) ?? [];
   const [selected, setSelected] = useState<string | null>(null);
-  const [resetValues, setResetValues] = useState(() => new Map<string, HcrRulePayload>());
+  const [resetVersion, setResetVersion] = useState(0);
+  const editorTitle = useRef<HTMLHeadingElement>(null);
   const eligible = options.species.filter(species => species.hcr_eligible);
-  const rows: HcrRuleTableRow[] = mode === "saved" ? configuration?.rules.map(rule => ({
-    key: entryKey(rule), label: speciesLabel(rule), eligible: rule.eligible && eligible.some(species => entryKey(species) === entryKey(rule)), rule: copyRule(rule),
-  })) ?? [] : [
-    ...eligible.map(species => ({ key: entryKey(species), label: speciesLabel(species), eligible: true, rule: rules.find(rule => entryKey(rule) === entryKey(species)) })),
-    // Keep unsupported entries visible so validation does not silently discard them.
-    ...rules.filter(rule => !eligible.some(species => entryKey(species) === entryKey(rule))).map(rule => ({
-      key: entryKey(rule), label: speciesLabel(rule), eligible: false, rule,
-    })),
-  ];
-  const resettableKeys = new Set(rows.filter(row => {
-    if (mode !== "custom" || !row.rule || !row.eligible) return false;
-    const initial = resetValues.get(row.key) ?? getInitialRule(options, row.key);
-    return initial && (["biomass_limit_kg", "biomass_base_kg", "f_max"] as const)
-      .some(field => !Object.is(row.rule![field], initial[field]));
-  }).map(row => row.key));
-  const activeKey = selected && rows.some(row => row.key === selected) ? selected : rows[0]?.key ?? null;
-  const active = rows.find(row => row.key === activeKey);
+  const savedRules = configuration?.rules.map(copyRule) ?? [];
+  const source = mode === "saved" ? savedRules : rules;
+  const entries = mode === "saved" ? savedRules.map(rule => ({ key: entryKey(rule), label: speciesLabel(options.species.find(species => entryKey(species) === entryKey(rule)) ?? rule) }))
+    : [
+      ...eligible.map(species => ({ key: entryKey(species), label: speciesLabel(species) })),
+      ...rules.filter(rule => !eligible.some(species => entryKey(species) === entryKey(rule)))
+        .map(rule => ({ key: entryKey(rule), label: speciesLabel(rule) })),
+    ];
+  const activeKey = selected && entries.some(entry => entry.key === selected) ? selected
+    : entries.find(entry => source.some(rule => entryKey(rule) === entry.key))?.key ?? entries[0]?.key ?? null;
+  const activeEntry = entries.find(entry => entry.key === activeKey);
+  const baseline = activeKey ? getInitialRule(options, activeKey) : undefined;
+  const activeRule = source.find(rule => entryKey(rule) === activeKey) ?? (mode === "custom" ? baseline : undefined);
+  const reference = eligible.find(species => entryKey(species) === activeKey);
   const activeIndex = rules.findIndex(rule => entryKey(rule) === activeKey);
-  const selectEntry = (key: string) => {
-    const row = rows.find(row => row.key === key);
-    if (!row) return;
-    if (mode === "custom" && !row.rule && row.eligible) {
-      const initial = getInitialRule(options, key);
-      if (initial) append(initial, { shouldFocus: false });
+  const changed = rules.filter(rule => !sameHcrValues(rule, getInitialRule(options, entryKey(rule))));
+  const activeChanged = changed.some(rule => entryKey(rule) === activeKey);
+  const canEdit = mode === "custom" && !isSubmitting && Boolean(reference && activeRule);
+  const writeRule = (rule: HcrRulePayload) => {
+    const key = entryKey(rule);
+    const existing = rules.findIndex(item => entryKey(item) === key);
+    setValue("harvest_control_rules", existing < 0 ? [...rules, rule] : rules.map((item, index) => index === existing ? rule : item), { shouldDirty: true, shouldValidate: true });
+  };
+  const resetRule = (key: string) => {
+    const initial = getInitialRule(options, key);
+    // An incomplete default is a preview, never an invalid submitted rule.
+    const next = initial && hcrRulePayloadSchema.safeParse(initial).success
+      ? rules.map(rule => entryKey(rule) === key ? initial : rule)
+      : rules.filter(rule => entryKey(rule) !== key);
+    setValue("harvest_control_rules", next, { shouldDirty: true, shouldValidate: true });
+    if (key === activeKey) {
+      setSelected(key);
+      setResetVersion(version => version + 1);
     }
-    setSelected(key);
+    editorTitle.current?.focus({ preventScroll: true });
   };
   const editCopy = () => {
     if (!configuration || configurationLoading || configurationError) return;
     onModeChange("custom");
-    replace(configuration.rules.map(copyRule));
-    setResetValues(new Map(configuration.rules.map(rule => [entryKey(rule), copyRule(rule)])));
+    setValue("harvest_control_rules", savedRules, { shouldDirty: true, shouldValidate: true });
     setSelected(activeKey);
   };
-  const updateCurve = mode === "custom" && activeIndex >= 0 && active?.eligible
-    ? (values: Pick<HcrRulePayload, "biomass_limit_kg" | "biomass_base_kg" | "f_max">) => {
-      const settings = { shouldDirty: true, shouldValidate: true };
-      setValue(`harvest_control_rules.${activeIndex}.biomass_limit_kg`, values.biomass_limit_kg, settings);
-      setValue(`harvest_control_rules.${activeIndex}.biomass_base_kg`, values.biomass_base_kg, settings);
-      setValue(`harvest_control_rules.${activeIndex}.f_max`, values.f_max, settings);
-    } : undefined;
-
-  const resetRule = (key: string) => {
-    const index = rules.findIndex(rule => entryKey(rule) === key);
-    const initial = resetValues.get(key) ?? getInitialRule(options, key);
-    if (index < 0 || !initial) return;
-    formReset(index, initial);
-  };
-  const formReset = (index: number, initial: HcrRulePayload) => {
-    const settings = { shouldDirty: true, shouldValidate: true };
-    setValue(`harvest_control_rules.${index}.biomass_limit_kg`, initial.biomass_limit_kg, settings);
-    setValue(`harvest_control_rules.${index}.biomass_base_kg`, initial.biomass_base_kg, settings);
-    setValue(`harvest_control_rules.${index}.f_max`, initial.f_max, settings);
-  };
-  const labels: Record<HcrValueColumn, string> = {
-    biomass_limit_kg: "Biomass limit in tonnes", biomass_base_kg: "Biomass base in tonnes", f_max: "Fishing mortality per year",
-  };
-  const renderEditor = mode === "custom" ? (row: HcrRuleTableRow, column: HcrValueColumn) => {
-    if (row.key !== activeKey || activeIndex < 0 || !row.eligible) return undefined;
-    return <Controller key={`${activeKey}.${column}`} control={control} name={`harvest_control_rules.${activeIndex}.${column}`} render={({ field, fieldState }) =>
-      <Input className={styles.cellInput} type="number" label={`${labels[column]} for ${row.label}`} placeholder="—"
-        value={typeof field.value === "number" && Number.isFinite(field.value) ? String(column === "f_max" ? field.value : field.value / 1000) : ""}
-        onChange={value => field.onChange(value === "" ? NaN : Number(value) * (column === "f_max" ? 1 : 1000))} onBlur={field.onBlur} name={field.name}
-        isRequired isInvalid={fieldState.invalid} aria-description={fieldState.error?.message}
-        errorMessage={fieldState.error ? Number.isFinite(field.value) ? fieldState.error.message ?? "Invalid value" : "Required" : undefined} />
-    } />;
-  } : undefined;
 
   if (eligible.length === 0) return <div className={styles.hcrContent}>
     <HcrIntroduction headingRef={headingRef}>
-      <p className={styles.note} role="status">No species or life stages are currently eligible for harvest control rules in this scenario. Choose Next to continue without configuration.</p>
+      <p className={styles.note} role="status">No species are currently eligible for harvest control rules. Choose Next to continue without configuration.</p>
     </HcrIntroduction>
   </div>;
 
   return <div className={styles.hcrContent}>
-    <HcrIntroduction headingRef={headingRef}>
+    <div className={styles.harvestLayout}>
+    <aside className={styles.speciesPanel} data-mode={mode} aria-label="Species and changes">
+      <HcrIntroduction headingRef={headingRef} />
+      <div className={styles.speciesTools}>
       {options.hcr_configurations.length > 0 ? <Select className={styles.configurationSelect} label="Rule source" selectedKey={mode}
         options={[{ value: "custom", label: "New configuration" }, { value: "saved", label: "Saved configuration" }]}
-        onSelectionChange={key => { if (key === "custom" || key === "saved") { setSelected(null); setResetValues(new Map()); onModeChange(key); } }} /> : null}
+        onSelectionChange={key => { if (key === "custom" || key === "saved") { setSelected(null); onModeChange(key); } }} /> : null}
       {mode === "saved" ? <Controller control={control} name="hcr_configuration_id" render={({ field, fieldState }) => <Select
         className={styles.configurationSelect} label="Saved configuration" placeholder="Select a configuration" selectedKey={field.value ?? null}
         options={options.hcr_configurations.map(item => ({ value: item.id, label: item.name }))}
         onSelectionChange={key => { setSelected(null); field.onChange(key === null ? null : String(key)); }}
         isInvalid={fieldState.invalid} errorMessage={fieldState.error?.message} /> } /> : null}
-      {mode !== "none" ? <Select className={styles.speciesSelect} label="Species and life stage" placeholder="Select a species and life stage" selectedKey={activeKey}
-        isDisabled={rows.length === 0} options={rows.map(row => ({ value: row.key, label: row.label }))}
-        onSelectionChange={key => { if (key !== null) selectEntry(String(key)); }} /> : null}
+      {mode !== "none" ? <div className={styles.speciesSelector}><ComboBox openOnClick label="Species" placeholder="Search by name or code" selectedKey={activeKey}
+        isDisabled={entries.length === 0 || isSubmitting} options={entries.map(entry => ({ value: entry.key, label: entry.label }))}
+        onSelectionChange={key => { if (key !== null) setSelected(String(key)); }}
+        renderOption={entry => {
+          const species = options.species.find(species => entryKey(species) === entry.value);
+          const rule = source.find(rule => entryKey(rule) === entry.value);
+          return <span className={styles.speciesOption}><SpeciesText option name={species?.species_name ?? species?.species_code ?? rule?.species_code ?? entry.label}
+            code={species?.species_code ?? rule?.species_code ?? ""} stage={species?.life_stage ?? rule?.life_stage} /></span>;
+        }} /></div> : null}
       {mode === "saved" && configuration ? <Button size="sm" variant="primary-outlined" isDisabled={configurationLoading || configurationError} onPress={editCopy}>EDIT A COPY</Button> : null}
-    </HcrIntroduction>
+      </div>
+    {mode === "custom" ? <section className={styles.changedSection} aria-label="Modified species">
+      <div className={styles.changedHeading}><h3>Modified species <span className={styles.modifiedCount}>— {changed.length}</span></h3></div>
+      <div className={styles.changesBody}>
+      {changed.length === 0 ? <div className={styles.changesEmpty} role="status">
+        <span className={styles.emptyGlyph} aria-hidden="true"><FiSliders /><span><FiCheck /></span></span>
+        <strong>Using default rules</strong><p>Your adjustments will appear here.</p>
+      </div>
+        : <ul className={styles.changedList}>{changed.map(rule => {
+          const key = entryKey(rule);
+          const species = options.species.find(species => entryKey(species) === key);
+          const label = entries.find(entry => entry.key === key)?.label ?? speciesLabel(rule);
+          const valid = hcrRulePayloadSchema.safeParse(rule).success;
+          const supported = eligible.some(species => entryKey(species) === key);
+          return <li key={key} data-selected={key === activeKey || undefined}>
+            <Button className={styles.speciesItem} variant="ghost" aria-label={label} aria-pressed={key === activeKey} onPress={() => setSelected(key)}>
+              <LuFish className={styles.fishIcon} aria-hidden="true" />
+              <SpeciesText name={species?.species_name ?? rule.species_code} code={rule.species_code} stage={rule.life_stage} />
+              {!supported || !valid ? <span className={styles.ruleStatus} role="img" aria-label={supported ? "Needs values" : "Unavailable species"} title={supported ? "Needs values" : "Unavailable species"}>!</span> : null}
+            </Button>
+            <Button className={styles.removeSpecies} size="md" variant="ghost" iconOnly aria-label={`Restore defaults for ${label}`} onPress={() => resetRule(key)}><FiX aria-hidden="true" /></Button>
+          </li>;
+        })}</ul>}
+      </div>
+    </section> : <p className={styles.sidebarNote}>Choose a species to review its saved values. Edit a copy to make changes.</p>}
+    {mode === "custom" ? <p className={styles.sidebarNote}><FiInfo aria-hidden="true" /><span>Removing an item will restore it to its defaults.</span></p> : null}
+    </aside>
+    <div className={styles.editorColumn}>
+      <div className={styles.hcrOverview}>
+        <p>Harvest control rules (HCR) provide the foundation for modern fisheries management. The rules say, “with this biomass (X-axis), you are allowed to catch this proportion of the biomass (Y-axis)”. From this one can set the actual fishing regulation, be it as a quota or duration of the fishing season. SURIMI uses management strategy evaluation and a large number of simulations to find HCR that are robust to uncertainty in both the ecosystem and management.</p>
+        <div className={styles.tacAside}><div className={styles.tacFormula}><strong>TAC = Biomass × Fishing mortality</strong></div></div>
+      </div>
+
     {mode === "saved" && !configuration ? <div className={styles.statePanel} role={configurationError ? "alert" : "status"}>
       <p>{configurationError ? "Could not load the saved configuration." : configurationLoading ? "Loading saved rules…" : "Choose a saved configuration to view its curves."}</p>
       {configurationError ? <Button size="sm" variant="primary-outlined" onPress={retryConfiguration}>TRY AGAIN</Button> : null}
     </div> : null}
-    {mode === "custom" || (mode === "saved" && configuration) ? <>
-      <section className={styles.workspace} aria-label="Harvest control rule editor">
-        <div className={styles.graphPanel}>
-          <HcrCurveEditor key={activeKey ?? "empty"} rule={active?.rule} label={active?.label ?? "Harvest control rule"} onChange={updateCurve} />
+    {mode === "custom" || (mode === "saved" && configuration) ? <section className={styles.workspace} aria-label="Harvest control rule editor">
+      <header className={styles.editorHeading}>
+        <div className={styles.editorIdentity}><LuFish aria-hidden="true" /><h3 ref={editorTitle} tabIndex={-1} title={activeEntry?.label}>{reference?.species_name ?? activeEntry?.label ?? "Select a species"}</h3><span className={styles.speciesMeta}>{reference?.species_code}{reference?.life_stage ? ` · ${reference.life_stage}` : ""}</span></div>
+        {reference ? <dl className={styles.referenceValues}>
+          <div><dt>Initial biomass</dt><dd>{reference.initial_biomass_kg === null ? "Unavailable" : `${formatReference(reference.initial_biomass_kg / 1000)} t`}</dd></div>
+          <div><dt title="Initial fishing mortality">Initial F</dt><dd>{reference.initial_fishing_mortality === null ? "Unavailable" : `${formatReference(reference.initial_fishing_mortality)} / year`}</dd></div>
+        </dl> : null}
+        <div className={styles.editorActions}>
+          {mode === "custom" ? <Tag className={styles.statusTag} tone={activeChanged ? "primary" : "neutral"}>{activeChanged ? "Modified" : "Default values"}</Tag> : <Tag className={styles.statusTag}>Saved values</Tag>}
+          {mode === "custom" ? <Button size="sm" variant="ghost" iconOnly aria-label={`Restore defaults for ${activeEntry?.label ?? "selected species"}`} isDisabled={!activeChanged} onPress={() => { if (activeKey) resetRule(activeKey); }}><FiX aria-hidden="true" /></Button> : null}
         </div>
-        <div className={styles.tablePanel}><HcrRuleTable rows={rows} selectedKey={activeKey} onSelect={selectEntry} renderEditor={renderEditor} resettableKeys={resettableKeys} onReset={mode === "custom" ? resetRule : undefined} /></div>
-      </section>
-      {mode === "custom" && errors.harvest_control_rules ? <p className={styles.error} role="alert">Configure at least one rule and complete its values, or choose Continue without configuration.</p> : null}
-      {mode === "saved" && configuration?.rules.some(rule => rule.f_max > MAX_HCR_FISHING_MORTALITY) ? <p className={styles.error} role="alert">This configuration exceeds the fishing mortality limit of 100 per year. Edit a copy to adjust its values.</p> : null}
-      {mode === "saved" && configuration?.rules.some(rule => rule.biomass_base_kg > MAX_HCR_BIOMASS_KG) ? <p className={styles.error} role="alert">This configuration exceeds the biomass limit of 3,300,000,000 tonnes. Edit a copy to adjust its values.</p> : null}
-      {mode === "saved" && configuration?.rules.some(rule => !rule.eligible || !eligible.some(species => entryKey(species) === entryKey(rule))) ? <p className={styles.error} role="alert">Some entries are no longer eligible for harvest control rules. Choose another configuration or start a new configuration.</p> : null}
-    </> : null}
+      </header>
+      <div className={styles.graphPanel}>
+        <HcrCurveEditor key={`${activeKey ?? "empty"}:${resetVersion}`} rule={activeRule} label={activeEntry?.label ?? "Harvest control rule"}
+          onChange={canEdit ? values => { if (activeRule) writeRule({ ...activeRule, ...values }); } : undefined} />
+      </div>
+      {activeRule ? <div key={`${activeKey}:${resetVersion}`} className={styles.ruleInputs} role="group" aria-label={`Harvest control values for ${activeEntry?.label ?? "selected species"}`}>
+        {fields.map(field => <HcrValueInput key={field.name} label={field.label} name={`harvest_control_rules.${Math.max(0, activeIndex)}.${field.name}`}
+          value={activeRule[field.name]} scale={field.scale} isReadOnly={!canEdit}
+          error={activeIndex >= 0 ? errors.harvest_control_rules?.[activeIndex]?.[field.name]?.message : undefined}
+          onBlur={() => { void trigger("harvest_control_rules"); }} onChange={value => writeRule({ ...activeRule, [field.name]: value })} />)}
+      </div> : null}
+      {mode === "custom" && errors.harvest_control_rules ? <p className={styles.error} role="alert">Complete the highlighted values before continuing. Remove a species’s changes to restore its defaults.</p> : null}
+      {mode === "saved" && configuration?.rules.some(rule => !rule.eligible || !eligible.some(species => entryKey(species) === entryKey(rule)) || !hcrRulePayloadSchema.safeParse(copyRule(rule)).success) ? <p className={styles.error} role="alert">Some saved rules are unavailable or outside the supported limits. Edit a copy to adjust them.</p> : null}
+    </section> : null}
+    </div>
+    </div>
   </div>;
 }

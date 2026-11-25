@@ -55,14 +55,16 @@ const HcrCurveGraph = ({
     { x: Math.max(limit, base) / 1000, y: mortality }, { x: xMax / 1000, y: mortality },
   ];
   const theme = getComputedStyle(document.documentElement);
-  const token = (name: string) => theme.getPropertyValue(name).trim();
+  const token = (name: string) => String(theme.getPropertyValue(name)).trim();
   const text = token("--color-map-detail-text");
   const border = token("--color-map-card-border");
   const primary = token("--color-primary");
   const surface = token("--color-setup-panel");
-  const tooltipSurface = token("--color-surface");
+  const tooltipSurface = token("--color-hcr-tooltip-surface");
+  const tooltipText = token("--color-hcr-tooltip-text");
+  const tooltipBorder = token("--color-hcr-tooltip-border");
   const font = token("--font-sans");
-  const tacHoverPlugin = useMemo(() => createTacHoverPlugin({ text, surface: tooltipSurface, border, primary, font }), [text, tooltipSurface, border, primary, font]);
+  const tacHoverPlugin = useMemo(() => createTacHoverPlugin({ text: tooltipText, surface: tooltipSurface, border: tooltipBorder, primary, font }), [tooltipText, tooltipSurface, tooltipBorder, primary, font]);
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,

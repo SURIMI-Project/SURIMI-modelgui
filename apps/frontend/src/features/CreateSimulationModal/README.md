@@ -8,15 +8,15 @@
 - React Hook Form owns the draft; Zod validates against the options used to open it.
 - Services and server-state hooks own HTTP requests and cache updates.
 - `scenarioWorldConfig.creationEnabled` controls setup availability on details and runs pages.
-- All three case creation entry points are enabled. Backend scenario availability still controls access.
-- Show and allow new rules only for entries with `hcr_eligible: true`. Every case starts on the HCR step. When no eligible entries exist, replace the selector with an explanatory message, omit the graph/table and allow Next with an empty rule list. Always retain the climate step; if the backend supplies no choices, show an explanatory message and allow Next without a selection.
+- Setup availability is controlled per case in `scenarioWorldConfig`; backend scenario availability still controls access.
+- Show and allow new rules only for entries with `hcr_eligible: true`. Every case starts on the HCR step. When no eligible entries exist, replace the selector with an explanatory message, omit the editor and allow Next with an empty rule list. Always retain the climate step; if the backend supplies no choices, show an explanatory message and allow Next without a selection.
 - Live local options checked on 2026-11-18: Northwestern has 6 eligible HCR entries and 3 RCP choices; Aegean has no eligible HCR entries and no climate choices; Anchovy Bay has no eligible HCR entries but has 3 RCP choices. Both newly enabled cases have 2013–2050 date limits. Aegean and Anchovy therefore retain an explanatory HCR first step without editable rules. No experiment was submitted during this verification.
 - Aegean remains based on the current species contract. Functional-group-targeted HCR creation is not implemented or inferred.
 
 ## Northwestern inputs
 
 - Simulation name: collected only in the final review step, required and up to 24 characters, with a constrained-width React Aria field and character counter. Step two contains duration only; step three contains climate selection or its unavailable-options message; the final step collects the name and review.
-- Simulation horizon: six shared `YearlyDurationCard` radio cards in a three-column grid, using supported year choices derived from the case date limits calculate UTC `end_date_time` from the fixed start in `experiment-options`. Only durations within the maximum end are shown; cases supporting fewer than six whole years show fewer choices. Calendar-year addition preserves the time and clamps a leap-day anniversary to the end of February. The review shows both duration and end date.
+- Simulation horizon: 5, 10, 30 and 50 years in a two-column grid, with descriptions and calculated end dates. Calendar-year addition uses the model start from `experiment-options` and clamps leap-day anniversaries to February’s end. Choices beyond the API maximum remain visible and disabled with a reason. Submission uses the selected end date; there is no one-year override. Climate selection remains a separate step for every duration.
 - Run type: single simulation only for now; submission always sends `is_mse_run: false`.
 - Climate: a separate climate step includes shared `IpccScenarioCard` radios with descriptive content from `mock-data/content/climateScenarios.ts`. Only choices returned by `experiment-options` appear; original backend identifiers are submitted unchanged. The climate step remains visible if no choices exist, explains that backend-supported options are needed, and allows continuing without a selection.
 - RCP and SSP identifiers have separate descriptions. SSP headings, categories, descriptions and warming ranges reproduce the PM-approved screenshot verbatim. Its long-horizon wording is presentation copy; it does not override backend climate requirements for shorter runs. Unknown identifiers retain the backend label with neutral copy; no inferred pathway mapping or duration-based climate default is applied.
@@ -24,25 +24,27 @@
 - Existing saved configurations remain available through the Rule source selector when present.
 - Manual rule: eligible species/life stage from scenario options, biomass limit/base displayed and edited in tonnes, positive fishing mortality per year.
 - Form state and API payloads retain kg (`biomass_limit_kg`, `biomass_base_kg`) and `f_max`. Inputs and graph drag coordinates convert at the display boundary.
-- The first eligible species is selected and its opening values are loaded on every fresh open. Initial biomass has unconfirmed units and is reference data only.
-- Local Vite development loads a matching preset from `mock-data/defaultConfigureRules.ts` only when that species is selected.
-- Development presets are never used in production and can be disabled with `VITE_MOCK_HCR_DEFAULTS=false`. The extra development/helper messages are omitted from the editor.
-- The first screen uses the revised PM explanation with the TAC formula. The selector sits alongside the heading with an accessible hidden label and no surrounding card. The explanation uses two short columns below, stacking on small screens.
-- Initial loading and errors retain the introduction, reserved graph/table space and disabled forward actions.
-- The graph sits above the table inside the scrolling body, with footer actions kept visible.
-- Edit the active row directly in the table; there is no separate numeric-input form.
-- Entries without a development preset or saved rule start empty; controller references never become thresholds.
-- Curve handles and numeric inputs update the same form values. The zero lower fishing mortality remains implicit.
-- Table columns: species/life stage, biomass limit (tonnes), biomass base (tonnes), fishing mortality (per year). A reset icon at the right of each configured row restores its opening preset or copied saved values without deselecting the species. Without a preset, the opening values are blank.
+- Defaults come from `experiment-options` when supplied, otherwise from the protected `initial-hcr-data` endpoint. Match species and life stage; exclude length/age-specific entries. Initial biomass and mortality are references, never inferred rule thresholds.
+- All complete, valid defaults for eligible entries start in the form. The API sends exactly the supplied rules; an empty list means no HCRs. Unchanged defaults therefore remain in the payload even though the changed-species list hides them.
+- The searchable Species dropdown keeps life stages in option labels to distinguish entries. Browsing species does not create changes.
+- The active species has one graph and three keyboard inputs. Typed decimal text is preserved, while form/API state retains numeric kg and mortality values. Only active-species fields are displayed.
+- The wider species column is one rounded glass card with uniform padding and no separate right-hand divider. Modified rows align with the dropdown edges; scrollbar space is reserved only when needed. The Modified species count shows only the number, and the list scrolls independently. The main species search includes both unchanged and modified species. Selection uses background highlighting without a red side stripe.
+- The shared Text component isolates ordinary text from surrounding React Aria dialog slots. Only dropdown option text binds to label/description slots; this prevents a crash when the first modified row appears.
+- The modified list has a compact visual default-rules empty state. The left panel uses subtle glass styling with a reduced-transparency fallback, and reset actions use × icons. The TAC card shows only the formula beside the explanation, with a divider.
+- Species selection uses one React Aria ComboBox with a magnifier and click/focus opening. It searches every eligible species, including those already modified. The modified list has no separate filter.
+- Modified species use equal-height, two-line rows: a truncated name followed by code - life stage. The shared Text component handles ellipsis, preserving full accessible labels without hover tooltips. Dropdown options use the same text layout and consistent height. A larger × restores defaults from the same row. Selected rows use a readable teal surface instead of a red/grey blend. Removing changes restores the controller defaults and removes the row from the list. If that species is selected, it stays selected in the chooser and its default curve/inputs remain visible. Incomplete defaults are previews; removing such an entry removes its draft rule.
+- Step one is titled Harvest control input, without a subtitle or expandable help. The title, species chooser and modified list share the left glass card. The explanation and TAC card begin at the top of the right column, directly above the graph. The selected species, code/stage, initial references and Modified status share one row; An × icon restores defaults. The chart fills the remaining height above the numeric inputs. The modal body does not scroll on this step; bounded internal lists, text and parameters can scroll on small screens. Dedicated HCR semantic tokens improve contrast without changing other screens.
+- Curve dragging and keyboard editing share the same form values. Returning values to their defaults removes the changed item automatically, ignoring kg/tonne floating-point conversion noise.
+- Initial loading and errors retain the introduction, reserved graph space and disabled forward actions. The editable form mounts after its defaults are ready and preserves drafts across background refetches.
 - Protocol input bounds: `0 < biomass_limit_kg <= 3,300,000,000,000` and `0 < biomass_base_kg <= 3,300,000,000,000` and `0 < f_max <= 100`. Biomass is treated as kg at the API boundary and displayed as tonnes.
 - Limit and base are independent. Base at or below the limit renders an all-or-nothing switch at the limit; both control values remain editable. The editor explains this behaviour without changing the TAC callout design.
-- Visual ranges are separate from validation: they initially include the current values (at least 10,000 tonnes and 5/year), stay stable during dragging, and expand when larger valid values are entered in the table. Dummy presets remain unchanged pending scientific defaults.
+- Visual ranges fit the active rule’s values, remain stable while dragging or reducing values, and expand when larger valid values are entered.
 - Hover along any red-line segment to see the annual TAC formula and result in tonnes/year. The callout is offset with a pointer and hidden during dragging.
 - Saved configuration summaries come from `experiment-options`; hide the saved mode when the list is empty.
-- Full saved rules are fetched only after selection and shown in the graph/table.
+- Full saved rules are fetched only after configuration selection. The species dropdown selects a read-only graph and values; Edit a copy enables changes.
 - Edit a copy loads saved thresholds into the draft and submits inline rules; it never changes the saved configuration.
 - Copied rules absent from the current eligible entries remain visible but block submission; choose another configuration or start a new one.
-- No automatic SSP/RCP mapping or fabricated species. Climate choices remain exactly those returned by `experiment-options`; development thresholds use only eligible entries returned in the scenario options.
+- No automatic SSP/RCP mapping or fabricated species. Climate choices remain exactly those returned by `experiment-options`; thresholds come from backend-provided defaults and user changes.
 
 ## Step transitions
 
@@ -53,6 +55,7 @@
 ## Submission
 
 - Previous preserves the draft. Closing and reopening starts a new draft.
+- Continue without configuration uses the shared Button at the standard medium size, matching Next and input heights.
 - Forward actions validate the current step live and remain disabled until complete. Shared React Aria tooltips explain missing requirements on hover and keyboard focus; disabled native buttons use a focusable wrapper. The review name is marked required and does not show ordinary client-validation errors.
 - Server failures retain inputs and remain visible; submitting disables edits and closing.
 - Success invalidates experiment lists and notifies the opener.
@@ -61,6 +64,6 @@
 
 ## Backend compatibility
 
-- `hcr_eligible` filtering is enforced in the UI, development defaults, experiment payload validation and configuration-save mutations.
+- `hcr_eligible` filtering is enforced in the UI, controller defaults, experiment payload validation and configuration-save mutations.
 - Saved rules must still be eligible and belong to the current eligible scenario entries. Invalid copied rules are preserved for inspection and block submission.
 - Biomass limit/base ordering remains independent; restoring eligibility filtering does not revert support for the all-or-nothing rule.

@@ -14,8 +14,8 @@ export default function HcrCurveEditor({ rule, label, onChange }: Props) {
   const draft = useRef<{ pointIndex: number; point: GraphPoint } | null>(null);
   const [dragging, setDragging] = useState(false);
   const [range, setRange] = useState(() => ({
-    x: Math.min(MAX_HCR_BIOMASS_KG, Math.max(10_000_000, Number.isFinite(rule?.biomass_base_kg) ? Math.max(rule!.biomass_base_kg, rule!.biomass_limit_kg) * 1.25 : 0)),
-    y: Math.min(MAX_HCR_FISHING_MORTALITY, Math.max(5, Number.isFinite(rule?.f_max) ? rule!.f_max * 1.25 : 0)),
+    x: Math.min(MAX_HCR_BIOMASS_KG, rule && Number.isFinite(rule.biomass_base_kg) && Number.isFinite(rule.biomass_limit_kg) && Math.max(rule.biomass_base_kg, rule.biomass_limit_kg) > 0 ? Math.max(rule.biomass_base_kg, rule.biomass_limit_kg) * 1.25 : 10_000_000),
+    y: Math.min(MAX_HCR_FISHING_MORTALITY, rule && Number.isFinite(rule.f_max) && rule.f_max > 0 ? rule.f_max * 1.25 : 5),
   }));
   // Typed values may expand the viewport. Keep it stable during dragging and
   // when values decrease; protocol bounds are independent of the visible range.
@@ -31,7 +31,7 @@ export default function HcrCurveEditor({ rule, label, onChange }: Props) {
     || rule.biomass_limit_kg <= 0 || rule.biomass_limit_kg > MAX_HCR_BIOMASS_KG || rule.biomass_base_kg <= 0 || rule.biomass_base_kg > MAX_HCR_BIOMASS_KG || rule.f_max <= 0 || rule.f_max > MAX_HCR_FISHING_MORTALITY) {
     return <div className={`${styles.chartSurface} ${styles.curvePlaceholder}`} role="status">
       <strong>{!rule ? "Select a species to configure its rule" : "The curve will appear when its values are valid"}</strong>
-      <p className={styles.hint}>{!rule ? "Choose an entry from the selector or table to start." : onChange ? "Enter positive biomass thresholds (each up to 3,300,000,000 tonnes) and fishing mortality up to 100 per year." : "No valid curve is available for this entry."}</p>
+      <p className={styles.hint}>{!rule ? "Choose a species from the dropdown to start." : onChange ? "Enter positive biomass thresholds (each up to 3,300,000,000 tonnes) and fishing mortality up to 100 per year." : "No valid curve is available for this entry."}</p>
     </div>;
   }
   const activeRow = { label, biomassLimit: rule.biomass_limit_kg, biomassBase: rule.biomass_base_kg, fMax: rule.f_max };

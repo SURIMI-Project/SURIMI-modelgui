@@ -32,8 +32,5 @@ export function getRunDurations(options: Pick<ExperimentOptions, "start_date_tim
     if (end.getUTCMonth() !== start.getUTCMonth()) end.setUTCDate(0);
     return { years, end: end.toISOString(), allowed: end > start && end <= maximum };
   };
-  const nice = [1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 50].map(candidate).filter(item => item.allowed);
-  if (nice.length >= 6) return nice.slice(-6);
-  // Shorter case horizons use consecutive years instead of disabled choices.
-  return [1, 2, 3, 4, 5, 6].map(candidate).filter(item => item.allowed);
+  return [5, 10, 30, 50].map(candidate);
 }

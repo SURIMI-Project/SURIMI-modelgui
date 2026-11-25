@@ -4,6 +4,8 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { ExperimentOptions } from "../../../../network/services/scenarios/scenarioSchemas";
 import type { HcrConfiguration } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
 import { getRunDurations, type SimulationFormValues, type HcrMode } from "./form";
+import { getInitialRule, sameHcrValues } from "./initialRules";
+import { speciesEntryKey } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
 import styles from "./NorthwesternSimulationFlow.module.css";
 
 type Props = { caseLabel: string; options: ExperimentOptions; mode: HcrMode; configuration?: HcrConfiguration };
@@ -12,6 +14,10 @@ export default function ReviewStep({ caseLabel, options, mode, configuration }: 
   const values = useWatch({ control });
   const duration = getRunDurations(options).find(item => item.end && values.end_date_time && new Date(item.end).getTime() === new Date(values.end_date_time).getTime());
   const ruleCount = mode === "saved" ? configuration?.rules.length ?? 0 : values.harvest_control_rules?.length ?? 0;
+  const changedCount = values.harvest_control_rules?.filter(rule => rule && !sameHcrValues({
+    species_code: rule.species_code ?? "", life_stage: rule.life_stage,
+    biomass_limit_kg: rule.biomass_limit_kg ?? NaN, biomass_base_kg: rule.biomass_base_kg ?? NaN, f_max: rule.f_max ?? NaN,
+  }, getInitialRule(options, speciesEntryKey(rule.species_code ?? "", rule.life_stage ?? "")))).length ?? 0;
   const endDate = values.end_date_time ? new Date(values.end_date_time).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "Unavailable";
   return <div className={styles.finalStep}>
     <div className={styles.reviewPanel}>
@@ -23,7 +29,7 @@ export default function ReviewStep({ caseLabel, options, mode, configuration }: 
         <dl className={styles.review}>
           <div><dt>Run duration</dt><dd>{duration ? `${duration.years} years` : "Unavailable"}<small>Until {endDate} (UTC)</small></dd></div>
           <div><dt>Climate scenario</dt><dd>{values.climate_scenario ? getClimateScenarioContent(values.climate_scenario).title : options.climate_scenarios.length === 0 ? "No options available" : "Not selected"}</dd></div>
-          <div><dt>Harvest control rules</dt><dd>{mode === "none" ? "None" : `${ruleCount} ${ruleCount === 1 ? "rule" : "rules"}`}<small>{mode === "saved" ? configuration?.name : mode === "custom" ? "Custom configuration" : "Without configuration"}</small></dd></div>
+          <div><dt>Harvest control rules</dt><dd>{mode === "none" ? "None" : `${ruleCount} ${ruleCount === 1 ? "rule" : "rules"}`}<small>{mode === "saved" ? configuration?.name : mode === "custom" ? `${changedCount} modified · ${ruleCount - changedCount} default` : "Without configuration"}</small></dd></div>
         </dl>
       </section>
       <section className={styles.nameSection} aria-label="Name your simulation">

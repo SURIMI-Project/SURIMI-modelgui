@@ -24,10 +24,34 @@ export const experimentOptionsSchema = z.object({
     species_code: z.string(), life_stage: z.string(), hcr_eligible: z.boolean(),
     species_name: z.string().nullable(), scientific_name: z.string().nullable(),
     functional_group: z.string().nullable(), functional_group_name: z.string().nullable(),
-    // Reference values only. The controller's biomass unit is not yet confirmed.
-    initial_biomass: z.number().nullable(), initial_fishing_mortality: z.number().nullable(),
+    // Older deployed options omit the new kg/default fields. Treat omission as
+    // unavailable data; never infer kilograms from the legacy initial_biomass.
+    // Present values still go through numeric validation.
+    initial_biomass_kg: z.number().nonnegative().nullable().default(null),
+    initial_fishing_mortality: z.number().nonnegative().nullable(),
+    default_biomass_limit_kg: z.number().positive().nullable().default(null),
+    default_biomass_base_kg: z.number().positive().nullable().default(null),
+    default_f_max: z.number().positive().nullable().default(null),
   })),
   hcr_configurations: z.array(hcrConfigurationSummarySchema),
   initial_values_available: z.boolean(), notes: z.array(z.string()),
 });
 export type ExperimentOptions = z.output<typeof experimentOptionsSchema>;
+
+// Dedicated GetInitialHCRData response. Length/age-specific entries cannot be
+// assigned to rules, which identify only a species and life stage.
+export const initialHcrDataSchema = z.object({
+  scenario_name: z.string(),
+  snapshot_id: z.uuid(),
+  first_seen_at: z.string().datetime({ offset: true }),
+  entries: z.array(z.object({
+    species_code: z.string(), life_stage: z.string(),
+    length_class: z.string(), age: z.string(), hcr_eligible: z.boolean(),
+    initial_biomass_kg: z.number().nonnegative(),
+    initial_fishing_mortality: z.number().nonnegative(),
+    default_biomass_limit_kg: z.number().positive().nullable(),
+    default_biomass_base_kg: z.number().positive().nullable(),
+    default_f_max: z.number().positive().nullable(),
+  })),
+});
+export type InitialHcrData = z.output<typeof initialHcrDataSchema>;

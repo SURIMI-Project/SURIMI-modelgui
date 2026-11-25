@@ -12,7 +12,7 @@ import { useHcrConfiguration } from "../../../serverState/hcrConfigurations/useH
 import { MAX_HCR_BIOMASS_KG, MAX_HCR_FISHING_MORTALITY } from "../components/HarvestControlInputs/limits";
 import ClimateScenarioStep from "./northwestern/ClimateScenarioStep";
 import RunSettingsStep from "./northwestern/RunSettingsStep";
-import { getInitialRule } from "./northwestern/developmentRules";
+import { getDefaultRules } from "./northwestern/initialRules";
 import { speciesEntryKey } from "../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
 import HcrRulesStep from "./northwestern/HcrRulesStep";
 import ReviewStep from "./northwestern/ReviewStep";
@@ -33,11 +33,9 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
   // Keep the opened form stable when the query refetches; submission validates
   // against the service's current options again without resetting the draft.
   const [options] = useState(latestOptions);
-  const initialRules = () => {
-    const first = options.species.find(species => species.hcr_eligible);
-    const rule = first && getInitialRule(options, speciesEntryKey(first.species_code, first.life_stage));
-    return rule ? [rule] : [];
-  };
+  // The API sends exactly the supplied rules; an empty list means no HCRs.
+  // Keep default rules in the payload while the UI lists only actual changes.
+  const initialRules = () => getDefaultRules(options);
   const hasHcr = options.species.some(species => species.hcr_eligible);
   const firstStep: Screen = "hcr";
   const [screen, setScreen] = useState<Screen>(firstStep);
@@ -138,8 +136,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
     form.clearErrors("root");
     let experiment: Experiment;
     try {
-      // Temporary one-year run for controller integration checks, regardless of UI duration.
-      experiment = await onCreate({ ...payload, end_date_time: "2014-01-01T00:00:00Z", name: payload.name.trim(), is_mse_run: false });
+      experiment = await onCreate({ ...payload, name: payload.name.trim(), is_mse_run: false });
     } catch (error) {
       const message = error instanceof AppError ? error.message : "Could not create the simulation. Please try again.";
       form.setError("root.server", { message });
@@ -188,7 +185,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
         }}>{screen === firstStep ? "CANCEL" : "PREVIOUS"}</Button>
         {submitting ? <p className={styles.notice} role="status">Submitting simulation…</p> : null}
         <div className={styles.footerActions}>
-          {screen === "hcr" && hasHcr ? <Button variant="ghost" size="sm" type="button" isDisabled={submitting || transitioning || !datesAvailable}
+          {screen === "hcr" && hasHcr ? <Button variant="ghost" size="md" type="button" isDisabled={submitting || transitioning || !datesAvailable}
             onPress={() => { changeMode("none"); void goToScreen("settings"); }}>Continue without configuration</Button> : null}
           <TooltipTrigger delay={250} isDisabled={!blockedReason || transitioning}>
             <DisabledTooltipTarget label={actionLabel} isDisabled={actionDisabled}>{actionButton}</DisabledTooltipTarget>

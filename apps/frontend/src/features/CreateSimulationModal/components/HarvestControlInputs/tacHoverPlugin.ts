@@ -54,11 +54,15 @@ export function createTacHoverPlugin(theme: { text: string; surface: string; bor
         `Annual TAC: ${format(hover.x * hover.y)} tonnes/year`,
       ];
       ctx.save();
-      ctx.font = `12px ${theme.font}`;
-      const padding = 10;
-      // Fixed width avoids jitter as the numbers change beneath the cursor.
-      const boxWidth = Math.min(width - 8, 330);
-      const boxHeight = lines.length * 18 + padding * 2;
+      ctx.font = `500 14px ${theme.font}`;
+      const padding = 14;
+      const lineHeight = 24;
+      const textWidth = lines.reduce((maximum, line, index) => {
+        ctx.font = `${index === lines.length - 1 ? 600 : 500} 14px ${theme.font}`;
+        return Math.max(maximum, ctx.measureText(line).width);
+      }, 0);
+      const boxWidth = Math.min(width - 8, 380, Math.ceil(textWidth) + padding * 2);
+      const boxHeight = lines.length * lineHeight + padding * 2;
       const gap = 36;
       const above = pointY - boxHeight - gap >= 4;
       const boxX = Math.max(4, Math.min(pointX - boxWidth / 2, width - boxWidth - 4));
@@ -85,7 +89,10 @@ export function createTacHoverPlugin(theme: { text: string; surface: string; bor
       ctx.fillStyle = theme.text;
       ctx.textBaseline = "top";
       ctx.textAlign = "left";
-      lines.forEach((line, index) => ctx.fillText(line, boxX + padding, boxY + padding + index * 18, boxWidth - padding * 2));
+      lines.forEach((line, index) => {
+        ctx.font = `${index === lines.length - 1 ? 600 : 500} 14px ${theme.font}`;
+        ctx.fillText(line, boxX + padding, boxY + padding + index * lineHeight, boxWidth - padding * 2);
+      });
       ctx.restore();
     },
   };

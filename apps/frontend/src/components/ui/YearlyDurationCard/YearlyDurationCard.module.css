@@ -1,13 +1,15 @@
 @layer components {
   .card { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: var(--spacing-xs); min-height: 8rem; padding: var(--spacing-mdl); border: var(--border-default); border-radius: var(--radius-md); background: var(--color-surface); cursor: pointer; }
-  .number { color: var(--color-text); font-size: clamp(2rem, 4vw, 3rem); font-weight: var(--font-weight-medium); line-height: 1; font-variant-numeric: tabular-nums; }
-  .unit { color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: var(--line-height-body); }
+  .title { display: flex; align-items: baseline; gap: var(--spacing-xs); padding-inline-end: var(--spacing-xl); }
+  .number { color: var(--color-text); font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); font-variant-numeric: tabular-nums; }
+  .unit { color: var(--color-text); font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); }
+  .description { color: var(--color-text-muted); font-size: var(--font-size-lg); line-height: var(--line-height-body); }
   .indicator { position: absolute; inset-block-start: var(--spacing-sm); inset-inline-end: var(--spacing-sm); display: grid; place-items: center; width: var(--spacing-mdl); height: var(--spacing-mdl); border: var(--border-default); border-radius: var(--radius-pill); color: transparent; }
   .indicator svg { width: var(--icon-size-sm); height: var(--icon-size-sm); }
   .card[data-selected] { border-color: var(--color-primary); background: var(--color-selected); }
   .card[data-selected] .indicator { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); }
   .card[data-hovered]:not([data-disabled]):not([data-selected]) { background: var(--color-surface-hover); }
   .card[data-focus-visible] { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-  .card[data-disabled] { opacity: 0.4; cursor: not-allowed; }
-  @media (max-height: 40rem) { .card { min-height: 6rem; padding: var(--spacing-md); } .number { font-size: 2rem; } }
+  .card[data-disabled] { opacity: 0.6; cursor: not-allowed; }
+  @media (max-height: 40rem) { .card { min-height: 6rem; padding: var(--spacing-md); } }
 }

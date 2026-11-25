@@ -6,7 +6,7 @@ import loadLandMask, { type LandMask } from "./water/loadLandMask";
 import { releaseMapImage, type MapImage } from "./water/loadMapImage";
 import { terrainFlatGround } from "./water/terrainAssets";
 import loadTerrainRelief from "./water/loadTerrainRelief";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import maplibregl, { type Map as LibreMap } from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -62,10 +62,11 @@ const updateMapAppearance = (
   map: LibreMap,
   water: AnimatedWaterLayer | null,
   reducedMotion: boolean,
+  transitionDuration = sceneTransitionDuration,
 ) => {
   if (!map.getLayer("water")) return;
   const scope = map.getContainer();
-  const duration = reducedMotion ? 0 : sceneTransitionDuration;
+  const duration = reducedMotion ? 0 : transitionDuration;
   map.setPaintProperty("water", "background-color-transition", {
     duration,
     delay: 0,
@@ -310,9 +311,7 @@ const updateStudyArea = (map: LibreMap, selected: SimulationCaseId | null) => {
 
 const GeographicMap = (props: Props) => {
   const container = useRef<HTMLDivElement>(null);
-  const curtain = useRef<HTMLDivElement>(null);
   const lastScene = useRef<SimulationCaseId | null>(props.selected);
-  const switchingScene = useRef(false);
   const mapRef = useRef<LibreMap | null>(null);
   const resetHover = useRef<() => void>(() => {});
   const markerRoots = useRef(new Map<SimulationCaseId, Root>());
@@ -338,6 +337,11 @@ const GeographicMap = (props: Props) => {
       button.dataset.selected = String(selected === id);
       button.setAttribute("aria-pressed", String(selected === id));
     }
+  }, [selected, available, reducedMotion, onSelect, backgroundOnly]);
+
+  // Restore the geographic scene beneath the departing bay image before it
+  // fades away. One image crossfade covers the camera and WebGL scene change.
+  useLayoutEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     const selectionChanged = selected !== lastScene.current;
@@ -345,50 +349,15 @@ const GeographicMap = (props: Props) => {
     const fictional = selected === "anchovy-bay";
     const crossesScene = fictional !== (lastScene.current === "anchovy-bay");
     lastScene.current = selected;
-    const applyScene = () => {
-      map.stop();
-      map.setMaxBounds(null);
-      map.setMinZoom(2);
-      map.setMaxZoom(8);
-      updateStudyArea(map, selected);
-      updateTerrainVisibility(water.current, selected, terrainEnabled.current && !terrainFailed.current);
-      updateMapAppearance(map, water.current, reducedMotion);
-      map.getCanvas().setAttribute("aria-label", fictional ? "Fictional Anchovy Bay educational map" : "Mediterranean geographic context");
-      if (selectionChanged) moveCamera(map, selected, !crossesScene && !reducedMotion);
-    };
-    if (!crossesScene || reducedMotion || !curtain.current) {
-      applyScene();
-      return;
-    }
-    switchingScene.current = true;
-    const overlay = curtain.current;
-    const fadeOut = overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, fill: "forwards" });
-    let fadeIn: Animation | undefined;
-    const timer = window.setTimeout(() => {
-      applyScene();
-      // Hold the curtain until locally loaded geometry is ready, with a bounded fallback.
-      map.once("idle", reveal);
-      fallback = window.setTimeout(reveal, 1800);
-    }, 180);
-    let fallback: number | undefined;
-    let revealed = false;
-    const reveal = () => {
-      if (revealed) return;
-      revealed = true;
-      window.clearTimeout(fallback);
-      map.off("idle", reveal);
-      fadeIn = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, fill: "forwards" });
-      switchingScene.current = false;
-    };
-    return () => {
-      window.clearTimeout(timer);
-      window.clearTimeout(fallback);
-      map.off("idle", reveal);
-      fadeOut.cancel();
-      fadeIn?.cancel();
-      switchingScene.current = false;
-    };
-  }, [selected, available, reducedMotion, onSelect, backgroundOnly]);
+    if (selectionChanged) map.stop();
+    updateStudyArea(map, selected);
+    updateTerrainVisibility(water.current, selected, terrainEnabled.current && !terrainFailed.current);
+    // The bay image covers this change; do not reveal a lingering bay palette.
+    updateMapAppearance(map, water.current, reducedMotion, crossesScene ? 0 : sceneTransitionDuration);
+    map.getCanvas().setAttribute("aria-label", fictional ? "Fictional Anchovy Bay educational map" : "Mediterranean geographic context");
+    if (selectionChanged) moveCamera(map, selected, !crossesScene && !reducedMotion);
+    map.triggerRepaint();
+  }, [selected, reducedMotion]);
 
   useEffect(() => {
     for (const [caseId, root] of markerRoots.current) {
@@ -936,7 +905,7 @@ const GeographicMap = (props: Props) => {
           window.clearTimeout(reframeTimer);
           reframeTimer = window.setTimeout(() => {
             if (disposed) return;
-            if (!current.current.enablePlacementTools && !switchingScene.current) moveCamera(map, current.current.selected, false);
+            if (!current.current.enablePlacementTools && !map.isMoving()) moveCamera(map, current.current.selected, false);
             updateCardSpace();
             updateConnectors();
           }, 160);
@@ -957,7 +926,10 @@ const GeographicMap = (props: Props) => {
       cleanupHover?.();
       observer?.disconnect();
       cardObserver?.disconnect();
-      cardRoots.forEach(root => root.unmount());
+      // Marker cards are separate React roots. Let the parent finish its
+      // commit before unmounting them, even when an error tears down the map.
+      const detachedRoots = cardRoots.splice(0);
+      queueMicrotask(() => detachedRoots.forEach(root => root.unmount()));
       roots.clear();
       markers.forEach((marker) => marker.remove());
       markerButtons.clear();
@@ -977,7 +949,7 @@ const GeographicMap = (props: Props) => {
       <div
         className={styles.mapLayer}
         data-scene-pending={scenePending}
-        inert={scenePending}
+        inert={scenePending || selected === "anchovy-bay"}
         aria-busy={scenePending || undefined}
         data-map-ready={ready}
         data-terrain-state={terrainLoading ? "loading" : terrainUnavailable ? "fallback" : "ready"}
@@ -992,7 +964,6 @@ const GeographicMap = (props: Props) => {
       >
         <div ref={container} className={styles.mapCanvas} />
       </div>
-      <div ref={curtain} className={styles.sceneCurtain} aria-hidden="true" />
       {terrainLoading && !failed && !backgroundOnly && selected !== "anchovy-bay" ? (
         <p className={styles.terrainLoading} role="status">Loading terrain…</p>
       ) : null}

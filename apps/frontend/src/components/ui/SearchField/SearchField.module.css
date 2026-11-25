@@ -1,0 +1,11 @@
+@layer components {
+  .control { display: flex; align-items: center; gap: var(--spacing-sm); padding-inline: var(--spacing-sm); }
+  .icon { width: var(--icon-size-sm); height: var(--icon-size-sm); color: var(--color-text-muted); flex-shrink: 0; }
+  .input { flex: 1; min-width: 0; width: 100%; border: 0; outline: none; background: transparent; color: var(--color-text); font: inherit; padding-block: var(--spacing-sm); }
+  .input::-webkit-search-cancel-button { appearance: none; }
+  .clear { display: grid; place-items: center; width: var(--control-height-sm); height: var(--control-height-sm); flex-shrink: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-muted); cursor: pointer; }
+  .clear:hover { background: var(--color-surface-hover); color: var(--color-text); }
+  .clear[data-focus-visible] { outline: var(--focus-ring); outline-offset: calc(-1 * var(--focus-width)); }
+  .root[data-empty] .clear { visibility: hidden; }
+  .visuallyHidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+}

@@ -3,6 +3,8 @@ export const scenarioQueryKeys = {
   list: (userId: string) => ["scenarios", userId, "list"] as const,
   experimentOptions: (userId: string, name: string) =>
     ["scenarios", userId, "experimentOptions", name] as const,
+  initialHcrData: (userId: string, name: string) =>
+    ["scenarios", userId, "initialHcrData", name] as const,
   contract: (userId: string, name: string) =>
     ["scenarios", userId, "contract", name] as const,
 };

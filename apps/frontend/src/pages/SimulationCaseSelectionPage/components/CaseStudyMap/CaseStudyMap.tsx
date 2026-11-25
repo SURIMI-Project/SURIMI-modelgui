@@ -154,8 +154,8 @@ const CaseStudyMap = ({ scenarios, status, availability }: Props) => {
               className={styles.bayBackground}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reducedMotion ? 0 : 0.4 }}
+              exit={{ opacity: 0, transition: { duration: reducedMotion ? 0 : 0.7, delay: reducedMotion ? 0 : 0.1, ease: "easeInOut" } }}
+              transition={{ duration: reducedMotion ? 0 : 0.4, ease: "easeInOut" }}
               aria-hidden="true"
             >
               <img src="/anchovy-bay-bg.png" alt="" />
