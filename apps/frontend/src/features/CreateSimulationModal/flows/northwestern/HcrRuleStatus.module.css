@@ -1,0 +1,26 @@
+@layer components {
+  .status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    min-height: var(--control-height-sm);
+    padding: var(--spacing-xs) var(--spacing-smd);
+    border: var(--border-width) solid var(--color-hcr-border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-body);
+    white-space: nowrap;
+  }
+  .status[data-status="modified"],
+  .status[data-status="modified"]:is(:hover, [data-hovered], [data-pressed]) {
+    border-color: var(--color-primary-ink);
+    color: var(--color-primary-ink);
+    background: transparent;
+    box-shadow: none;
+  }
+  .status svg { inline-size: var(--icon-size-sm); block-size: var(--icon-size-sm); }
+}

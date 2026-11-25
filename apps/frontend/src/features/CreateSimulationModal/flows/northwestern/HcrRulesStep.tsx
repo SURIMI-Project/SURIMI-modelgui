@@ -9,7 +9,7 @@ import Button from "../../../../components/ui/Button/Button";
 import ComboBox from "../../../../components/ui/ComboBox/ComboBox";
 import Select from "../../../../components/ui/Select/Select";
 import Text from "../../../../components/ui/Text/Text";
-import Tag from "../../../../components/ui/Tag/Tag";
+import HcrRuleStatus from "./HcrRuleStatus";
 import type { ExperimentOptions } from "../../../../network/services/scenarios/scenarioSchemas";
 import type { HcrConfiguration, HcrRulePayload } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
 import { hcrRulePayloadSchema, speciesEntryKey } from "../../../../network/services/hcrConfigurations/hcrConfigurationSchemas";
@@ -159,14 +159,15 @@ export default function HcrRulesStep({ headingRef, options, mode, onModeChange, 
     </div> : null}
     {mode === "custom" || (mode === "saved" && configuration) ? <section className={styles.workspace} aria-label="Harvest control rule editor">
       <header className={styles.editorHeading}>
-        <div className={styles.editorIdentity}><LuFish aria-hidden="true" /><h3 ref={editorTitle} tabIndex={-1} title={activeEntry?.label}>{reference?.species_name ?? activeEntry?.label ?? "Select a species"}</h3><span className={styles.speciesMeta}>{reference?.species_code}{reference?.life_stage ? ` · ${reference.life_stage}` : ""}</span></div>
+        <div className={styles.editorIdentity}><LuFish aria-hidden="true" /><div className={styles.editorSpecies}><h3 ref={editorTitle} tabIndex={-1}>{reference?.species_name ?? activeEntry?.label ?? "Select a species"}</h3><span className={styles.speciesMeta}>{reference?.species_code}{reference?.life_stage ? ` - ${reference.life_stage}` : ""}</span></div></div>
         {reference ? <dl className={styles.referenceValues}>
           <div><dt>Initial biomass</dt><dd>{reference.initial_biomass_kg === null ? "Unavailable" : `${formatReference(reference.initial_biomass_kg / 1000)} t`}</dd></div>
-          <div><dt title="Initial fishing mortality">Initial F</dt><dd>{reference.initial_fishing_mortality === null ? "Unavailable" : `${formatReference(reference.initial_fishing_mortality)} / year`}</dd></div>
+          <div><dt>Initial fishing mortality</dt><dd>{reference.initial_fishing_mortality === null ? "Unavailable" : `${formatReference(reference.initial_fishing_mortality)} / year`}</dd></div>
         </dl> : null}
         <div className={styles.editorActions}>
-          {mode === "custom" ? <Tag className={styles.statusTag} tone={activeChanged ? "primary" : "neutral"}>{activeChanged ? "Modified" : "Default values"}</Tag> : <Tag className={styles.statusTag}>Saved values</Tag>}
-          {mode === "custom" ? <Button size="sm" variant="ghost" iconOnly aria-label={`Restore defaults for ${activeEntry?.label ?? "selected species"}`} isDisabled={!activeChanged} onPress={() => { if (activeKey) resetRule(activeKey); }}><FiX aria-hidden="true" /></Button> : null}
+          <HcrRuleStatus status={mode === "saved" ? "saved" : activeChanged ? "modified" : "default"}
+            speciesLabel={activeEntry?.label ?? "selected species"}
+            onReset={() => { if (activeKey) resetRule(activeKey); }} />
         </div>
       </header>
       <div className={styles.graphPanel}>

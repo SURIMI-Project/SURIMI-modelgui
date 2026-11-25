@@ -152,7 +152,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
     onComplete(experiment);
   });
   return <FormProvider {...form}>
-    <form className={styles.root} noValidate onSubmit={event => {
+    <form className={styles.root} data-screen={screen} noValidate onSubmit={event => {
       if (blockedReason) { event.preventDefault(); return; }
       if (screen === "review") { void create(event); }
       else { event.preventDefault(); void next(); }
@@ -189,7 +189,7 @@ export default function ScenarioSimulationFlow({ caseLabel, options: latestOptio
             onPress={() => { changeMode("none"); void goToScreen("settings"); }}>Continue without configuration</Button> : null}
           <TooltipTrigger delay={250} isDisabled={!blockedReason || transitioning}>
             <DisabledTooltipTarget label={actionLabel} isDisabled={actionDisabled}>{actionButton}</DisabledTooltipTarget>
-            <Tooltip>{blockedReason}</Tooltip>
+            <Tooltip className={screen === "hcr" ? undefined : styles.laterStepTooltip}>{blockedReason}</Tooltip>
           </TooltipTrigger>
         </div>
       </footer>

@@ -1,6 +1,15 @@
 @layer components {
   .modalBody { display: flex; flex: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 0; scrollbar-gutter: auto; }
   .root { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; width: 100%; color: var(--color-text); }
+  /* Later steps use readable body text without changing the HCR editor. */
+  .formBody:not([data-screen="hcr"]), .scenarioBackground, .laterStepTooltip {
+    --font-size-xs: var(--font-size-lg);
+    --font-size-sm: var(--font-size-lg);
+    --font-size-md: var(--font-size-lg);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-body);
+  }
+  .root:not([data-screen="hcr"]) .heading h2 { font-weight: var(--font-weight-semibold); }
   .formBody { flex: 1; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: var(--spacing-mdl); scrollbar-width: thin; scrollbar-gutter: stable both-edges; }
   .formBody[data-screen="review"] .headingRow { text-align: center; }
   .stepContent { min-width: 0; }
