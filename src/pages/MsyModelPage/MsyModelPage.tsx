@@ -407,10 +407,10 @@ const MsyModelPage = () => {
                 spacing="lg"
                 verticalSpacing="lg"
               >
-                <CatchMsyChart stock={stock} />
-                <StockSizeChart stock={stock} />
                 <ExploitationChart stock={stock} />
                 <KobeChart stock={stock} />
+                <CatchMsyChart stock={stock} />
+                <StockSizeChart stock={stock} />
               </SimpleGrid>
             </MotionDiv>
           </Stack>
