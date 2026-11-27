@@ -6,6 +6,17 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-27 — Experiment options name functional groups
+
+`experiments/options.py`, `experiments/schemas.py`: each entry of
+`GET /scenarios/{name}/experiment-options` carries `kind` and `members`
+(ADR 0029); `functional_group` and `functional_group_name` are deprecated and
+null. `aegean_sea` offers its 7 groups with initial values and defaults
+(test `test_aegean_sea_offers_its_functional_groups`). **Verified** by the
+test suite (349 pass).
+
+---
+
 ## 2026-11-23 — Defaults in the form options; a snapshot of the initial HCR data per experiment
 
 `GET …/experiment-options`: `initial_biomass` renamed `initial_biomass_kg`;

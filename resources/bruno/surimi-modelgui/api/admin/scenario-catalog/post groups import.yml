@@ -1,0 +1,65 @@
+info:
+  name: post groups import
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{apiUrl}}/api/v1/admin/scenarios/aegean_sea/groups/import?dry_run=true&name_source=model_team&delimiter=,"
+  headers:
+    - name: Content-Type
+      value: text/csv
+  body:
+    type: text
+    data: |-
+      Continent,Region,Subregion,Species,GroupCMSY,GroupMICE,Stock,Name,ScientificName,SpecCode
+      Europe,Mediterranean Sea,Aegean Sea,HKE,Large demersal fishes,Demersal fish 2,DF2,Hake,Merluccius merluccius,Hake_Aegean_Sea
+      Europe,Mediterranean Sea,Aegean Sea,WHB,Large demersal fishes,Demersal fish 2,DF2,Blue whiting,Micromesistius poutassou,Blue whiting_Aegean_Sea
+      Europe,Mediterranean Sea,Aegean Sea,ANE,Small pelagic fishes,Pelagic fish 1,PF1,Anchovy,Engraulis encrasicolus,Anchovy_Aegean_Sea
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # post groups import
+
+  The body is the CSV itself (`Content-Type: text/csv`, UTF-8), one row per
+  member species. **The file becomes the scenario's groups**: groups and
+  members not in it are deleted. Nothing changes while `dry_run=true` (the
+  default): the answer is the report. The example is three rows of the
+  partner list of 2026-11-26 (`apps/backend/scripts/sources/`), in its own
+  headers: applied, it would leave `aegean_sea` with two groups.
+
+  ## Query
+
+  | Parameter | Meaning |
+  | --- | --- |
+  | `dry_run` | `true` (default) or `false` |
+  | `map` | Repeatable `target:header`. Unmapped columns take the file column of their own name, else the partner list's header (`Stock`, `GroupMICE`, `Species`, `Name`, `GroupCMSY`, `SpecCode`, `Continent`, `Region`, `Subregion`, `ScientificName`) |
+  | `delimiter` | `,` (default), `;`, `tab` |
+  | `name_source` | `manual` (default) or `model_team`: the groups' name source when no column maps to `name_source` |
+
+  ## Checks
+
+  Errors (nothing changes): a code that is not a code, a species twice, two
+  names for one group, two locations, a member not in the `species` table.
+  Warnings: a scientific name that differs from the `species` table (it is
+  never stored), groups not in the contract, contract entries that are no
+  group, saved HCR rules on groups the import removes, the controller
+  unreachable.
+
+  ## Response
+
+  `GroupImportReport`: `scenario_name`, `dry_run`, `applied`, `mapping`,
+  `rows_read`, `groups` and `added`/`removed`/`changed` (`count`, first 50
+  `codes`), `species`, `errors` (`line`, `message`), `warnings`.
+
+  ## Errors
+
+  `404` the controller does not serve the scenario; `413` over
+  `CATALOG_IMPORT_MAX_MB` (10); `415` not `text/csv`; `422` an apply with
+  errors (report in `error.details`); `403` not an admin.

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from surimi_backend.console import SECURITY_HEADERS
@@ -58,3 +61,18 @@ def test_can_be_switched_off(settings: Settings) -> None:
     with TestClient(create_app(off, controller=FakeControllerClient())) as c:
         assert c.get("/api/v1/console/").status_code == 404
         assert c.get("/", follow_redirects=False).status_code == 404
+
+
+STATIC = Path(__file__).parents[1] / "src" / "surimi_backend" / "console" / "static"
+
+
+def test_every_element_the_script_uses_is_on_the_page() -> None:
+    script = (STATIC / "app.js").read_text(encoding="utf-8")
+    page = (STATIC / "index.html").read_text(encoding="utf-8")
+    ids = set(re.findall(r'id="([^"]+)"', page))
+    used = set(re.findall(r'\$\("([^"`$]+)"\)', script))
+    assert used - ids == set()
+    tabs = re.search(r"const TABS = \{(.*?)\n\};", script, re.S)
+    assert tabs is not None
+    for key in re.findall(r'^\s+"?([a-z-]+)"?:', tabs.group(1), re.M):
+        assert {f"tab-{key}", f"tab-link-{key}"} <= ids, key

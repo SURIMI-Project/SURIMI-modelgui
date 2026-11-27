@@ -1,6 +1,7 @@
 """`/api/v1/scenarios`: the scenarios the controller can run and their
 contracts; `/api/v1/species`: species names and higher taxa (ADR 0023). Any
-signed-in user (ADR 0005)."""
+signed-in user (ADR 0005). `/api/v1/admin/species` and
+`/api/v1/admin/scenarios/{name}/groups`: admin CSV import and export (ADR 0030)."""
 
 from __future__ import annotations
 
@@ -12,10 +13,12 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from surimi_backend.auth.dependencies import AdminUser, Db, current_principal
+from surimi_backend.catalog import group_import, species_import
 from surimi_backend.catalog import species as species_service
-from surimi_backend.catalog import species_import
+from surimi_backend.catalog.group_import import GroupImportOptions, NameSource
 from surimi_backend.catalog.repository import SpeciesFilters
 from surimi_backend.catalog.schemas import (
+    GroupImportReport,
     ScenarioCatalogOut,
     SpeciesImportMode,
     SpeciesImportReport,
@@ -95,13 +98,14 @@ async def get_contract(catalog: Catalog, scenario_name: ScenarioName) -> Contrac
 @router.get(
     "/{scenario_name}/catalog",
     response_model=ScenarioCatalogOut,
-    summary="Functional groups, species, HCR-eligible entries and output levels of one scenario",
+    summary="Entries (species or functional groups), names and HCR eligibility of one scenario",
     description=(
-        "The contract's species, fleets, markets and climate scenarios, with the functional "
-        "group (Ecopath group) and its name from the model, the English name and HCR "
-        "eligibility of each species, and the level (functional_group or species) at which "
-        "each output metric holds its own values. Built from the scenario's catalog file "
-        "and the live contract (ADR 0017). Names the sources do not have are null."
+        "The contract's entries, fleets, markets and climate scenarios. Each entry has its "
+        "`kind`: a species, named from the FAO ASFIS list, or a functional group, named "
+        "from the scenario's catalog, whose code is what the controller receives and whose "
+        "species are in `members` (ADR 0029). Also HCR eligibility, the scenario's location "
+        "and the level of each output metric. Built from the catalog tables and the live "
+        "contract. Names the sources do not have are null."
     ),
     responses={404: {"description": "Unknown scenario"}},
 )
@@ -273,4 +277,99 @@ async def import_species(
     )
     return await species_import.import_species(
         db, data, options, catalog=catalog, actor_id=admin.user.id
+    )
+
+
+catalog_admin_router = APIRouter(
+    prefix="/api/v1/admin/scenarios",
+    tags=["Scenario catalog (admin)"],
+    responses={401: {"description": "Not signed in"}, 403: {"description": "Not an admin"}},
+)
+
+
+@catalog_admin_router.get(
+    "/{scenario_name}/groups/export.csv",
+    response_class=Response,
+    summary="Download a scenario's functional groups as CSV",
+    description=(
+        "One row per member species, in the import format (and that of the shipped "
+        "`catalog/data/catalog/<scenario>.groups.csv`): it imports back as is. Only the "
+        "header when the scenario has no groups."
+    ),
+    responses={200: {"content": {"text/csv": {}}}, 404: {"description": "Unknown scenario"}},
+)
+async def export_groups(
+    _: AdminUser, db: Db, catalog: Catalog, scenario_name: ScenarioName
+) -> Response:
+    content = await group_import.export_groups(db, catalog, scenario_name)
+    return Response(
+        content=content.encode("utf-8"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{scenario_name}.groups.csv"'},
+    )
+
+
+@catalog_admin_router.post(
+    "/{scenario_name}/groups/import",
+    response_model=GroupImportReport,
+    summary="Replace a scenario's functional groups from a CSV, dry run first",
+    description=(
+        "The request body is the CSV itself (`Content-Type: text/csv`, UTF-8), one row per "
+        "member species. The file becomes the scenario's groups: groups and members not in "
+        "it are deleted. `map` (repeatable `target:header`) names the file column of a "
+        "table column; unmapped columns use the column of the same name, else the partner "
+        "list's header (`Stock`, `GroupMICE`, `Species`, `Name`, `GroupCMSY`, `SpecCode`, "
+        "`Continent`, `Region`, `Subregion`, `ScientificName`), so that list imports as sent. "
+        "The scientific name is compared with the species table, not stored. Every member "
+        "must be in the species table. `dry_run=true` (default) only reports. Any error and "
+        "nothing changes. HCR eligibility is not part of the file."
+    ),
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        }
+    },
+    responses={
+        404: {"description": "The controller does not serve this scenario"},
+        413: {"description": "Over CATALOG_IMPORT_MAX_MB"},
+        415: {"description": "Not text/csv"},
+        422: {"description": "Errors in the file (applying): the report is in `details`"},
+    },
+)
+async def import_groups(
+    *,
+    request: Request,
+    admin: AdminUser,
+    db: Db,
+    catalog: Catalog,
+    scenario_name: ScenarioName,
+    dry_run: bool = True,
+    map: Annotated[
+        list[str],
+        Query(
+            max_length=20,
+            description="Repeatable `target:header`",
+            examples=[["group_code:Stock", "group_name:GroupMICE"]],
+        ),
+    ] = [],  # noqa: B006 - FastAPI copies query defaults
+    delimiter: Delimiter = ",",
+    name_source: Annotated[
+        NameSource,
+        Query(description="The groups' name source when no column maps to name_source"),
+    ] = "manual",
+) -> GroupImportReport:
+    content_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
+    if content_type not in CSV_TYPES:
+        raise UnsupportedMediaTypeError("send the CSV as the body with Content-Type: text/csv")
+    settings: Settings = request.app.state.settings
+    data = await _read_capped(request, settings.catalog_import_max_mb * 1024 * 1024)
+    options = GroupImportOptions(
+        dry_run=dry_run,
+        mapping=species_import.parse_mapping(map),
+        delimiter=delimiter,
+        default_name_source=name_source,
+    )
+    return await group_import.import_groups(
+        db, scenario_name, data, options, catalog=catalog, actor_id=admin.user.id
     )

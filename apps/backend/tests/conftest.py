@@ -22,6 +22,7 @@ from sqlalchemy import text
 from surimi_backend import cli
 from surimi_backend.auth.dependencies import Principal, current_principal
 from surimi_backend.auth.models import LoginMethod, UserSession
+from surimi_backend.catalog.scenario_data import FileScenarioData
 from surimi_backend.catalog.species import CsvSpeciesLookup
 from surimi_backend.core.config import Settings
 from surimi_backend.core.db import create_engine, create_sessionmaker
@@ -102,7 +103,12 @@ def fake_principal(role: Role = Role.MEMBER) -> Principal:
 def client(settings: Settings, fake_controller: FakeControllerClient) -> Iterator[TestClient]:
     """Signed in as a member without a database (auth is overridden); species
     names come from the shipped CSV."""
-    app = create_app(settings, controller=fake_controller, species=CsvSpeciesLookup())
+    app = create_app(
+        settings,
+        controller=fake_controller,
+        species=CsvSpeciesLookup(),
+        scenario_data=FileScenarioData(),
+    )
     app.dependency_overrides[current_principal] = fake_principal
     with TestClient(app) as c:
         yield c
@@ -112,7 +118,12 @@ def client(settings: Settings, fake_controller: FakeControllerClient) -> Iterato
 def anonymous_client(
     settings: Settings, fake_controller: FakeControllerClient
 ) -> Iterator[TestClient]:
-    app = create_app(settings, controller=fake_controller, species=CsvSpeciesLookup())
+    app = create_app(
+        settings,
+        controller=fake_controller,
+        species=CsvSpeciesLookup(),
+        scenario_data=FileScenarioData(),
+    )
     with TestClient(app) as c:
         yield c
 
@@ -151,8 +162,9 @@ def postgres() -> Iterator[Any]:
 
 @pytest.fixture(scope="session")
 def db_env(postgres: Any) -> dict[str, str]:
-    """Bootstrapped and migrated database with the shipped species loaded (the
-    `species` table is not truncated between tests); the env vars that point at it."""
+    """Bootstrapped and migrated database with the shipped species and catalog
+    loaded (the `species` and `catalog_*` tables are not truncated between
+    tests); the env vars that point at it."""
     code, output = bootstrap(postgres)
     assert code == 0, output
     env = {
@@ -169,6 +181,7 @@ def db_env(postgres: Any) -> dict[str, str]:
             mp.setenv(key, value)
         cli.migrate("head")
         assert cli.seed_species() == 0
+        assert cli.seed_catalog() == 0
     return env
 
 

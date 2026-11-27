@@ -3,9 +3,11 @@
 All change only when the controller is redeployed, while every experiment form
 and validation reads them, so they are cached for CATALOG_CACHE_SECONDS. One
 lock per key means a burst of requests after expiry makes one controller call.
-A scenario catalog (ADR 0017) is rebuilt from the catalog file, the contract and
-the `species` rows of its codes (ADR 0023) each time the contract is fetched, so
-drift is logged once per refresh.
+A scenario catalog (ADR 0017, 0029) is rebuilt from the scenario's catalog
+data (the `catalog_*` tables, ADR 0030), the contract and the `species` rows of
+its codes (ADR 0023) each time the contract is fetched, so drift is logged once
+per refresh. An admin import calls `clear` on the replica that served it;
+other replicas follow within CATALOG_CACHE_SECONDS.
 
 The initial HCR data (`GetInitialHCRData`: initial biomass and F, default
 rule) is **not** cached and not part of the catalog: it changes whenever
@@ -17,18 +19,18 @@ from __future__ import annotations
 
 import asyncio
 import time
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from typing import Any, TypeVar
 
 import structlog
 
 from surimi_backend.catalog.scenario_catalog import (
     EntryNames,
-    ScenarioCatalogFile,
     build_catalog,
     name_entries,
     species_codes,
 )
+from surimi_backend.catalog.scenario_data import ScenarioData, ScenarioDataSource
 from surimi_backend.catalog.schemas import ScenarioCatalogOut
 from surimi_backend.catalog.species import SpeciesLookup
 from surimi_backend.core.errors import NotFoundError
@@ -44,12 +46,12 @@ class CatalogService:
         self,
         controller: ControllerClient,
         ttl_seconds: float,
-        catalog_files: Mapping[str, ScenarioCatalogFile] | None = None,
+        scenario_data: ScenarioDataSource | None = None,
         species: SpeciesLookup | None = None,
     ) -> None:
         self._controller = controller
         self._ttl = ttl_seconds
-        self._files = dict(catalog_files or {})
+        self._data = scenario_data
         self._species = species
         self._values: dict[str, tuple[float, Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
@@ -84,16 +86,16 @@ class CatalogService:
         contract = await self.contract(scenario_name)
 
         async def load() -> ScenarioCatalogOut:
-            file = self._files.get(scenario_name)
+            data = await self.scenario_data(scenario_name)
             names = (
-                await self._species.get(species_codes(contract, file)) if self._species else None
+                await self._species.get(species_codes(contract, data)) if self._species else None
             )
-            catalog = build_catalog(scenario_name, contract, file, names)
+            catalog = build_catalog(scenario_name, contract, data, names)
             log.info(
                 "catalog.built",
                 scenario=scenario_name,
                 status=catalog.status,
-                groups=len(catalog.functional_groups),
+                groups=sum(s.kind == "functional_group" for s in catalog.species),
                 species=len(catalog.species),
                 hcr_eligible=sum(s.hcr_eligible for s in catalog.species),
             )
@@ -115,30 +117,35 @@ class CatalogService:
         """Names, group and eligibility of each `(species_code, life_stage)`
         (requirement 11 of plan 2026-11-23). A code with no `species` row gets
         no names and a `catalog.drift` warning, as in the catalog."""
-        codes = {code for code, _ in entries}
+        data = await self.scenario_data(scenario_name)
+        group_codes = {g.code for g in data.groups} if data else set()
+        codes = {code for code, _ in entries} - group_codes
+        if data:
+            codes |= data.member_codes()
         names = await self._species.get(codes) if self._species else {}
         if self._species:
-            unnamed = sorted(codes - names.keys())
+            unnamed = sorted({code for code, _ in entries} - group_codes - names.keys())
             if unnamed:
                 log.warning(
                     "catalog.drift",
                     scenario=scenario_name,
                     detail=f"initial HCR data with no species row: {', '.join(unnamed)}",
                 )
-        return name_entries(self._files.get(scenario_name), names, entries)
+        return name_entries(data, names, entries)
+
+    async def scenario_data(self, scenario_name: str) -> ScenarioData | None:
+        """The scenario's catalog data, read on each call (a few small
+        primary-key reads); None when the catalog has none."""
+        return await self._data.get(scenario_name) if self._data else None
 
     async def require_scenario(self, scenario_name: str) -> None:
         """404 unless the controller lists the scenario."""
         if scenario_name not in await self.scenario_names():
             raise NotFoundError(f"scenario {scenario_name!r} does not exist")
 
-    def file_codes(self) -> set[str]:
-        """Species codes the catalog files name: group members, HCR-eligible."""
-        codes: set[str] = set()
-        for file in self._files.values():
-            codes |= {m.species_code for g in file.functional_groups for m in g.members}
-            codes |= {r.species_code for r in file.hcr_eligible}
-        return codes
+    async def catalog_codes(self) -> set[str]:
+        """Species codes the catalog data names: group members, HCR-eligible."""
+        return await self._data.codes_in_use() if self._data else set()
 
     def clear(self) -> None:
         self._values.clear()

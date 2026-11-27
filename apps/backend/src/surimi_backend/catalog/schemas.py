@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Literal
 
 from pydantic import BaseModel, Field
+from pydantic.config import JsonDict
 
 Level = Literal["functional_group", "species"]
 OUTPUT_METRICS = (
@@ -26,10 +27,43 @@ class SpeciesRefOut(BaseModel):
     )
 
 
+EntryKind = Literal["species", "functional_group"]
+# Fields kept only so existing clients keep parsing (ADR 0029): always null or
+# empty, removed when the phase 10 frontend stops reading them.
+DEPRECATED: JsonDict = {"deprecated": True}
+KIND_DESCRIPTION = (
+    "species: the entry is one species (code and life stage); functional_group: the entry "
+    "is a functional group, its code is what the controller receives, its species are in "
+    "`members` (ADR 0029)"
+)
+
+
+class MemberSpeciesOut(BaseModel):
+    """A species of a functional group, named from the `species` table."""
+
+    species_code: str = Field(examples=["HKE"])
+    species_name: str | None = Field(
+        description="English name from the FAO ASFIS list", examples=["European hake"]
+    )
+    scientific_name: str | None = Field(examples=["Merluccius merluccius"])
+    name_in_source: str | None = Field(
+        description="The name in the partner's list, when it differs from ASFIS or not",
+        examples=["Hake"],
+    )
+    cmsy_group: str | None = Field(
+        description="CMSY++ group of the species", examples=["Large demersal fishes"]
+    )
+    cmsy_stock_id: str | None = Field(
+        description="CMSY++ stock id (`SpecCode`)", examples=["Hake_Aegean_Sea"]
+    )
+
+
 class SpeciesEntryOut(SpeciesRefOut):
+    kind: EntryKind = Field(description=KIND_DESCRIPTION, examples=["functional_group"])
     name: str | None = Field(
-        description="English name from the FAO ASFIS list; null when ASFIS has none",
-        examples=["European hake"],
+        description="species: English name from the FAO ASFIS list; functional_group: the "
+        "group's name. Null when unknown",
+        examples=["Demersal fish 2"],
     )
     scientific_name: str | None = Field(examples=["Merluccius merluccius"])
     family: str | None = Field(
@@ -45,19 +79,25 @@ class SpeciesEntryOut(SpeciesRefOut):
         examples=["32"],
     )
     functional_group: str | None = Field(
-        description="Key of the functional group (Ecopath group) this entry belongs to; "
-        "null when the model maps it to none",
-        examples=["27"],
+        default=None,
+        description="Deprecated, always null (ADR 0029): see `kind` and `members`",
+        examples=[None],
+        json_schema_extra=DEPRECATED,
     )
     hcr_eligible: bool = Field(
-        description="True when the fisheries authority has the inputs to apply a harvest "
-        "control rule to this entry",
+        description="True when a harvest control rule can be set on this entry",
         examples=[True],
+    )
+    members: list[MemberSpeciesOut] = Field(
+        default_factory=list,
+        description="The species of a functional group; empty for a species entry",
     )
 
 
 class FunctionalGroupOut(BaseModel):
-    key: str = Field(description="Ecopath group id (DBID)", examples=["27"])
+    """Deprecated (ADR 0029): groups of contract entries no longer exist."""
+
+    key: str = Field(examples=["27"])
     name: str | None = Field(
         description="Group name from the Ecopath model; null when the model is not available",
         examples=["Adult hake"],
@@ -70,6 +110,14 @@ class FunctionalGroupOut(BaseModel):
     members: list[SpeciesRefOut]
 
 
+class LocationOut(BaseModel):
+    """Where the scenario lies, as the partner list spells it; null when unknown."""
+
+    continent: str | None = Field(examples=["Europe"])
+    region: str | None = Field(examples=["Mediterranean Sea"])
+    subregion: str | None = Field(examples=["Aegean Sea"])
+
+
 class FleetOut(BaseModel):
     gear_code: str = Field(examples=["OTB"])
     country_code: str = Field(examples=["ESP"])
@@ -78,7 +126,8 @@ class FleetOut(BaseModel):
 class ScenarioCatalogOut(BaseModel):
     scenario_name: str = Field(examples=["northwestern_med"])
     status: Literal["complete", "partial"] = Field(
-        description="partial: no functional groups are known for this scenario yet; see notes",
+        description="complete: every contract entry has a name; partial: some have none, or "
+        "the catalog has no data for this scenario; see drift and notes",
         examples=["complete"],
     )
     levels: list[Level] = Field(
@@ -91,25 +140,33 @@ class ScenarioCatalogOut(BaseModel):
         "functional_group whenever groups exist",
         examples=[{"biomass": "functional_group", "gross_catch": "species"}],
     )
-    functional_groups: list[FunctionalGroupOut]
+    functional_groups: list[FunctionalGroupOut] = Field(
+        default_factory=list,
+        description="Deprecated, always empty (ADR 0029): functional groups are entries of "
+        "`species` with kind functional_group",
+        json_schema_extra=DEPRECATED,
+    )
     species: list[SpeciesEntryOut] = Field(
-        description="Every species entry of the contract, in contract order"
+        description="Every entry of the contract, in contract order: species, or functional "
+        "groups with their member species"
     )
     climate_scenarios: list[str] = Field(examples=[["RCP_2.6", "RCP_4.5", "RCP_8.5"]])
     fleets: list[FleetOut]
     markets: list[str] = Field(examples=[["ES", "ESALC"]])
     built_from: dict[str, str] = Field(
-        description="Sources and commits the catalog file was generated from",
-        examples=[{"SURIMI-Ecopath": "156c130", "ewe_model": "SURIMI-data_preprocessing@92f4ad6"}],
+        default_factory=dict,
+        description="Deprecated, always empty: the catalog is in the database (ADR 0030)",
+        json_schema_extra=DEPRECATED,
     )
+    location: LocationOut
     notes: list[str] = Field(
-        description="Known gaps of this scenario's catalog, written in the catalog file",
-        examples=[["Functional groups come from a MICE model not yet published (issue #154)"]],
+        description="Known gaps of this scenario's catalog",
+        examples=[["No fisheries authority inputs for aegean_sea yet"]],
     )
     drift: list[str] = Field(
-        description="Differences between the catalog file and the live contract; "
-        "entries of the file that the contract does not have are left out",
-        examples=[["functional group 2 (Whales): none of HUW, GRW is in the contract"]],
+        description="Differences between the catalog and the live contract; entries of the "
+        "catalog that the contract does not have are left out",
+        examples=[["functional group DF4 (Demersal fish 4) is not in the contract"]],
     )
 
 
@@ -177,5 +234,25 @@ class SpeciesImportReport(BaseModel):
     updated: ImportCount
     unchanged: int
     deleted: ImportCount
+    errors: list[ImportProblem] = Field(description="Any error: nothing is changed")
+    warnings: list[str]
+
+
+class GroupImportReport(BaseModel):
+    """What an import of one scenario's functional groups did, or would do."""
+
+    scenario_name: str = Field(examples=["aegean_sea"])
+    dry_run: bool
+    applied: bool = Field(description="True when the scenario's groups were replaced")
+    mapping: dict[str, str] = Field(
+        description="Table column -> file column used",
+        examples=[{"group_code": "Stock", "species_code": "Species"}],
+    )
+    rows_read: int = Field(examples=[50])
+    groups: ImportCount = Field(description="Groups in the file")
+    species: int = Field(description="Member species in the file", examples=[50])
+    added: ImportCount = Field(description="Groups not in the catalog before")
+    removed: ImportCount = Field(description="Groups the import deletes")
+    changed: ImportCount = Field(description="Groups whose name or members change")
     errors: list[ImportProblem] = Field(description="Any error: nothing is changed")
     warnings: list[str]

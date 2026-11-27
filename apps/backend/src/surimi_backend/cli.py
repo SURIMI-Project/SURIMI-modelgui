@@ -4,6 +4,7 @@ surimi-backend serve          run the API (uvicorn)
 surimi-backend migrate        apply database migrations (alembic upgrade head)
 surimi-backend create-admin   create the first admin, or make a user admin
 surimi-backend seed-species   load catalog/data/species.csv into the species table
+surimi-backend seed-catalog   load catalog/data/catalog/ into the catalog_* tables
                               (missing codes only; --update overwrites changed rows)
 surimi-backend worker         run the worker: poll, queue dispatch, output indexing
 surimi-backend version        print the backend version and the pinned protocol
@@ -189,6 +190,45 @@ def seed_species(path: Path | None = None, *, update: bool = False) -> int:
     return 0
 
 
+async def _seed_catalog(directory: Path | None, *, update: bool) -> list[str]:
+    import surimi_backend.models  # noqa: F401 - every table, so foreign keys resolve
+    from surimi_backend.catalog.scenario_data import CATALOG_DIR, read_shipped, seed_catalog
+    from surimi_backend.core.config import Settings
+    from surimi_backend.core.db import create_engine, create_sessionmaker
+
+    shipped = read_shipped(directory or CATALOG_DIR)
+    engine = create_engine(Settings())
+    try:
+        async with create_sessionmaker(engine)() as db:
+            report = await seed_catalog(db, shipped, update=update)
+    finally:
+        await engine.dispose()
+    return report.lines()
+
+
+def seed_catalog(directory: Path | None = None, *, update: bool = False) -> int:
+    """Loads each shipped scenario the tables lack; with `update` also replaces
+    the ones they have (catalog/scenario_data.py). Runs after seed-species:
+    group members reference species codes."""
+    from sqlalchemy.exc import IntegrityError
+
+    from surimi_backend.core.config import Settings
+    from surimi_backend.core.logging import configure_logging
+
+    configure_logging(Settings())
+    try:
+        lines = asyncio.run(_seed_catalog(directory, update=update))
+    except (OSError, ValueError) as exc:
+        print(f"seed-catalog: {exc}", file=sys.stderr)
+        return 1
+    except IntegrityError as exc:
+        print(f"seed-catalog: a code is not in the species table: {exc.orig}", file=sys.stderr)
+        return 1
+    for line in lines:
+        print(f"seed-catalog: {line}")
+    return 0
+
+
 def worker() -> None:
     from surimi_backend.core.config import Settings
     from surimi_backend.core.logging import configure_logging
@@ -227,6 +267,13 @@ def main(argv: list[str] | None = None) -> None:
     sp.add_argument(
         "--update", action="store_true", help="also overwrite rows that differ from the file"
     )
+    sc = sub.add_parser(
+        "seed-catalog", help="load the shipped scenario catalog (scenarios the tables lack only)"
+    )
+    sc.add_argument("--dir", type=Path, help="default: catalog/data/catalog/")
+    sc.add_argument(
+        "--update", action="store_true", help="also replace scenarios that are already loaded"
+    )
     sub.add_parser("worker", help="run the worker (one leader at a time, ADR 0019)")
     sub.add_parser("version", help="print versions")
     args = parser.parse_args(argv)
@@ -239,6 +286,8 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(create_admin(args))
     elif args.command == "seed-species":
         sys.exit(seed_species(args.file, update=args.update))
+    elif args.command == "seed-catalog":
+        sys.exit(seed_catalog(args.dir, update=args.update))
     elif args.command == "worker":
         worker()
     else:

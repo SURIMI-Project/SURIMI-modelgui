@@ -7,6 +7,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
+from surimi_backend.catalog.schemas import DEPRECATED, KIND_DESCRIPTION, EntryKind, MemberSpeciesOut
+
 # The protocol's bounds (`buf.validate` on `surimi.v1.TargetFishingMortality`,
 # SURIMI-protocol `250f617`): biomass in (0, 3.3e12] kg, f_max in (0, 100].
 # The limit and the base are not compared: a base at or below the limit is a
@@ -59,9 +61,20 @@ class HcrRuleOut(BaseModel):
         "entry; such a rule is kept but refused when an experiment is submitted",
         examples=[True],
     )
-    species_name: str | None = Field(examples=["European hake"])
+    kind: EntryKind = Field(description=KIND_DESCRIPTION, examples=["species"])
+    species_name: str | None = Field(
+        description="species: English name (FAO ASFIS); functional_group: the group's name",
+        examples=["European hake"],
+    )
     functional_group: str | None = Field(
-        description="Key of the entry's functional group", examples=["27"]
+        default=None,
+        description="Deprecated, always null (ADR 0029): see `kind` and `members`",
+        examples=[None],
+        json_schema_extra=DEPRECATED,
+    )
+    members: list[MemberSpeciesOut] = Field(
+        default_factory=list,
+        description="The species of a functional group; empty for a species entry",
     )
 
 

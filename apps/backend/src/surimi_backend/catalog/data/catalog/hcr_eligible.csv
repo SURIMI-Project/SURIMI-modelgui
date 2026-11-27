@@ -1,0 +1,14 @@
+scenario_name,species_code,life_stage
+aegean_sea,CCR1,
+aegean_sea,CCR2,
+aegean_sea,DF1,
+aegean_sea,DF2,
+aegean_sea,DF3,
+aegean_sea,PF1,
+aegean_sea,PF2,
+northwestern_med,BFT,
+northwestern_med,BOG,
+northwestern_med,HKE,adult
+northwestern_med,HKE,juvenile
+northwestern_med,MUT,adult
+northwestern_med,PIL,adult

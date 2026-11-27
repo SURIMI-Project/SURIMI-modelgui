@@ -10,6 +10,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from surimi_backend.catalog.schemas import DEPRECATED, KIND_DESCRIPTION, EntryKind, MemberSpeciesOut
+
 
 class InitialHcrEntryOut(BaseModel):
     """One species entry of `GetInitialHCRData`, named from the catalog."""
@@ -20,18 +22,30 @@ class InitialHcrEntryOut(BaseModel):
     )
     length_class: str = Field(description="Empty when the controller sends none", examples=[""])
     age: str = Field(description="Empty when the controller sends none", examples=[""])
+    kind: EntryKind = Field(description=KIND_DESCRIPTION, examples=["species"])
     species_name: str | None = Field(
-        description="English name from the `species` table (FAO ASFIS); null when unknown",
+        description="species: English name from the `species` table (FAO ASFIS); "
+        "functional_group: the group's name. Null when unknown",
         examples=["European hake"],
     )
     scientific_name: str | None = Field(examples=["Merluccius merluccius"])
     family: str | None = Field(examples=["MERLUCCIIDAE"])
     functional_group: str | None = Field(
-        description="Key of the entry's functional group in the scenario catalog; null when "
-        "the catalog maps it to none",
-        examples=["27"],
+        default=None,
+        description="Deprecated, always null (ADR 0029): see `kind` and `members`",
+        examples=[None],
+        json_schema_extra=DEPRECATED,
     )
-    functional_group_name: str | None = Field(examples=["Adult hake"])
+    functional_group_name: str | None = Field(
+        default=None,
+        description="Deprecated, always null (ADR 0029): a group's name is in `species_name`",
+        examples=[None],
+        json_schema_extra=DEPRECATED,
+    )
+    members: list[MemberSpeciesOut] = Field(
+        default_factory=list,
+        description="The species of a functional group; empty for a species entry",
+    )
     hcr_eligible: bool = Field(
         description="Whether a rule may be set on it (the fisheries authority has its "
         "inputs, ADR 0017). The controller lists more entries than are eligible",

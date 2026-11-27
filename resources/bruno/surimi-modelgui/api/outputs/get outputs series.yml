@@ -19,7 +19,9 @@ docs: |-
 
   `metric`: biomass, gross_catch, dead_discards, live_discards,
   sales_quantity, sales_value, price, fishing_activity. Pick `species` (+
-  `life_stage`) or `functional_group`; optional `fleet` (index), `market`,
-  `period` (month, year), `start`, `end` (YYYY-MM). Biomass is asked by
-  functional group (ADR 0017). `cleaned` counts infinite and out-of-range
+  `life_stage`): a species code, or a functional group's code (`aegean_sea`
+  `DF2`), which is an entry of the outputs like a species (ADR 0029). The
+  `functional_group` parameter is deprecated: no scenario has groups of
+  entries any more. Optional `fleet` (index), `market`, `period` (month,
+  year), `start`, `end` (YYYY-MM). `cleaned` counts infinite and out-of-range
   values set to null.

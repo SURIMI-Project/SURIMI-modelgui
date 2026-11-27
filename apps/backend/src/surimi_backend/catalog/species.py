@@ -21,10 +21,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from surimi_backend.catalog import repository
 from surimi_backend.catalog.models import Species, SpeciesSource
-from surimi_backend.catalog.scenario_catalog import CATALOG_DATA_DIR
 from surimi_backend.catalog.schemas import SpeciesSort
 from surimi_backend.core.errors import NotFoundError
 
+CATALOG_DATA_DIR = Path(__file__).parent / "data"
 SPECIES_CSV = CATALOG_DATA_DIR / "species.csv"
 CODE = re.compile(r"^[A-Za-z0-9_]{1,30}$")
 

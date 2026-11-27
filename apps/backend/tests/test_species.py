@@ -15,7 +15,7 @@ from sqlalchemy import select, text
 
 from surimi_backend.catalog.models import Species
 from surimi_backend.catalog.repository import _order, search_condition
-from surimi_backend.catalog.scenario_catalog import load_catalog_files
+from surimi_backend.catalog.scenario_data import read_shipped
 from surimi_backend.catalog.species import (
     SPECIES_CSV,
     CsvSpeciesLookup,
@@ -82,10 +82,11 @@ def _needed_codes() -> set[str]:
         contract: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
         items = contract.get("simulation", contract).get("items", {})
         codes |= {s["species_code"] for s in items.get("species", [])}
-    for file in load_catalog_files().values():
-        codes |= {m.species_code for g in file.functional_groups for m in g.members}
-        codes |= {r.species_code for r in file.hcr_eligible}
-    return codes
+    groups: set[str] = set()
+    for data in read_shipped().values():
+        groups |= {g.code for g in data.groups}
+        codes |= data.member_codes() | {code for code, _ in data.hcr_eligible}
+    return codes - groups  # a functional group's code is not a species (ADR 0029)
 
 
 def test_the_shipped_file_holds_all_of_asfis_and_every_code_in_use() -> None:

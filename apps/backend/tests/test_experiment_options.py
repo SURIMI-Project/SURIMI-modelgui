@@ -73,7 +73,8 @@ def test_northwestern_med_options(api: TestClient, users: Callable[..., User]) -
         bft["default_f_max"],
     ) == (6768.0, 27072.0, pytest.approx(0.6216744780540466))
     assert body["hcr_configurations"] == []  # maria saved none
-    assert rows[("HKE", "adult")]["functional_group_name"] == "Adult hake"
+    hake = rows[("HKE", "adult")]
+    assert (hake["kind"], hake["members"], hake["functional_group_name"]) == ("species", [], None)
 
 
 def test_saved_configurations_are_listed(api: TestClient, users: Callable[..., User]) -> None:
@@ -109,14 +110,36 @@ def test_a_scenario_without_initial_values_or_hcrs(
     api: TestClient, users: Callable[..., User]
 ) -> None:
     users("maria")
-    body = _options(api, bearer(api, "maria"), "aegean_sea")
-    assert body["climate_scenarios"] == []
-    assert body["climate_scenario_required"] is False
+    body = _options(api, bearer(api, "maria"), "anchovy_bay")
+    assert body["climate_scenario_required"] is True
     assert not any(r["hcr_eligible"] for r in body["species"])
     assert body["initial_values_available"] is False
     assert body["initial_hcr_snapshot_id"] is None
     assert any("No initial HCR data" in n for n in body["notes"])
     assert any("can carry a harvest control rule" in n for n in body["notes"])
+
+
+def test_aegean_sea_offers_its_functional_groups(
+    api: TestClient, users: Callable[..., User]
+) -> None:
+    users("maria")
+    body = _options(api, bearer(api, "maria"), "aegean_sea")
+    assert body["climate_scenarios"] == []
+    assert body["climate_scenario_required"] is False
+    rows = {r["species_code"]: r for r in body["species"]}
+    assert sorted(rows) == ["CCR1", "CCR2", "DF1", "DF2", "DF3", "PF1", "PF2"]
+    df2 = rows["DF2"]
+    assert (df2["kind"], df2["species_name"], df2["hcr_eligible"]) == (
+        "functional_group",
+        "Demersal fish 2",
+        True,
+    )
+    assert (df2["functional_group"], df2["functional_group_name"]) == (None, None)
+    assert len(df2["members"]) == 14
+    # The controller's initial values and defaults are those of the group code.
+    assert df2["initial_biomass_kg"] == pytest.approx(67071790.36153242)
+    assert df2["default_f_max"] == pytest.approx(0.047476138919591904)
+    assert body["initial_values_available"] is True
 
 
 def test_unknown_scenario_and_sign_in(api: TestClient, users: Callable[..., User]) -> None:

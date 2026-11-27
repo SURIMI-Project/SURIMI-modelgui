@@ -1,0 +1,16 @@
+info:
+  name: scenario-catalog
+  type: folder
+  seq: 6
+
+request:
+  auth: inherit
+
+docs: |-
+  # Scenario catalog (admin)
+
+  `/api/v1/admin/scenarios/{name}/groups`: export one scenario's functional
+  groups as CSV, and replace them from a CSV (one row per member species),
+  dry run first. Design: `docs/features/scenario-catalog/README.md`
+  § Functional groups as contract entries; ADR 0029 and 0030. Run
+  `auth/post token` as an admin first.

@@ -2,6 +2,89 @@
 
 Newest first.
 
+## 2026-11-27 — Functional groups as contract entries; catalog tables; groups import
+
+Design: [plan 2026-11-27](../../plans/2026-11-27-aegean-functional-groups.md),
+[ADR 0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md),
+[ADR 0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md),
+README § Functional groups as contract entries. Decided with the user the
+same day: a group is a contract entry with member species; responses keep
+their shape plus `kind` and `members`; the old group keys deprecated and
+null; `hcr_eligible` kept; NW Med has no groups. Anchovy Bay's groups were
+dropped too (its contract lists species, not group codes): an admin import
+can add groups back.
+
+- **Facts.** **Verified** 2026-11-27 on `project-surimi` (backend gRPC
+  client): the `aegean_sea` contract lists 7 entries (`CCR1`, `CCR2`, `DF1`,
+  `DF2`, `DF3`, `PF1`, `PF2`), `climate_scenarios` null, 4 fleets;
+  `GetInitialHCRData` answers the same 7. The partner list (controller team,
+  2026-11-26) checked against `species.csv`: all 50 codes present, 15
+  English names differ, scientific names all match.
+- **Tables.** Migration `0009_scenario_catalog`: `catalog_scenarios`,
+  `catalog_groups`, `catalog_group_species`, `catalog_hcr_eligible`
+  (`catalog/models.py`, `models.py`).
+- **Data.** `catalog/scenario_data.py` (new): the in-memory model, the
+  groups format and its checks (`build_groups`, `format_groups_csv`), the
+  shipped files (`read_shipped`), database reads and writes, `seed_catalog`,
+  the sources `DbScenarioData` and `FileScenarioData`. Shipped files in
+  `catalog/data/catalog/` (`scenarios.csv`, `aegean_sea.groups.csv`,
+  `hcr_eligible.csv`); the partner list committed unchanged as
+  `apps/backend/scripts/sources/aegean_sea_species_functional_groups.csv`.
+  Removed `catalog/data/aegean_sea.json`, `anchovy_bay.json`,
+  `northwestern_med.json` and `load_catalog_files`.
+- **Catalog.** `catalog/scenario_catalog.py` rewritten: entries are species
+  or functional groups, `name_entries` gives `kind` and `members`, drift
+  names groups or eligible entries missing from the contract and codes with
+  no `species` row (group codes excepted), every metric at `species` level,
+  `status` from names; a null `climate_scenarios` (the live Aegean contract)
+  is read as empty. `catalog/schemas.py`: `kind`, `members`
+  (`MemberSpeciesOut`), `location` (`LocationOut`), deprecated fields marked
+  in the OpenAPI document (`deprecated: true`), `GroupImportReport`.
+  `catalog/service.py`: reads the data source; `catalog_codes` replaces
+  `file_codes` for the species import's `replace` check.
+- **Admin import.** `catalog/group_import.py` (new) and `catalog/router.py`:
+  `GET /api/v1/admin/scenarios/{name}/groups/export.csv`,
+  `POST …/groups/import` (dry run by default, mapping with the partner
+  headers as fallback, advisory lock, audit `catalog.groups_imported`, cache
+  cleared). `main.py` registers the router and takes `scenario_data`.
+- **CLI and deploy.** `surimi-backend seed-catalog [--dir] [--update]`
+  (`cli.py`); the migrate job of `deployments/compose.yml` and
+  `compose.local.yml` runs it after `seed-species`
+  (`.github/scripts/check-compose-files.py` passes).
+- **Scripts.** `scripts/build_scenario_catalog.py` rewritten: `--groups
+  <scenario>=<csv>` converts a partner list through the import parser,
+  `--fisheries-authority` rewrites eligibility, `--controller-url
+  --fake-contracts` refreshes the fake contracts; it regenerates
+  `aegean_sea.groups.csv` byte for byte (**Verified**).
+  `scripts/build_species_csv.py` reads the shipped catalog and skips group
+  codes.
+- **Fake controller.** `fake_contracts/aegean_sea.json` and
+  `fake_initial_state/aegean_sea/aegean_sea_initial_hrc_data.csv` from
+  `project-surimi` (7 entries).
+- **Tests.** `tests/test_scenario_catalog.py` rewritten,
+  `tests/test_catalog_tables.py` new (seed, database source, import dry run
+  and apply, errors, warnings, export round trip, roles, a species `replace`
+  that would delete a group member); updated `conftest.py` (seed-catalog,
+  `FileScenarioData`), `test_database.py`, `test_species.py`,
+  `test_species_import.py`, `test_experiment_options.py`,
+  `test_initial_hcr.py`, `test_outputs_api.py`, `outputs_fixture.py`.
+- **Verified:** Ruff, format and mypy strict clean; 349 tests pass with
+  Docker (PostgreSQL integration tests included). Migration upgrade,
+  downgrade to `0008`, upgrade again and `seed-catalog` run in the test
+  container; index and constraint names checked in `pg_indexes` and
+  `pg_constraint`.
+- **Not verified:** the API against the real `project-surimi` controller
+  (only the facts above were read from it); the backend console in a browser
+  (`node --check` only); the frontend (not changed, see ISSUES.md).
+- **Docs:** this README, `docs/database/` (DBML, `indexes.sql`, README),
+  `docs/ARCHITECTURE.md`, `docs/ISSUES.md` (NW Med biomass totals, frontend
+  `initial_biomass`, an open question on eligibility, the Aegean item),
+  `docs/CHANGELOG.md`, the plan and ADR indexes, ADR 0017 and 0023 status,
+  `CLAUDE.md`, `README.md`, the harvest-control-rules, experiments,
+  experiment-outputs and backend-console docs, Bruno (`api/admin/scenario-catalog/`,
+  `get scenario catalog`, `get experiment options`, `get initial hcr data`,
+  `get outputs map`, `get outputs series`).
+
 ## 2026-11-23 — Initial values moved to harvest control rules; entries named for them
 
 `GET /api/v1/scenarios/{name}/initial-biomasses` and `/initial-fishing-mortalities`

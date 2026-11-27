@@ -8,7 +8,9 @@ already has a name. The codes the scenarios use are still collected, to add a
   (`integrations/controller/fake_contracts/`, refreshed by
   `build_scenario_catalog.py --fake-contracts`), or the live ones with
   `--controller-url`;
-- the catalog files' group members and HCR-eligible entries.
+- the shipped catalog (`catalog/data/catalog/`): group members and
+  HCR-eligible entries. A functional group's code (`DF2`) is not a species
+  and gets no row (ADR 0029).
 
 Each ASFIS row gets its English and scientific name, family, order or higher
 taxa and ISSCAAP group (`source = asfis`). A code in use that ASFIS lacks keeps
@@ -34,7 +36,7 @@ from pathlib import Path
 from typing import Any
 
 from surimi_backend.catalog.models import SpeciesSource
-from surimi_backend.catalog.scenario_catalog import load_catalog_files
+from surimi_backend.catalog.scenario_data import read_shipped
 from surimi_backend.catalog.species import (
     SPECIES_CSV,
     SpeciesRow,
@@ -110,9 +112,11 @@ def main() -> None:
         else copied_contract_codes(FAKE_CONTRACTS_DIR)
     )
     needed: set[str] = set().union(*contracts.values())
-    for file in load_catalog_files().values():
-        needed |= {m.species_code for g in file.functional_groups for m in g.members}
-        needed |= {r.species_code for r in file.hcr_eligible}
+    groups: set[str] = set()
+    for data in read_shipped().values():
+        groups |= {g.code for g in data.groups}
+        needed |= data.member_codes() | {code for code, _ in data.hcr_eligible}
+    needed -= groups
 
     previous = read_species_file(args.out) if args.out.exists() else []
     manual = {r.species_code: r for r in previous if r.source == SpeciesSource.MANUAL}

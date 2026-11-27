@@ -1,0 +1,26 @@
+info:
+  name: get groups export
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/api/v1/admin/scenarios/aegean_sea/groups/export.csv"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  # get groups export
+
+  The scenario's functional groups as CSV, one row per member species:
+  `group_code,group_name,name_source,species_code,name_in_source,cmsy_group,
+  cmsy_stock_id,continent,region,subregion`, groups and species sorted by code.
+  The format of the shipped `catalog/data/catalog/<scenario>.groups.csv`; it
+  imports back unchanged. Only the header for a scenario without groups
+  (`northwestern_med`, `anchovy_bay`). `404` for a scenario neither the
+  catalog nor the controller knows; `403` not an admin.

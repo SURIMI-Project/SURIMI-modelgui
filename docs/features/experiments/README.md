@@ -145,7 +145,7 @@ added 2026-11-16 for the console's experiment tab and the phase 10 form:
 | `start_date_time`, `maximum_end_date_time` | Contract (`GetSimulationContract`, cached) |
 | `climate_scenarios`, `climate_scenario_required` | Catalog (from the contract): required when the list is not empty |
 | `pods_single_run`, `pods_mse_run` | 1 and `CONTROLLER_MSE_SIMULATIONS` (5 on `project-surimi`) |
-| `species[]` | Every species entry of the contract, in catalog order: `species_code`, `life_stage`, `hcr_eligible` (only those can carry a rule), `species_name`, `scientific_name`, `functional_group` and its name, `initial_biomass_kg`, `initial_fishing_mortality`, and the controller's default rule `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` (null when the controller has no value for the entry, e.g. `SWO`, or no default) |
+| `species[]` | Every entry of the contract, in catalog order: `species_code`, `life_stage`, `kind` (`species` or `functional_group`, ADR 0029), `hcr_eligible` (only those can carry a rule), `species_name` (a group's name for a group), `scientific_name`, `members` (a group's species), `functional_group` and `functional_group_name` (deprecated, null), `initial_biomass_kg`, `initial_fishing_mortality`, and the controller's default rule `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` (null when the controller has no value for the entry, e.g. `SWO`, or no default) |
 | `hcr_configurations[]` | The user's HCR configurations for the scenario (ADR 0025): `id`, `name`, `rule_count`, `updated_at` |
 | `initial_values_available`, `initial_hcr_snapshot_id`, `notes` | Whether `GetInitialHCRData` answered (only `northwestern_med` today), the snapshot of that answer (ADR 0028), and what is missing |
 

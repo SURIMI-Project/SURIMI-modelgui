@@ -1,6 +1,6 @@
 # 0017 — Each scenario's functional groups, species and output levels come from a catalog file generated from the partners' sources and checked against the contract
 
-**Status:** Accepted 2026-11-05 (the user asked to implement it from the findings of 2026-11-05); storage and upkeep (decisions 1, 3 and 5) superseded by [0023](0023-scenario-catalog-in-the-database-from-an-admin-workbook.md)
+**Status:** Accepted 2026-11-05 (the user asked to implement it from the findings of 2026-11-05); storage and upkeep (decisions 1, 3 and 5) superseded by [0023](0023-scenario-catalog-in-the-database-from-an-admin-workbook.md); the group model (groups of contract entries, output levels by group) superseded 2026-11-27 by [0029](0029-functional-groups-are-contract-entries-with-member-species.md)
 **Date:** 2026-11-05
 **Related:** [plan 2026-11-05](../plans/2026-11-05-scenario-catalog-hcr-experiments.md), [features/scenario-catalog](../features/scenario-catalog/README.md), [features/experiment-outputs](../features/experiment-outputs/README.md), [features/experiments](../features/experiments/README.md)
 

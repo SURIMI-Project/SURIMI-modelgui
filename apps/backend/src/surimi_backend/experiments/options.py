@@ -2,7 +2,7 @@
 (docs/features/experiments § Experiment form options).
 
 Combines the contract (dates), the scenario catalog (climate scenarios, every
-species entry with its names, group and whether it can carry an HCR), the
+entry with its kind, names, member species and whether it can carry an HCR), the
 user's saved HCR configurations (ADR 0025), and the controller's initial HCR
 data (ADR 0027): initial biomass and F as reference values, and the default
 rule each new rule row starts from. The answer is recorded as a snapshot
@@ -56,7 +56,6 @@ async def experiment_options(
         snapshot_id = (await initial_hcr.record(db, scenario_name, data)).id
         await db.commit()
 
-    group_names = {g.key: g.name for g in catalog.functional_groups}
     species: list[SpeciesOptionOut] = []
     for entry in catalog.species:
         d = initial.get(hcr_service.entry_key(entry.species_code, entry.life_stage))
@@ -64,11 +63,11 @@ async def experiment_options(
             SpeciesOptionOut(
                 species_code=entry.species_code,
                 life_stage=entry.life_stage,
+                kind=entry.kind,
                 hcr_eligible=entry.hcr_eligible,
                 species_name=entry.name,
                 scientific_name=entry.scientific_name,
-                functional_group=entry.functional_group,
-                functional_group_name=group_names.get(entry.functional_group or ""),
+                members=entry.members,
                 initial_biomass_kg=d.initial_biomass_kg if d else None,
                 initial_fishing_mortality=d.initial_fishing_mortality if d else None,
                 default_biomass_limit_kg=_default(d.default_biomass_limit_kg) if d else None,

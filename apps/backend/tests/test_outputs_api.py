@@ -114,13 +114,10 @@ def _check_reads(w: World, base: str, maria: dict[str, str]) -> None:
     )
     assert again.status_code == 304
 
-    hke_group = next(
-        s["functional_group"]
-        for s in outputs["species"]
-        if s["species_code"] == "HKE" and s["life_stage"] == "adult"
-    )
+    # No functional groups in northwestern_med since 2026-11-27 (ADR 0029).
+    assert {s["functional_group"] for s in outputs["species"]} == {None}
     grid = w.client.get(
-        f"{base}/maps?metric=biomass&functional_group={hke_group}&year=2013", headers=maria
+        f"{base}/maps?metric=biomass&species=HKE&life_stage=adult&year=2013", headers=maria
     )
     assert grid.status_code == 200, grid.text
     assert len(grid.json()["values"]) == 4

@@ -16,6 +16,7 @@ from surimi_backend.core.db import create_engine, create_sessionmaker
 from surimi_backend.core.errors import InvalidInputError
 from surimi_backend.users.models import Role, User
 from tests.conftest import bearer, csrf, login
+from tests.test_species import _needed_codes
 
 ASFIS_HEADER = (
     "ISSCAAP_Group ,Taxonomic_Code,Alpha3_Code,Scientific_Name,English_name,French_name,"
@@ -210,7 +211,8 @@ def test_replace_deletes_but_never_a_code_in_use(
         ]
     ]
     assert message.startswith("cannot delete ")
-    assert int(message.split()[2]) >= 300  # the ~315 codes the scenarios use
+    # Every code the contracts and the catalog use (a group's code is no species row).
+    assert int(message.split()[2]) == len(_needed_codes())
 
 
 @pytest.mark.integration

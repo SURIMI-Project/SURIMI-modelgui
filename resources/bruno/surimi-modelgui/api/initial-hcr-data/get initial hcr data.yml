@@ -5,7 +5,11 @@ info:
 
 http:
   method: GET
-  url: "{{apiUrl}}/api/v1/scenarios/northwestern_med/initial-hcr-data"
+  url: "{{apiUrl}}/api/v1/scenarios/:scenario_name/initial-hcr-data"
+  params:
+    - name: scenario_name
+      value: aegean_sea
+      type: path
   auth: inherit
 
 runtime:
@@ -21,6 +25,7 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
 
 docs: |-
   # get initial hcr data
@@ -35,8 +40,11 @@ docs: |-
   | Field | Meaning |
   | --- | --- |
   | `species_code`, `life_stage`, `length_class`, `age` | The controller's key; empty strings when none |
-  | `species_name`, `scientific_name`, `family` | From the `species` table (FAO ASFIS); null when ASFIS has none (`LXQ`, `SOO` have no English name) |
-  | `functional_group`, `functional_group_name`, `hcr_eligible` | From the scenario catalog; only eligible entries can carry a rule |
+  | `kind` | `species`, or `functional_group` (ADR 0029: `aegean_sea`'s `CCR1` … `PF2`, whose species are in `members`) |
+  | `species_name`, `scientific_name`, `family` | A species: from the `species` table (FAO ASFIS), null when ASFIS has none (`LXQ`, `SOO` have no English name). A group: its name; the other two null |
+  | `members[]` | A group's species: `species_code`, `species_name`, `scientific_name`, `name_in_source`, `cmsy_group`, `cmsy_stock_id`; empty for a species |
+  | `hcr_eligible` | From the scenario catalog; only eligible entries can carry a rule |
+  | `functional_group`, `functional_group_name` | Deprecated, always null |
   | `initial_biomass_kg`, `initial_fishing_mortality` | At the end of spin-up; F is 0 when not caught |
   | `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max` | The default rule a new rule starts from; null when the controller has none |
 

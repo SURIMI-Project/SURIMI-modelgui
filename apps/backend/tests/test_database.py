@@ -36,7 +36,8 @@ def test_migrations_ran_as_the_application_user(sql: Callable[..., list[Any]]) -
 def test_the_tables_exist(sql: Callable[..., list[Any]]) -> None:
     rows = sql("SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY 1")
     assert [r[0] for r in rows] == [
-        "alembic_version", "app_settings", "audit_events", "experiment_events",
+        "alembic_version", "app_settings", "audit_events", "catalog_group_species",
+        "catalog_groups", "catalog_hcr_eligible", "catalog_scenarios", "experiment_events",
         "experiment_outputs", "experiments", "hcr_configurations", "identities",
         "initial_hcr_snapshots", "login_events", "login_stats_monthly", "sessions",
         "simulations", "species", "users",

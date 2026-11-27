@@ -47,8 +47,9 @@ The two files are identical apart from `image` and `build`; CI checks it.
 
 - The stack is the web app (nginx), the backend API, the worker, and
   PostgreSQL. On start, the database and its user are created and migrated,
-  the first admin and the species list are loaded (`create-admin`,
-  `seed-species`), then the API and the worker start.
+  the first admin, the species list and the scenario catalog are loaded
+  (`create-admin`, `seed-species`, `seed-catalog`), then the API and the
+  worker start.
 - The worker polls the controller, sends queued experiments when enough
   Ecopath pods are free, and indexes finished runs' outputs. Set
   `ECOPATH_PODS` and `CONTROLLER_MSE_SIMULATIONS` to the controller's own

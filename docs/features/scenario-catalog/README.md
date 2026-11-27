@@ -1,8 +1,8 @@
 # Scenario catalog
 
-**Status:** Built 2026-11-05 (backend and API, catalog in JSON files) on `develop`, not merged into `main`; initial biomass and fishing mortality endpoints 2026-11-12, replaced 2026-11-23 by `/initial-hcr-data` (harvest control rules). **Redesign designed 2026-11-13, not built:** catalog in the database, maintained by admins through one Excel workbook ([ADR 0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md)); the import details below are **Proposed**. **Step 1, the `species` table loaded from `catalog/data/species.csv`, and step 2, admin species import and export and the console species pages, built and verified against PostgreSQL 2026-11-16** (see [Step 1](#step-1-species-table-from-a-csv), [Step 2](#step-2-admin-import-and-export-of-species-csv))
-**Plan:** [2026-11-05-scenario-catalog-hcr-experiments](../../plans/2026-11-05-scenario-catalog-hcr-experiments.md), step 4a
-**ADRs:** [0017](../../decisions/0017-scenario-catalog-from-partner-config.md) (storage superseded), [0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md)
+**Status:** Built 2026-11-05 (backend and API, catalog in JSON files) on `develop`, not merged into `main`; step 1 (`species` table) and step 2 (admin species CSV import and export) built 2026-11-16. **Functional groups as contract entries, catalog tables and per-scenario CSV import built and verified 2026-11-27** ([ADR 0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md), [ADR 0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md), [plan 2026-11-27](../../plans/2026-11-27-aegean-functional-groups.md)): see [Functional groups as contract entries](#functional-groups-as-contract-entries-2026-11-27). The JSON files are gone. The Excel workbook below (ADR 0023) is **superseded** by ADR 0030 and kept only as history
+**Plans:** [2026-11-05-scenario-catalog-hcr-experiments](../../plans/2026-11-05-scenario-catalog-hcr-experiments.md), step 4a; [2026-11-27-aegean-functional-groups](../../plans/2026-11-27-aegean-functional-groups.md)
+**ADRs:** [0017](../../decisions/0017-scenario-catalog-from-partner-config.md) (storage and group model superseded), [0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md) (workbook superseded), [0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md), [0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md)
 
 Tells every part of the system what one scenario contains: its functional
 groups and species with their names, which of them can carry a harvest
@@ -23,6 +23,15 @@ Excel and importing it back; a default workbook ships with the system.
 
 | Decision | Why | Recorded in |
 | --- | --- | --- |
+| A functional group is a contract entry: its code (`DF2`) is the `species_code` the controller receives; its member species (FAO codes) are only in our catalog. `northwestern_med` and `anchovy_bay` have no groups | The rule unit stays the contract entry, so HCR, initial data, experiments and outputs are unchanged (user, 2026-11-27) | [ADR 0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md) |
+| Responses keep their shape and add `kind` (`species`, `functional_group`) and `members`; a group's name is in the entry's name; `functional_group`, `functional_group_name`, `functional_groups`, `built_from` deprecated and empty | One schema for every scenario; the current frontend keeps parsing (user, 2026-11-27) | [ADR 0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md) |
+| Tables `catalog_scenarios`, `catalog_groups`, `catalog_group_species`, `catalog_hcr_eligible`; `species` stays global | Groups differ per scenario, a species' name does not (user, 2026-11-27) | [ADR 0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md) |
+| Admins replace a scenario's groups from a CSV (dry run, mapping with the partner headers as fallback, all or nothing, audited); shipped CSVs loaded insert-only by `seed-catalog` | The partners send CSV; the species import works this way; a deploy never undoes an import | [ADR 0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md) |
+| Every CSV column is kept except the scientific name, which is compared with `species` (a warning) | Keep what the partner says, never two copies of one fact (user, 2026-11-27) | [ADR 0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md) |
+| Groups and members sorted by code everywhere (files, tables, export) | A group read from a file equals the same group read from the tables, so the import's "changed" count is exact | this file |
+| All 7 Aegean groups HCR-eligible, by hand in `hcr_eligible.csv` | The controller serves their defaults; the fisheries authority has no Aegean inputs yet (a scenario note says experiments cannot run) | [ADR 0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md) |
+| Every output metric is served per entry (`levels` = `species`) | No groups of entries remain; a group is an entry of the outputs' species axis | [ADR 0029](../../decisions/0029-functional-groups-are-contract-entries-with-member-species.md) |
+| After an import the serving replica clears its catalog cache; others follow within `CATALOG_CACHE_SECONDS` | One replica today; no cache bus or version check needed yet | [ADR 0030](../../decisions/0030-scenario-catalog-tables-and-per-scenario-csv-import.md) |
 | The catalog lives in PostgreSQL; **admins alone** maintain it through one `.xlsx` workbook whose sheets are the tables, column for column; a default workbook ships in the backend and is the first version of a fresh install | Changes without a developer or deploy; data that is in no repo (Aegean groups) gets a place; export = what the system uses (user, 2026-11-13) | [ADR 0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md) |
 | `species` is global and holds the **whole** ASFIS list (13,567 species) with six fields (code, English and scientific name, family, order or higher taxa, ISSCAAP group), plus manual rows for codes in use that ASFIS lacks (`source` `asfis` or `manual`); groups, members and HCR eligibility are per scenario | A code is the same species everywhere (49 shared codes, same names, **Verified** 2026-11-13); groups and eligibility come from each scenario's models; any code a contract adds later already has a name (user, 2026-11-16, reversing the 315-code subset) | [ADR 0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md) |
 | Which species a scenario has comes from the live contract (gRPC) on every request, never from the database | The contract decides what runs; the database holds only what the contract lacks (`Species` is code, length class, age, life stage) | [ADR 0023](../../decisions/0023-scenario-catalog-in-the-database-from-an-admin-workbook.md), [ADR 0017](../../decisions/0017-scenario-catalog-from-partner-config.md) |
@@ -102,9 +111,138 @@ with a release.
 
 ---
 
-## Current state
+## Functional groups as contract entries (2026-11-27)
 
-Built 2026-11-05 (**Read from source**):
+Built and verified 2026-11-27 (see the [changelog](CHANGELOG.md)).
+
+### Use cases
+
+```mermaid
+flowchart LR
+    member(("Member"))
+    admin(("Admin"))
+    dev(("Developer"))
+    subgraph system [SURIMI model GUI]
+        uc1(["See a scenario's groups and their species"])
+        uc2(["Set a harvest control rule on a group"])
+        uc3(["Export a scenario's groups (CSV)"])
+        uc4(["Check a groups file (dry run)"])
+        uc5(["Replace a scenario's groups"])
+        uc6(["Ship a new partner list"])
+    end
+    member --> uc1
+    member --> uc2
+    admin --> uc1
+    admin --> uc3
+    admin --> uc4
+    admin --> uc5
+    dev --> uc6
+    uc5 -.->|include| uc4
+```
+
+| Use case | Actor | Main flow | Failure cases |
+| --- | --- | --- | --- |
+| See groups | Any signed-in user | `GET /scenarios/aegean_sea/catalog` (or `/experiment-options`, `/initial-hcr-data`): entries with `kind = functional_group`, the group name and `members[]` | Unknown scenario 404; controller down 502 |
+| Rule on a group | Member | The rule names the group code (`species_code = "DF2"`), saved and sent as is | Not eligible: 422 |
+| Export | Admin | `GET /admin/scenarios/{name}/groups/export.csv` | Unknown scenario 404 |
+| Check, replace | Admin | `POST /admin/scenarios/{name}/groups/import` (dry run by default), then with `dry_run=false` | Errors: report, 422 on apply, nothing changed; not `text/csv` 415; too large 413 |
+| Ship a list | Developer | `scripts/build_scenario_catalog.py --groups <scenario>=<csv>` writes the shipped file; `seed-catalog --update` or an admin import loads it | The script stops at the first error |
+
+### Data
+
+| Table | Columns | Key |
+| --- | --- | --- |
+| `species` (global, unchanged) | code, names, family, order, ISSCAAP group, source | `species_code` |
+| `catalog_scenarios` | `scenario_name`, `continent`, `region`, `subregion`, `notes` (`jsonb` list) | `scenario_name` |
+| `catalog_groups` | `scenario_name`, `group_code`, `group_name`, `name_source` (`model_team`, `manual`) | `scenario_name` + `group_code` |
+| `catalog_group_species` | `scenario_name`, `species_code` (foreign key to `species`), `group_code` (foreign key to `catalog_groups`, cascade), `name_in_source`, `cmsy_group`, `cmsy_stock_id` | `scenario_name` + `species_code`: one group per species per scenario |
+| `catalog_hcr_eligible` | `scenario_name`, `species_code`, `life_stage` (lower case, empty when none) | all three |
+
+Full schema in [schema.dbml](../../database/schema.dbml), indexes and their
+queries in [docs/database](../../database/README.md).
+
+### Shipped files and seeding
+
+`apps/backend/src/surimi_backend/catalog/data/catalog/`:
+
+| File | Columns | Today |
+| --- | --- | --- |
+| `scenarios.csv` | `scenario_name`, `notes` (one note per line in the cell) | 3 scenarios |
+| `<scenario>.groups.csv` | `group_code`, `group_name`, `name_source`, `species_code`, `name_in_source`, `cmsy_group`, `cmsy_stock_id`, `continent`, `region`, `subregion`; one row per member species, sorted by group and species code | `aegean_sea` only: 7 groups, 50 species, from `apps/backend/scripts/sources/aegean_sea_species_functional_groups.csv` (the partner list, controller team, 2026-11-26) |
+| `hcr_eligible.csv` | `scenario_name`, `species_code`, `life_stage` | `northwestern_med` 6 (fisheries authority `a68715a`), `aegean_sea` 7 (by hand) |
+
+`surimi-backend seed-catalog` loads each scenario that has no
+`catalog_scenarios` row and leaves the others alone; `--update` replaces them
+from the files. The migrate job runs it after `seed-species` (members
+reference species codes). Unit tests read the files directly
+(`FileScenarioData`). HCR eligibility has no admin import yet: it changes
+through `hcr_eligible.csv` and `seed-catalog --update`.
+
+### Responses
+
+Every response that lists entries keeps its shape and adds `kind` and
+`members` (ADR 0029):
+
+| Field | `species` entry (`northwestern_med` `HKE adult`) | `functional_group` entry (`aegean_sea` `DF2`) |
+| --- | --- | --- |
+| `species_code`, `life_stage` | `HKE`, `adult` | `DF2`, `""` |
+| `kind` | `species` | `functional_group` |
+| name (`name` in the catalog, `species_name` elsewhere) | European hake (ASFIS) | Demersal fish 2 |
+| `scientific_name`, `family` | from `species` | null |
+| `members[]` | `[]` | 14 × `species_code`, `species_name`, `scientific_name` (ASFIS), `name_in_source`, `cmsy_group`, `cmsy_stock_id` |
+| `hcr_eligible` | from `catalog_hcr_eligible` | from `catalog_hcr_eligible` |
+| `functional_group`, `functional_group_name` | deprecated, null | deprecated, null |
+
+Where: `GET /scenarios/{name}/catalog` (`species[]`, plus `location`),
+`/experiment-options` (`species[]`), `/initial-hcr-data` (`entries[]`), HCR
+configuration `rules[]`. The catalog's `functional_groups` and `built_from`
+are deprecated and empty; `levels` and `metric_levels` are `species`;
+`status` is `complete` when every entry has a name.
+
+### Import flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Ad as Admin
+    participant A as Backend catalog
+    participant C as Controller
+    participant D as PostgreSQL
+    Ad->>A: POST /api/v1/admin/scenarios/aegean_sea/groups/import (CSV, dry run)
+    A->>C: GetScenarioNames (cached)
+    A->>A: map columns (partner headers as fallback), check rows
+    A->>D: species rows of the members, current groups, saved rule codes
+    A->>C: GetSimulationContract (cached)
+    A-->>Ad: 200 report (groups, added, removed, changed, errors, warnings)
+    Ad->>A: same file with dry_run=false
+    A->>D: advisory lock, same checks, replace groups and members, audit
+    A->>A: clear the catalog cache
+    A-->>Ad: 200 report, applied
+```
+
+Errors (nothing changes): bad codes, a species twice, two names or name
+sources for one group, two locations, a member with no `species` row, an
+unknown mapping target. Warnings: a scientific name that differs from
+`species`, groups not in the contract, contract entries that are no group,
+saved HCR rules on removed groups (kept and flagged, as for eligibility),
+columns not mapped, controller unreachable.
+
+### Frontend (phase 10)
+
+- Read `kind` and `members`: show a functional group by name with its species
+  under it; label a species as today.
+- Stop reading `functional_group`, `functional_group_name`,
+  `functional_groups`, `built_from`; the backend removes them in the same
+  release.
+- `scenarioSchemas.ts` still reads `initial_biomass`, renamed
+  `initial_biomass_kg` on 2026-11-23 (ISSUES.md).
+- Admin pages for the groups import and export.
+
+---
+
+## Current state (before 2026-11-27)
+
+Built 2026-11-05, replaced 2026-11-27 (**Read from source**):
 
 - One JSON file per scenario in
   [`catalog/data/`](../../../apps/backend/src/surimi_backend/catalog/data/)
@@ -150,7 +288,7 @@ landings, SURIMI-fisheries-authority unchanged).
 
 ---
 
-## Target behaviour
+## Target behaviour (2026-11-13; the workbook is superseded by ADR 0030)
 
 ### The workbook
 
@@ -532,7 +670,9 @@ index `catalog_versions (active) WHERE active`. Added to
 | GET | `/api/v1/species/{code}` | any | — | `SpeciesOut` | 401, 404 |
 | GET | `/api/v1/admin/species/export.csv` | admin | — | `text/csv`, the whole table in the `species.csv` format | 401, 403 |
 | POST | `/api/v1/admin/species/import` | admin | body `text/csv`; `?mode=upsert\|replace&dry_run=true\|false&map=target:header&delimiter=,\|;\|tab&default_source=manual\|asfis` | `SpeciesImportReport` (200 dry run, 200 applied) | 401, 403, 413 too large, 415 not `text/csv`, 422 errors (report in `details`) |
-| GET | `/api/v1/admin/catalog/export.xlsx` | admin | — | The active version as a workbook | 401, 403 |
+| GET | `/api/v1/admin/scenarios/{name}/groups/export.csv` | admin | — | `text/csv` in the import format; only the header when the scenario has no groups (built 2026-11-27) | 401, 403, 404 |
+| POST | `/api/v1/admin/scenarios/{name}/groups/import` | admin | body `text/csv`; `?dry_run=true\|false&map=target:header&delimiter=,\|;\|tab&name_source=manual\|model_team` | `GroupImportReport` (200 dry run, 200 applied) (built 2026-11-27) | 401, 403, 404, 413, 415, 422 |
+| GET | `/api/v1/admin/catalog/export.xlsx` (superseded, not built) | admin | — | The active version as a workbook | 401, 403 |
 | POST | `/api/v1/admin/catalog/import` | admin | multipart `file`; query `dry_run` (default `true`), `base_version` (required when applying) | Dry run: 200 `CatalogImportReport`. Applied: 201 `CatalogVersionOut` with the report | 401, 403, 409 not the active version, 413 too large, 422 not an `.xlsx` or errors (report in `details`) |
 | GET | `/api/v1/admin/catalog/versions` | admin | `?page&size` | page of `CatalogVersionOut` (`id`, `active`, `source`, `file_name`, `sha256`, `imported_by`, `imported_at`, warning and error counts) | 401, 403 |
 | GET | `/api/v1/admin/catalog/versions/{id}` | admin | — | `CatalogVersionOut` with its report | 401, 403, 404 |
@@ -638,8 +778,10 @@ See the [changelog](CHANGELOG.md). Nothing of the redesign is built yet.
 - FAO's terms for reusing ASFIS: `species.csv` now copies the whole list
   (13,567 species), so the attribution FAO asks for must ship with it; it goes in the
   `about` sheet. To be checked before the default ships.
-- Aegean Sea MICE model: the 20 functional groups and the species vocabulary
-  of issue #154. (controller and MICE teams)
+- Aegean Sea MICE model: is the 7-group contract final, can rules be set on
+  all 7, do the outputs use the group code, are the 50 species the whole
+  composition? ([plan 2026-11-27](../../plans/2026-11-27-aegean-functional-groups.md);
+  controller and MICE teams)
 - `anchovy_bay` contract lists only `ANE`; should it list the other Ecopath
   species? (controller team)
 - Is biomass meant to be copied to every species of a group? (EwE team)

@@ -16,7 +16,7 @@ from surimi_backend.audit import router as audit_router
 from surimi_backend.auth import router as auth_router
 from surimi_backend.auth.ratelimit import FailureCounter
 from surimi_backend.catalog import router as catalog_router
-from surimi_backend.catalog.scenario_catalog import load_catalog_files
+from surimi_backend.catalog.scenario_data import DbScenarioData, ScenarioDataSource
 from surimi_backend.catalog.service import CatalogService
 from surimi_backend.catalog.species import DbSpeciesLookup, SpeciesLookup
 from surimi_backend.console import install_console
@@ -64,16 +64,16 @@ def create_app(
     controller: ControllerClient | None = None,
     oidc_http: httpx.AsyncClient | None = None,
     species: SpeciesLookup | None = None,
+    scenario_data: ScenarioDataSource | None = None,
 ) -> FastAPI:
     """`controller` and `oidc_http` let tests pass their own clients; otherwise
     they follow CONTROLLER_MODE and talk to the real OIDC providers. `species`
-    lets tests without a database read names from the shipped CSV; otherwise
-    they come from the `species` table."""
+    and `scenario_data` let tests without a database read the shipped CSVs;
+    otherwise they come from the `species` and `catalog_*` tables."""
     settings = settings or Settings()
     configure_logging(settings)
     settings.validate_for_api()
     provider_settings = settings.oidc_provider_settings()
-    catalog_files = load_catalog_files()
     # Before the engine and the controller channel exist: the instrumentations
     # patch their creation.
     tracer_provider = configure_tracing(settings, API_SERVICE)
@@ -92,7 +92,7 @@ def create_app(
         app.state.catalog = CatalogService(
             client,
             settings.catalog_cache_seconds,
-            catalog_files,
+            scenario_data=scenario_data or DbScenarioData(app.state.sessionmaker),
             species=species or DbSpeciesLookup(app.state.sessionmaker),
         )
         app.state.oidc_providers = build_providers(provider_settings, http)
@@ -145,6 +145,7 @@ def create_app(
         catalog_router.router,
         catalog_router.species_router,
         catalog_router.species_admin_router,
+        catalog_router.catalog_admin_router,
         hcr_router.router,
         initial_hcr_router.router,
         experiments_router.router,

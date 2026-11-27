@@ -155,7 +155,7 @@ services:
       [
         "sh",
         "-c",
-        "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species",
+        "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species && surimi-backend seed-catalog",
       ]
     environment:
       <<: *db-env

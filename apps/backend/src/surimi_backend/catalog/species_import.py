@@ -192,9 +192,9 @@ RULE_CODES = text(
 
 
 async def codes_in_use(db: AsyncSession, catalog: CatalogService) -> tuple[set[str], list[str]]:
-    """Codes a `replace` must not delete: catalog file members and HCR-eligible
+    """Codes a `replace` must not delete: catalog group members and HCR-eligible
     entries, the rules of saved HCR configurations, and the live contracts."""
-    codes = catalog.file_codes()
+    codes = await catalog.catalog_codes()
     codes |= set(await db.scalars(RULE_CODES))
     warnings: list[str] = []
     try:

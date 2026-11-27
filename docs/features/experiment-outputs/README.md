@@ -153,11 +153,13 @@ cover the species and months asked for.
 - **Cleaning:** `±inf` and `NaN` → `null`; values above a per-metric bound →
   `null`. The same rules run in the report and on every read, so the report's
   counts match what the charts show.
-- **Functional groups:** the catalog says per metric whether it is real at
-  group or species level. A group's biomass is one member's series; species
-  metrics are summed over members for a group total. The series and map
-  endpoints take `level=functional_group|species` and refuse a level the
-  metric does not have.
+- **Functional groups:** since 2026-11-27 (ADR 0029) a functional group is
+  an entry of the species axis (`aegean_sea` `DF2`) and is read like a
+  species; no scenario has groups of entries, so every metric is at `species`
+  level and the `functional_group` parameter finds nothing (deprecated). Before,
+  a group's biomass was one member's series and species metrics were summed
+  over members. NW Med biomass totals now add values Ecopath copied to every
+  member of a group (ISSUES.md).
 - **Charts:** monthly or yearly (mean for biomass and price, sum for catch,
   discards and sales); per species and life stage, fleet or market, or summed.
 - **Maps:** monthly or yearly; catch and discards summed over fleets unless a

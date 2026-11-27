@@ -1,32 +1,31 @@
-"""Generate the scenario catalog files (ADR 0017, ADR 0023).
+"""Refresh the shipped scenario catalog (ADR 0029, 0030) in
+`src/surimi_backend/catalog/data/catalog/`.
 
-For every scenario the controller reports, reads:
-- the contract, from the live controller (GetSimulationContract);
-- the Ecopath species -> group mapping, `SURIMI-Ecopath/.../Includes/<s>/<s>.semantics`;
-- the Ecopath group names (`EcopathGroup.GroupName`) from the EwE model file
-  `<s>.eiixml`, looked up first in SURIMI-data_preprocessing `data-raw/<s>/`,
-  then in SURIMI-Ecopath `Includes/<s>/`;
-- the entries that can carry a harvest control rule: those with a row in all
-  three fisheries authority files (recruitment, initial quota, quota share).
+- `--groups <scenario>=<csv>` (repeatable): writes `<scenario>.groups.csv`
+  from a partner list of functional groups (one row per member species), read
+  as the admin import reads it: the partner headers (`Stock`, `GroupMICE`,
+  `Species`, `Name`, `GroupCMSY`, `SpecCode`, `Continent`, `Region`,
+  `Subregion`) need no mapping; `--name-source` sets the groups' name source.
+- `--fisheries-authority <repo>`: rewrites the HCR-eligible entries of every
+  scenario that has fisheries authority inputs (an entry with a row in all
+  three files: recruitment, initial quota, quota share). Scenarios without
+  inputs keep their rows in `hcr_eligible.csv` (`aegean_sea`'s groups are set
+  there by hand, ADR 0029).
+- `--controller-url` with `--fake-contracts`: writes the contracts that
+  `CONTROLLER_MODE=fake` serves.
 
-Species names and higher taxa are not here: `scripts/build_species_csv.py`
-writes them to `catalog/data/species.csv` (run it after this script, which
-refreshes the contract copies it reads).
+A scenario the controller reports that `scenarios.csv` lacks is added with
+no notes. Nothing is made up. The result is loaded by `surimi-backend
+seed-catalog` (or `--update`); an admin can also import a groups file at
+`POST /api/v1/admin/scenarios/{name}/groups/import`.
 
-Nothing is made up: what the sources lack stays null and is listed in the
-file's `notes`. Group names set by hand (`"name_source": "manual"`) are kept.
-Writes `src/surimi_backend/catalog/data/<scenario>.json` and, with
-`--fake-contracts`, the contracts that `CONTROLLER_MODE=fake` serves.
-
-    GIT_LFS_SKIP_SMUDGE=1 git clone -q --depth 1 https://github.com/SURIMI-Project/SURIMI-data_preprocessing.git <tmp>/SURIMI-data_preprocessing
-    git clone -q --depth 1 https://github.com/SURIMI-Project/SURIMI-Ecopath.git <tmp>/SURIMI-Ecopath
-    git clone -q --depth 1 https://github.com/SURIMI-Project/SURIMI-fisheries-authority.git <tmp>/SURIMI-fisheries-authority
     cd apps/backend
     uv run python scripts/build_scenario_catalog.py \\
-        --controller-url https://user-<developer>-surimi-controller.lab.dive.edito.eu \\
-        --data-preprocessing <tmp>/SURIMI-data_preprocessing --ecopath <tmp>/SURIMI-Ecopath \\
-        --fisheries-authority <tmp>/SURIMI-fisheries-authority \\
-        --fake-contracts
+        --groups aegean_sea=scripts/sources/aegean_sea_species_functional_groups.csv \\
+        --name-source model_team
+    git clone -q --depth 1 https://github.com/SURIMI-Project/SURIMI-fisheries-authority.git <tmp>/fa
+    uv run python scripts/build_scenario_catalog.py --fisheries-authority <tmp>/fa \\
+        --controller-url https://project-surimi-surimi-controller.lab.dive.edito.eu --fake-contracts
 """
 
 from __future__ import annotations
@@ -34,69 +33,27 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
+import io
 import json
-import re
-import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, cast
 
-from surimi_backend.catalog.scenario_catalog import CATALOG_DATA_DIR, CATALOG_FORMAT_VERSION
+from surimi_backend.catalog.group_import import GroupImportOptions, convert
+from surimi_backend.catalog.scenario_data import (
+    CATALOG_DIR,
+    GROUPS_SUFFIX,
+    HCR_ELIGIBLE_CSV,
+    SCENARIOS_CSV,
+    read_shipped,
+)
 from surimi_backend.integrations.controller.fake import FAKE_CONTRACTS_DIR
 from surimi_backend.integrations.controller.grpc_client import GrpcControllerClient
 
 FA_FILES = ("recruitment", "initial_quota", "quotashare")
 
 
-def commit_of(repo: Path) -> str:
-    result = subprocess.run(  # noqa: S603 - fixed git command on a path given by the developer
-        ["git", "-C", str(repo), "log", "-1", "--format=%h"],  # noqa: S607 - git from PATH
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return result.stdout.strip()
-
-
-def _fields(text: str) -> dict[str, str]:
-    return dict(part.strip().split("=", 1) for part in text.split(";") if "=" in part)
-
-
-def read_semantics(path: Path) -> list[tuple[str, str, str]]:
-    """(group DBID, species code, life stage) in file order."""
-    data = json.loads(path.read_text(encoding="utf-8-sig"))
-    mappings: list[tuple[str, str, str]] = []
-    for domain in data["Domains"]:
-        if domain["Domain"] != "Species":
-            continue
-        for m in domain["Mappings"]:
-            source, target = _fields(m["Source"]), _fields(m["Target"])
-            mappings.append(
-                (
-                    target["DBID"].strip(),
-                    source["speciescode"].strip(),
-                    source.get("lifestage", "").strip(),
-                )
-            )
-    return mappings
-
-
-def read_ewe_group_names(path: Path) -> dict[str, str]:
-    """GroupID -> GroupName of the EwE model's EcopathGroup table. The GroupID
-    is the DBID the semantics file refers to (checked for both models)."""
-    text = path.read_text(encoding="utf-8")
-    table = re.search(
-        r'<Table Name="EcopathGroup" Columns="([^"]*)"[^>]*>(.*?)</Table>', text, re.S
-    )
-    if not table:
-        return {}
-    columns = [c.split(":")[0] for c in table.group(1).split(",")]
-    id_col, name_col = columns.index("GroupID"), columns.index("GroupName")
-    rows = csv.reader(re.findall(r"<Row>(.*?)</Row>", table.group(2), re.S))
-    return {row[id_col]: row[name_col] for row in rows if row[name_col].strip()}
-
-
-def read_hcr_eligible(folder: Path, scenario: str) -> list[dict[str, str]] | None:
+def read_hcr_eligible(folder: Path, scenario: str) -> list[tuple[str, str]] | None:
     """None when the scenario has no fisheries authority inputs at all."""
     lists: list[list[tuple[str, str]]] = []
     for name in FA_FILES:
@@ -112,88 +69,13 @@ def read_hcr_eligible(folder: Path, scenario: str) -> list[dict[str, str]] | Non
                 ]
             )
     common = set(lists[1]) & set(lists[2])
-    return [{"species_code": c, "life_stage": s} for c, s in lists[0] if (c, s) in common]
+    return sorted({e for e in lists[0] if e in common})
 
 
-def find_model(scenario: str, preprocessing: Path, ecopath: Path) -> tuple[Path, str] | None:
-    for repo, path in (
-        (preprocessing, preprocessing / "data-raw" / scenario / f"{scenario}.eiixml"),
-        (ecopath, ecopath / "SURIMI-Ecopath" / "Includes" / scenario / f"{scenario}.eiixml"),
-    ):
-        if path.exists():
-            return path, f"{repo.name}@{commit_of(repo)}"
-    return None
-
-
-def build(
-    scenario: str,
-    contract: dict[str, Any],
-    args: argparse.Namespace,
-    built_from: dict[str, str],
-    previous: dict[str, Any] | None,
-) -> dict[str, Any]:
-    notes: list[str] = []
-    semantics = args.ecopath / "SURIMI-Ecopath" / "Includes" / scenario / f"{scenario}.semantics"
-    mappings = read_semantics(semantics) if semantics.exists() else []
-    if not mappings:
-        notes.append(
-            f"No Ecopath species-to-group mapping ({scenario}.semantics) in "
-            f"{built_from['SURIMI-Ecopath']}: functional groups unknown"
-        )
-
-    model = find_model(scenario, args.data_preprocessing, args.ecopath)
-    group_names = read_ewe_group_names(model[0]) if model else {}
-    built_from = {**built_from, "ewe_model": model[1] if model else "none"}
-    manual = {
-        g["key"]: g["name"]
-        for g in (previous or {}).get("functional_groups", [])
-        if g.get("name_source") == "manual"
-    }
-
-    groups: dict[str, list[tuple[str, str]]] = {}
-    for key, code, stage in mappings:
-        groups.setdefault(key, []).append((code, stage))
-    functional_groups: list[dict[str, Any]] = []
-    unnamed: list[str] = []
-    for key, members in groups.items():
-        name, source = (
-            (manual[key], "manual")
-            if key in manual
-            else (group_names[key], "ewe_model")
-            if key in group_names
-            else (None, None)
-        )
-        if name is None:
-            unnamed.append(key)
-        functional_groups.append(
-            {
-                "key": key,
-                "name": name,
-                "name_source": source,
-                "members": [{"species_code": c, "life_stage": s} for c, s in members],
-            }
-        )
-    if unnamed:
-        where = "the EwE model" if model else "any EwE model file found"
-        notes.append(f"No name in {where} for group(s) {', '.join(unnamed)}")
-
-    hcr = read_hcr_eligible(
-        args.fisheries_authority / "SURIMI-fisheries-authority" / "Includes" / scenario, scenario
-    )
-    if hcr is None:
-        notes.append(
-            f"No fisheries authority inputs in {built_from['SURIMI-fisheries-authority']}: "
-            "no species can carry a harvest control rule"
-        )
-
-    return {
-        "format_version": CATALOG_FORMAT_VERSION,
-        "scenario_name": scenario,
-        "built_from": built_from,
-        "notes": notes,
-        "functional_groups": functional_groups,
-        "hcr_eligible": hcr or [],
-    }
+def write_csv(path: Path, rows: list[list[str]]) -> None:
+    out = io.StringIO()
+    csv.writer(out, lineterminator="\n").writerows(rows)
+    path.write_text(out.getvalue(), encoding="utf-8", newline="\n")
 
 
 def write_json(path: Path, data: Any) -> None:
@@ -202,44 +84,76 @@ def write_json(path: Path, data: Any) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-async def main() -> None:
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument("--controller-url", required=True)
-    parser.add_argument("--data-preprocessing", type=Path, required=True)
-    parser.add_argument("--ecopath", type=Path, required=True)
-    parser.add_argument("--fisheries-authority", type=Path, required=True)
-    parser.add_argument("--out", type=Path, default=CATALOG_DATA_DIR)
-    parser.add_argument(
-        "--fake-contracts", action="store_true", help=f"also write {FAKE_CONTRACTS_DIR}"
-    )
-    args = parser.parse_args()
-
-    client = GrpcControllerClient(args.controller_url, timeout=30, read_retries=2)
+async def live_scenarios(url: str, *, fake_contracts: bool) -> list[str]:
+    client = GrpcControllerClient(url, timeout=30, read_retries=2)
     try:
-        built_from = {
-            "SURIMI-Ecopath": f"SURIMI-Ecopath@{commit_of(args.ecopath)}",
-            "SURIMI-fisheries-authority": (
-                f"SURIMI-fisheries-authority@{commit_of(args.fisheries_authority)}"
-            ),
-            "controller_protocol": await client.get_protocol_version(),
-        }
-        for scenario in await client.get_scenario_names():
-            contract = await client.get_simulation_contract(scenario)
-            target = args.out / f"{scenario}.json"
-            previous = json.loads(target.read_text(encoding="utf-8")) if target.exists() else None
-            data = build(scenario, contract, args, built_from, previous)
-            write_json(target, data)
-            if args.fake_contracts:
-                write_json(FAKE_CONTRACTS_DIR / f"{scenario}.json", contract)
-            sys.stdout.write(
-                f"{scenario}: {len(data['functional_groups'])} groups, "
-                f"{len(data['hcr_eligible'])} HCR-eligible, {len(data['notes'])} notes\n"
-            )
+        names = await client.get_scenario_names()
+        if fake_contracts:
+            for scenario in names:
+                write_json(
+                    FAKE_CONTRACTS_DIR / f"{scenario}.json",
+                    await client.get_simulation_contract(scenario),
+                )
+        return names
     finally:
         await client.close()
 
 
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("--groups", action="append", default=[], metavar="SCENARIO=CSV")
+    parser.add_argument("--name-source", choices=("model_team", "manual"), default="model_team")
+    parser.add_argument("--fisheries-authority", type=Path)
+    parser.add_argument("--controller-url")
+    parser.add_argument("--fake-contracts", action="store_true")
+    parser.add_argument("--out", type=Path, default=CATALOG_DIR)
+    args = parser.parse_args()
+
+    report: list[str] = []
+    shipped = read_shipped(args.out)
+    notes = {name: "\n".join(d.notes) for name, d in shipped.items()}
+    if args.controller_url:
+        for scenario in asyncio.run(
+            live_scenarios(args.controller_url, fake_contracts=args.fake_contracts)
+        ):
+            if scenario not in notes:
+                notes[scenario] = ""
+                report.append(f"{scenario}: added to {SCENARIOS_CSV}")
+    write_csv(args.out / SCENARIOS_CSV, [["scenario_name", "notes"], *map(list, notes.items())])
+
+    name_source = cast(Literal["model_team", "manual"], args.name_source)
+    for spec in args.groups:
+        scenario, _, source = spec.partition("=")
+        if scenario not in notes or not source:
+            sys.exit(f"--groups {spec}: give a scenario of {SCENARIOS_CSV} and a file")
+        text = convert(
+            Path(source).read_bytes(), GroupImportOptions(default_name_source=name_source)
+        )
+        (args.out / f"{scenario}{GROUPS_SUFFIX}").write_text(text, encoding="utf-8", newline="\n")
+        report.append(f"{scenario}: {text.count(chr(10)) - 1} member rows from {source}")
+
+    eligible = {name: list(d.hcr_eligible) for name, d in shipped.items()}
+    if args.fisheries_authority:
+        includes = args.fisheries_authority / "SURIMI-fisheries-authority" / "Includes"
+        for scenario in notes:
+            entries = read_hcr_eligible(includes / scenario, scenario)
+            if entries is not None:
+                eligible[scenario] = entries
+                report.append(
+                    f"{scenario}: {len(entries)} HCR-eligible from the fisheries authority"
+                )
+    write_csv(
+        args.out / HCR_ELIGIBLE_CSV,
+        [
+            ["scenario_name", "species_code", "life_stage"],
+            *([s, c, st] for s in notes for c, st in eligible.get(s, [])),
+        ],
+    )
+    read_shipped(args.out)  # what seed-catalog will read must load
+    sys.stdout.write("\n".join(report or ["nothing changed"]) + "\n")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

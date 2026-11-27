@@ -66,13 +66,15 @@
       <h1 id="greeting"></h1>
       <p id="password-done" class="notice" hidden>Your password was changed. Your other sessions have ended.</p>
 
-      <!-- Tabs: one address each (#/home, #/species, #/users, #/species-import). -->
+      <!-- Tabs: one address each (#/home, #/species, #/catalog, #/users, #/species-import, #/groups-import). -->
       <nav class="tabs" role="tablist" aria-label="Console sections">
         <a id="tab-link-home" class="tab" role="tab" href="#/home" aria-controls="tab-home">Home</a>
         <a id="tab-link-experiments" class="tab" role="tab" href="#/experiments" aria-controls="tab-experiments">New experiment</a>
         <a id="tab-link-species" class="tab" role="tab" href="#/species" aria-controls="tab-species">Species</a>
+        <a id="tab-link-catalog" class="tab" role="tab" href="#/catalog" aria-controls="tab-catalog">Scenario catalog</a>
         <a id="tab-link-users" class="tab" role="tab" href="#/users" aria-controls="tab-users" hidden>Users</a>
         <a id="tab-link-species-import" class="tab" role="tab" href="#/species-import" aria-controls="tab-species-import" hidden>Species import &amp; export</a>
+        <a id="tab-link-groups-import" class="tab" role="tab" href="#/groups-import" aria-controls="tab-groups-import" hidden>Groups import &amp; export</a>
       </nav>
 
       <div id="tab-home" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-home">
@@ -175,7 +177,7 @@
             <table id="exp-hcr-table" class="hcr" hidden>
               <thead>
                 <tr>
-                  <th>Species</th><th>Group</th><th>Initial biomass (t)</th><th>Initial F</th>
+                  <th>Species or group</th><th>Species in the group</th><th>Initial biomass (t)</th><th>Initial F</th>
                   <th>Biomass limit (t)</th><th>Biomass base (t)</th><th>Fishing mortality (/year)</th>
                   <th></th>
                 </tr>
@@ -312,6 +314,103 @@
           <div id="species-report-warnings" hidden>
             <h4>Warnings</h4>
             <ul id="species-report-warning-list" class="list"></ul>
+          </div>
+        </div>
+      </section>
+      </div>
+
+      <!-- Scenario catalog: everyone (GET /api/v1/scenarios/{name}/catalog) -->
+      <div id="tab-catalog" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-catalog" hidden>
+      <section id="catalog-card" class="card">
+        <h2>Scenario catalog <span id="catalog-total" class="muted"></span></h2>
+        <p class="muted small">
+          Every entry of a scenario's contract, through <code>GET /api/v1/scenarios/{name}/catalog</code>.
+          An entry is a <strong>species</strong> (named from the FAO ASFIS list) or a
+          <strong>functional group</strong>: its code is what the controller receives, and its
+          species are listed under it (ADR 0029).
+        </p>
+        <form id="catalog-filter" class="filters" novalidate>
+          <label>Scenario <select name="scenario"></select></label>
+          <label>Search <input name="q" maxlength="100" placeholder="hake, DF2"></label>
+          <label class="checkbox"><input name="eligible" type="checkbox"> Only entries that can carry a rule</label>
+        </form>
+        <dl id="catalog-facts" class="facts"></dl>
+        <div id="catalog-notes-box" hidden>
+          <h4>Notes</h4>
+          <ul id="catalog-notes" class="list"></ul>
+        </div>
+        <div id="catalog-drift-box" hidden>
+          <h4>Differences with the contract</h4>
+          <ul id="catalog-drift" class="list"></ul>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Kind</th><th>Name</th><th>Scientific name</th><th>Can carry a rule</th><th>Species in the group</th></tr>
+            </thead>
+            <tbody id="catalog-entries"></tbody>
+          </table>
+        </div>
+        <p id="catalog-error" class="error" hidden></p>
+      </section>
+      </div>
+
+      <!-- Groups import and export: admins (/api/v1/admin/scenarios/{name}/groups/*) -->
+      <div id="tab-groups-import" class="tab-panel" role="tabpanel" aria-labelledby="tab-link-groups-import" hidden>
+      <section id="groups-admin-card" class="card">
+        <h2>Functional groups import and export</h2>
+        <p class="muted small">
+          A scenario's functional groups as CSV, one row per member species. Export downloads them;
+          they import back as is. <strong>Import replaces the scenario's groups</strong>: groups and
+          species not in the file are deleted. Columns not mapped take the file column of their own
+          name, else the partner list's header (<code>Stock</code>, <code>GroupMICE</code>,
+          <code>Species</code>, …), so that list imports as sent. The scientific name is only
+          compared with the species table. Check first; any error and nothing changes.
+          HCR eligibility is not part of the file.
+        </p>
+        <form id="groups-import" novalidate>
+          <div class="filters">
+            <label>Scenario <select name="scenario"></select></label>
+          </div>
+          <p><button id="groups-export" type="button" class="secondary">Export CSV</button></p>
+          <label>CSV file (UTF-8)
+            <input name="file" type="file" accept=".csv,.txt,text/csv,text/plain">
+          </label>
+          <div class="filters">
+            <label>Delimiter
+              <select name="delimiter">
+                <option value=",">Comma ( , )</option>
+                <option value=";">Semicolon ( ; )</option>
+                <option value="tab">Tab</option>
+              </select>
+            </label>
+            <label>Name source when not mapped
+              <select name="name_source">
+                <option value="manual">manual (typed by an admin)</option>
+                <option value="model_team">model_team (a list from the model's team)</option>
+              </select>
+            </label>
+          </div>
+          <fieldset id="groups-mapping" hidden>
+            <legend>Column mapping <span class="muted small">(table column ← file column)</span></legend>
+            <div id="groups-mapping-rows" class="filters"></div>
+          </fieldset>
+          <div class="actions">
+            <button id="groups-check" type="button">Check (dry run)</button>
+            <button id="groups-apply" type="button" disabled>Import</button>
+          </div>
+        </form>
+        <p id="groups-import-error" class="error" role="alert" hidden></p>
+        <div id="groups-report" hidden>
+          <h3 id="groups-report-title"></h3>
+          <dl id="groups-report-facts" class="facts"></dl>
+          <div id="groups-report-errors" hidden>
+            <h4 class="error">Errors</h4>
+            <ul id="groups-report-error-list" class="list"></ul>
+          </div>
+          <div id="groups-report-warnings" hidden>
+            <h4>Warnings</h4>
+            <ul id="groups-report-warning-list" class="list"></ul>
           </div>
         </div>
       </section>

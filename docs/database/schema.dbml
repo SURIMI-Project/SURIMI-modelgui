@@ -202,6 +202,53 @@ Table species {
   Note: 'Global to every scenario: the whole FAO ASFIS list (13,567) plus manual rows for codes in use that ASFIS lacks, loaded from catalog/data/species.csv by surimi-backend seed-species (insert or update, never delete). Check source IN (asfis, manual). Migration 0006_species_catalog, 2026-11-16'
 }
 
+Table catalog_scenarios {
+  scenario_name text [pk]
+  continent text [note: 'as the partner list spells it (CMSY++ id_file); null when unknown']
+  region text
+  subregion text
+  notes jsonb [not null, default: `'[]'::jsonb`, note: 'known gaps, one string each']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Note: 'One row per scenario the catalog knows (ADR 0030). Loaded from catalog/data/catalog/scenarios.csv by surimi-backend seed-catalog, only for scenarios without a row (--update replaces). Check jsonb_typeof(notes) = array. Migration 0009_scenario_catalog, 2026-11-27'
+}
+
+Table catalog_groups {
+  scenario_name text [pk, ref: > catalog_scenarios.scenario_name, note: 'on delete cascade']
+  group_code text [pk, note: 'a contract entry: the species_code the controller receives (DF2), ADR 0029']
+  group_name text [note: 'Demersal fish 2; null when unknown']
+  name_source text [note: 'model_team (a partner list) or manual (an admin); null when unknown']
+
+  Note: 'Functional groups of a scenario. Replaced as a whole by the admin import (POST /api/v1/admin/scenarios/{name}/groups/import) or seed-catalog. Check name_source IN (model_team, manual)'
+}
+
+Table catalog_group_species {
+  scenario_name text [pk]
+  species_code text [pk, ref: > species.species_code, note: 'on delete restrict']
+  group_code text [not null]
+  name_in_source text [note: 'the partner list name (Hake); the API shows the ASFIS name']
+  cmsy_group text [note: 'CMSY++ Group (Large demersal fishes)']
+  cmsy_stock_id text [note: 'CMSY++ SpecCode (Hake_Aegean_Sea)']
+
+  indexes {
+    (scenario_name, group_code) [name: 'catalog_group_species_group_idx']
+    species_code [name: 'catalog_group_species_species_code_idx']
+  }
+
+  Note: 'Member species of a functional group; a species is in one group per scenario (the primary key). Foreign key (scenario_name, group_code) -> catalog_groups, on delete cascade'
+}
+
+Ref: catalog_group_species.(scenario_name, group_code) > catalog_groups.(scenario_name, group_code) [delete: cascade]
+
+Table catalog_hcr_eligible {
+  scenario_name text [pk, ref: > catalog_scenarios.scenario_name, note: 'on delete cascade']
+  species_code text [pk, note: 'a species code or a group code']
+  life_stage text [pk, not null, default: '', note: 'lower case; empty when none']
+
+  Note: 'Contract entries that can carry a harvest control rule (ADR 0017, 0027). Check life_stage = lower(life_stage)'
+}
+
 // ── Experiments ──────────────────────────────────────────────────────────────
 
 Table initial_hcr_snapshots {

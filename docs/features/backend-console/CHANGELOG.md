@@ -6,6 +6,43 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-27 — Scenario catalog and groups import & export tabs
+
+Asked by the user on 2026-11-27: the console showed species but not each
+scenario's functional groups. Two new tabs rather than a change to Species,
+because species are global and groups are per scenario (the API splits them
+the same way: `/species` and `/scenarios/{name}/catalog`).
+
+- **Scenario catalog** (`#/catalog`, everyone): a scenario picker, then
+  every entry of `GET /scenarios/{name}/catalog` with its kind, name,
+  scientific name and whether it can carry a rule; a functional group opens
+  to its species (code, ASFIS name, scientific name, the partner's name, CMSY
+  group and stock id). Also status, counts, location, climate scenarios,
+  fleets, notes and drift. A search (each word starts a word of the code,
+  names or members) and an "only entries that can carry a rule" filter run
+  in the page.
+- **Groups import & export** (`#/groups-import`, admins): a scenario picker,
+  export, a file picker that reads the header and pre-selects each column
+  as the API would (partner headers as fallback), delimiter and name source,
+  **Check** (dry run) with the report, **Import** only after a clean check
+  of the same scenario, file and options, and a confirmation.
+- Files: `console/static/index.html`, `app.js`, `style.css`;
+  `tests/test_console.py` gains a check that every element the script looks
+  up is on the page and every tab has its link and panel.
+- **Verified:** `node --check app.js`; the console tests (8 pass); the backend gate (Ruff, format, mypy strict clean,
+  350 tests pass with Docker). **Not verified** in a browser: no browser was
+  available in this session.
+
+## 2026-11-27 — New experiment shows functional groups
+
+`console/static/app.js`, `index.html`: an entry with `kind =
+functional_group` is labelled "name (code, group of N species)", the picker
+says "species or functional group", and the rules table lists a group's
+species in its second column (it showed the now deprecated group name).
+**Not verified** in a browser; `node --check app.js` passes.
+
+---
+
 ## 2026-11-23 — New experiment: rules start from the controller's default
 
 Adding a species to the rules prefills its biomass limit, base (tonnes) and F

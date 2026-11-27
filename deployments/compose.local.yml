@@ -164,7 +164,7 @@ services:
   # unset, a partly set group fails; safe on every start).
   migrate:
     <<: *backend
-    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species"]
+    command: ["sh", "-c", "surimi-backend migrate && surimi-backend create-admin --from-env && surimi-backend seed-species && surimi-backend seed-catalog"]
     environment:
       <<: *db-env
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}

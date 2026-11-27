@@ -219,9 +219,16 @@ the raw value.
 **Owner:** controller, EwE and fisheries authority teams
 **Where:** `SURIMI-controller/Includes/*/…_contract.yaml`, `SURIMI-Ecopath/Includes/*/…semantics`, `SURIMI-fisheries-authority/Includes/*/`
 
-- `aegean_sea`: 271 species in the contract, but no group mapping and no
-  fisheries authority inputs. It is to run a MICE model with 20 functional
-  groups that reports by group (SURIMI-project issue #154), not published yet.
+- `aegean_sea`: since the contract served on `project-surimi` changed
+  (**Verified** 2026-11-27), it lists 7 MICE stock codes (`CCR1`, `CCR2`,
+  `DF1`, `DF2`, `DF3`, `PF1`, `PF2`) instead of 271 FAO codes; the repo's
+  `aegean_sea_contract.yaml` (2026-08-11) and `user-<developer>` still have
+  the 271. Stock names and species come from a partner CSV (controller team,
+  2026-11-26), not from the contract; since 2026-11-27 the catalog serves
+  them as functional groups with their 50 species
+  ([ADR 0029](decisions/0029-functional-groups-are-contract-entries-with-member-species.md)).
+  All 7 are HCR-eligible in our catalog, although the fisheries authority has
+  no Aegean inputs: the controller team says experiments cannot run yet.
 - `anchovy_bay`: the contract lists only `ANE` (juvenile, adult); the Ecopath
   semantics map 9 species onto 7 groups. No fisheries authority inputs.
 - `northwestern_med`: `SWO` and `VMA` are in the contract but map to no
@@ -265,10 +272,14 @@ controller team, 2026-11-23**).
 - **Entries.** 91 for `northwestern_med`, every one with non-zero defaults; 49
   with F = 0 (no catch). The fisheries authority accepts rules for 6 of them,
   though the proto says the list is the species "for which a HCR can be
-  created". `HKE` with no life stage is a copy of `HKE juvenile` with F 0.
-- **Other scenarios.** `anchovy_bay` and `aegean_sea` fail with `INTERNAL`,
+  created". If the controller listed only those, `hcr_eligible` and
+  `catalog_hcr_eligible` could go (user, 2026-11-27): open question for the
+  controller team. `HKE` with no life stage is a copy of `HKE juvenile` with F 0.
+- **Other scenarios.** `anchovy_bay` fails with `INTERNAL`,
   "MinIO API responded with message=ecopath/<scenario>/<scenario>_initial_hrc_data.csv"
-  (**Verified** 2026-11-23): the Ecopath repo has no file for them.
+  (**Verified** 2026-11-23): the Ecopath repo has no file for it.
+  `aegean_sea` failed the same way on 2026-11-23 and answers since: 7
+  entries, one per MICE stock code, no life stage (**Verified** 2026-11-27).
 - **`user-<developer>`** answers `UNIMPLEMENTED` (**Verified** 2026-11-23):
   see "The `user-<developer>` controller does not serve `GetInitialHCRData`".
 
@@ -279,6 +290,40 @@ values are shown as sent, and each distinct answer is kept as a snapshot
 linked to the experiments that used it
 ([ADR 0028](decisions/0028-initial-hcr-data-snapshots-per-experiment.md)), so
 the affected experiments can be found if the file is corrected.
+
+---
+
+### Biomass totals add up values copied to several species (`northwestern_med`)
+
+**Severity:** Medium — a biomass total (no species chosen) over an NW Med run counts each multi-species Ecopath group once per member
+**Evidence:** Read from source 2026-11-27 (`outputs/queries.py` `_select_species`); the copy per member **Verified** on run 99c1e2a4 (ADR 0017)
+**Owner:** us (outputs), with the EwE team for the meaning
+**Where:** `apps/backend/src/surimi_backend/outputs/queries.py`
+
+Ecopath writes a group's biomass to every species of the group (19 of the 42
+NW Med groups hold two or more species, such as `ANK` and `MON` in
+"Anglerfish"). Until 2026-11-27 the catalog knew those groups and a total
+took one member per group. Since `northwestern_med` has no functional groups
+(user, 2026-11-27; ADR 0029), a total sums every species, so a shared value
+is counted once per member. Per-species biomass is unaffected.
+
+**Fix:** keep the Ecopath group mapping as an outputs-only fact (not a
+functional group) and use it for totals, or stop offering a biomass total for
+NW Med. Decide with the EwE team whether biomass is meant to be copied
+(open question in the scenario catalog).
+
+---
+
+### Frontend reads `initial_biomass`, the API sends `initial_biomass_kg`
+
+**Severity:** Medium — the frontend's experiment form probably fails to parse `experiment-options`
+**Evidence:** Read from source 2026-11-27, not run: `apps/frontend/src/network/services/scenarios/scenarioSchemas.ts` requires `initial_biomass` (a `z.number().nullable()`, so the key must be present); `SpeciesOptionOut` sends `initial_biomass_kg` since 2026-11-23
+**Owner:** frontend (phase 10)
+**Where:** `apps/frontend/src/network/services/scenarios/scenarioSchemas.ts`
+
+**Fix:** rename the field in the Zod schema (and read `kind` and `members`,
+ADR 0029) when the frontend is next changed. Not changed on 2026-11-27:
+frontend work waits for phase 10 (CLAUDE.md).
 
 ---
 
@@ -445,12 +490,13 @@ the run goes to 2030.
 | --- | --- |
 | Partial results: can outputs be read per simulation, or per scenario, as each finishes? Asked 2026-11-03, not answered | Controller team |
 | Will the controller release pods of `Error` simulations, report pod errors, or add a queue? | Controller team |
+| Will `GetInitialHCRData` list only the entries that can carry a rule (6 of 91 for `northwestern_med` today)? Then `hcr_eligible` and `catalog_hcr_eligible` could go | Controller team |
 | Exact bucket path of outputs and read credentials for `project-surimi` (our keys get "Access Denied" on the `project-surimi` bucket, **Verified** 2026-11-16; until then results of runs there cannot be read) | Controller team |
 | Message type in the `.bin`; is it needed if the `.nc` has everything? | Controller team |
 | How the outputs of the 5 simulations of an MSE experiment are written and should be combined | Controller team |
 | Which species and life stages can carry an HCR per scenario; the controller team's examples `SAA`, `ANE`, `MAC` are not accepted by the repo files. Per life stage or per species for ANE, HKE, MUT, PIL? | Controller team |
 | May `climate_scenario` be empty for a scenario that lists no climate scenarios (`aegean_sea`), though the proto says `min_len: 1`? See "The controller does not enforce the protocol's validation rules" | Controller team |
-| Aegean Sea MICE model: its 20 functional groups and species vocabulary (issue #154) are not published; the contract still lists 271 species | Controller and MICE teams |
+| Aegean Sea MICE model: is the 7-stock contract on `project-surimi` final, can rules be set on all 7 stocks, do the outputs use the stock code, and are the 50 species of the partner CSV the whole composition? See [plan 2026-11-27](plans/2026-11-27-aegean-functional-groups.md) | Controller and MICE teams |
 | Are the EDITO experiments S3 credentials static keys or temporary (session token)? Download links signed with temporary ones die with the token | EDITO, controller team |
 | Public S3 endpoint for browsers: `https://minio.dive.edito.eu`? | EDITO |
 | Self-registration for local accounts | User |

@@ -114,6 +114,16 @@ CREATE INDEX species_name_idx ON species (name, species_code);
 DROP INDEX IF EXISTS species_scientific_name_idx;
 CREATE INDEX species_scientific_name_idx ON species (scientific_name, species_code);
 
+-- catalog_* (ADR 0030) -----------------------------------------------------------
+-- A scenario's rows are read by primary-key prefix (scenario_name). These two
+-- serve the foreign keys: the cascade from catalog_groups, and the check made
+-- when a species row is deleted.
+DROP INDEX IF EXISTS catalog_group_species_group_idx;
+CREATE INDEX catalog_group_species_group_idx ON catalog_group_species (scenario_name, group_code);
+
+DROP INDEX IF EXISTS catalog_group_species_species_code_idx;
+CREATE INDEX catalog_group_species_species_code_idx ON catalog_group_species (species_code);
+
 -- Full-text search on the experiment name. GIN is not a DBML index type, so
 -- schema.dbml lists this index without its type.
 DROP INDEX IF EXISTS experiments_name_fts_idx;

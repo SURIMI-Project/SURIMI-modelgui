@@ -19,6 +19,37 @@ What changed and why. Link to the feature folder.
 
 ---
 
+## 2026-11-27
+
+### Feature — Aegean Sea functional groups; scenario catalog in the database
+
+`aegean_sea` now shows its 7 MICE functional groups (`CCR1` … `PF2`, such as
+`DF2` "Demersal fish 2") with their 50 species, and rules can be set on them.
+A functional group is a contract entry: its code is what the controller
+receives, unchanged. Every response that lists entries (catalog, experiment
+options, initial HCR data, HCR rules) keeps its shape and adds `kind`
+(`species` or `functional_group`) and `members`; a group's name is in the
+name field. `functional_group`, `functional_group_name` and the catalog's
+`functional_groups` and `built_from` are deprecated and always empty.
+`northwestern_med` and `anchovy_bay` have no functional groups any more.
+The catalog moved from JSON files to four `catalog_*` tables; admins export
+and replace a scenario's groups as CSV
+(`/api/v1/admin/scenarios/{name}/groups/export.csv` and `/import`, dry run
+first; the partner's list imports as sent). See
+[scenario catalog](features/scenario-catalog/README.md#functional-groups-as-contract-entries-2026-11-27),
+ADR 0029 and 0030.
+
+Behaviour that changes: NW Med outputs no longer answer by functional group
+(ask by species), and NW Med biomass totals add values Ecopath copied to
+every member of a group (ISSUES.md).
+
+> **Deploying this:** migration `0009_scenario_catalog`, then
+> `surimi-backend seed-catalog` after `seed-species`; the migrate job of both
+> compose files runs both. No env var changes. The phase 10 frontend still
+> reads the deprecated keys (null now) and `initial_biomass` (ISSUES.md).
+
+---
+
 ## 2026-11-24
 
 ### Fix — The worker dispatched nothing after the initial HCR snapshots

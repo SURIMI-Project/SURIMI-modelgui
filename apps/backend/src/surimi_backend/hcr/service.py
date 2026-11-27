@@ -112,8 +112,9 @@ def rule_out(rule: dict[str, Any], catalog: ScenarioCatalogOut) -> HcrRuleOut:
         biomass_base_kg=rule["biomass_base_kg"],
         f_max=rule["f_max"],
         eligible=bool(entry and entry.hcr_eligible),
+        kind=entry.kind if entry else "species",
         species_name=entry.name if entry else None,
-        functional_group=entry.functional_group if entry else None,
+        members=entry.members if entry else [],
     )
 
 

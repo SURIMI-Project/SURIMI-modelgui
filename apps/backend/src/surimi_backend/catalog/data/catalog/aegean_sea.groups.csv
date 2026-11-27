@@ -1,0 +1,51 @@
+group_code,group_name,name_source,species_code,name_in_source,cmsy_group,cmsy_stock_id,continent,region,subregion
+CCR1,Crabs lobsters octopus and cuttlefish,model_team,CTC,Common cuttlefish,Cephalopods,Common cuttlefish_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR1,Crabs lobsters octopus and cuttlefish,model_team,NEP,Norway lobster,Crustaceans,Norway lobster_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR1,Crabs lobsters octopus and cuttlefish,model_team,OCC,Common octopus,Cephalopods,Common octopus_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR1,Crabs lobsters octopus and cuttlefish,model_team,OCM,Musky octopus,Cephalopods,Musky octopus_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR1,Crabs lobsters octopus and cuttlefish,model_team,SLO,Common spiny lobster,Crustaceans,Common spiny lobster_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR2,Shrimps and squids,model_team,DPS,Pink shrimp,Crustaceans,Pink shrimp_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR2,Shrimps and squids,model_team,SQM,Shortfin squid,Cephalopods,Shortfin squid_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR2,Shrimps and squids,model_team,SQR,European squid,Cephalopods,European squid_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+CCR2,Shrimps and squids,model_team,TGS,Caramote prawn,Crustaceans,Caramote prawn_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF1,Demersal fish 1,model_team,MNZ,Monkfishes,Large demersal fishes,Monkfishes_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF1,Demersal fish 1,model_team,SCL,Dogfishes,Large demersal fishes,Dogfishes_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF1,Demersal fish 1,model_team,SDV,Smooth hounds,Large demersal fishes,Smooth hounds_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF1,Demersal fish 1,model_team,SOL,Common sole,Large demersal fishes,Common sole_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF1,Demersal fish 1,model_team,TUR,Turbot,Large demersal fishes,Turbot_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,ANN,Annular seabream,Small demersal fishes,Annular seabream_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,BRB,Black seabream,Medium demersal fishes,Black seabream_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,BSS,European seabass,Large pelagic fishes,European seabass_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,DEC,Common dentex,Large demersal fishes,Common dentex_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,DEL,Large-eye dentex,Large demersal fishes,Large-eye dentex_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,GPD,Dusky grouper,Large demersal fishes,Dusky grouper_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,GPW,White grouper,Large demersal fishes,White grouper_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,HKE,Hake,Large demersal fishes,Hake_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,JOD,John Dory,Large demersal fishes,John Dory_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,RPG,Red porgy,Large demersal fishes,Red porgy_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,SWA,White seabream,Medium demersal fishes,White seabream_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,WHB,Blue whiting,Large demersal fishes,Blue whiting_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,WHG,Whiting,Large demersal fishes,Whiting_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF2,Demersal fish 2,model_team,WRF,Wreckfish,Large demersal fishes,Wreckfish_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,BAS,Combers,Small demersal fishes,Combers_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,COB,Shi drum,Large demersal fishes,Shi drum_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,MUR,Surmulet,Medium demersal fishes,Surmulet_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,MUT,Red mullet,Medium demersal fishes,Red mullet_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,PAC,Common pandora,Medium demersal fishes,Common pandora_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,SBS,Saddled seabream,Small demersal fishes,Saddled seabream_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,SKA,Rays,Large demersal fishes,Rays_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+DF3,Demersal fish 3,model_team,SLM,Salema,Medium demersal fishes,Salema_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,ANE,Anchovy,Small pelagic fishes,Anchovy_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,BOG,Bogue,Small demersal fishes,Bogue_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,BPI,Blotched picarel,Small demersal fishes,Blotched picarel_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,JAX,Jack and horse mackerels,Medium pelagic fishes,Jack and horse mackerels_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,MAC,Atlantic mackerel,Medium pelagic fishes,Atlantic mackerel_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,SPC,Picarel,Small demersal fishes,Picarel_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,SWO,Swordfish,Large pelagic fishes,Swordfish_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF1,Pelagic fish 1,model_team,VMA,Atlantic chub mackerel,Medium pelagic fishes,Atlantic chub mackerel_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF2,Pelagic fish 2,model_team,AMB,Greater amberkack,Large pelagic fishes,Greater amberkack_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF2,Pelagic fish 2,model_team,BLU,Bluefish,Large pelagic fishes,Bluefish_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF2,Pelagic fish 2,model_team,BON,Atlantic bonito,Large pelagic fishes,Atlantic bonito_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF2,Pelagic fish 2,model_team,GAR,Garfish,Large pelagic fishes,Garfish_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF2,Pelagic fish 2,model_team,PIL,Sardine,Small pelagic fishes,Sardine_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea
+PF2,Pelagic fish 2,model_team,SAA,Round sardinella,Small pelagic fishes,Round sardinella_Aegean_Sea,Europe,Mediterranean Sea,Aegean Sea

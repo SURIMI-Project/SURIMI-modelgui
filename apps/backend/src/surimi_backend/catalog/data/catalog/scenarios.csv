@@ -1,0 +1,5 @@
+scenario_name,notes
+aegean_sea,"Functional groups are the MICE stocks of the partner list of 2026-11-26 (scripts/sources/aegean_sea_species_functional_groups.csv)
+No fisheries authority inputs for aegean_sea yet: rules can be saved, but experiments cannot run (controller team, 2026-11-26)"
+anchovy_bay,No fisheries authority inputs in SURIMI-fisheries-authority@a68715a: no species can carry a harvest control rule
+northwestern_med,

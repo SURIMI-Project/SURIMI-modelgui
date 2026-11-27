@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/maps?metric=biomass&functional_group=27&year=2013"
+  url: "{{apiUrl}}/api/v1/experiments/{{experimentId}}/outputs/maps?metric=biomass&species=HKE&life_stage=adult&year=2013"
   auth: inherit
 
 settings:

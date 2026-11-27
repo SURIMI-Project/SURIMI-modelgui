@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, Field
 
+from surimi_backend.catalog.schemas import DEPRECATED, KIND_DESCRIPTION, EntryKind, MemberSpeciesOut
 from surimi_backend.experiments.models import ExperimentStatus, SimulationState
 from surimi_backend.hcr.schemas import HcrIn
 
@@ -221,18 +222,39 @@ class HcrConfigurationSummaryOut(BaseModel):
 class SpeciesOptionOut(BaseModel):
     """One species entry of the scenario's contract."""
 
-    species_code: str = Field(examples=["BFT"])
+    species_code: str = Field(
+        description="What the controller receives: a species code, or a functional group's code",
+        examples=["BFT"],
+    )
     life_stage: str = Field(examples=[""])
+    kind: EntryKind = Field(description=KIND_DESCRIPTION, examples=["species"])
     hcr_eligible: bool = Field(
         description="Whether it can carry a harvest control rule: the fisheries authority has "
         "recruitment, initial quota and quota share settings for it (ADR 0017). A rule on any "
         "other entry is refused",
         examples=[True],
     )
-    species_name: str | None = Field(examples=["Atlantic bluefin tuna"])
+    species_name: str | None = Field(
+        description="species: English name (FAO ASFIS); functional_group: the group's name",
+        examples=["Atlantic bluefin tuna"],
+    )
     scientific_name: str | None = Field(examples=["Thunnus thynnus"])
-    functional_group: str | None = Field(examples=["35"])
-    functional_group_name: str | None = Field(examples=["Bluefin tuna"])
+    functional_group: str | None = Field(
+        default=None,
+        description="Deprecated, always null (ADR 0029): see `kind` and `members`",
+        examples=[None],
+        json_schema_extra=DEPRECATED,
+    )
+    functional_group_name: str | None = Field(
+        default=None,
+        description="Deprecated, always null (ADR 0029): a group's name is in `species_name`",
+        examples=[None],
+        json_schema_extra=DEPRECATED,
+    )
+    members: list[MemberSpeciesOut] = Field(
+        default_factory=list,
+        description="The species of a functional group; empty for a species entry",
+    )
     initial_biomass_kg: float | None = Field(
         description="GetInitialHCRData: biomass at the end of spin-up, kg; null when the "
         "controller has none for this scenario or this entry",

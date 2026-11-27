@@ -234,8 +234,10 @@ const TABS = {
   home: { admin: false, load: () => loadScenarios() },
   experiments: { admin: false, load: () => openExperiments() },
   species: { admin: false, load: () => loadSpecies(speciesPage) },
+  catalog: { admin: false, load: () => openCatalog() },
   users: { admin: true, load: () => loadUsers() },
   "species-import": { admin: true, load: null },
+  "groups-import": { admin: true, load: () => openGroupsImport() },
 };
 
 function currentTab() {
@@ -430,13 +432,20 @@ function renderExperimentForm(o) {
 
 // --- species dropdown and rules list -----------------------------------------
 
+// A functional group (ADR 0029) is an entry like a species: its code is what the
+// controller receives, its name is in species_name, its species in members.
+const isGroup = (row) => row.kind === "functional_group";
+const memberNames = (row) =>
+  (row.members || []).map((m) => m.species_name || m.name_in_source || m.species_code);
+
 const speciesText = (row) => {
   const name = row.species_name || row.species_code;
+  const kind = isGroup(row) ? `, group of ${(row.members || []).length} species` : "";
   const values =
     row.initial_biomass_kg === null || row.initial_biomass_kg === undefined
       ? ""
       : ` · initial biomass ${fmt(tonnes(row.initial_biomass_kg), 1)} t, F ${fmt(row.initial_fishing_mortality, 3)}`;
-  return `${name} (${entryLabel(row.species_code, row.life_stage)})${values}`;
+  return `${name} (${entryLabel(row.species_code, row.life_stage)}${kind})${values}`;
 };
 
 // The controller's default rule for an entry (ADR 0027), in kg, or null when it
@@ -463,7 +472,10 @@ function fillSpeciesPicker() {
   const others = indexes.filter((i) => !expOptions.species[i].hcr_eligible).sort(byName);
   const free = eligible.filter((i) => !inList.has(String(i)));
   picker.replaceChildren(
-    new Option(free.length ? "Choose a species…" : "Every species that can carry a rule is in the list", ""),
+    new Option(
+      free.length ? "Choose a species or functional group…" : "Every entry that can carry a rule is in the list",
+      "",
+    ),
   );
   const group = (label, items, disabled) => {
     if (items.length === 0) return;
@@ -477,10 +489,11 @@ function fillSpeciesPicker() {
     picker.append(g);
   };
   group("Can carry a harvest control rule", free, false);
-  group("Other species of the contract (no fisheries authority settings: a rule would fail)", others, true);
+  group("Other entries of the contract (no fisheries authority settings: a rule would fail)", others, true);
   $("exp-species-add").disabled = free.length === 0;
   $("exp-species-count").textContent =
-    `${expOptions.species.length} species in the contract, ${eligible.length} can carry a rule.`;
+    `${expOptions.species.length} entries in the contract (species or functional groups), ` +
+    `${eligible.length} can carry a rule.`;
 }
 
 function showRulesState() {
@@ -551,7 +564,7 @@ function addRuleRow(index, rule) {
   showSwitchNote();
   tr.append(
     species,
-    el("td", row.functional_group_name || row.functional_group || "—", "wrap"),
+    el("td", isGroup(row) ? memberNames(row).join(", ") : "—", "wrap"),
     el("td", row.initial_biomass_kg == null ? "—" : fmt(tonnes(row.initial_biomass_kg), 1)),
     el("td", fmt(row.initial_fishing_mortality, 3)),
     cell(inputs[0], notes[0]),
@@ -1116,6 +1129,344 @@ $("species-export").addEventListener("click", (event) => {
     const a = el("a");
     a.href = url;
     a.download = "species.csv";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+});
+
+// --- scenario catalog (everyone) ---------------------------------------------
+// One scenario's entries: species, or functional groups with their species
+// (ADR 0029). The list is filtered here; the API answers it whole.
+
+let catalogData = null;
+let scenarioNames = null;
+
+// The scenario names, asked once per sign-in, into each scenario picker.
+async function fillScenarioPicker(select) {
+  if (!scenarioNames) {
+    const res = await call("GET", "/scenarios");
+    if (res.status === 401) {
+      signedOut("Your session has ended. Sign in again.");
+      return false;
+    }
+    if (!res.ok) throw new Error(await errorText(res));
+    scenarioNames = (await res.json()).scenarios.map((s) => s.name);
+  }
+  if (select.options.length === 0) {
+    for (const name of scenarioNames) select.append(new Option(name, name));
+  }
+  return scenarioNames.length > 0;
+}
+
+async function openCatalog() {
+  setError("catalog-error", "");
+  try {
+    if (!(await fillScenarioPicker($("catalog-filter").scenario))) return;
+  } catch (err) {
+    return setError("catalog-error", err.message);
+  }
+  await loadCatalog();
+}
+
+async function loadCatalog() {
+  const name = $("catalog-filter").scenario.value;
+  const loading = el("tr");
+  const cell = el("td", "Loading…", "muted");
+  cell.colSpan = 6;
+  loading.append(cell);
+  $("catalog-entries").replaceChildren(loading);
+  setError("catalog-error", "");
+  const res = await call("GET", `/scenarios/${encodeURIComponent(name)}/catalog`);
+  if (res.status === 401) return signedOut("Your session has ended. Sign in again.");
+  if (!res.ok) {
+    $("catalog-entries").replaceChildren();
+    return setError("catalog-error", await errorText(res));
+  }
+  catalogData = await res.json();
+  renderCatalog();
+}
+
+function membersCell(entry) {
+  const td = el("td", "", "wrap");
+  if (!isGroup(entry)) {
+    td.textContent = "—";
+    return td;
+  }
+  const details = el("details");
+  details.append(el("summary", `${entry.members.length} species`));
+  const table = el("table");
+  const head = el("tr");
+  for (const h of ["Code", "Name", "Scientific name", "Name in the partner list", "CMSY group", "CMSY stock id"]) {
+    head.append(el("th", h));
+  }
+  table.append(head);
+  for (const m of entry.members) {
+    const tr = el("tr");
+    for (const v of [m.species_code, m.species_name, m.scientific_name, m.name_in_source, m.cmsy_group, m.cmsy_stock_id]) {
+      tr.append(el("td", v || "—"));
+    }
+    table.append(tr);
+  }
+  details.append(table);
+  td.append(details);
+  return td;
+}
+
+// Words of the search must each start a word of the code, name, scientific
+// name or (for a group) a member's code or names, as the species search does.
+function entryMatches(entry, words) {
+  const text = [
+    entry.species_code, entry.life_stage, entry.name, entry.scientific_name,
+    ...entry.members.flatMap((m) => [m.species_code, m.species_name, m.scientific_name, m.name_in_source]),
+  ]
+    .filter((x) => x)
+    .join(" ")
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u);
+  return words.every((w) => text.some((t) => t.startsWith(w)));
+}
+
+function renderCatalog() {
+  const c = catalogData;
+  if (!c) return;
+  const form = $("catalog-filter");
+  const words = form.q.value.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w);
+  const shown = c.species.filter((s) => (!form.eligible.checked || s.hcr_eligible) && entryMatches(s, words));
+  const groups = c.species.filter(isGroup);
+  const place = [c.location.subregion, c.location.region, c.location.continent].filter((x) => x).join(", ");
+  $("catalog-total").textContent = `(${shown.length} of ${c.species.length})`;
+  const facts = [
+    ["Status", c.status === "complete" ? "complete: every entry has a name" : "partial: see notes and differences"],
+    ["Entries", `${c.species.length} (${groups.length} functional groups, ${c.species.length - groups.length} species)`],
+    ["Can carry a rule", String(c.species.filter((s) => s.hcr_eligible).length)],
+    ["Where", place || "—"],
+    ["Climate scenarios", c.climate_scenarios.join(", ") || "none"],
+    ["Fleets", c.fleets.map((f) => `${f.gear_code} ${f.country_code}`).join(", ") || "none"],
+  ];
+  const dl = $("catalog-facts");
+  dl.replaceChildren();
+  for (const [k, v] of facts) dl.append(el("dt", k), el("dd", v));
+  for (const [box, list, items] of [
+    ["catalog-notes-box", "catalog-notes", c.notes],
+    ["catalog-drift-box", "catalog-drift", c.drift],
+  ]) {
+    $(list).replaceChildren(...items.map((n) => el("li", n)));
+    $(box).hidden = items.length === 0;
+  }
+  const body = $("catalog-entries");
+  body.replaceChildren();
+  if (shown.length === 0) {
+    const tr = el("tr");
+    const td = el("td", "No entry matches.", "muted");
+    td.colSpan = 6;
+    tr.append(td);
+    body.append(tr);
+  }
+  for (const s of shown) {
+    const tr = el("tr");
+    const kind = el("td");
+    kind.append(el("span", isGroup(s) ? "functional group" : "species", "badge"));
+    tr.append(
+      el("td", entryLabel(s.species_code, s.life_stage)),
+      kind,
+      el("td", s.name || "—", "wrap"),
+      el("td", s.scientific_name || "—", "wrap"),
+      el("td", s.hcr_eligible ? "yes" : "no"),
+      membersCell(s),
+    );
+    body.append(tr);
+  }
+}
+
+$("catalog-filter").addEventListener("submit", (event) => event.preventDefault());
+$("catalog-filter").scenario.addEventListener("change", loadCatalog);
+$("catalog-filter").q.addEventListener("input", renderCatalog);
+$("catalog-filter").eligible.addEventListener("change", renderCatalog);
+
+// --- functional groups import and export (admins) ----------------------------
+
+const GROUP_COLUMNS = [
+  "group_code", "group_name", "name_source", "species_code", "name_in_source",
+  "cmsy_group", "cmsy_stock_id", "continent", "region", "subregion", "scientific_name",
+];
+// As the API: a column takes the file column of its own name, else the
+// partner list's header.
+const PARTNER_HEADERS = {
+  group_code: "Stock",
+  group_name: "GroupMICE",
+  species_code: "Species",
+  name_in_source: "Name",
+  cmsy_group: "GroupCMSY",
+  cmsy_stock_id: "SpecCode",
+  continent: "Continent",
+  region: "Region",
+  subregion: "Subregion",
+  scientific_name: "ScientificName",
+};
+
+let groupsFile = null;
+let groupsCheckedKey = null; // scenario, file and options of the last clean dry run
+
+const groupsScenario = () => $("groups-import").scenario.value;
+
+async function openGroupsImport() {
+  setError("groups-import-error", "");
+  try {
+    await fillScenarioPicker($("groups-import").scenario);
+  } catch (err) {
+    setError("groups-import-error", err.message);
+  }
+}
+
+function groupsParams(dryRun) {
+  const form = $("groups-import");
+  const params = new URLSearchParams({
+    dry_run: String(dryRun),
+    delimiter: form.delimiter.value,
+    name_source: form.name_source.value,
+  });
+  for (const select of $("groups-mapping-rows").querySelectorAll("select")) {
+    params.append("map", `${select.name}:${select.value}`);
+  }
+  return params;
+}
+
+function groupsKey() {
+  if (!groupsFile) return null;
+  const f = groupsFile;
+  return JSON.stringify([groupsScenario(), f.name, f.size, f.lastModified, groupsParams(true).toString()]);
+}
+
+function resetGroupsCheck() {
+  groupsCheckedKey = null;
+  $("groups-apply").disabled = true;
+}
+
+async function readGroupsHeader() {
+  resetGroupsCheck();
+  $("groups-report").hidden = true;
+  setError("groups-import-error", "");
+  const form = $("groups-import");
+  groupsFile = form.file.files[0] || null;
+  const box = $("groups-mapping-rows");
+  box.replaceChildren();
+  if (!groupsFile) {
+    $("groups-mapping").hidden = true;
+    return;
+  }
+  const headers = parseHeader(await groupsFile.slice(0, 65536).text(), form.delimiter.value);
+  for (const target of GROUP_COLUMNS) {
+    const label = el("label", target === "scientific_name" ? "scientific_name (checked only)" : target);
+    const select = document.createElement("select");
+    select.name = target;
+    select.append(new Option("(not mapped)", ""));
+    for (const h of headers) select.append(new Option(h, h));
+    const partner = PARTNER_HEADERS[target];
+    const guess =
+      headers.find((h) => normHeader(h) === normHeader(target)) ??
+      (partner ? headers.find((h) => normHeader(h) === normHeader(partner)) : undefined);
+    select.value = guess ?? "";
+    select.addEventListener("change", resetGroupsCheck);
+    label.append(select);
+    box.append(label);
+  }
+  $("groups-mapping").hidden = false;
+}
+
+function showGroupsReport(r) {
+  $("groups-report").hidden = false;
+  $("groups-report-title").textContent = r.applied
+    ? `Imported into ${r.scenario_name}`
+    : r.errors.length
+      ? r.dry_run ? "Check: the file has errors, nothing would change" : "Not imported: the file has errors"
+      : `Check: ready to replace the groups of ${r.scenario_name}`;
+  const facts = [
+    ["Rows read", r.rows_read.toLocaleString()],
+    ["Groups in the file", countText(r.groups)],
+    ["Species in the file", r.species.toLocaleString()],
+    ["Groups added", countText(r.added)],
+    ["Groups removed", countText(r.removed)],
+    ["Groups changed", countText(r.changed)],
+    ["Mapping", Object.entries(r.mapping).map(([t, h]) => `${t} ← ${h}`).join("; ") || "none"],
+  ];
+  const dl = $("groups-report-facts");
+  dl.replaceChildren();
+  for (const [k, v] of facts) dl.append(el("dt", k), el("dd", v));
+  $("groups-report-error-list").replaceChildren(
+    ...r.errors.map((e) => el("li", e.line ? `Line ${e.line}: ${e.message}` : e.message)),
+  );
+  $("groups-report-errors").hidden = r.errors.length === 0;
+  $("groups-report-warning-list").replaceChildren(...r.warnings.map((w) => el("li", w)));
+  $("groups-report-warnings").hidden = r.warnings.length === 0;
+}
+
+async function runGroupsImport(dryRun) {
+  setError("groups-import-error", "");
+  if (!groupsFile) return setError("groups-import-error", "Choose a CSV file first.");
+  const key = groupsKey();
+  const path = `/admin/scenarios/${encodeURIComponent(groupsScenario())}/groups/import?${groupsParams(dryRun)}`;
+  const res = await call("POST", path, undefined, { raw: groupsFile, type: "text/csv" });
+  if (res.status === 401) return signedOut("Your session has ended. Sign in again.");
+  let report = null;
+  if (res.ok) report = await res.json();
+  else if (res.status === 422) {
+    const body = await res.json().catch(() => null);
+    const details = body && body.error && body.error.details;
+    if (details && details.scenario_name) report = details;
+    else {
+      const message = body && body.error ? body.error.message : "The API answered 422.";
+      return setError("groups-import-error", message);
+    }
+  } else return setError("groups-import-error", await errorText(res));
+  showGroupsReport(report);
+  if (dryRun) {
+    groupsCheckedKey = report.errors.length === 0 ? key : null;
+    $("groups-apply").disabled = groupsCheckedKey === null;
+  } else if (report.applied) {
+    resetGroupsCheck();
+    if (catalogData && catalogData.scenario_name === report.scenario_name) catalogData = null;
+  }
+}
+
+$("groups-import").file.addEventListener("change", readGroupsHeader);
+$("groups-import").delimiter.addEventListener("change", readGroupsHeader);
+$("groups-import").name_source.addEventListener("change", resetGroupsCheck);
+$("groups-import").scenario.addEventListener("change", () => {
+  resetGroupsCheck();
+  $("groups-report").hidden = true;
+});
+
+$("groups-check").addEventListener("click", (event) => {
+  busy(event.currentTarget, () => runGroupsImport(true));
+});
+
+$("groups-apply").addEventListener("click", (event) => {
+  const button = event.currentTarget;
+  if (groupsKey() !== groupsCheckedKey) {
+    resetGroupsCheck();
+    return setError("groups-import-error", "The scenario, the file or the options changed: check again first.");
+  }
+  const scenario = groupsScenario();
+  if (!window.confirm(`Replace every functional group of ${scenario} with this file? Groups not in it are deleted.`)) {
+    return;
+  }
+  busy(button, () => runGroupsImport(false));
+});
+
+$("groups-export").addEventListener("click", (event) => {
+  busy(event.currentTarget, async () => {
+    setError("groups-import-error", "");
+    const scenario = groupsScenario();
+    if (!scenario) return setError("groups-import-error", "Choose a scenario first.");
+    const res = await call("GET", `/admin/scenarios/${encodeURIComponent(scenario)}/groups/export.csv`);
+    if (res.status === 401) return signedOut("Your session has ended. Sign in again.");
+    if (!res.ok) return setError("groups-import-error", await errorText(res));
+    const url = URL.createObjectURL(await res.blob());
+    const a = el("a");
+    a.href = url;
+    a.download = `${scenario}.groups.csv`;
     document.body.append(a);
     a.click();
     a.remove();

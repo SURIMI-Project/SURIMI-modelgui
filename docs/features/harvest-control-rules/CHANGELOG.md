@@ -6,6 +6,20 @@ where, how it was checked and what deploying it needs. Design is in
 
 ---
 
+## 2026-11-27 — Rules on functional groups; entries carry `kind` and `members`
+
+`initial_hcr/schemas.py`, `initial_hcr/service.py`, `hcr/schemas.py`,
+`hcr/service.py`: initial HCR data entries and configuration rules carry
+`kind` and `members` (ADR 0029); for a functional group `species_name` is
+the group's name. `functional_group` and `functional_group_name` are
+deprecated and null. `aegean_sea`'s 7 group codes are HCR-eligible, so a rule
+can be saved on `DF2` and is sent with `species_code = "DF2"`, as
+`GetInitialHCRData` names it. Validation is unchanged. **Verified** by the
+test suite (349 pass, see the scenario catalog changelog); not run against
+`project-surimi`.
+
+---
+
 ## 2026-11-23 — Built: initial HCR data and defaults from the controller, snapshots per experiment
 
 **Status:** built (backend, console, Bruno); plan 2026-11-23 phase 1. Ruff, format and mypy strict clean; **332 tests pass**, integration tests included (PostgreSQL 17), 2026-11-23.

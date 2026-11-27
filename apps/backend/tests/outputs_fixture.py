@@ -11,6 +11,7 @@ import numpy as np
 
 from surimi_backend.catalog.schemas import (
     FunctionalGroupOut,
+    LocationOut,
     ScenarioCatalogOut,
     SpeciesEntryOut,
     SpeciesRefOut,
@@ -161,7 +162,7 @@ def catalog() -> ScenarioCatalogOut:
                 name=None,
                 scientific_name=None,
                 isscaap_group=None,
-                functional_group=None,
+                kind="species",
                 hcr_eligible=False,
             )
             for c, s in SPECIES
@@ -170,7 +171,7 @@ def catalog() -> ScenarioCatalogOut:
         climate_scenarios=[],
         fleets=[],
         markets=MARKETS,
-        built_from={},
+        location=LocationOut(continent=None, region=None, subregion=None),
         notes=[],
         drift=[],
     )

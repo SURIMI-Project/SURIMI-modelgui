@@ -17,31 +17,30 @@ settings:
 docs: |-
   # get scenario catalog
 
-  What one scenario contains: functional groups (Ecopath groups, named as in
-  the EwE model), species with English names and higher taxa (FAO ASFIS, from
-  the `species` table), which entries can
-  carry a harvest control rule, climate scenarios, fleets, markets, and the
-  level at which each output metric holds its own values. Built from the
-  scenario's catalog file, the `species` table and the live contract (ADR 0017,
-  ADR 0023); rebuilt when the
-  contract cache (10 min) expires. Nothing is made up: names the sources lack
-  are null.
+  What one scenario contains. Every contract entry has a `kind`: a
+  `species` (named from the FAO ASFIS list, the `species` table) or a
+  `functional_group` (ADR 0029): its code is what the controller receives
+  (`aegean_sea`: `CCR1` … `PF2`), its name comes from the scenario's catalog
+  and its species are in `members`. Also which entries can carry a harvest
+  control rule, climate scenarios, fleets, markets, the scenario's location
+  and the level of each output metric. Built from the `catalog_*` tables,
+  the `species` table and the live contract; rebuilt when the contract cache
+  (10 min) expires or an admin imports groups. Nothing is made up: names the
+  sources lack are null.
 
   ## Response
 
   | Field | Meaning |
   | --- | --- |
-  | `status` | `complete`, or `partial` when no functional groups are known (today `aegean_sea`) |
-  | `levels` | `functional_group`, `species` or both. `anchovy_bay`: only `functional_group` |
-  | `metric_levels` | Per metric. `biomass` is `functional_group` whenever groups exist: it is a group value copied to each species |
-  | `functional_groups[]` | `key` (Ecopath group id), `name` and `name_source` (`ewe_model`, `manual`, or null), `members[]` |
-  | `species[]` | Every contract entry: `species_code`, `life_stage`, `name`, `scientific_name`, `family`, `order_or_higher_taxa`, `isscaap_group`, `functional_group`, `hcr_eligible` |
+  | `status` | `complete` when every entry has a name, else `partial` |
+  | `levels`, `metric_levels` | `species` for every metric: outputs are read per entry |
+  | `species[]` | Every contract entry: `species_code`, `life_stage`, `kind`, `name`, `scientific_name`, `family`, `order_or_higher_taxa`, `isscaap_group`, `hcr_eligible`, `members[]` (`species_code`, `species_name`, `scientific_name`, `name_in_source`, `cmsy_group`, `cmsy_stock_id`); `functional_group` deprecated, always null |
+  | `functional_groups`, `built_from` | Deprecated, always empty |
+  | `location` | `continent`, `region`, `subregion` from the partner list, or null |
   | `climate_scenarios`, `fleets`, `markets` | From the contract |
-  | `built_from` | Partner commits and sources of the catalog file |
-  | `notes` | Known gaps of the sources (missing mapping, model or fisheries authority inputs) |
-  | `drift` | Differences between the file and the live contract, and contract codes with no `species` row |
+  | `notes` | Known gaps of the scenario's catalog |
+  | `drift` | Groups or HCR-eligible entries not in the contract, codes with no `species` row |
 
   ## Notes
 
-  Unknown scenario: `404` `not_found`. Try `anchovy_bay` and `aegean_sea`
-  to see the other shapes.
+  Unknown scenario: `404` `not_found`. Try `aegean_sea` for functional groups.

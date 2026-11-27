@@ -171,9 +171,11 @@ change; "Reset to default" goes back to it. We keep no defaults of our own
 
 `GET /api/v1/scenarios/{name}/initial-hcr-data` returns the controller's
 `GetInitialHCRData` for the scenario now (never cached), each entry named:
-`species_name`, `scientific_name`, `family` from the `species` table,
-`functional_group`, `functional_group_name` and `hcr_eligible` from the
-catalog, then `initial_biomass_kg`, `initial_fishing_mortality`,
+`kind` (`species`, or `functional_group` for `aegean_sea`'s `CCR1` … `PF2`,
+ADR 0029), `species_name` (a group's name for a group), `scientific_name`,
+`family` from the `species` table, `members` (a group's species) and
+`hcr_eligible` from the catalog (`functional_group`, `functional_group_name`
+deprecated, null since 2026-11-27), then `initial_biomass_kg`, `initial_fishing_mortality`,
 `default_biomass_limit_kg`, `default_biomass_base_kg`, `default_f_max`. The
 experiment form's options carry the same values per contract entry.
 
@@ -347,8 +349,10 @@ its snapshot). Migration `0008_initial_hcr_snapshots`, 2026-11-23.
 
 `HcrIn`: `species_code`, `life_stage` (default `""`), `biomass_limit_kg`,
 `biomass_base_kg` (kilograms), `f_max`. `HcrConfigurationOut`: `id`,
-`scenario_name`, `name`, `rules` (each `HcrIn` plus `eligible`,
-`species_name`, `functional_group`), `created_at`, `updated_at`.
+`scenario_name`, `name`, `rules` (each `HcrIn` plus `eligible`, `kind`,
+`species_name`, `members`; `functional_group` deprecated, null), `created_at`,
+`updated_at`. A rule on a functional group names its code (`species_code =
+"DF2"`), as the controller expects (ADR 0029).
 
 ---
 
