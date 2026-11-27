@@ -148,10 +148,6 @@ const ScenarioWorldPage = () => {
             setIsScenarioInputsOpen(true);
           }
         }}
-        showStockStatusButton={caseStudy.id === "anchovy-bay"}
-        onOpenStockStatus={() => {
-          navigate("/test");
-        }}
       />
       {InputsFlowComponent ? (
         <InputsFlowComponent
